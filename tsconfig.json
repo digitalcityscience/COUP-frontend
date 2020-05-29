@@ -2,17 +2,22 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "strict": true,
+    "strict": false,
     "jsx": "preserve",
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
-      "webpack-env"
+      "webpack-env",
+      "vuetify",
+      "node"
     ],
     "paths": {
       "@/*": [
@@ -31,7 +36,7 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx", "src/components/Map/store/index.js", "src/components/Map/store/index.js", "src/components/Map/store/map.js", "src/components/Map/store/layer.js", "src/components/Map/store/crs.js", "src/store/utils/composeModules.js"
   ],
   "exclude": [
     "node_modules"

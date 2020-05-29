@@ -1,0 +1,50 @@
+{
+    "Map": {
+        "View": {
+            "zoom": 12,
+            "center": [9.9937, 53.5511]
+        },
+        "BBox": [510000.0, 5850000.0, 625000.4, 6000000.0],
+        "Interactions": {},
+        "Projections": [
+            ["EPSG:31467", "+title=Bessel/Gauß-Krüger 3 +proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=bessel +datum=potsdam +units=m +no_defs"],
+            ["EPSG:25832", "+title=ETRS89/UTM 32N +proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"],
+            ["EPSG:8395", "+title=ETRS89/Gauß-Krüger 3 +proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=GRS80 +datum=GRS80 +units=m +no_defs"],
+            ["EPSG:4326", "+title=WGS 84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"]
+        ]
+    },
+    "Layers": [
+        {
+            "id": "schools",
+            "name": "Schulen Hamburg",
+            "url": "https://geodienste.hamburg.de/HH_WFS_Schulen",
+            "typ": "WFS",
+            "typename": "hh_schulen_dwh",
+            "opacity": 1,
+            "style": {
+                "stroke": {
+                    "width": 5,
+                    "color": "gold"
+                },
+                "fill": {
+                    "color": "rgba(255, 0, 192, 0.8)"
+                },
+                "icon": {
+                    "src": "https://image.flaticon.com/icons/svg/3011/3011270.svg",
+                    "scale": 0.02
+                }
+            }
+        },
+        {
+            "id": "grocery",
+            "name": "Supermärkte Hamburg",
+            "url": "https://geodienste.hamburg.de/MRH_WFS_Erreichbarkeitsanalysen_Ziele_Einrichtungen",
+            "typ": "WFS",
+            "typename": "supermaerkte",
+            "style": {
+                "color":"rgba(0, 255, 192, 0.8)"
+            }
+        }
+    ],
+    "Modules": {}
+}
