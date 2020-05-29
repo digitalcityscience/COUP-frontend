@@ -42,7 +42,16 @@
             "typ": "WFS",
             "typename": "supermaerkte",
             "style": {
-                "color":"rgba(0, 255, 192, 0.8)"
+                "function": "grocery",
+                "Rewe": {
+                    "color": "red"
+                },
+                "Edeka": {
+                    "color": "blue"
+                },
+                "Netto": {
+                    "color": "yellow"
+                }
             }
         }
     ],

@@ -57,10 +57,7 @@ export default {
                 strategy: layerConfig.strategy || defaultLayerRequest.strategy
             })
 
-            const style = vectorStyles.styleFromConfig.bind({
-                ...vectorStyles,
-                ...layerConfig.style
-            });
+            const style = vectorStyles.styleFromConfig(layerConfig.style);
     
             const layer = new VectorLayer({
                 ...opts,

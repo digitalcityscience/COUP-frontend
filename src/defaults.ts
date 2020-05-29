@@ -1,4 +1,5 @@
 import {all} from 'ol/loadingstrategy';
+import { Fill, Stroke } from 'ol/style';
 
 const defaultView = {
     zoom: 12,
@@ -24,11 +25,33 @@ const defaultLayerOptions = {
     maxResolution: undefined
 }
 
+const defaultVectorStyles = {
+    defaultColor: "#FF39DA",
+    selectedColor: "#DA39FF",
+    defaultWidth: 5,
+    defaultRadius: 5,
+    defaultFill: new Fill({
+        color: "rgba(255, 128, 175, 0.7)"
+    }),
+    defaultStroke: new Stroke({
+        color: "#FF39DA",
+        width: 3
+    }),
+    selectedFill: new Fill({
+        color: "rgba(175, 128, 255, 0.7)"
+    }),
+    selectedStroke: new Stroke({
+        color: "#DA39FF",
+        width: 3
+    })
+}
+
 export {
     defaultView,
     defaultMap,
     defaultProjections,
     defaultBBox,
     defaultLayerRequest,
-    defaultLayerOptions
+    defaultLayerOptions,
+    defaultVectorStyles
 }

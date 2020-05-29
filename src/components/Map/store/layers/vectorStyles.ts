@@ -1,62 +1,61 @@
 import {Fill, Stroke, Style, Circle, Icon} from "ol/style";
-import ImageStyle from 'ol/style/Image';
+import { defaultVectorStyles } from '@/defaults';
+import styleFunctions from '@/config/styles.ts';
+
+// THIS IS STUPID :D
+// function evalStyle (properties: any, styleDef: any) {
+//     if (typeof styleDef !== "string") {
+//         return styleDef
+//     }
+//     if (!styleDef?.includes("[")) {
+//         return styleDef
+//     }
+
+//     const styleGroup = styleDef.substring(0, styleDef.indexOf('['))
+//     const property = styleDef.substring(styleDef.indexOf('[') + 1, styleDef.indexOf(']'))
+//     const attributes = styleDef.substring(styleDef.indexOf(']') + 1).split('.')
+//     let style = stylesConfig?.[styleGroup]?.[properties[property]];
+
+//     for (let i = 1; i < attributes.length; i++) {
+//         style = style?.[attributes[i]];
+//     }
+
+//     console.log(properties, styleDef, style);
+
+//     return style;
+// }
 
 export default {
-    defaultColor: "#FF39DA",
-    selectedColor: "#DA39FF",
-    defaultWidth: 5,
-    defaultRadius: 5,
-    defaultFill: new Fill({
-        color: "rgba(255, 128, 175, 0.7)"
+    default: new Style({
+        fill: defaultVectorStyles.defaultFill,
+        stroke: defaultVectorStyles.defaultStroke,
+        image: new Circle({
+            radius: 5,
+            fill: defaultVectorStyles.defaultFill,
+            stroke: defaultVectorStyles.defaultStroke
+        })
     }),
-    defaultStroke: new Stroke({
-        color: "#FF39DA",
-        width: 3
+    selected: new Style({
+        fill: defaultVectorStyles.selectedFill,
+        stroke: defaultVectorStyles.selectedStroke,
+        image: new Circle({
+            radius: 5,
+            fill: defaultVectorStyles.selectedFill,
+            stroke: defaultVectorStyles.selectedStroke
+        })
     }),
-    default() {
-        const fill = this.defaultFill;
-        const stroke = this.defaultStroke;
-        return new Style({
-            fill,
-            stroke,
-            image: new Circle({
-                radius: 5,
-                fill,
-                stroke
-            })
-        })
-    },
-    selected() {
-        const fill = new Fill({
-            color: "rgba(175, 128, 255, 0.7)"
-        })
-        const stroke = new Stroke({
-            color: "#DA39FF",
-            width: 3
-        })
-
-        return new Style({
-            fill,
-            stroke,
-            image: new Circle({
-                radius: 5,
-                fill,
-                stroke
-            })
-        })
-    },
     createStyle(opts) {
         const fill = new Fill({
-            color: opts?.fill?.color || this.defaultColor
+            color: opts?.fill?.color || defaultVectorStyles.defaultColor
         });
         const stroke = new Stroke({
-            color: opts?.stroke?.color || this.defaultColor,
-            width: opts?.stroke?.width || this.defaultWidth
+            color: opts?.stroke?.color || defaultVectorStyles.defaultColor,
+            width: opts?.stroke?.width || defaultVectorStyles.defaultWidth
         });
         const circle = new Circle({
             fill,
             stroke,
-            radius: opts?.circle?.radius || this.defaultRadius
+            radius: opts?.circle?.radius || defaultVectorStyles.defaultRadius
         })
         const icon = opts?.icon ? new Icon(opts.icon) : undefined;
 
@@ -107,15 +106,20 @@ export default {
         try {
             // return defaultStyle if options are not provided
             if (!opts) {
-                return this.default();
+                return this.default;
+            }
+            // return simple colored Style if color value is specified
+            if (typeof opts === "string") {
+                return this.byColor(opts);
             }
             // return simple colored Style if color value is specified
             if (opts?.color) {
                 return this.byColor(opts.color, opts);
             }
-            // return simple colored Style if color value is specified
-            if (typeof opts === "string") {
-                return this.byColor(opts);
+            // returns a style Function from custom styles.js
+            if (opts?.function) {
+                console.log(styleFunctions[opts.function]);
+                return styleFunctions[opts.function]?.bind(opts) || this.default;
             }
             // if style is provided as object, create new Style from options
             if (opts?.constructor === Object) {
@@ -124,7 +128,7 @@ export default {
         }
         catch (e) {
             // if style generation fails return default Style
-            return this.default()
+            return this.default
         }
     }
 };
