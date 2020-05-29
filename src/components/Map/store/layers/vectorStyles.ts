@@ -2,29 +2,6 @@ import {Fill, Stroke, Style, Circle, Icon} from "ol/style";
 import { defaultVectorStyles } from '@/defaults';
 import styleFunctions from '@/config/styles.ts';
 
-// THIS IS STUPID :D
-// function evalStyle (properties: any, styleDef: any) {
-//     if (typeof styleDef !== "string") {
-//         return styleDef
-//     }
-//     if (!styleDef?.includes("[")) {
-//         return styleDef
-//     }
-
-//     const styleGroup = styleDef.substring(0, styleDef.indexOf('['))
-//     const property = styleDef.substring(styleDef.indexOf('[') + 1, styleDef.indexOf(']'))
-//     const attributes = styleDef.substring(styleDef.indexOf(']') + 1).split('.')
-//     let style = stylesConfig?.[styleGroup]?.[properties[property]];
-
-//     for (let i = 1; i < attributes.length; i++) {
-//         style = style?.[attributes[i]];
-//     }
-
-//     console.log(properties, styleDef, style);
-
-//     return style;
-// }
-
 export default {
     default: new Style({
         fill: defaultVectorStyles.defaultFill,
