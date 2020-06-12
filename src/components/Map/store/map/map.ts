@@ -2,12 +2,11 @@ import { generateSimpleGetters, generateSimpleMutations } from '@/store/utils/ge
 import { defaultMap } from '@/defaults'
 import { defaults as olDefaultInteractions } from 'ol/interaction.js';
 import { Map } from 'ol'
-import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
-import { OSM, Vector as VectorSource } from 'ol/source'
+import { OSM } from 'ol/source';
+import OLCesium from 'ol-cesium';
 import 'ol/ol.css'
 import Config from "@/config/config.json";
-import { Style, Circle, Stroke, Fill } from 'ol/style';
-
+import TileLayer from 'ol/layer/Tile';
 
 /**
  * User type definition
@@ -32,6 +31,7 @@ import { Style, Circle, Stroke, Fill } from 'ol/style';
  */
 const initialState = {
     map: null,
+    map3d: null,
     zoomLevel: null,
     maxZoomLevel: null,
     minZoomLevel: null,
@@ -66,18 +66,27 @@ export default {
                 source: new OSM()
             });
 
-            baseLayer.set('id', 0);
-            commit('map', new Map({
+            const map = new Map({
                 target: defaultMap.id,
                 layers: [],
                 view: state.view,
                 controls: [],
                 interactions: olDefaultInteractions(Config.Map?.Interactions || {})
-            }))
+            })
 
+            commit('map', map)
 
+            baseLayer.set('id', 0);
             dispatch('Layers/addLayer', baseLayer);
-            Config.Layers.forEach(l => dispatch('Layers/createLayer', l));
+
+            // Config.Layers.forEach(l => dispatch('Layers/createLayer', l));
+
+            setTimeout(() => {
+                const map3d = new OLCesium({map: state.map})
+                map3d.setEnabled(true);
+    
+                commit('map3d', map3d)
+            }, 4000);
         }
     }
 }

@@ -51,6 +51,18 @@
                 },
                 "Netto": {
                     "color": "yellow"
+                },
+                "Lidl": {
+                    "color": "white"
+                },
+                "Firschemarkt": {
+                    "color": "brown"
+                },
+                "Penny": {
+                    "color": "purple"
+                },
+                "Aldi": {
+                    "color": "darkblue"
                 }
             }
         }

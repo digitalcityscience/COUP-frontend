@@ -1,6 +1,7 @@
 <script>
 import Map from './components/Map/Map.vue'
 import GFI from './components/GFI/GFI.vue'
+// import Cesium from 'cesium'
 
 export default {
     name: 'App',
@@ -9,8 +10,12 @@ export default {
         GFI
     },
     data: () => ({
-        title: 'GRASBROOK FUNCTIONAL PLANNING'
-    })
+        title: 'GRASBROOK FUNCTIONAL PLANNING',
+        // cesium: null
+    }),
+    mounted () {
+      // this.cesium = new Cesium.Viewer('lala')
+    }
 }
 </script>
 
@@ -18,6 +23,7 @@ export default {
     <v-app>
         <Map />
         <GFI />
+        <div id="lala" />
 
     <!-- <div id="nav">
       <router-link to="/">Home</router-link>
