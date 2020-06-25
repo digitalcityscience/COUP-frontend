@@ -1,57 +1,30 @@
-import {all} from 'ol/loadingstrategy';
-import { Fill, Stroke } from 'ol/style';
+const INITIAL_VIEW_STATE = {
+    latitude: 53.53128461384861,
+    longitude: 10.0143909533867,
+    zoom: 13,
+    pitch: 0,
+    bearing: 0
+};
 
-const defaultView = {
-    zoom: 12,
-    center: [9.9937, 53.5511]
-}
-const defaultBBox = [510000.0, 5850000.0, 625000.4, 6000000.0]
-const defaultMap = {
-    id: 'map'
-}
-const defaultProjections = [
-    ["EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"]
-]
-const defaultLayerRequest = {
-    wfsVersion: '1.1.0',
-    strategy: all
-}
-
-const defaultLayerOptions = {
-    opacity: 1.0,
-    visible: true,
-    zIndex: 0,
-    minResolution: undefined,
-    maxResolution: undefined
-}
-
-const defaultVectorStyles = {
-    defaultColor: "#FF39DA",
-    selectedColor: "#DA39FF",
-    defaultWidth: 5,
-    defaultRadius: 5,
-    defaultFill: new Fill({
-        color: "rgba(255, 128, 175, 0.7)"
-    }),
-    defaultStroke: new Stroke({
-        color: "#FF39DA",
-        width: 3
-    }),
-    selectedFill: new Fill({
-        color: "rgba(175, 128, 255, 0.7)"
-    }),
-    selectedStroke: new Stroke({
-        color: "#DA39FF",
-        width: 3
-    })
+const DEFAULT_LAYER_OPTIONS_GEOJSON = {
+    pickable: true,
+    autoHighlight: true,
+    stroked: false,
+    filled: true,
+    extruded: false,
+    lineWidthScale: 20,
+    lineWidthMinPixels: 2,
+    getFillColor: [160, 160, 180, 200],
+    getLineColor: [160, 160, 180, 200],
+    getRadius: 100,
+    getLineWidth: 1,
+    getElevation: 30,
+    onHover: ({object, x, y}) => {
+      const tooltip = object.properties.name || object.properties.station;
+      /* Update tooltip
+         http://deck.gl/#/documentation/developer-guide/adding-interactivity?section=example-display-a-tooltip-for-hovered-object
+      */
+    }
 }
 
-export {
-    defaultView,
-    defaultMap,
-    defaultProjections,
-    defaultBBox,
-    defaultLayerRequest,
-    defaultLayerOptions,
-    defaultVectorStyles
-}
+export {INITIAL_VIEW_STATE, DEFAULT_LAYER_OPTIONS_GEOJSON}

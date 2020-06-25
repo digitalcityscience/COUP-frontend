@@ -10,13 +10,4 @@ declare global {
       [elem: string]: any;
     }
   }
-  interface GenericObject {
-    [key: string]: any;
-  }
-  interface StoreModule {
-    state: GenericObject;
-    getters: GenericObject;
-    mutations: GenericObject;
-    actions: GenericObject;
-  }
 }

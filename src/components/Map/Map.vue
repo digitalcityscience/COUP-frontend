@@ -1,30 +1,47 @@
-<script>
-import { mapActions } from 'vuex'
+<script lang="ts">
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
     name: 'Map',
     components: {
     },
-    data: () => ({
-    }),
+    computed: {
+        ...mapGetters([
+            'layers',
+            'deckLayers'
+        ])
+    },
+    watch: {
+        layers () {
+            console.log(this.layers)
+            this.$store.dispatch('parseLayers')
+        },
+        deckLayers () {
+            console.log(this.deckLayers)
+            this.$store.dispatch('renderLayers')
+        }
+    },
     mounted () {
-        console.log(this.$store)
-        this.generateMap()
+        this.renderDeck()
     },
     methods: {
-        ...mapActions('Map', [
-            'generateMap'
+        ...mapActions([
+            'renderDeck',
+            'renderLayers'
         ])
     }
 }
 </script>
 
 <template>
-    <div id="map" />
+    <canvas
+        id="deck"
+        onContextMenu="return false;"
+    />
 </template>
 
 <style lang="scss">
-    #map {
+    #deck {
         width: 100%;
         height: 100%;
     }

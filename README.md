@@ -1,4 +1,4 @@
-# gracio2_prototype
+# GRASBROOK FUNCTIONAL SCOPE
 
 ## Project setup
 ```
