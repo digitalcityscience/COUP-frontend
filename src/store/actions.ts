@@ -18,6 +18,27 @@ export default {
             height: "100%",
             layers: state.deckLayers
         }))
+
+        console.log(state.deck)
+
+        setTimeout(() => {
+            console.log('holla die waldfee');
+            const data = state.deckLayers[1].props.data;
+
+            // data.features = data.features.filter(f => parseInt(f.id)%2 !== 0);
+            console.log(data);
+
+            const g = new GeoJsonLayer({
+                id: 'groundfloor',
+                data: data,
+                ...DEFAULT_LAYER_OPTIONS_GEOJSON
+                // ...(layer.options || {})
+            })
+
+            console.log(g, state.deckLayers[1], state.deckLayers[0]);
+
+            state.deck.setProps({layers: [state.deckLayers[0], state.deckLayers[1]]})
+        }, 5000);
     },
     renderLayers({state}: ActionContext<StoreState, StoreState>) {
         if (state.deck) {
@@ -28,8 +49,6 @@ export default {
     parseLayers({state, commit}: ActionContext<StoreState, StoreState>) {
         const deckLayers = state.layers.map(layer => {
             let deckLayer;
-
-            console.log(layer);
 
             if (layer.type === 'geojson') {
                 deckLayer = new GeoJsonLayer({
@@ -65,7 +84,7 @@ export default {
             return deckLayer;
         })
 
-        commit('deckLayers', deckLayers)
+        // commit('deckLayers', deckLayers)
     },
     /**
      * Parses the module configs to the respective store modules

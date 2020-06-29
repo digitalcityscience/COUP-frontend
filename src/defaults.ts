@@ -20,7 +20,8 @@ const DEFAULT_LAYER_OPTIONS_GEOJSON = {
     getLineWidth: 1,
     getElevation: 30,
     onHover: ({object, x, y}) => {
-      const tooltip = object.properties.name || object.properties.station;
+      const tooltip = object?.properties
+      console.log(tooltip)
       /* Update tooltip
          http://deck.gl/#/documentation/developer-guide/adding-interactivity?section=example-display-a-tooltip-for-hovered-object
       */
