@@ -1,48 +1,61 @@
 <script lang="ts">
-import { mapActions, mapGetters } from 'vuex'
+import mapboxgl from 'mapbox-gl'
+import { mapState, mapActions } from 'vuex'
+// import groundfloor from '@/assets/groundfloor.json'
 
 export default {
     name: 'Map',
-    components: {
-    },
-    computed: {
-        ...mapGetters([
-            'layers',
-            'deckLayers'
-        ])
-    },
-    watch: {
-        layers () {
-            console.log(this.layers)
-            this.$store.dispatch('parseLayers')
-        },
-        deckLayers () {
-            console.log(this.deckLayers)
-            this.$store.dispatch('renderLayers')
+    data () {
+        return {
         }
     },
+    computed: {
+        ...mapState([
+            'mapStyle',
+            'view',
+            'accessToken',
+            'map',
+            'layers'
+        ])
+    },
     mounted () {
-        this.renderDeck()
+        mapboxgl.accessToken = this.accessToken
+
+        const options = {
+            container: 'map',
+            center: this.view.center,
+            zoom: this.view.zoom,
+            bearing: this.view.bearing,
+            pitch: this.view.pitch,
+            style: this.mapStyle,
+        }
+
+        this.$store.state.map = new mapboxgl.Map(options)
+
+        this.map.on('load', this.onMapLoaded)
+        this.map.on('click', this.onMapClicked)
     },
     methods: {
-        ...mapActions([
-            'renderDeck',
-            'renderLayers'
-        ])
+        onMapClicked (evt) {
+            console.log(evt)
+        },
+        onMapLoaded (evt) {
+            this.$store.dispatch('fetchLayerData')
+        },
     }
 }
 </script>
 
 <template>
-    <canvas
-        id="deck"
-        onContextMenu="return false;"
+    <div
+        id="map"
+        ref="map"
     />
 </template>
 
-<style lang="scss">
-    #deck {
-        width: 100%;
+<style scoped lang="scss">
+    #map {
         height: 100%;
+        width: 100%;
     }
 </style>

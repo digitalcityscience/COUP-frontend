@@ -10,19 +10,15 @@ export default {
         GFI
     },
     computed: {
-        ...mapGetters([
-            'userid'
-        ])
     },
     watch: {
-        userid () {
-            this.$store.dispatch('getLayer', 'groundfloor')
-        }
     },
     created () {
-        this.$store.dispatch('login', {
-            username: 'ernie',
-            password: 'bert'
+        this.$store.dispatch('connect', {
+            userdata: {
+                username: 'ernie',
+                password: 'bert'
+            }
         })
     }
 }
