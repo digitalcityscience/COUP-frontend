@@ -1,22 +1,19 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
-import { mapState, mapActions } from 'vuex'
-// import groundfloor from '@/assets/groundfloor.json'
+import { mapState, mapActions, mapGetters } from 'vuex'
 
 export default {
     name: 'Map',
-    data () {
-        return {
-        }
-    },
     computed: {
         ...mapState([
             'mapStyle',
             'view',
             'accessToken',
-            'map',
-            'layers'
-        ])
+            'map'
+        ]),
+        // ...mapGetters([
+        //     'layer'
+        // ])
     },
     mounted () {
         mapboxgl.accessToken = this.accessToken
@@ -38,6 +35,7 @@ export default {
     methods: {
         onMapClicked (evt) {
             console.log(evt)
+            console.log(this.$store.getters['layer']('groundfloor'))
         },
         onMapLoaded (evt) {
             this.$store.dispatch('fetchLayerData')
