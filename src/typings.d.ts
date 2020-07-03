@@ -1,5 +1,6 @@
 import mapboxgl, { Source, ImageSource, GeoJSONSource, VectorSource, RasterSource, AnySourceData } from "mapbox-gl";
 import CityPyO from "./store/cityPyO";
+import { GeoJsonLayer } from "@deck.gl/layers";
 
 export {};
 
@@ -14,9 +15,16 @@ declare global {
         actions: GenericObject;
       }
 
+      interface Feature {
+        rendered: any,
+        source: any,
+        sourceId: string
+      }
+
       interface StoreState {
         map: mapboxgl.Map | null,
-        layers: any[]
+        layerIds: string[],
+        selectedFeatures: any[]
         view: View,
         accessToken: string,
         cityPyO: CityPyO | null,

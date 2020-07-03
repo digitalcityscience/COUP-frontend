@@ -1,17 +1,44 @@
 import Config from '@/config/config.json'
 import CityPyO from './cityPyO'
 import { ActionContext } from 'vuex'
+import { Source, GeoJSONSource, ImageSource, VectorSource, RasterSource, Layer } from 'mapbox-gl'
 
 export default {
+    createLayer({state, commit}: ActionContext<StoreState, StoreState>, payload: RawSource) {
+        state.map?.addSource(payload.id, payload.options)
+        
+        Config.layers
+            .filter(l => l.source === payload.id)
+            .forEach(l => state.map?.addLayer(l as Layer))
+
+        commit('addLayerId', payload.id)
+    },
     fetchLayerData ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
         const sourceConfigs = Config.sources || [];
 
         sourceConfigs.forEach(config => {
             if (config.data?.from === "cityPyO") {
                 state.cityPyO.getLayer(config.data.id)
-                    .then(source => commit('addSource', source))
+                    .then(source => dispatch('createLayer', source))
             }
         })
+    },
+    editFeatureProps({state}, feature) {
+        if (feature) {
+            try {
+                const sourceId = feature.layer.source
+                const source = state.map.getSource(sourceId)
+                const sourceData = source?._data
+                const sourceFeatures = Array.isArray(sourceData) ? sourceData : sourceData.features
+                const sourceFeature = sourceFeatures.find(sf => parseInt(sf.id, 10) === feature.id)
+
+                sourceFeature.properties = feature.properties
+                source.setData(sourceData)
+            }
+            catch (e) {
+                console.warn('Could not find feature match in raw data', e)
+            }
+        }
     },
     connect ({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
         commit('cityPyO', new CityPyO(options.userdata))

@@ -1,6 +1,6 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
-import { mapState, mapActions, mapGetters } from 'vuex'
+import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 
 export default {
     name: 'Map',
@@ -9,11 +9,10 @@ export default {
             'mapStyle',
             'view',
             'accessToken',
-            'map'
-        ]),
-        // ...mapGetters([
-        //     'layer'
-        // ])
+            'map',
+            'layerIds',
+            'selectedFeatures'
+        ])
     },
     mounted () {
         mapboxgl.accessToken = this.accessToken
@@ -31,15 +30,35 @@ export default {
 
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
+        this.map.on('contextmenu', this.onMapContextMenu)
     },
     methods: {
         onMapClicked (evt) {
-            console.log(evt)
-            console.log(this.$store.getters['layer']('groundfloor'))
+            const bbox = [
+                [evt.point.x - 5, evt.point.y - 5],
+                [evt.point.x + 5, evt.point.y + 5]
+            ]
+            const features = this.map.queryRenderedFeatures(bbox, {
+                layers: this.layerIds
+            })
+
+            this.$store.commit('selectedFeatures', features)
+            console.log(this.selectedFeatures)
+
+            /**
+             * @todo build UI component to change feature data
+             */
+            const newFeature = this.selectedFeatures[0]
+
+            newFeature.properties.height = 100
+            this.$store.dispatch('editFeatureProps', newFeature)
         },
-        onMapLoaded (evt) {
+        onMapLoaded () {
             this.$store.dispatch('fetchLayerData')
         },
+        onMapContextMenu (evt) {
+            console.log('Contextmenu', evt)
+        }
     }
 }
 </script>
