@@ -25,6 +25,14 @@
             }
         }
     ],
+    "deckLayer": {
+        "stroked": true,
+        "filled": true,
+        "lineWidthMinPixels": 2,
+        "opacity": 0.4,
+        "getLineColor": [255, 100, 100],
+        "getFillColor": [200, 160, 0, 180]
+    },
     "sources": [
         {
             "id": "groundfloor",
@@ -32,6 +40,16 @@
             "data": {
                 "from": "cityPyO",
                 "id": "groundfloor"
+            }
+        },
+        {
+            "id": "abmTrips",
+            "type": "tripsLayerDeck",
+            "data": {
+                "from": "cityPyO",
+                "id": "abm",
+                "scenario": "bridge1",
+                "properties": ["prop1", "prop2"]
             }
         }
     ]

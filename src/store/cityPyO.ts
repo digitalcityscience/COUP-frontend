@@ -37,6 +37,7 @@ export default class CityPyO {
             body: JSON.stringify({
                 userid: this.userid,
                 layer: id
+              // todo add function to build request dependending on requested layer (abm, ..)
             })
         })
 

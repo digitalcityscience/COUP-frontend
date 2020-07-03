@@ -1,7 +1,6 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters } from 'vuex'
-import { deckLayer } from './deckTripsLayer'
 
 export default {
     name: 'Map',
@@ -30,7 +29,6 @@ export default {
         }
 
         this.$store.state.map = new mapboxgl.Map(options)
-        this.deckLayer = deckLayer
 
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
@@ -42,7 +40,6 @@ export default {
         },
         onMapLoaded (evt) {
             this.$store.dispatch('fetchLayerData');
-            this.map.addLayer(this.deckLayer)
         },
     }
 }

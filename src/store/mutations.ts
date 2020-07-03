@@ -12,7 +12,10 @@ export default {
             .filter(l => l.source === payload.id)
             .forEach(l => state.map?.addLayer(l as Layer))
     },
-      removeLayer(state: StoreState, payload: any | string) {
+    addLayer(state: StoreState, layer: any) {
+      state.map?.addLayer(layer)
+      },
+    removeLayer(state: StoreState, payload: any | string) {
         const id = typeof payload === 'string' ? payload : payload.id
 
        // remove from map not from state:  state.layers = state.layers.filter(l => l.id !== id)
