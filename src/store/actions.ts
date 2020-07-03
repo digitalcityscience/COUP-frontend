@@ -3,6 +3,7 @@ import {TripsLayer} from '@deck.gl/geo-layers';
 import Config from '@/config/config.json'
 import CityPyO from './cityPyO'
 import { ActionContext } from 'vuex'
+import { buildTripsLayer } from "@/store/deckel";
 
 export default {
   fetchLayerData({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
@@ -45,25 +46,5 @@ export default {
   }
 }
 
-export function  buildTripsLayer(sourceConfig, cityPyoResponse) {
-    console.log("building trips layer")
-    console.log(cityPyoResponse)
-
-    return new MapboxLayer({
-      id: sourceConfig.id,
-      type: TripsLayer,
-      data: cityPyoResponse.options.data.abm,
-      getPath: (d) => d.path,
-      getTimestamps: (d) => d.timestamps,
-      getColor: [253, 128, 93],
-      getWidth: 1,
-      opacity: 0.8,
-      widthMinPixels: 5,
-      rounded: true,
-      trailLength: 500,
-      currentTime: 100,
-      // currentTime: this.props.sliders.time[1]
-    });
-}
 
 
