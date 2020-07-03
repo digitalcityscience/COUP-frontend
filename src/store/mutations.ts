@@ -3,15 +3,18 @@ import Config from '@/config/config.json'
 
 export default {
     addSource(state: StoreState, payload: RawSource) {
+
+        // todo can we add mapbox layers as sources? should they be raw sources?
         state.map?.addSource(payload.id, payload.options)
-        
+
+      // add all layers that use this source
         Config.layers
             .filter(l => l.source === payload.id)
             .forEach(l => state.map?.addLayer(l as Layer))
     },
-    removeLayer(state: StoreState, payload: any | string) {
+      removeLayer(state: StoreState, payload: any | string) {
         const id = typeof payload === 'string' ? payload : payload.id
 
-        state.layers = state.layers.filter(l => l.id !== id)
+       // remove from map not from state:  state.layers = state.layers.filter(l => l.id !== id)
     }
 }

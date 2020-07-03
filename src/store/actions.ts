@@ -1,3 +1,5 @@
+import {GeoJsonLayer} from '@deck.gl/layers';
+import {MapboxLayer} from '@deck.gl/mapbox';
 import Config from '@/config/config.json'
 import CityPyO from './cityPyO'
 import { ActionContext } from 'vuex'
@@ -8,9 +10,15 @@ export default {
 
         sourceConfigs.forEach(config => {
             if (config.data?.from === "cityPyO") {
+              if (config.type == "deck-layer") {
                 state.cityPyO.getLayer(config.data.id)
-                    .then(source => commit('addSource', source))
-            }
+                  .then(source => commit('addLayer', this.buildTripsLayer(source)))
+              } else {
+                state.cityPyO.getLayer(config.data.id)
+                  .then(source => commit('addSource', source))
+              }
+    }
+            //if
         })
     },
     connect ({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
@@ -38,3 +46,19 @@ export default {
         }
     },
 }
+
+function buildTripsLayer(source) {
+  return new MapboxLayer({
+    id: source.id,
+    type: GeoJsonLayer,
+    data: {},
+    stroked: true,
+    filled: true,
+    lineWidthMinPixels: 2,
+    opacity: 0.4,
+    getLineColor: [255, 100, 100],
+    getFillColor: [200, 160, 0, 180]
+  });
+}
+
+

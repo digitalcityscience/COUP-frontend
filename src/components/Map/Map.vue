@@ -1,6 +1,7 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters } from 'vuex'
+import { deckLayer } from './deckTripsLayer'
 
 export default {
     name: 'Map',
@@ -11,12 +12,13 @@ export default {
             'accessToken',
             'map'
         ]),
+        //...deckLayer
         // ...mapGetters([
         //     'layer'
         // ])
     },
     mounted () {
-        mapboxgl.accessToken = this.accessToken
+        mapboxgl.accessToken = this.accessToken;
 
         const options = {
             container: 'map',
@@ -28,6 +30,7 @@ export default {
         }
 
         this.$store.state.map = new mapboxgl.Map(options)
+        this.deckLayer = deckLayer
 
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
@@ -38,7 +41,8 @@ export default {
             console.log(this.$store.getters['layer']('groundfloor'))
         },
         onMapLoaded (evt) {
-            this.$store.dispatch('fetchLayerData')
+            this.$store.dispatch('fetchLayerData');
+            this.map.addLayer(this.deckLayer)
         },
     }
 }
@@ -48,7 +52,7 @@ export default {
     <div
         id="map"
         ref="map"
-    />
+    ></div>
 </template>
 
 <style scoped lang="scss">

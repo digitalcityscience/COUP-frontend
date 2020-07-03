@@ -1,4 +1,6 @@
-import mapboxgl, { Source, ImageSource, GeoJSONSource, VectorSource, RasterSource, AnySourceData } from "mapbox-gl";
+import mapboxgl, { AnySourceData as AnyMapboxLayer } from "mapbox-gl";
+import {MapboxLayer as DeckLayer} from '@deck.gl/mapbox';
+
 import CityPyO from "./store/cityPyO";
 
 export {};
@@ -16,7 +18,6 @@ declare global {
 
       interface StoreState {
         map: mapboxgl.Map | null,
-        layers: any[]
         view: View,
         accessToken: string,
         cityPyO: CityPyO | null,
@@ -41,6 +42,6 @@ declare global {
 
       interface RawSource {
         id: string
-        options: AnySourceData
+        options: AnyMapboxLayer | DeckLayer
       }
 }
