@@ -20,5 +20,7 @@ export default new Vuex.Store({
         ...generateSimpleMutations(state),
         ...mutations
     },
-    actions
+    actions: {
+        ...actions
+    }
 })

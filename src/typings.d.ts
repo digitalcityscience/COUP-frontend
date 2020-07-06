@@ -1,6 +1,6 @@
-import { Deck, Layer } from "@deck.gl/core"
-import { GeoJsonLayer, TileLayer } from "@deck.gl/geo-layers"
-import { PolygonLayer, BitmapLayer } from "@deck.gl/layers"
+import mapboxgl, { Source, ImageSource, GeoJSONSource, VectorSource, RasterSource, AnySourceData } from "mapbox-gl";
+import CityPyO from "./store/cityPyO";
+import { GeoJsonLayer } from "@deck.gl/layers";
 
 export {};
 
@@ -15,26 +15,40 @@ declare global {
         actions: GenericObject;
       }
 
+      interface Feature {
+        rendered: any,
+        source: any,
+        sourceId: string
+      }
+
       interface StoreState {
-        layers: ioLayer[]
-        deck: Deck | null;
-        deckLayers: Array<Layer<any> | TileLayer<any> | GeoJsonLayer<any> | PolygonLayer<any> | BitmapLayer<any>>;
+        map: mapboxgl.Map | null,
+        layerIds: string[],
+        selectedFeatures: any[]
         view: View,
-        userid: string | null
+        accessToken: string,
+        cityPyO: CityPyO | null,
+        mapStyle: string,
       }
 
       interface View {
-        longitude: number;
-        latitude: number;
+        center: number[]
         zoom: number;
         pitch: number;
         bearing: number;
-    }
+      }
 
-    interface ioLayer {
-      id: string;
-      type: 'geojson' | 'image' | 'flitzepunkte' | 'tilelayer';
-      data: any,
-      options?: GenericObject
-    }
+      interface ConnectionOptions {
+        userdata: Userdata
+      }
+
+      interface Userdata {
+        username: string,
+        password: string
+      }
+
+      interface RawSource {
+        id: string
+        options: AnySourceData
+      }
 }

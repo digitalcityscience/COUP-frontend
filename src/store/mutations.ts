@@ -1,10 +1,13 @@
-export default {
-    addLayer(state: StoreState, payload: ioLayer) {
-        state.layers.push(payload)
-    },
-    removeLayer(state: StoreState, payload: ioLayer | string) {
-        const id = typeof payload === 'string' ? payload : payload.id
+import { Source, GeoJSONSource, ImageSource, VectorSource, RasterSource, Layer } from 'mapbox-gl'
+import Config from '@/config/config.json'
 
-        state.layers = state.layers.filter(l => l.id !== id)
+export default {
+    addLayerId(state: StoreState, id: string) {
+        if (!state.layerIds.includes(id)) {
+            state.layerIds.push(id)
+        }
+    },
+    removeLayerId(state: StoreState, id: string) {
+        state.layerIds = state.layerIds.filter(_id => _id !== id)
     }
 }
