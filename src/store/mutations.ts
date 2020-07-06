@@ -12,12 +12,16 @@ export default {
             .filter(l => l.source === payload.id)
             .forEach(l => state.map?.addLayer(l as Layer))
     },
-    addLayer(state: StoreState, layer: any) {
-      state.map?.addLayer(layer)
-      },
-    removeLayer(state: StoreState, payload: any | string) {
-        const id = typeof payload === 'string' ? payload : payload.id
-
-       // remove from map not from state:  state.layers = state.layers.filter(l => l.id !== id)
+    addLayerId(state: StoreState, id: string) {
+      if (!state.layerIds.includes(id)) {
+        state.layerIds.push(id)
+      }
+    },
+  // TODO: see if addLayer and addSource can be merged with addLayerID
+  addLayer(state: StoreState, layer: any) {
+    state.map?.addLayer(layer)
+  },
+    removeLayerId(state: StoreState, id: string) {
+      state.layerIds = state.layerIds.filter(_id => _id !== id)
     }
 }

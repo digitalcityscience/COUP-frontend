@@ -16,8 +16,16 @@ declare global {
         actions: GenericObject;
       }
 
+      interface Feature {
+        rendered: any,
+        source: any,
+        sourceId: string
+      }
+
       interface StoreState {
         map: mapboxgl.Map | null,
+        layerIds: string[],
+        selectedFeatures: any[]
         view: View,
         accessToken: string,
         cityPyO: CityPyO | null,
