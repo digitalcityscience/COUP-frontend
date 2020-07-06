@@ -57,7 +57,7 @@ export default {
         commit('cityPyO', new CityPyO(options.userdata))
     },
     animateTripsLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
-      animate(state.map.getLayer(tripsLayerName), true)
+      animate(state.map.getLayer(tripsLayerName))
     },
     /**
      * Parses the module configs to the respective store modules

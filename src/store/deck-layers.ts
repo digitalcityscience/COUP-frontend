@@ -28,7 +28,7 @@ export function  buildTripsLayer(cityPyoResponse): MapboxLayer {
 }
 
 // animate deck trips layer
-export function animate(layer: MapboxLayer, loop=false, start: number =null, end: number =null) {
+export function animate(layer: MapboxLayer, start: number =null, end: number =null) {
   if (!start) {
     start = getLayerStartTime(layer)
   }
@@ -43,7 +43,7 @@ export function animate(layer: MapboxLayer, loop=false, start: number =null, end
   let time = ((timestamp % loopTime) / loopTime) * loopLength;
 
   // if loop - start over
-  if (loop && time >= end) {
+  if (time >= end) {
     time = start
   }
 
@@ -53,7 +53,7 @@ export function animate(layer: MapboxLayer, loop=false, start: number =null, end
   // as long as endTime of trips layer is not reached - call next frame iteration
   if (time <= end) {
     window.requestAnimationFrame(() => {
-      animate(layer, loop, start, end);
+      animate(layer, start, end);
     });
   }
 }
