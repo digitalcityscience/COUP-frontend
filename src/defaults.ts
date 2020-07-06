@@ -1,7 +1,7 @@
 export default {
   mapStyle: "mapbox://styles/grasbrook/ckc4kk5ok0ski1iqgvyu2m2ub",
   view: {
-    center: [10.0143909533867, 53.53128461384861],
+    center: [83.3, 42.2],
     zoom: 13,
     pitch: 0,
     bearing: 0

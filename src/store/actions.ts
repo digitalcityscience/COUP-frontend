@@ -1,11 +1,15 @@
-import {MapboxLayer} from '@deck.gl/mapbox';
-import {TripsLayer} from '@deck.gl/geo-layers';
 import Config from '@/config/config.json'
 import CityPyO from './cityPyO'
 import { ActionContext } from 'vuex'
-import { buildTripsLayer } from "@/store/deckel";
+import { buildTripsLayer, animateTripsLayer } from "@/store/deck-layers";
+
 
 export default {
+  animateTripsLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+    if (state.map.getLayer("abmTrips")) {
+      animateTripsLayer(state.map.getLayer("abmTrips"))
+    }
+  },
   fetchLayerData({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
     const sourceConfigs = Config.sources || [];
 

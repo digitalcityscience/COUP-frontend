@@ -32,6 +32,7 @@ export default {
 
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
+        this.map.on('sourcedata', this.animateTripsLayers)
     },
     methods: {
         onMapClicked (evt) {
@@ -39,8 +40,14 @@ export default {
             console.log(this.$store.getters['layer']('groundfloor'))
         },
         onMapLoaded (evt) {
-            this.$store.dispatch('fetchLayerData');
+            this.$store.dispatch('fetchLayerData')
+            this.$store.dispatch('animateTripsLayers')
         },
+       animateTripsLayers(evt) {
+           if (this.$store.state.map.getLayer('abmTrips')) {
+               this.$store.dispatch('animateTripsLayers')
+          }
+       }
     }
 }
 </script>
