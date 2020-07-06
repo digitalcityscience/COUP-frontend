@@ -1,12 +1,12 @@
 import Config from '@/config/config.json'
 import CityPyO from './cityPyO'
 import { ActionContext } from 'vuex'
-import { Source, GeoJSONSource, ImageSource, VectorSource, RasterSource, Layer } from 'mapbox-gl'
-import { buildTripsLayer, animateTripsLayer } from "@/store/deck-layers";
+import { Layer } from 'mapbox-gl'
+import {buildTripsLayer, animate, tripsLayerName} from "@/store/deck-layers";
 
 
 export default {
-    createLayer({state, commit}: ActionContext<StoreState, StoreState>, payload: RawSource) {
+    createMapboxLayer({state, commit}: ActionContext<StoreState, StoreState>, payload: RawSource) {
         state.map?.addSource(payload.id, payload.options)
 
         Config.layers
@@ -15,18 +15,23 @@ export default {
 
         commit('addLayerId', payload.id)
     },
-    fetchLayerData ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+    createDeckLayer({state, commit}: ActionContext<StoreState, StoreState>, payload: RawSource) {
+        let deckLayer = buildTripsLayer(payload)
+        state.map?.addLayer(deckLayer)
+        commit('addLayerId', payload.id)
+    },
+    fetchLayersData ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
         const sourceConfigs = Config.sources || [];
 
         sourceConfigs.forEach(config => {
             if (config.data?.from === "cityPyO") {
               if (config.type == "tripsLayerDeck") {
                 state.cityPyO.getLayer(config.data.id)
-                  .then(payload => commit('addLayer', buildTripsLayer(config, payload)))
+                  .then(source => dispatch('createDeckLayer', source))
               }
               else {
                 state.cityPyO.getLayer(config.data.id)
-                  .then(source => dispatch('createLayer', source))
+                  .then(source => dispatch('createMapboxLayer', source))
               }
             }
           })
@@ -50,6 +55,9 @@ export default {
     },
     connect ({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
         commit('cityPyO', new CityPyO(options.userdata))
+    },
+    animateTripsLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+      animate(state.map.getLayer(tripsLayerName), true)
     },
     /**
      * Parses the module configs to the respective store modules

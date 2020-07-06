@@ -1,7 +1,9 @@
 import {MapboxLayer} from "@deck.gl/mapbox";
 import {TripsLayer} from "@deck.gl/geo-layers";
 
-export function  buildTripsLayer(sourceConfig, cityPyoResponse): MapboxLayer {
+export const tripsLayerName = "abmTrips"
+
+export function  buildTripsLayer(cityPyoResponse): MapboxLayer {
   // todo get scenario and scenario props from user input
   const scenario = "scenario1"
   const prop1 = "prop1"
@@ -9,7 +11,7 @@ export function  buildTripsLayer(sourceConfig, cityPyoResponse): MapboxLayer {
   const props_string = prop1.toString() + "_" +prop2.toString()
 
   return new MapboxLayer({
-    id: sourceConfig.id,
+    id: tripsLayerName,
     type: TripsLayer,
     data: cityPyoResponse.options.data[scenario][props_string].abm,
     getPath: (d) => d.path,
@@ -25,16 +27,8 @@ export function  buildTripsLayer(sourceConfig, cityPyoResponse): MapboxLayer {
   });
 }
 
-function getLayerStartTime(layer: MapboxLayer) {
-  return Math.min(...layer.implementation.props.data.map((d: any) => Math.min(...layer.implementation.props.getTimestamps(d))));
-}
-
-function getLayerEndTime(layer: MapboxLayer) {
-  return Math.max(...layer.implementation.props.data.map((d: any) => Math.max(...layer.implementation.props.getTimestamps(d))));
-}
-
 // animate deck trips layer
-export function animateTripsLayer(layer: MapboxLayer, loop=false, start: number =null, end: number =null) {
+export function animate(layer: MapboxLayer, loop=false, start: number =null, end: number =null) {
   if (!start) {
     start = getLayerStartTime(layer)
   }
@@ -59,7 +53,17 @@ export function animateTripsLayer(layer: MapboxLayer, loop=false, start: number 
   // as long as endTime of trips layer is not reached - call next frame iteration
   if (time <= end) {
     window.requestAnimationFrame(() => {
-      animateTripsLayer(layer, loop, start, end);
+      animate(layer, loop, start, end);
     });
   }
 }
+
+
+function getLayerStartTime(layer: MapboxLayer) {
+  return Math.min(...layer.implementation.props.data.map((d: any) => Math.min(...layer.implementation.props.getTimestamps(d))));
+}
+
+function getLayerEndTime(layer: MapboxLayer) {
+  return Math.max(...layer.implementation.props.data.map((d: any) => Math.max(...layer.implementation.props.getTimestamps(d))));
+}
+
