@@ -9,7 +9,7 @@
             return {
                 bridge1:  this.$store.state.abmScenario.bridge1,
                 bridge2:  this.$store.state.abmScenario.bridge2,
-                walkTroughBuildings: this.$store.state.abmScenario.walkTroughBuildings,
+                walkTroughBuildings:  this.$store.state.abmScenario.walkTroughBuildings,
                 pathLayout: this.$store.state.abmScenario.pathLayout,
             }
         },
@@ -39,39 +39,44 @@
     }
 </script>
 
+
+
+
+
 <template>
-  <div id="scenario" ref="scenario">
-    <v-expansion-panels
-      v-model="panel"
-      :readonly="readonly"
-      multiple
-    >
-      <v-expansion-panel>
-        <v-expansion-panel-header>ABM Scenario</v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-container fluid>
-            <header class="text-sm-left">Bridges</header>
-            <v-switch v-on:change="bridge1Toggle" v-model="bridge1" flat :label="`Bridge 1`"></v-switch>
-            <v-switch v-on:change="bridge2Toggle" v-model="bridge2" flat :label="`Bridge 2`"></v-switch>
-
-            <header class="text-sm-left">Walking through buildings?</header>
-            <v-switch v-on:change="walkThroughBuildingsToggle" v-model="walkTroughBuildings" flat :label="`Walk trough buildings: ${walkTroughBuildings.toString()}`"></v-switch>
-
-            <header class="text-sm-left">Pathways</header>
-            <v-radio-group>
-              <v-radio v-on:change="pathLayoutToggle('horizontal')"
-                       :label="'Horizontal pathways'"
-                       :value="pathLayout == 'horizontal'"
-              ></v-radio>
-              <v-radio v-on:change="pathLayoutToggle('vertical')"
-                       :label="'Vertical pathways'"
-                       :value="pathLayout == 'vertical'"
-              ></v-radio>
-            </v-radio-group>
-          </v-container>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </v-expansion-panels>
+  <div>
+    <v-row justify="space-around">
+      <v-checkbox v-model="disabled" class="mx-2" label="Disabled"></v-checkbox>
+      <v-checkbox v-model="readonly" class="mx-2" label="Read-only"></v-checkbox>
+      <v-checkbox v-model="error" class="mx-2" label="Error"></v-checkbox>
+      <v-checkbox v-model="success" class="mx-2" label="Success"></v-checkbox>
+      <v-col cols="12">
+        <v-select v-model="color" :items="colors" label="Color"></v-select>
+      </v-col>
+      <v-col cols="12">
+        <header>Checkboxes</header>
+      </v-col>
+      <v-checkbox v-model="loading" class="mx-2" label="Loading"></v-checkbox>
+      <v-checkbox v-model="flat" class="mx-2" label="Flat"></v-checkbox>
+      <v-checkbox v-model="inset" class="mx-2" label="Inset"></v-checkbox>
+      <v-col cols="12">
+        <header>Switches</header>
+      </v-col>
+      <v-switch v-model="mandatory" class="mx-2" label="Mandatory"></v-switch>
+      <v-switch v-model="multiple" class="mx-2" label="Multiple"></v-switch>
+      <v-switch v-model="row" class="mx-2" label="Row"></v-switch>
+      <v-col cols="12">
+        <header>Radios</header>
+      </v-col>
+      <v-radio-group>
+        <v-radio
+          v-for="n in 3"
+          :key="n"
+          :label="`Radio ${n}`"
+          :value="n"
+        ></v-radio>
+      </v-radio-group>
+    </v-row>
   </div>
 </template>
 

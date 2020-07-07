@@ -22,10 +22,18 @@ declare global {
         sourceId: string
       }
 
+      interface AbmScenario {
+      bridge1: boolean,
+      bridge2: boolean,
+      pathLayout: "vertical" | "horizontal",
+      walkTroughBuildings: boolean
+      }
+
       interface StoreState {
         map: mapboxgl.Map | null,
         layerIds: string[],
-        selectedFeatures: any[]
+        selectedFeatures: any[],
+        abmScenario: AbmScenario | null,
         view: View,
         accessToken: string,
         cityPyO: CityPyO | null,

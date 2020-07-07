@@ -23,6 +23,16 @@
                 ],
                 "fill-extrusion-opacity": 0.8
             }
+        },
+        {
+            "id": "bridges",
+            "type": "fill",
+            "source": "bridges",
+            "paint": {
+                "fill-color": "#888888",
+                "fill-opacity": 0.4
+            },
+            "filter": ["==", "$bridge", "bridge1"]
         }
     ],
     "deckLayer": {
@@ -40,6 +50,14 @@
             "data": {
                 "from": "cityPyO",
                 "id": "groundfloor"
+            }
+        },
+        {
+            "id": "bridges",
+            "type": "geojson",
+            "data": {
+                "from": "cityPyO",
+                "id": "bridges"
             }
         },
         {
