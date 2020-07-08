@@ -1,12 +1,16 @@
 <script>
 
     import { mapState } from 'vuex'
+    import {verticalPathLayout, horizontalPathLayout} from "@/store/deck-layers";
+
     export default {
         name: 'Scenario',
         components: {
         },
         data () {
             return {
+                verticalPathLayout: verticalPathLayout,
+                horizontalPathLayout: horizontalPathLayout,
                 bridge1:  this.$store.state.abmScenario.bridge1,
                 bridge2:  this.$store.state.abmScenario.bridge2,
                 walkTroughBuildings: this.$store.state.abmScenario.walkTroughBuildings,
@@ -22,17 +26,17 @@
         },
         methods: {
             bridge1Toggle (evt) {
-                this.$store.commit('updateAbmScenario', {'bridge1': evt}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
+                this.$store.dispatch('updateAbmScenario', {'bridge1': evt}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
             },
             bridge2Toggle (evt) {
-                this.$store.commit('updateAbmScenario', {'bridge2': evt}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
+                this.$store.dispatch('updateAbmScenario', {'bridge2': evt}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
             },
             walkThroughBuildingsToggle (evt) {
-                this.$store.commit('updateAbmScenario', {'walkThroughBuildings': evt}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
+                this.$store.dispatch('updateAbmScenario', {'walkThroughBuildings': evt}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
             },
             pathLayoutToggle (value) {
                 console.log(value)
-                this.$store.commit('updateAbmScenario', {'pathLayout': value}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
+                this.$store.dispatch('updateAbmScenario', {'pathLayout': value}) // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
                 console.log(this.$store.state.abmScenario)
             }
         }
@@ -41,11 +45,7 @@
 
 <template>
   <div id="scenario" ref="scenario">
-    <v-expansion-panels
-      v-model="panel"
-      :readonly="readonly"
-      multiple
-    >
+    <v-expansion-panels>
       <v-expansion-panel>
         <v-expansion-panel-header>ABM Scenario</v-expansion-panel-header>
         <v-expansion-panel-content>
@@ -59,13 +59,13 @@
 
             <header class="text-sm-left">Pathways</header>
             <v-radio-group>
-              <v-radio v-on:change="pathLayoutToggle('horizontal')"
+              <v-radio v-on:change="pathLayoutToggle(horizontalPathLayout)"
                        :label="'Horizontal pathways'"
-                       :value="pathLayout == 'horizontal'"
+                       :value="pathLayout == horizontalPathLayout"
               ></v-radio>
-              <v-radio v-on:change="pathLayoutToggle('vertical')"
+              <v-radio v-on:change="pathLayoutToggle(verticalPathLayout)"
                        :label="'Vertical pathways'"
-                       :value="pathLayout == 'vertical'"
+                       :value="pathLayout == verticalPathLayout"
               ></v-radio>
             </v-radio-group>
           </v-container>

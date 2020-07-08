@@ -1,5 +1,7 @@
 import mapboxgl, { AnySourceData as AnyMapboxLayer } from "mapbox-gl";
 import {MapboxLayer as DeckLayer} from '@deck.gl/mapbox';
+import {verticalPathLayout, horizontalPathLayout} from "@/store/abmScenarios";
+
 
 import CityPyO from "./store/cityPyO";
 
@@ -25,7 +27,7 @@ declare global {
       interface AbmScenario {
       bridge1: boolean,
       bridge2: boolean,
-      pathLayout: "vertical" | "horizontal",
+      pathLayout: verticalPathLayout | horizontalPathLayout,
       walkTroughBuildings: boolean
       }
 

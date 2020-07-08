@@ -1,12 +1,14 @@
 import Config from '@/config/config.json'
-import CityPyO from './cityPyO'
+import CityPyO from '@/store/cityPyO'
 import { ActionContext } from 'vuex'
 import { Layer } from 'mapbox-gl'
-import {buildTripsLayer, animate, tripsLayerName} from "@/store/deck-layers";
+import {buildTripsLayer, animate, abmTripsLayerName} from "@/store/deck-layers";
 
 
 export default {
     createMapboxLayer({state, commit}: ActionContext<StoreState, StoreState>, payload: RawSource) {
+        console.log("create layer")
+        console.log(payload)
         state.map?.addSource(payload.id, payload.options)
 
         Config.layers
@@ -15,26 +17,20 @@ export default {
 
         commit('addLayerId', payload.id)
     },
-    createDeckLayer({state, commit}: ActionContext<StoreState, StoreState>, payload: RawSource) {
-        let deckLayer = buildTripsLayer(payload)
+    createDeckLayer({state, commit}: ActionContext<StoreState, StoreState>) {
+        let deckLayer = buildTripsLayer(state)
         state.map?.addLayer(deckLayer)
-        commit('addLayerId', payload.id)
+        commit('addLayerId', deckLayer.id)
     },
     fetchLayersData ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
         const sourceConfigs = Config.sources || [];
 
         sourceConfigs.forEach(config => {
             if (config.data?.from === "cityPyO") {
-              if (config.type == "tripsLayerDeck") {
-                state.cityPyO.getLayer(config.data.id)
-                  .then(source => dispatch('createDeckLayer', source))
-              }
-              else {
-                state.cityPyO.getLayer(config.data.id)
-                  .then(source => dispatch('createMapboxLayer', source))
-              }
+              state.cityPyO.getLayer(config.data.id)
+                .then(source => dispatch('createMapboxLayer', source))
             }
-          })
+            })
     },
     editFeatureProps({state}, feature) {
         if (feature) {
@@ -57,7 +53,22 @@ export default {
         commit('cityPyO', new CityPyO(options.userdata))
     },
     animateTripsLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
-      animate(state.map.getLayer(tripsLayerName))
+      animate(state.map.getLayer(abmTripsLayerName))
+    },
+    updateAbmScenario({state, commit, dispatch}: ActionContext<StoreState, StoreState>, scenarioUpdate: GenericObject) {
+      console.log("action update abm")
+
+      const key = Object.keys(scenarioUpdate)[0]  // todo send entire scenario instead of "scenarioUpdate" ?
+      if (abmTripsLayerName in state.layerIds) {
+        commit('removeLayerId', abmTripsLayerName)
+        state.map?.removeLayer(abmTripsLayerName)
+      }
+      state.abmScenario[key] = scenarioUpdate[key]
+      dispatch('createDeckLayer', state)
+
+      // todo load bridges layer!!
+
+
     },
     /**
      * Parses the module configs to the respective store modules

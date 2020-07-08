@@ -1,5 +1,7 @@
 import Defaults from "@/defaults";
 import Config from '@/config/config.json';
+import {horizontalPathLayout} from "@/store/deck-layers";
+
 
 const initialState: StoreState = {
     map: null,
@@ -8,7 +10,7 @@ const initialState: StoreState = {
     abmScenario: {
       bridge1: true,
       bridge2: false,
-      pathLayout: "horizontal",
+      pathLayout: horizontalPathLayout,
       walkTroughBuildings: true,
     },
     view: Config['view'] || Defaults.view,

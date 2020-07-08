@@ -59,16 +59,7 @@
                 "from": "cityPyO",
                 "id": "bridges"
             }
-        },
-        {
-            "id": "abmTrips",
-            "type": "tripsLayerDeck",
-            "data": {
-                "from": "cityPyO",
-                "id": "abm",
-                "scenario": "bridge1",
-                "properties": ["prop1", "prop2"]
-            }
         }
+
     ]
 }

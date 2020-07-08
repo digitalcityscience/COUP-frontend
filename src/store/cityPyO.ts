@@ -27,33 +27,47 @@ export default class CityPyO {
         }
     }
 
-    async getLayer (id: string | number) {
-        const res = await fetch(this.url + 'getLayer', {
+    async getLayer (id: string | number, scenario?: string, resultProperties?: string[]) {
+      let requestUrl = this.url +  'getLayer'
+      if (scenario) {
+        requestUrl = requestUrl + '/' + scenario
+      }
+
+      let body = {
+        userid: this.userid,
+        layer: id
+      }
+
+      if (resultProperties) {
+        body["result_properties"] = resultProperties
+      }
+      const res = await fetch(requestUrl, {
             method: 'POST',
             mode: 'cors',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                userid: this.userid,
-                layer: id
-              // todo add function to build request dependending on requested layer (abm, ..)
-            })
+            body: JSON.stringify(body)
         })
 
-        if (res.status === 200) {
-            const json = await res.json();
+        if (res.status == 200) {
+          const json = await res.json();
 
-            return {
-                id,
-                options: {
-                    type: 'geojson',
-                    data: json
-                }
+          if (scenario) {
+            console.log("got this abm data from cityPyo")
+            console.log(json)
+          }
+
+          return {
+            id,
+            options: {
+              type: 'geojson',
+              data: json
             }
-        }
-
-        return console.warn(res.status, res.statusText)
+          }
+        } else {
+          console.warn(res.status, res.statusText)
+      }
     }
 
     getLayerData(query: string) {
