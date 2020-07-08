@@ -29,10 +29,9 @@
             "type": "fill",
             "source": "bridges",
             "paint": {
-                "fill-color": "#888888",
-                "fill-opacity": 0.4
-            },
-            "filter": ["==", "$bridge", "bridge1"]
+                "fill-color": "red",
+                "fill-opacity": 0.8
+            }
         }
     ],
     "deckLayer": {
