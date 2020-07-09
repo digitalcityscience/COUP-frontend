@@ -50,14 +50,6 @@
                 "from": "cityPyO",
                 "id": "groundfloor"
             }
-        },
-        {
-            "id": "bridges",
-            "type": "geojson",
-            "data": {
-                "from": "cityPyO",
-                "id": "bridges"
-            }
         }
 
     ]

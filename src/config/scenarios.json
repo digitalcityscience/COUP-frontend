@@ -1,0 +1,51 @@
+{
+  "layers": [
+    {
+      "id": "all_bridges",
+      "type": "fill",
+      "source": "bridges",
+      "paint": {
+        "fill-color": "red",
+        "fill-opacity": 0.8
+      }
+    },
+    {
+      "id": "bridge1",
+      "type": "fill",
+      "source": "bridges",
+      "paint": {
+        "fill-color": "red",
+        "fill-opacity": 0.8
+      },
+      "filter": [
+        "==",
+        "bridge",
+        "1"
+      ]
+    },
+    {
+      "id": "bridge2",
+      "type": "fill",
+      "source": "bridges",
+      "paint": {
+        "fill-color": "red",
+        "fill-opacity": 0.8
+      },
+      "filter": [
+        "==",
+        "bridge",
+        "2"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "bridges",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "bridges"
+      }
+    }
+  ]
+}

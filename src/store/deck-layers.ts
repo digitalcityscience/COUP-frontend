@@ -9,20 +9,20 @@ export const horizontalPathLayout = 'pathHorizontal'
 
 export function getBridgeLayer(state: StoreState): MapboxLayer  {
   let layer = state.map.getLayer("bridges")
-  let scenarioName = getRequestScenarioName(state.abmScenario)
+  let scenarioName = getScenarioName(state.abmScenario)
 
   if (scenarioName != 'bridge1_bridge2') {
-    layer.filter = ["==", "bridge", getRequestScenarioName(state.abmScenario)]
+    layer.filter = ["==", "bridge", getScenarioName(state.abmScenario)]
   }
 
   return layer
 }
 
 export async function buildTripsLayer(state: StoreState): DeckLayer {
-  const requestScenario = getRequestScenarioName(state.abmScenario)
+  const requestScenario = getScenarioName(state.abmScenario)
   const scenarioProperties = getScenarioProperties(state.abmScenario)
 
-  state.cityPyO.getLayer(abmTripsLayerName, requestScenario, scenarioProperties)
+  return state.cityPyO.getLayer(abmTripsLayerName, requestScenario, scenarioProperties)
     .then(result => {
       console.log("result from cityPyo")
       console.log(result)
@@ -30,9 +30,11 @@ export async function buildTripsLayer(state: StoreState): DeckLayer {
       let deckLayer = new DeckLayer({
         id: abmTripsLayerName,
         type: TripsLayer,
-        data: result.options.data,
+        data: result.options.data.data.abm,
         getPath: (d) => d.path,
-        getTimestamps: (d) => d.timestamps,
+        getTimestamps: (d) => {
+          return d.timestamps
+        },
         getColor: [253, 128, 93],
         getWidth: 1,
         opacity: 0.8,
@@ -41,15 +43,17 @@ export async function buildTripsLayer(state: StoreState): DeckLayer {
         trailLength: 500,
         currentTime: 100,
         // currentTime: this.props.sliders.time[1]
-    });
 
-    console.log(deckLayer)
-    console.log("adding this layer", deckLayer)
-    state.map?.addLayer(deckLayer)
+
+      });
+      console.log(deckLayer)
+      console.log("adding this layer", deckLayer)
+      // state.map?.addLayer(deckLayer)
+      return deckLayer
   })
 }
 
-function getRequestScenarioName(scenario: AbmScenario): string {
+export function getScenarioName(scenario: AbmScenario): string {
   if (scenario.bridge1 && scenario.bridge2) {
     return 'bridge1_bridge2'
   }
@@ -104,10 +108,10 @@ export async function animate(layer: MapboxLayer, start: number =null, end: numb
 }
 
 function getLayerStartTime(layer: MapboxLayer) {
-  return Math.min(...layer.implementation.props.data.data.map((d: any) => Math.min(...layer.implementation.props.getTimestamps(d))));
+  return Math.min(...layer.implementation.props.data.map((d: any) => Math.min(...layer.implementation.props.getTimestamps(d))));
 }
 
 function getLayerEndTime(layer: MapboxLayer) {
-  return Math.max(...layer.implementation.props.data.data.map((d: any) => Math.max(...layer.implementation.props.getTimestamps(d))));
+  return Math.max(...layer.implementation.props.data.map((d: any) => Math.max(...layer.implementation.props.getTimestamps(d))));
 }
 

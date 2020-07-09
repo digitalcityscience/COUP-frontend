@@ -32,12 +32,10 @@ export default class CityPyO {
       if (scenario) {
         requestUrl = requestUrl + '/' + scenario
       }
-
       let body = {
         userid: this.userid,
         layer: id
       }
-
       if (resultProperties) {
         body["result_properties"] = resultProperties
       }

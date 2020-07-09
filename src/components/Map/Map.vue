@@ -31,7 +31,7 @@ export default {
 
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
-        this.map.on('sourcedata', this.animateTripsLayer)
+        //this.map.on('sourcedata', this.animateTripsLayer)
         this.map.on('contextmenu', this.onMapContextMenu)
     },
     methods: {

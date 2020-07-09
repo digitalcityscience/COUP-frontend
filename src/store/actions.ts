@@ -1,30 +1,62 @@
+import Designs from '@/config/designs.json'
+import Scenarios from '@/config/scenarios.json'
 import Config from '@/config/config.json'
 import CityPyO from '@/store/cityPyO'
 import { ActionContext } from 'vuex'
 import { Layer } from 'mapbox-gl'
 import {
   buildTripsLayer,
-  animate,
-  addFilterForBridgeLayer,
+  getScenarioName,
   abmTripsLayerName,
+  animate,
   getBridgeLayer
 } from "@/store/deck-layers";
 
 
 export default {
-    createMapboxLayer({state, commit}: ActionContext<StoreState, StoreState>, payload: RawSource) {
-        state.map?.addSource(payload.id, payload.options)
+    createDesignLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>, payload: RawSource) {
+      const config = Designs
+      // this.createMapboxLayer({payload, config})
+      dispatch('createMapboxLayer', {source: payload, config: config});
+    },
+  // todo add lookup for layers belonging to each scenario ({"ABM": ["bridges"]} could be one example
+    createScenarioLayer({state, commit}: ActionContext<StoreState, StoreState>) {
+      const scenarioName = getScenarioName(state.abmScenario)
+      const config = Scenarios
+      const source = config.sources.filter(l => l.id === 'bridges')
+      const data = {}
+      if (source.data?.from === "cityPyO") {
+        state.cityPyO.getLayer(config.data.id)
+          .then(cityPyoResponse => {
+            state.map?.addSource(cityPyoResponse.id, cityPyoResponse.options)
 
-        Config.layers
-            .filter(l => l.source === payload.id)
+            console.log(cityPyoResponse)
+          })
+      }
+
+    },
+
+    createMapboxLayer({state, commit}: ActionContext<StoreState, StoreState>, {source, config}: {source: RawSource, config: GenericObject}) {
+        state.map?.addSource(source.id, source.options)
+      console.log(source, config)
+
+      const _config = config || Config;
+
+      _config.layers
+            .filter(l => l.source === source.id)
             .forEach(l => state.map?.addLayer(l as Layer))
 
 
-      commit('addLayerId', payload.id)
+      commit('addLayerId', source.id) // TODO isn't this add several layers??
     },
-    createDeckLayer({state, commit}: ActionContext<StoreState, StoreState>) {
+    createDeckLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
         buildTripsLayer(state)
-        commit('addLayerId', abmTripsLayerName)
+          .then(deckLayer => {
+            state.map?.addLayer(deckLayer)
+            commit('addLayerId', abmTripsLayerName)
+            console.log(state.map, state.map.getLayer(abmTripsLayerName));
+            dispatch('animateTripsLayer')
+          })
     },
     fetchLayersData ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
         const sourceConfigs = Config.sources || [];
@@ -34,8 +66,9 @@ export default {
             if (config.data?.from === "cityPyO") {
               state.cityPyO.getLayer(config.data.id)
                 .then(source => {
-                  dispatch('createMapboxLayer', source)
-                  console.log(source)
+                  if (source) {
+                    dispatch('createMapboxLayer', {source})
+                  }
                 })
             }
             })
@@ -62,11 +95,11 @@ export default {
     connect ({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
         commit('cityPyO', new CityPyO(options.userdata))
     },
-    animateTripsLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
-      console.log("animating this layer",state.map.getLayer(abmTripsLayerName) )
-      // animate(state.map.getLayer(abmTripsLayerName))
+    animateTripsLayer({state}: ActionContext<StoreState, StoreState>) {
+      console.log("animating this layer", state.map.getLayer(abmTripsLayerName) )
+      animate(state.map.getLayer(abmTripsLayerName))
     },
-    updateAbmScenario({state, commit, dispatch}: ActionContext<StoreState, StoreState>, scenarioUpdate: GenericObject) {
+    async updateAbmScenario({state, commit, dispatch}: ActionContext<StoreState, StoreState>, scenarioUpdate: GenericObject) {
       const key = Object.keys(scenarioUpdate)[0]  // todo send entire scenario instead of "scenarioUpdate" ?
 
       // remove trips layer if existing
@@ -74,15 +107,14 @@ export default {
         commit('removeLayerId', abmTripsLayerName)
         state.map?.removeLayer(abmTripsLayerName)
       }
+
       // update scenario
       state.abmScenario[key] = scenarioUpdate[key]
-      // create new deckLayer
-      dispatch('createDeckLayer', state)
 
-      let filteredLayer = getBridgeLayer(state)
-      state.map.removeLayer('bridges')
-      state.map.addLayer(filteredLayer)
-      console.log("bridgeLayer",  state.map.getLayer('bridges'))
+      // create new deckLayer
+      dispatch('createDeckLayer').then(() => {
+
+      })
     },
     /**
      * Parses the module configs to the respective store modules
