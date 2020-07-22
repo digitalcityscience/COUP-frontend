@@ -22,11 +22,26 @@ declare global {
         sourceId: string
       }
 
-      interface AbmScenario {
-      bridge1: boolean,
-      bridge2: boolean,
-      pathLayout: 'pathHorizontal' | 'pathVertical',
-      walkTroughBuildings: boolean
+      interface ScenarioResult {
+        designScenario: string,
+        moduleSettings: {},
+        scenarioViewFilters: {}
+      }
+
+      interface AbmScenario extends  ScenarioResult{
+        designScenario: string,
+        moduleSettings: {
+          pathLayout: 'pathHorizontal' | 'pathVertical',
+          walkTroughBuildings: boolean
+        },
+        scenarioViewFilters: {
+          start_time?: number,
+          location?: string,
+          age?: number,
+          mode?: string,
+          grasbrook_resident?: boolean,
+          grasbrook_commuter?: boolean
+        }
       }
 
       interface StoreState {

@@ -1,7 +1,7 @@
 <script>
 import Map from './components/Map/Map.vue'
 import GFI from './components/GFI/GFI.vue'
-import Scenario from "@/components/Scenario/Scenario";
+import Scenario from "@/components/Scenario/AbmScenario";
 import { mapGetters } from 'vuex'
 
 export default {

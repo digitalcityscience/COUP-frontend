@@ -52,7 +52,7 @@ export default class CityPyO {
           const json = await res.json();
 
           if (scenario) {
-            console.log("got this abm data from cityPyo")
+            console.log("got this scenarios data from cityPyo")
             console.log(json)
           }
 

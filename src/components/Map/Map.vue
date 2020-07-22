@@ -56,8 +56,8 @@ export default {
             this.$store.dispatch('editFeatureProps', newFeature)
         },
         onMapLoaded () {
-            console.log("fetch layer data")
-            this.$store.dispatch('fetchLayersData')
+            console.log("create design layers")
+            this.$store.dispatch('createDesignLayers')
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
@@ -66,6 +66,8 @@ export default {
             if (this.$store.state.map.getLayer(abmTripsLayerName)) {
                 this.$store.dispatch('animateTripsLayer')
             }
+
+            this.$store.dispatch('abm/myAction')
         }
     }
 }

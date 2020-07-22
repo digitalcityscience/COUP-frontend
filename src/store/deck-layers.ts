@@ -1,12 +1,17 @@
+/*
 import { Layer as MapboxLayer } from 'mapbox-gl'
 import {MapboxLayer as DeckLayer} from "@deck.gl/mapbox";
 import {TripsLayer} from "@deck.gl/geo-layers";
 import {ActionContext} from "vuex";
 
+// TODO: should be in something like ABM.ts ?
 export const abmTripsLayerName = "abmTrips"
 export const verticalPathLayout = 'pathVertical'
 export const horizontalPathLayout = 'pathHorizontal'
+export const scenario_1 = 'bridg1'
 
+
+// TODO : should be in another file
 export function getBridgeLayer(state: StoreState): MapboxLayer  {
   let layer = state.map.getLayer("bridges")
   let scenarioName = getScenarioName(state.abmScenario)
@@ -43,12 +48,7 @@ export async function buildTripsLayer(state: StoreState): DeckLayer {
         trailLength: 500,
         currentTime: 100,
         // currentTime: this.props.sliders.time[1]
-
-
       });
-      console.log(deckLayer)
-      console.log("adding this layer", deckLayer)
-      // state.map?.addLayer(deckLayer)
       return deckLayer
   })
 }
@@ -115,3 +115,4 @@ function getLayerEndTime(layer: MapboxLayer) {
   return Math.max(...layer.implementation.props.data.map((d: any) => Math.max(...layer.implementation.props.getTimestamps(d))));
 }
 
+*/
