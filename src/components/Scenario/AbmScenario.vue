@@ -1,7 +1,7 @@
 <script>
 
 import { mapState } from 'vuex'
-import {designScenarios, pathWaySettings, moduleSettings }  from '@/store/abm.ts';
+import { designScenarios, pathWaySettings } from '@/store/abm.ts'
 
 
 export default {
@@ -54,7 +54,7 @@ export default {
                 <v-expansion-panel-content>
                     <v-container fluid>
                         <header class="text-sm-left">
-                            Bridges
+                            Bridge Scenario
                         </header>
                         <v-radio-group>
                             <v-radio
@@ -74,20 +74,16 @@ export default {
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
-                            Walking through buildings?
+                            Module Settings
                         </header>
                         <v-switch
                             flat
                             :label="`Walk trough buildings: ${scenarioDetails.moduleSettings.walkThroughBuildings.toString()}`"
                             @change="walkThroughBuildingsToggle"
                         />
-                        <header class="text-sm-left">
-                            Pathways
-                        </header>
                         <v-radio-group>
                             <v-radio
                                 flat
-
                                 :label="'Horizontal pathways'"
                                 @change="pathLayoutToggle(pathWaySettings.horizontalPathways)"
                             />
