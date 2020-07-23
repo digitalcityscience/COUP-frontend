@@ -1,6 +1,5 @@
 import Defaults from "@/defaults";
 import Config from '@/config/config.json';
-import {horizontalPathLayout, scenario_1} from "@/store/deck-layers";
 
 
 const initialState: StoreState = {
@@ -8,10 +7,10 @@ const initialState: StoreState = {
     layerIds: [],
     selectedFeatures: [],
     abmScenario: {
-        designScenario: "scenario_1",
+        designScenario: "bridge1",
         moduleSettings: {
-        pathLayout: horizontalPathLayout,
-        walkTroughBuildings: true
+          pathLayout: "pathHorizontal",
+          walkThroughBuildings: false
       },
       scenarioViewFilters: {
         grasbrook_commuter: true,

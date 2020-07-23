@@ -32,7 +32,7 @@ declare global {
         designScenario: string,
         moduleSettings: {
           pathLayout: 'pathHorizontal' | 'pathVertical',
-          walkTroughBuildings: boolean
+          walkThroughBuildings: boolean
         },
         scenarioViewFilters: {
           start_time?: number,

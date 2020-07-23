@@ -75,7 +75,7 @@ export default {
                         </header>
                         <v-switch
                             flat
-                            :label="`Walk trough buildings: ${scenarioDetails.moduleSettings.walkTroughBuildings.toString()}`"
+                            :label="`Walk trough buildings: ${scenarioDetails.moduleSettings.walkThroughBuildings.toString()}`"
                             @change="walkThroughBuildingsToggle"
                         />
                         <header class="text-sm-left">
@@ -84,13 +84,14 @@ export default {
                         <v-radio-group>
                             <v-radio
                                 flat
+
                                 :label="'Horizontal pathways'"
-                                @change="pathLayoutToggle('horizontalPathLayout')"
+                                @change="pathLayoutToggle('pathHorizontal')"
                             />
                             <v-radio
                                 flat
                                 :label="'Vertical pathways'"
-                                @change="pathLayoutToggle('verticalPathLayout')"
+                                @change="pathLayoutToggle('pathVertical')"
                             />
                         </v-radio-group>
                     </v-container>

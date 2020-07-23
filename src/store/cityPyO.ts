@@ -27,45 +27,52 @@ export default class CityPyO {
         }
     }
 
-    async getLayer (id: string | number, scenario?: string, resultProperties?: string[]) {
-      let requestUrl = this.url +  'getLayer'
-      if (scenario) {
-        requestUrl = requestUrl + '/' + scenario
+  async performRequest(layerId, requestUrl, body) {
+
+    const res = await fetch(requestUrl, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+
+    if (res.status == 200) {
+      const json = await res.json();
+
+      return {
+        id: layerId,
+        options: {
+          type: 'geojson',
+          data: json
+        }
       }
+    } else {
+      console.warn(res.status, res.statusText)
+    }
+  }
+
+    async getLayer (id: string) {
+      let requestUrl = this.url +  'getLayer'
+
       let body = {
         userid: this.userid,
         layer: id
       }
-      if (resultProperties) {
-        body["result_properties"] = resultProperties
+
+      return this.performRequest(id, requestUrl, body)
+    }
+
+    async getScenarioResultLayer (id: string | number, scenario: AbmScenario) {
+      let requestUrl = this.url +  'getLayer/' + scenario.designScenario
+      let body = {
+        userid: this.userid,
+        layer: id,
+        result_properties: scenario.moduleSettings
       }
-      const res = await fetch(requestUrl, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        })
 
-        if (res.status == 200) {
-          const json = await res.json();
-
-          if (scenario) {
-            console.log("got this scenarios data from cityPyo")
-            console.log(json)
-          }
-
-          return {
-            id,
-            options: {
-              type: 'geojson',
-              data: json
-            }
-          }
-        } else {
-          console.warn(res.status, res.statusText)
-      }
+      return this.performRequest(id, requestUrl, body)
     }
 
     getLayerData(query: string) {

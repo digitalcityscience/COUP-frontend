@@ -1,16 +1,8 @@
 import Designs from '@/config/designs.json'
-import Scenarios from '@/config/scenarios.json'
 import Config from '@/config/config.json'
 import CityPyO from '@/store/cityPyO'
 import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
-import {
-  buildTripsLayer,
-  getScenarioName,
-  abmTripsLayerName,
-  animate,
-  getBridgeLayer
-} from "@/store/deck-layers";
 
 
 export default {
@@ -35,15 +27,6 @@ export default {
         console.warn("do not know where to load source data from", source)
       }
     })
-  },
-  createDeckLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
-    buildTripsLayer(state)
-      .then(deckLayer => {
-        state.map?.addLayer(deckLayer)
-        commit('addLayerId', abmTripsLayerName)
-        dispatch('animateTripsLayer')
-        dispatch('addScenarioLayer')
-      })
   },
   addSourceToMap({state, commit, dispatch}: ActionContext<StoreState, StoreState>, source) {
     if (state.map?.getSource(source.id)) {
@@ -87,28 +70,7 @@ export default {
   },
   connect({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
     commit('cityPyO', new CityPyO(options.userdata))
-  },
-  animateTripsLayer({state}: ActionContext<StoreState, StoreState>) {
-    // console.log("animating this layer", state.map.getLayer(abmTripsLayerName))
-    animate(state.map.getLayer(abmTripsLayerName))
-  },
-  async updateAbmScenario({state, commit, dispatch}: ActionContext<StoreState, StoreState>, scenarioUpdate: GenericObject) {
-    const key = Object.keys(scenarioUpdate)[0]  // todo send entire scenario instead of "scenarioUpdate" ?
-
-    // remove trips layer if existing
-    if (state.map.getLayer(abmTripsLayerName)) {
-      console.log("there is already a trips layer")
-      commit('removeLayerId', abmTripsLayerName)
-      state.map?.removeLayer(abmTripsLayerName)
-    }
-
-    // update scenario
-    state.abmScenario[key] = scenarioUpdate[key]
-
-    // create the new deckLayer
-    dispatch('createDeckLayer').then(() => {
-    })
-  },
+  }
   /**
    * Parses the module configs to the respective store modules
    * @param {*} state - the module store state
