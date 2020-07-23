@@ -1,5 +1,6 @@
 import Defaults from "@/defaults";
 import Config from '@/config/config.json';
+import {designScenarios, pathWaySettings, moduleSettings }  from '@/store/abm.ts';
 
 
 const initialState: StoreState = {
@@ -7,9 +8,9 @@ const initialState: StoreState = {
     layerIds: [],
     selectedFeatures: [],
     abmScenario: {
-        designScenario: "bridge1",
+        designScenario: designScenarios.bridge1,
         moduleSettings: {
-          pathLayout: "pathHorizontal",
+          pathLayout: pathWaySettings.verticalPathways,
           walkThroughBuildings: false
       },
       scenarioViewFilters: {

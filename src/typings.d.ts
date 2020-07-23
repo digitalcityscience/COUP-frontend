@@ -31,7 +31,7 @@ declare global {
       interface AbmScenario extends  ScenarioResult{
         designScenario: string,
         moduleSettings: {
-          pathLayout: 'pathHorizontal' | 'pathVertical',
+          pathLayout: string,
           walkThroughBuildings: boolean
         },
         scenarioViewFilters: {

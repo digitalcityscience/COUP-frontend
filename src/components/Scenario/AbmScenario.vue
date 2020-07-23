@@ -1,6 +1,7 @@
 <script>
 
 import { mapState } from 'vuex'
+import {designScenarios, pathWaySettings, moduleSettings }  from '@/store/abm.ts';
 
 
 export default {
@@ -8,6 +9,8 @@ export default {
     components: {},
     data () {
         return {
+            designScenarios: designScenarios,
+            pathWaySettings: pathWaySettings,
             scenarioDetails: this.$store.state.abmScenario,
         }
     },
@@ -27,7 +30,7 @@ export default {
         walkThroughBuildingsToggle (evt) {
             this.$store.dispatch(
                 'scenario/updateAbmDesignScenarioSettings',
-                { walkThroughBuildings: evt } // todo: is there a way to avoid this magic string "walkThrougBuildings" ?
+                { walkThroughBuildings: evt }
             )
         },
         pathLayoutToggle (value) {
@@ -57,17 +60,17 @@ export default {
                             <v-radio
                                 flat
                                 :label="`Bridge 1`"
-                                @change="designScenarioToggle('bridge1')"
+                                @change="designScenarioToggle(designScenarios.bridge1)"
                             />
                             <v-radio
                                 flat
                                 :label="`Bridge 2`"
-                                @change="designScenarioToggle('bridge2')"
+                                @change="designScenarioToggle(designScenarios.bridge2)"
                             />
                             <v-radio
                                 flat
                                 :label="`Bridge 1 & 2`"
-                                @change="designScenarioToggle('all_bridges')"
+                                @change="designScenarioToggle(designScenarios.all_bridges)"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
@@ -86,12 +89,12 @@ export default {
                                 flat
 
                                 :label="'Horizontal pathways'"
-                                @change="pathLayoutToggle('pathHorizontal')"
+                                @change="pathLayoutToggle(pathWaySettings.horizontalPathways)"
                             />
                             <v-radio
                                 flat
                                 :label="'Vertical pathways'"
-                                @change="pathLayoutToggle('pathVertical')"
+                                @change="pathLayoutToggle(pathWaySettings.verticalPathways)"
                             />
                         </v-radio-group>
                     </v-container>

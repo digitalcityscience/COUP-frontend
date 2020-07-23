@@ -36,8 +36,11 @@ const scenario: Module<any, any> = {
       })
     },
     updateDeckLayer({state, commit, dispatch, rootState}, payload) {
+      if (rootState.map?.getLayer(abmTripsLayerName)) {
+        rootState.map?.removeLayer(abmTripsLayerName)
+      }
       // load new data from cityPyo
-      rootState.cityPyO.getScenarioResultLayer("abmTrips", rootState.abmScenario).then(
+      rootState.cityPyO.getScenarioResultLayer(abmTripsLayerName, rootState.abmScenario).then(
         result => {
           let deckLayer = buildTripsLayer(result.options.data.data.abm)
           console.log(deckLayer)

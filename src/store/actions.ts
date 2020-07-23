@@ -1,5 +1,4 @@
 import Designs from '@/config/designs.json'
-import Config from '@/config/config.json'
 import CityPyO from '@/store/cityPyO'
 import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
@@ -15,14 +14,14 @@ export default {
         state.cityPyO.getLayer(source.data.id)
           .then(source => {
             dispatch('addSourceToMap', source).then(source => {
-                // add all layers using this source
-                Designs.layers
-                  .filter(l => l.source === source.id)
-                  .forEach(l => {
-                    dispatch('addLayerToMap', l)
-                  })
+              // add all layers using this source
+              Designs.layers
+                .filter(l => l.source === source.id)
+                .forEach(l => {
+                  dispatch('addLayerToMap', l)
                 })
             })
+          })
       } else {
         console.warn("do not know where to load source data from", source)
       }
@@ -32,9 +31,9 @@ export default {
     if (state.map?.getSource(source.id)) {
       // remove all layers using this source
       state.layerIds.forEach(layerId => {
-        if (state.map?.getLayer(layerId).source === source.id) {
-          state.map?.removeLayer(layerId)
-          commit('removeLayerId', layerId)
+          if (state.map?.getLayer(layerId).source === source.id) {
+            state.map?.removeLayer(layerId)
+            commit('removeLayerId', layerId)
           }
         }
       )
@@ -71,14 +70,16 @@ export default {
   connect({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
     commit('cityPyO', new CityPyO(options.userdata))
   }
-  /**
+
+  /***** DO WE STILL NEED THIS?
+   /**
    * Parses the module configs to the respective store modules
    * @param {*} state - the module store state
    * @param {*} moduleName - the module to parse the config data to
    * @param {*} [config=Config] - the config.json, defaults to "./config.json"
    * @returns {void}
-   */
-  parseConfig({state, commit}: ActionContext<StoreState, StoreState>, moduleName: string, config: GenericObject = Config) {
+   *
+   parseConfig({state, commit}: ActionContext<StoreState, StoreState>, moduleName: string, config: GenericObject = Config) {
     if (state[moduleName]) {
       const moduleConfig = config?.modules?.[moduleName]
 
@@ -91,4 +92,5 @@ export default {
       }
     }
   }
+   *****/
 }
