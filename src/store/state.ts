@@ -1,6 +1,6 @@
 import Defaults from "@/defaults";
 import Config from '@/config/config.json';
-import {designScenarios, pathWaySettings, moduleSettings }  from '@/store/abm.ts';
+import {designScenarios, pathWaySettings }  from '@/store/abm.ts';
 
 
 const initialState: StoreState = {
@@ -10,11 +10,14 @@ const initialState: StoreState = {
     abmScenario: {
         designScenario: designScenarios.bridge1,
         moduleSettings: {
-          pathLayout: pathWaySettings.verticalPathways,
-          walkThroughBuildings: false
+          bridge_1: true,
+          amenities_roof: "random",
+          blocks: "open",
+          bridge_2: false,
+          paths: "vertical"
       },
       scenarioViewFilters: {
-        grasbrook_commuter: true,
+        mode: "foot",
       }
     },
     view: Config['view'] || Defaults.view,

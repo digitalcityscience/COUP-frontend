@@ -5,6 +5,6 @@ export const designScenarios = {
 }
 
 export const pathWaySettings = {
-  horizontalPathways: "pathHorizontal",
-  verticalPathways: "pathVertical",
+  horizontalPathways: "horizontal",
+  verticalPathways: "vertical",
 }

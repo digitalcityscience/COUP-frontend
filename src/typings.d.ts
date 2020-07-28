@@ -31,16 +31,18 @@ declare global {
       interface AbmScenario extends  ScenarioResult{
         designScenario: string,
         moduleSettings: {
-          pathLayout: string,
-          walkThroughBuildings: boolean
+          bridge_1: boolean,
+          amenities_roof: "random"|"complementary",
+          blocks: "open"|"closed",
+          bridge_2: false,
+          paths: "vertical"|"horizontal"
         },
         scenarioViewFilters: {
           start_time?: number,
-          location?: string,
-          age?: number,
+          end_time?: number,
+          working_age?: boolean,
           mode?: string,
-          grasbrook_resident?: boolean,
-          grasbrook_commuter?: boolean
+          agent_personality?: string,
         }
       }
 

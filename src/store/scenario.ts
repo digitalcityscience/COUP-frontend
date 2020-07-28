@@ -42,7 +42,7 @@ const scenario: Module<any, any> = {
       // load new data from cityPyo
       rootState.cityPyO.getScenarioResultLayer(abmTripsLayerName, rootState.abmScenario).then(
         result => {
-          let deckLayer = buildTripsLayer(result.options.data.data.abm)
+          let deckLayer = buildTripsLayer(result.options.data.data)
           console.log(deckLayer)
           rootState.map?.addLayer(deckLayer)
           commit('addLayerId', abmTripsLayerName, { root:true })

@@ -28,9 +28,10 @@ export default {
             )
         },
         walkThroughBuildingsToggle (evt) {
+            const blocks = evt ? "open" : "closed"
             this.$store.dispatch(
                 'scenario/updateAbmDesignScenarioSettings',
-                { walkThroughBuildings: evt }
+                { blocks: blocks }
             )
         },
         pathLayoutToggle (value) {
@@ -78,7 +79,7 @@ export default {
                         </header>
                         <v-switch
                             flat
-                            :label="`Walk trough buildings: ${scenarioDetails.moduleSettings.walkThroughBuildings.toString()}`"
+                            :label="`Walk trough buildings: ${scenarioDetails.moduleSettings.blocks}`"
                             @change="walkThroughBuildingsToggle"
                         />
                         <v-radio-group>
