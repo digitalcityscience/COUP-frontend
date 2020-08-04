@@ -27,7 +27,15 @@ export default {
     computed: {
         ...mapState([
             'selectedFeatures'
-        ])
+        ]),
+        loadingOverlay: {
+            get () {
+                return this.$store.state.abmScenario.isLoading
+            },
+            set (val) {
+                this.$store.commit('abmResultsLoading', val)
+            },
+        },
     },
     watch: {},
     methods: {
@@ -38,7 +46,7 @@ export default {
             )
         },
         bridge2Toggle (evt) {
-             this.$store.dispatch(
+            this.$store.dispatch(
                 'scenario/updateAbmDesignScenarioSettings',
                 { bridge_2: evt }
             )
@@ -152,6 +160,10 @@ export default {
                         </v-radio-group>
                     </v-container>
                 </v-expansion-panel-content>
+                <v-overlay :value="loadingOverlay">
+                    <div>Loading ABM results</div>
+                    <v-progress-linear>...</v-progress-linear>
+                </v-overlay>
             </v-expansion-panel>
             <v-expansion-panel>
                 <v-expansion-panel-header>ABM FILTERS</v-expansion-panel-header>

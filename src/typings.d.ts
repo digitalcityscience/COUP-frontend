@@ -30,6 +30,7 @@ declare global {
 
       interface AbmScenario extends  ScenarioResult{
         designScenario: string,
+        isLoading: boolean
         moduleSettings: {
           bridge_1: boolean,
           bridge_2: boolean,

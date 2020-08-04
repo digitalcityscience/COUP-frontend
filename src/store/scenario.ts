@@ -65,6 +65,9 @@ const scenario: Module<any, any> = {
       }
     },
     updateDeckLayer({state, commit, dispatch, rootState}, payload) {
+      // show loading screen
+      commit('abmResultLoading', true, {root: true})
+
       // load new data from cityPyo
       rootState.cityPyO.getAbmResultLayer(abmTripsLayerName, rootState.abmScenario).then(
         result => {
@@ -73,6 +76,8 @@ const scenario: Module<any, any> = {
             if (rootState.map?.getLayer(abmTripsLayerName)) {
               rootState.map?.removeLayer(abmTripsLayerName)
             }
+
+            commit('abmResultLoading', false, {root: true})
             return
           }
           buildTripsLayer(result.options.data.data).then(
@@ -84,9 +89,13 @@ const scenario: Module<any, any> = {
             rootState.map?.addLayer(deckLayer)
             commit('addLayerId', abmTripsLayerName, {root: true})
             animate(deckLayer)
-          })
+
+            // finally remove loading screen
+            commit('abmResultLoading', false, {root: true})
+            })
         }
       )
+      return
     }
   }
 }

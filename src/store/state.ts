@@ -9,6 +9,7 @@ const initialState: StoreState = {
     selectedFeatures: [],
     abmScenario: {
         designScenario: designScenarios.bridge1,
+        isLoading: false,
         moduleSettings: {
           bridge_1: true,
           bridge_2: false,
