@@ -32,17 +32,22 @@ declare global {
         designScenario: string,
         moduleSettings: {
           bridge_1: boolean,
-          amenities_roof: "random"|"complementary",
-          blocks: "open"|"closed",
-          bridge_2: false,
-          paths: "vertical"|"horizontal"
+          bridge_2: boolean,
+          roof_amenities: "random" | "complementary",
+          blocks: "permeable" | "private",
+          main_street_orientation: "vertical" | "horizontal"
         },
         scenarioViewFilters: {
           start_time?: number,
           end_time?: number,
-          working_age?: boolean,
-          mode?: string,
-          agent_personality?: string,
+          resident_or_visitor?: "resident" | "visitor",
+          student_or_adult?: "student" | "adult",
+          modes?: {
+            bicycle: boolean
+            car: boolean
+            foot: boolean
+            public_transport: boolean
+          }
         }
       }
 

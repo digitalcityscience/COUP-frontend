@@ -1,6 +1,6 @@
 import Defaults from "@/defaults";
 import Config from '@/config/config.json';
-import {designScenarios, pathWaySettings }  from '@/store/abm.ts';
+import {designScenarios, mainStreetOrientationOptions }  from '@/store/abm.ts';
 
 
 const initialState: StoreState = {
@@ -11,13 +11,19 @@ const initialState: StoreState = {
         designScenario: designScenarios.bridge1,
         moduleSettings: {
           bridge_1: true,
-          amenities_roof: "random",
-          blocks: "open",
           bridge_2: false,
-          paths: "vertical"
+          roof_amenities: "random",
+          blocks: "permeable",
+          main_street_orientation: "vertical"
       },
       scenarioViewFilters: {
-        mode: "foot",
+        student_or_adult: "adult",
+        modes: {
+          bicycle: true,
+          car: true,
+          foot: true,
+          public_transport: true
+        }
       }
     },
     view: Config['view'] || Defaults.view,

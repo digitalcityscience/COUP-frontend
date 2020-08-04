@@ -1,10 +1,13 @@
 import {Layer as MapboxLayer} from 'mapbox-gl'
 import {MapboxLayer as DeckLayer} from "@deck.gl/mapbox";
 import {TripsLayer} from "@deck.gl/geo-layers";
+import store from "../store/index"
+
 
 export const abmTripsLayerName = "abmTrips"
 
-export function buildTripsLayer(data: Object): DeckLayer {
+export async function buildTripsLayer(data: Object): DeckLayer {
+
   return new DeckLayer({
     id: abmTripsLayerName,
     type: TripsLayer,
@@ -21,26 +24,30 @@ export function buildTripsLayer(data: Object): DeckLayer {
     widthMinPixels: 5,
     rounded: true,
     trailLength: 500,
-    currentTime: 100,
+    currentTime: 0,
     // currentTime: this.props.sliders.time[1]
   });
 }
 
 // animate deck trips layer
-export function animate(layer: MapboxLayer, start: number = null, end: number = null) {
+export function animate(layer: DeckLayer, start: number = null, end: number = null, time: number = null) {
+  // stop animation, if trips layer no longer on map
+  if (!store.state.abmScenario.designScenario) {
+    console.log("stopped animation, because no scenario is selected")
+    return
+  }
+
   if (!start) {
     start = getLayerStartTime(layer)
   }
   if (!end) {
     end = getLayerEndTime(layer)
   }
+  if (!time) {
+    time = start
+  }
 
-  const loopLength = end - start
-  const animationSpeed = 1000 // unit time per second
-  const timestamp = Date.now() / 1000
-  const loopTime = loopLength / animationSpeed
-
-  let time = ((timestamp % loopTime) / loopTime) * loopLength;
+  const animationSpeed = 50
 
   // if loop - start over
   if (time >= end) {
@@ -53,7 +60,7 @@ export function animate(layer: MapboxLayer, start: number = null, end: number = 
   // as long as endTime of trips layer is not reached - call next frame iteration
   if (time <= end) {
     window.requestAnimationFrame(() => {
-      animate(layer, start, end);
+      animate(layer, start, end, time + animationSpeed);
     });
   }
 }

@@ -64,7 +64,7 @@ export default class CityPyO {
       return this.performRequest(id, requestUrl, body)
     }
 
-    async getScenarioResultLayer (id: string | number, scenario: AbmScenario) {
+    async getAbmResultLayer (id: string | number, scenario: AbmScenario) {
       let requestUrl = this.url +  'getLayer/' + "abmScenario"
       let body = {
         userid: this.userid,

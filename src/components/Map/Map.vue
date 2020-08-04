@@ -60,13 +60,6 @@ export default {
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
-        },
-        animateTripsLayer () {
-            if (this.$store.state.map.getLayer(abmTripsLayerName)) {
-                this.$store.dispatch('animateTripsLayer')
-            }
-
-            this.$store.dispatch('abm/myAction')
         }
     }
 }

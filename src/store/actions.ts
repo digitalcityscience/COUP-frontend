@@ -29,19 +29,28 @@ export default {
   },
   addSourceToMap({state, commit, dispatch}: ActionContext<StoreState, StoreState>, source) {
     if (state.map?.getSource(source.id)) {
+      // remove all layers using this source and the source itself
+      dispatch('removeSourceFromMap', source.id)
+    }
+    state.map?.addSource(source.id, source.options)
+
+    return source
+  },
+  removeSourceFromMap({state, commit, dispatch}: ActionContext<StoreState, StoreState>, sourceId) {
+    console.log("remove source from map", sourceId)
+
+    if (state.map?.getSource(sourceId)) {
       // remove all layers using this source
       state.layerIds.forEach(layerId => {
-          if (state.map?.getLayer(layerId).source === source.id) {
+          if (state.map?.getLayer(layerId)
+            && state.map?.getLayer(layerId).source === sourceId) {
             state.map?.removeLayer(layerId)
             commit('removeLayerId', layerId)
           }
         }
       )
-      state.map?.removeSource(source.id)
+      state.map?.removeSource(sourceId)
     }
-    state.map?.addSource(source.id, source.options)
-
-    return source
   },
   addLayerToMap({state, commit, dispatch}: ActionContext<StoreState, StoreState>, layer) {
     if (state.map?.getLayer(layer.id)) {
