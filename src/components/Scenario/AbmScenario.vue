@@ -1,8 +1,10 @@
 <script>
 
 import { mapState } from 'vuex'
+import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import {
     designScenarios,
+    moduleSettingNames,
     mainStreetOrientationOptions,
     blockPermeabilityOptions,
     roofAmenitiesOptions,
@@ -10,14 +12,14 @@ import {
     filterOptions
 } from '@/store/abm.ts'
 
-
 export default {
     name: 'AbmScenario',
     components: {},
     data () {
         return {
-            designScenarios: designScenarios,
-            mainStreetOrientation: mainStreetOrientationOptions,
+            designScenarioNames: designScenarios,
+            moduleSettingOptions: moduleSettingNames,
+            mainStreetOrientationOptions: mainStreetOrientationOptions,
             blockOptions: blockPermeabilityOptions,
             roofAmenitiesOptions: roofAmenitiesOptions,
             filters: filters,
@@ -28,61 +30,37 @@ export default {
         ...mapState([
             'selectedFeatures'
         ]),
-        loadingOverlay: {
-            get () {
-                return this.$store.state.abmScenario.isLoading
-            },
-            set (val) {
-                this.$store.commit('abmResultsLoading', val)
-            },
-        },
+        ...mapState('scenario', ['isLoading']), // getter only
+        // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
+        ...generateStoreGetterSetter([
+            ['bridge1', 'scenario/moduleSettings/' + moduleSettingNames.bridge1],
+            ['bridge2', 'scenario/moduleSettings/' + moduleSettingNames.bridge2],
+            ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
+            ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
+            ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
+            ['student_or_adult', 'scenario/scenarioViewFilters/' + filters.student_or_adult],
+            ['resident_or_visitor', 'scenario/scenarioViewFilters/' + filters.resident_or_visitor],
+            ['foot', 'scenario/scenarioViewFilters/modes/' + filterOptions.foot],
+            ['bicycle', 'scenario/scenarioViewFilters/modes/' + filterOptions.bicycle],
+            ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
+            ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car]
+        ])
     },
-    watch: {},
+    watch: {
+        car (newVal, old) {
+            console.log(newVal, old)
+        },
+        roof_amenities (newVal, old) {
+            console.log(newVal, old)
+        }
+    },
+    mounted () {
+        console.log(this.$store)
+    },
     methods: {
-        bridge1Toggle (evt) {
+        confirmSettings () {
             this.$store.dispatch(
-                'scenario/updateAbmDesignScenarioSettings',
-                { bridge_1: evt }
-            )
-        },
-        bridge2Toggle (evt) {
-            this.$store.dispatch(
-                'scenario/updateAbmDesignScenarioSettings',
-                { bridge_2: evt }
-            )
-        },
-        openBlocks (value) {
-            this.$store.dispatch(
-                'scenario/updateAbmDesignScenarioSettings',
-                { blocks: value }
-            )
-        },
-        mainStreet (value) {
-            this.$store.dispatch(
-                'scenario/updateAbmDesignScenarioSettings',
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                { main_street_orientation: value }
-            )
-        },
-        roofAmenities (value) {
-            this.$store.dispatch(
-                'scenario/updateAbmDesignScenarioSettings',
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                { roof_amenities: value }
-            )
-        },
-        updateFilter (key, value) {
-            this.$store.dispatch(
-                'scenario/updateAbmDataFilter',
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                { [key]: value }
-            )
-        },
-        updateModeFilter (mode, evt) {
-            this.$store.dispatch(
-                'scenario/updateAbmDataModeFilter',
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                { [mode]: evt }
+                'scenario/updateAbmDesignScenario'
             )
         }
     }
@@ -94,7 +72,6 @@ export default {
         id="scenario"
         ref="scenario"
     >
-        <!-- TODO : connect radios and toggles to v-model!!! -->
         <v-expansion-panels>
             <v-expansion-panel>
                 <v-expansion-panel-header>ABM SCENARIO</v-expansion-panel-header>
@@ -104,63 +81,63 @@ export default {
                             CONNECTIVITY
                         </header>
                         <v-switch
+                            v-model="bridge1"
                             flat
-                            :label="`Bridge 1`"
-                            @change="bridge1Toggle"
+                            label="Bridge 1"
                         />
                         <v-switch
+                            v-model="bridge2"
                             flat
-                            :label="`Bridge 2`"
-                            @change="bridge2Toggle"
+                            label="Bridge 2"
                         />
                         <header class="text-sm-left">
                             MAIN STREET
                         </header>
-                        <v-radio-group>
+                        <v-radio-group v-model="main_street_orientation">
                             <v-radio
+                                :value="mainStreetOrientationOptions.horizontal"
                                 flat
-                                :label="'East-West'"
-                                @change="mainStreet(mainStreetOrientation.horizontal)"
+                                label="East-West"
                             />
                             <v-radio
+                                :value="mainStreetOrientationOptions.vertical"
                                 flat
-                                :label="'North-South'"
-                                @change="mainStreet(mainStreetOrientation.vertical)"
+                                label="North-South"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
                             BLOCKS
                         </header>
-                        <v-radio-group>
+                        <v-radio-group v-model="blocks">
                             <v-radio
+                                :value="blockOptions.permeable"
                                 flat
-                                :label="'Permeable'"
-                                @change="openBlocks(blockOptions.permeable)"
+                                label="Permeable"
                             />
                             <v-radio
+                                :value="blockOptions.private"
                                 flat
-                                :label="'Private'"
-                                @change="openBlocks(blockOptions.private)"
+                                label="Private"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
                             ROOF AMENITIES
                         </header>
-                        <v-radio-group>
+                        <v-radio-group v-model="roof_amenities">
                             <v-radio
+                                :value="roofAmenitiesOptions.complementary"
                                 flat
-                                :label="'Complementary'"
-                                @change="roofAmenities(roofAmenitiesOptions.complementary)"
+                                label="Complementary"
                             />
                             <v-radio
+                                :value="roofAmenitiesOptions.random"
                                 flat
-                                :label="'Random'"
-                                @change="roofAmenities(roofAmenitiesOptions.random)"
+                                label="Random"
                             />
                         </v-radio-group>
                     </v-container>
                 </v-expansion-panel-content>
-                <v-overlay :value="loadingOverlay">
+                <v-overlay :value="isLoading">
                     <div>Loading ABM results</div>
                     <v-progress-linear>...</v-progress-linear>
                 </v-overlay>
@@ -169,63 +146,66 @@ export default {
                 <v-expansion-panel-header>ABM FILTERS</v-expansion-panel-header>
                 <v-expansion-panel-content>
                     <v-container fluid>
-                        <v-radio-group>
+                        <v-radio-group v-model="resident_or_visitor">
                             <v-radio
+                                :value="filterOptions.resident"
                                 flat
-                                :label="`Residents only`"
-                                @change="updateFilter(filters.resident_or_visitor, filterOptions.resident)"
+                                label="Residents only"
                             />
                             <v-radio
+                                :value="filterOptions.visitor"
                                 flat
-                                :label="`Visitors only`"
-                                @change="updateFilter(filters.resident_or_visitor, filterOptions.visitor)"
+                                label="Visitors only"
                             />
                             <v-radio
+                                :value="filterOptions.any"
                                 flat
-                                :label="`Residents & Visitors`"
-                                @change="updateFilter(filters.resident_or_visitor, '')"
-                            />
-                        </v-radio-group>
-                        <v-radio-group>
-                            <v-radio
-                                flat
-                                :label="`Students only`"
-                                @change="updateFilter(filters.student_or_adult, filterOptions.student)"
-                            />
-                            <v-radio
-                                flat
-                                :label="`Adults only`"
-                                @change="updateFilter(filters.student_or_adult, filterOptions.adult)"
-                            />
-                            <v-radio
-                                flat
-                                :label="`Students & Adults`"
-                                @change="updateFilter(filters.student_or_adult, '')"
+                                label="Residents & Visitors"
                             />
                         </v-radio-group>
+                        <v-radio-group v-model="student_or_adult">
+                            <v-radio
+                                :value="filterOptions.student"
+                                flat
+                                label="Students only"
+                            />
+                            <v-radio
+                                :value="filterOptions.adult"
+                                flat
+                                label="Adults only"
+                            />
+                            <v-radio
+                                :value="filterOptions.any"
+                                flat
+                                label="Students & Adults"
+                            />
+                        </v-radio-group>
                         <v-switch
+                            v-model="foot"
                             flat
-                            :label="`Walking`"
-                            @change="updateModeFilter(filterOptions.foot, $event)"
+                            label="Walking"
                         />
                         <v-switch
+                            v-model="bicycle"
                             flat
-                            :label="`Biking`"
-                            @change="updateModeFilter(filterOptions.bicycle, $event)"
+                            label="Biking"
                         />
                         <v-switch
+                            v-model="public_transport"
                             flat
-                            :label="`Public Transport`"
-                            @change="updateModeFilter(filterOptions.public_transport, $event)"
+                            label="Public Transport"
                         />
                         <v-switch
+                            v-model="car"
                             flat
-                            :label="`Cars`"
-                            @change="updateModeFilter(filterOptions.car, $event)"
+                            label="Cars"
                         />
                     </v-container>
                 </v-expansion-panel-content>
             </v-expansion-panel>
+            <v-btn @click="confirmSettings">
+                Confirm Settings
+            </v-btn>
         </v-expansion-panels>
     </div>
 </template>

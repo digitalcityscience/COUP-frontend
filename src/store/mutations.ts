@@ -11,9 +11,5 @@ export default {
   },
   removeLayerId(state: StoreState, id: string) {
     state.layerIds = state.layerIds.filter(_id => _id !== id)
-  },
-  abmResultLoading(state: StoreState, isLoading: boolean) {
-    console.log("resetting is loading", isLoading)
-    state.abmScenario.isLoading = isLoading
   }
 }

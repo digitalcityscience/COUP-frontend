@@ -1,7 +1,15 @@
 export const designScenarios = {
   bridge1: "bridge1",
-  bridge2: "bridge1",
+  bridge2: "bridge2",
   all_bridges: "all_bridges",
+}
+
+export const moduleSettingNames = {
+  bridge1: "bridge1",
+  bridge2: "bridge2",
+  roofAmenities: "roof_amenities",
+  blocks: "blocks",
+  mainStreetOrientation: "main_street_orientation"
 }
 
 export const mainStreetOrientationOptions = {
@@ -25,6 +33,7 @@ export const filters = {
 }
 
 export const filterOptions = {
+  any: "any",
   resident: "resident",
   visitor: "visitor",
   student: "student",

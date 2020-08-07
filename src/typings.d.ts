@@ -32,8 +32,8 @@ declare global {
         designScenario: string,
         isLoading: boolean
         moduleSettings: {
-          bridge_1: boolean,
-          bridge_2: boolean,
+          bridge1: boolean,
+          bridge2: boolean,
           roof_amenities: "random" | "complementary",
           blocks: "permeable" | "private",
           main_street_orientation: "vertical" | "horizontal"
@@ -41,8 +41,8 @@ declare global {
         scenarioViewFilters: {
           start_time?: number,
           end_time?: number,
-          resident_or_visitor?: "resident" | "visitor",
-          student_or_adult?: "student" | "adult",
+          resident_or_visitor?: "resident" | "visitor" | null,
+          student_or_adult?: "student" | "adult" | "any",
           modes?: {
             bicycle: boolean
             car: boolean
@@ -56,7 +56,6 @@ declare global {
         map: mapboxgl.Map | null,
         layerIds: string[],
         selectedFeatures: any[],
-        abmScenario: AbmScenario | null,
         view: View,
         accessToken: string,
         cityPyO: CityPyO | null,
