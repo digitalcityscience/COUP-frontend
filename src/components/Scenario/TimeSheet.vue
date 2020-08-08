@@ -13,7 +13,7 @@ export default {
     components: {},
     methods:{
         getScenarioData(){
-            this.currentTimeSet = tripsLayer.currentTime;
+            this.currentTimeSet = ;
         },
     },
     computed: {

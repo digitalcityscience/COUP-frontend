@@ -24,7 +24,8 @@ export default {
             blockOptions: blockPermeabilityOptions,
             roofAmenitiesOptions: roofAmenitiesOptions,
             filters: filters,
-            filterOptions: filterOptions
+            filterOptions: filterOptions,
+            age: 21
         }
     },
     computed: {
@@ -44,7 +45,7 @@ export default {
             ['foot', 'scenario/scenarioViewFilters/modes/' + filterOptions.foot],
             ['bicycle', 'scenario/scenarioViewFilters/modes/' + filterOptions.bicycle],
             ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
-            ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car]
+            ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
         ])
     },
     watch: {
