@@ -1,11 +1,11 @@
 {
     "view": {
-        "center": [10.0143909533867, 53.53128461384861],
-        "zoom": 15,
-        "pitch": 30,
-        "bearing": 34.8
+        "center": [10.013542, 53.528397],
+        "zoom": 14.7,
+        "pitch": 0,
+        "bearing": 25
     },
-    "mapStyle": "mapbox://styles/grasbrook/ckc4kk5ok0ski1iqgvyu2m2ub",
+    "mapStyle": "mapbox://styles/grasbrook/ckdka4jml0yak1iphobimn547",
     "layers": [
         {
             "id": "groundfloor",
@@ -29,7 +29,8 @@
             "type": "fill",
             "source": "bridges",
             "paint": {
-                "fill-color": "red",
+                "fill-color": "#314e49",
+                "fill-outline-color": "#222",
                 "fill-opacity": 0.8
             }
         }

@@ -56,6 +56,7 @@ declare global {
         map: mapboxgl.Map | null,
         layerIds: string[],
         selectedFeatures: any[],
+        currentTime: number,
         abmScenario: AbmScenario | null,
         view: View,
         accessToken: string,

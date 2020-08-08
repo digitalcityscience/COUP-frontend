@@ -6,6 +6,7 @@ import {designScenarios, mainStreetOrientationOptions }  from '@/store/abm.ts';
 const initialState: StoreState = {
     map: null,
     layerIds: [],
+    currentTime: 0,
     selectedFeatures: [],
     abmScenario: {
         designScenario: designScenarios.bridge1,

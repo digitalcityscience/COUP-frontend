@@ -5,7 +5,8 @@
       "type": "fill",
       "source": "bridges",
       "paint": {
-        "fill-color": "red",
+        "fill-color": "#314e49",
+        "fill-outline-color": "#222",
         "fill-opacity": 0.8
       }
     },
@@ -14,7 +15,8 @@
       "type": "fill",
       "source": "bridges",
       "paint": {
-        "fill-color": "red",
+        "fill-color": "#314e49",
+        "fill-outline-color": "#222",
         "fill-opacity": 0.8
       },
       "filter": [
@@ -28,7 +30,8 @@
       "type": "fill",
       "source": "bridges",
       "paint": {
-        "fill-color": "red",
+        "fill-color": "#314e49",
+        "fill-outline-color": "#222",
         "fill-opacity": 0.8
       },
       "filter": [

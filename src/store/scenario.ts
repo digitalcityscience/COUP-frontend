@@ -1,6 +1,7 @@
 import {Module} from "vuex";
 import Scenarios from "@/config/scenarios.json";
 import {abmTripsLayerName, buildTripsLayer, animate} from "@/store/deck-layers";
+import { getQuantileDomain } from '@deck.gl/aggregation-layers/utils/scale-utils';
 
 const scenario: Module<any, any> = {
   namespaced: true,
@@ -88,14 +89,13 @@ const scenario: Module<any, any> = {
             // check if scenario is still valid - user input might have changed while loading trips layer
             rootState.map?.addLayer(deckLayer)
             commit('addLayerId', abmTripsLayerName, {root: true})
-            animate(deckLayer)
+            animate.call(this, deckLayer);
 
             // finally remove loading screen
-            commit('abmResultLoading', false, {root: true})
+            commit('abmResultLoading', false, {root: true});
             })
         }
       )
-      return
     }
   }
 }
