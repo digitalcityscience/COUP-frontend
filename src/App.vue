@@ -1,15 +1,17 @@
 <script>
-import Map from './components/Map/Map.vue'
-import GFI from './components/GFI/GFI.vue'
+import Map from './components/Map/Map.vue';
+import GFI from './components/GFI/GFI.vue';
 import Scenario from "@/components/Scenario/AbmScenario";
-import { mapGetters } from 'vuex'
+import Menu from "@/components/Menu/Menu.vue";
+import { mapGetters } from 'vuex';
 
 export default {
     name: 'App',
     components: {
         Map,
         GFI,
-        Scenario
+        Scenario,
+        Menu
     },
     computed: {
     },
@@ -30,7 +32,7 @@ export default {
     <v-app>
         <Map />
         <GFI />
-        <Scenario />
+        <Menu />
     </v-app>
 </template>
 

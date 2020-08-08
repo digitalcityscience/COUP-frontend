@@ -11,10 +11,11 @@ import {
     filters,
     filterOptions
 } from '@/store/abm.ts'
+import TimeSheet from "@/components/Scenario/TimeSheet.vue";
 
 export default {
     name: 'AbmScenario',
-    components: {},
+    components: {TimeSheet},
     data () {
         return {
             designScenarioNames: designScenarios,
@@ -207,6 +208,10 @@ export default {
                 Confirm Settings
             </v-btn>
         </v-expansion-panels>
+
+        <div class='sub'>
+            <TimeSheet />
+        </div>
     </div>
 </template>
 
