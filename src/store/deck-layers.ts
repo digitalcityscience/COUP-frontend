@@ -38,7 +38,7 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
 // animate deck trips layer
 export function animate(layer: DeckLayer<any>, start: number = null, end: number = null, time: number = null) {
   // stop animation, if trips layer no longer on map
-  if (!store.state.abmScenario.designScenario) {
+  if (!store.state.scenario.designScenario) {
     console.log("stopped animation, because no scenario is selected")
     return
   }
@@ -53,18 +53,28 @@ export function animate(layer: DeckLayer<any>, start: number = null, end: number
     time = start
   }
 
-  const animationSpeed = 7
-
   // if loop - start over
   if (time >= end) {
     time = start
   }
+  
+  //get animation values from Store
+  const animationSpeed = store.state.scenario.animationSpeed;
+  const animationRunning = store.state.scenario.animationRunning;
+
+  /*const currentTimeStamp = store.state.scenario.currentTimeStap;
+  if(currentTimeStamp > start || currentTimeStamp < end){
+    time = currentTimeStamp;
+  }*/
+
+  //commit currentTime to Store
+  store.commit("scenario/currentTimeStamp", time + animationSpeed);
 
   // update current time on layer to move the dot
   (layer as DeckLayer<any>).setProps({currentTime: time})
 
   // as long as endTime of trips layer is not reached - call next frame iteration
-  if (time <= end) {
+  if (time <= end && animationRunning) {
     window.requestAnimationFrame(() => {
       animate(layer, start, end, time + animationSpeed);
     });

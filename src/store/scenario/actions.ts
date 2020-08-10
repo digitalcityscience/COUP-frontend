@@ -6,8 +6,8 @@ export default {
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
     // update scenario name
     state.designScenario = getScenarioName(
-      state.moduleSettings.bridge1,
-      state.moduleSettings.bridge2
+      state.moduleSettings.bridge_1,
+      state.moduleSettings.bridge_2
     )
 
     dispatch('updateDeckLayer')
@@ -64,6 +64,8 @@ export default {
             commit('addLayerId', abmTripsLayerName, {root: true})
             animate(deckLayer)
 
+            commit('abmData', deckLayer?.props?.data)
+
             // finally remove loading screen
             commit('abmResultLoading', false)
           })
@@ -73,12 +75,12 @@ export default {
   }
 }
 
-function getScenarioName(bridge1, bridge2) {
-  if (bridge1 && bridge2) {
+function getScenarioName(bridge_1, bridge_2) {
+  if (bridge_1 && bridge_2) {
     return "all_bridges"
-  } else if (bridge1) {
-    return "bridge1"
-  } else if (bridge2) {
-    return "bridge2"
+  } else if (bridge_1) {
+    return "bridge_1"
+  } else if (bridge_2) {
+    return "bridge_2"
   }
 }

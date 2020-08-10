@@ -15,7 +15,7 @@ import TimeSheet from "@/components/Scenario/TimeSheet.vue";
 
 export default {
     name: 'AbmScenario',
-    components: {TimeSheet},
+    components: {},
     data () {
         return {
             designScenarioNames: designScenarios,
@@ -29,14 +29,12 @@ export default {
         }
     },
     computed: {
-        ...mapState([
-            'selectedFeatures'
-        ]),
+        ...mapState(['selectedFeatures']),
         ...mapState('scenario', ['isLoading']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
-            ['bridge1', 'scenario/moduleSettings/' + moduleSettingNames.bridge1],
-            ['bridge2', 'scenario/moduleSettings/' + moduleSettingNames.bridge2],
+            ['bridge_1', 'scenario/moduleSettings/' + moduleSettingNames.bridge_1],
+            ['bridge_2', 'scenario/moduleSettings/' + moduleSettingNames.bridge_2],
             ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
             ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
             ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
@@ -83,12 +81,12 @@ export default {
                             CONNECTIVITY
                         </header>
                         <v-switch
-                            v-model="bridge1"
+                            v-model="bridge_1"
                             flat
                             label="Bridge 1"
                         />
                         <v-switch
-                            v-model="bridge2"
+                            v-model="bridge_2"
                             flat
                             label="Bridge 2"
                         />
@@ -211,7 +209,6 @@ export default {
         </v-expansion-panels>
 
         <div class='sub'>
-            <TimeSheet />
         </div>
     </div>
 </template>
