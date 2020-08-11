@@ -19,3 +19,8 @@ $reversed: #0176AC;
 body, html {
     overflow: hidden;
 }
+
+.visible {
+    opacity:1 !important;
+    pointer-events:all !important;
+}

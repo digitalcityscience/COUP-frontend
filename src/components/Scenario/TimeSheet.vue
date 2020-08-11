@@ -14,6 +14,12 @@ export default {
             timeArray: {},
             timeStamps: [],
             timeCoords: [],
+            timeHours: [],
+            filterCoords:[],
+            timeFilter: false,
+            checkState: false,
+            filter:null,
+            filterOptions: ["foot","bicycle","public_transport","car"],
             minTime: 0,
             maxTime: 0,
         }
@@ -36,24 +42,34 @@ export default {
             }
         },
         getTimeData(){
+            console.log(this.abmData);
             this.timeStamps = [];
             this.timeCoords = [];
-            const workingObj = {};
+            this.timeHours = [];
+            let workingObj = {};
+
             this.abmData.forEach((v,i,a) =>{
                 v.timestamps.forEach((v,i,a) => {
                     workingObj[v] = (workingObj[v]+1) || 1;
                 });
             });
+
             this.timeObj = workingObj;
-            console.log(this.timeObj);
 
             for (const [key, value] of Object.entries(workingObj)) {
                 this.timeStamps.push(`${key}`);
                 this.timeCoords.push(`${value}`)
             }
 
+            this.filterCoords = this.timeCoords;
+
             this.minTime = Math.min(...this.timeStamps);
             this.maxTime = Math.max(...this.timeStamps);
+            
+            this.timeStamps.forEach((v,i,a) => {
+                let hour = Math.floor(v / 3600) + 6 + ":00";
+                this.timeHours.push(hour);
+            });
 
             this.renderTimeGraph();
         },
@@ -62,7 +78,7 @@ export default {
             var chart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: this.timeStamps,
+                    labels: this.timeHours,
                     //labels: ["8:00", "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"],
                     datasets: [
                     {
@@ -71,8 +87,14 @@ export default {
                         backgroundColor: 'rgba(0,0,0,0.75)',
                         borderWidth: 1,
                         fill: false,
-                        label: 'Agents',
-                        lineTension: 0
+                        label: 'all Agents',
+                    },{
+                        data: this.filterCoords,
+                        display:this.timeFilter,
+                        label: 'filtered Agents',
+                        borderColor: 'rgba(81,209,252,0.85)',
+                        borderWidth:1,
+                        fill:true,
                     }
                     ]
                 },
@@ -130,6 +152,32 @@ export default {
             const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
             animate(deckLayer.implementation, null, null, newTime);
         },
+        activateFilterGraph(){
+            this.timeFilter = true;
+            this.filterCoords = [];
+
+            let workingObj = {};
+
+            console.log(this.filter);
+            this.abmData.forEach((v,i,a) =>{
+                v.timestamps.forEach((vv,i,a) => {
+                        
+                    if(v.agent.mode === this.filter) {
+                        workingObj[vv] = (workingObj[vv]+1) || 1;
+                    } else {
+                        workingObj[vv] = (workingObj[vv]+0) || 0;
+                    }
+                });
+            });
+
+            for (const [key, value] of Object.entries(workingObj)) {
+                this.filterCoords.push(`${value}`)
+            }
+
+            console.log(this.filterCoords);
+            this.renderTimeGraph();
+            
+        },
         updateData(){
             this.getTimeData();
             console.log(this.abmData);
@@ -186,10 +234,27 @@ export default {
                     <v-icon>mdi-account-circle</v-icon>
                 </v-btn>
             </div>
-            <div class="btn_wrapper">   
-                <v-btn @click="functionFollowsForm">
-                    <v-icon>mdi-pencil</v-icon>
+            <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">   
+                <v-btn @click="checkState = !checkState">
+                    <v-icon>mdi-chart-line</v-icon>
                 </v-btn>
+
+                <div class="filterMenu" v-bind:class="{ visible: checkState }">
+                    <div class="wrapper">
+                        <!--<div class="hint">
+                            <p>Select a dataset to compare</p>
+                        </div>-->
+                        <v-select
+                            :items="filterOptions"
+                            label="Select"
+                            hint="Choose dataset for comparison"
+                            persistent-hint
+                            dark
+                            v-model="filter"
+                            @change="activateFilterGraph"
+                        ></v-select>
+                    </div>
+                </div>
             </div>
             <div class="btn_wrapper">   
                 <v-btn @click="increaseAnimationSpeed">
@@ -362,31 +427,51 @@ export default {
                         }
                     }
 
-                    .indicators {
-                        display:flex;
-                        flex-flow:row wrap;
-                        justify-content: center;
-                        align-content:center;
-                        position:absolute;
-                        left:calc(100% + 2px);
-                        top:0;
-                        width:5px;
-                        height:30px;
-                        opacity:0;
+                .indicators {
+                    display:flex;
+                    flex-flow:row wrap;
+                    justify-content: center;
+                    align-content:center;
+                    position:absolute;
+                    left:calc(100% + 2px);
+                    top:0;
+                    width:5px;
+                    height:30px;
+                    opacity:0;
 
-                        .indicator {
-                            flex:1 0 100%;
-                            background:rgba(0,0,0,0.85);
+                    .indicator {
+                        flex:1 0 100%;
+                        background:rgba(0,0,0,0.85);
 
-                            &.marked {
-                                display:block;
-                                margin:1px auto;
-                                width: 5px;
-                                height: 5px;
-                                background:$opaqueorange;
-                            }
+                        &.marked {
+                            display:block;
+                            margin:1px auto;
+                            width: 5px;
+                            height: 5px;
+                            background:$opaqueorange;
                         }
                     }
+                }
+
+                .filterMenu {
+                    opacity:0;
+                    pointer-events:none;
+                    position: absolute;
+                    top: -35px;
+                    left: calc(100% + 5px);
+                    width: 300px;
+                    padding: 15px 20px;
+                    box-sizing: border-box;
+                    background: rgba(0, 0, 0, 0.75);
+                    @include drop_shadow;
+                }
+
+                &.highlight {
+                    ::v-deep.v-btn {
+                        border:1px solid $bright2;
+                        filter:invert(0) !important;
+                    }
+                }
 
                 &:hover {
                     .indicators {
