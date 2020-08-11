@@ -81,8 +81,16 @@ export default {
                     yAxes: [{
                         ticks: {
                         beginAtZero: true
+                        },
+                        gridLines: {
+                            color: "rgba(49,48,73,0.35)",
                         }
-                    }]
+                    }],
+                    xAxes: [{
+                        gridLines: {
+                            color: "rgba(49,48,73,0.35)",
+                        }
+                    }],
                     },
                     elements: {
                     point:{
@@ -269,9 +277,9 @@ export default {
                                     .v-slider__thumb-container {
                                         .v-slider__thumb {
                                             width:1px !important;
-                                            height:150px !important;
+                                            height:177px !important;
                                             background:rgba(255,255,255,0.75) !important;
-                                            top:-150px;
+                                            top:-177px;
                                             left:0;
                                             transform:translate(0,0);
 
