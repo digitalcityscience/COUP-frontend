@@ -47,7 +47,7 @@ export function generateMutations (state: GenericObject, prefix?: string) {
             const _key = prefix ? prefix + '/' + key : key
             const mutation = prefix ? generateComplexMutation(_key) : generateSimpleMutation(_key)
 
-            if (state[key].constructor !== Object) {
+            if (state[key]?.constructor !== Object) {
               return {
                 ...acc,
                 [_key]: mutation

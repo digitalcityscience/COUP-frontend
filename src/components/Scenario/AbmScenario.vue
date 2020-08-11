@@ -11,6 +11,7 @@ import {
     filters,
     filterOptions
 } from '@/store/abm.ts'
+import TimeSheet from "@/components/Scenario/TimeSheet.vue";
 
 export default {
     name: 'AbmScenario',
@@ -23,18 +24,17 @@ export default {
             blockOptions: blockPermeabilityOptions,
             roofAmenitiesOptions: roofAmenitiesOptions,
             filters: filters,
-            filterOptions: filterOptions
+            filterOptions: filterOptions,
+            age: 21
         }
     },
     computed: {
-        ...mapState([
-            'selectedFeatures'
-        ]),
+        ...mapState(['selectedFeatures']),
         ...mapState('scenario', ['isLoading']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
-            ['bridge1', 'scenario/moduleSettings/' + moduleSettingNames.bridge1],
-            ['bridge2', 'scenario/moduleSettings/' + moduleSettingNames.bridge2],
+            ['bridge_1', 'scenario/moduleSettings/' + moduleSettingNames.bridge_1],
+            ['bridge_2', 'scenario/moduleSettings/' + moduleSettingNames.bridge_2],
             ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
             ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
             ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
@@ -43,7 +43,7 @@ export default {
             ['foot', 'scenario/scenarioViewFilters/modes/' + filterOptions.foot],
             ['bicycle', 'scenario/scenarioViewFilters/modes/' + filterOptions.bicycle],
             ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
-            ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car]
+            ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
         ])
     },
     watch: {
@@ -81,12 +81,12 @@ export default {
                             CONNECTIVITY
                         </header>
                         <v-switch
-                            v-model="bridge1"
+                            v-model="bridge_1"
                             flat
                             label="Bridge 1"
                         />
                         <v-switch
-                            v-model="bridge2"
+                            v-model="bridge_2"
                             flat
                             label="Bridge 2"
                         />
@@ -207,6 +207,9 @@ export default {
                 Confirm Settings
             </v-btn>
         </v-expansion-panels>
+
+        <div class='sub'>
+        </div>
     </div>
 </template>
 

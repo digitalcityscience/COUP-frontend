@@ -32,8 +32,8 @@ declare global {
         designScenario: string,
         isLoading: boolean
         moduleSettings: {
-          bridge1: boolean,
-          bridge2: boolean,
+          bridge_1: boolean,
+          bridge_2: boolean,
           roof_amenities: "random" | "complementary",
           blocks: "permeable" | "private",
           main_street_orientation: "vertical" | "horizontal"
@@ -56,6 +56,7 @@ declare global {
         map: mapboxgl.Map | null,
         layerIds: string[],
         selectedFeatures: any[],
+        currentTime: number,
         view: View,
         accessToken: string,
         cityPyO: CityPyO | null,

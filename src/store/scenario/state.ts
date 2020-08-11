@@ -1,11 +1,12 @@
 import {designScenarios, filterOptions, roofAmenitiesOptions} from "@/store/abm";
 
 export default {
-  designScenario: designScenarios.bridge1,
+  designScenario: designScenarios.bridge_1,
   isLoading: false,
+  abmData: null,
   moduleSettings: {
-    bridge1: true,
-    bridge2: false,
+    bridge_1: true,
+    bridge_2: false,
     roof_amenities: roofAmenitiesOptions.random,
     blocks: "permeable",
     main_street_orientation: "vertical"
@@ -19,5 +20,9 @@ export default {
       foot: true,
       public_transport: true
     }
-  }
+  },
+  currentTimeStamp: 0,
+  animationRunning: true,
+  animationSpeed: 7,
 }
+

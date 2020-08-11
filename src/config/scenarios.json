@@ -5,16 +5,18 @@
       "type": "fill",
       "source": "bridges",
       "paint": {
-        "fill-color": "red",
+        "fill-color": "#314e49",
+        "fill-outline-color": "#222",
         "fill-opacity": 0.8
       }
     },
     {
-      "id": "bridge1",
+      "id": "bridge_1",
       "type": "fill",
       "source": "bridges",
       "paint": {
-        "fill-color": "red",
+        "fill-color": "#314e49",
+        "fill-outline-color": "#222",
         "fill-opacity": 0.8
       },
       "filter": [
@@ -24,11 +26,12 @@
       ]
     },
     {
-      "id": "bridge2",
+      "id": "bridge_2",
       "type": "fill",
       "source": "bridges",
       "paint": {
-        "fill-color": "red",
+        "fill-color": "#314e49",
+        "fill-outline-color": "#222",
         "fill-opacity": 0.8
       },
       "filter": [

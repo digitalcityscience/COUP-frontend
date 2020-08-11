@@ -1,3 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
+//color variables
+
+$bright1: whitesmoke;
+$bright2: #ccc;
+$orange: rgba(253, 128, 93, 1);
+$opaqueorange: rgba(253, 128, 93, 0.65);
+$reversed: #0176AC;
+
+//mixin
+
+@mixin drop_shadow {
+    -webkit-box-shadow: 0px 15px 25px -10px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 15px 25px -10px rgba(0,0,0,0.75);
+    box-shadow: 0px 15px 25px -10px rgba(0,0,0,0.75);
+}
+
 body, html {
     overflow: hidden;
 }

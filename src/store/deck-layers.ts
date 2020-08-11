@@ -2,13 +2,15 @@ import {Layer as MapboxLayer} from 'mapbox-gl'
 import {MapboxLayer as DeckLayer} from "@deck.gl/mapbox";
 import {TripsLayer} from "@deck.gl/geo-layers";
 import store from "../store/index"
+import { DataSet } from '@deck.gl/core/lib/layer';
 
 
 export const abmTripsLayerName = "abmTrips"
 
-export async function buildTripsLayer(data: Object): DeckLayer {
+export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
 
-  return new DeckLayer({
+  //return new DeckLayer({
+    const tripsLayer = new DeckLayer({
     id: abmTripsLayerName,
     type: TripsLayer,
     data: data,
@@ -19,18 +21,22 @@ export async function buildTripsLayer(data: Object): DeckLayer {
       return d.timestamps
     },
     getColor: [253, 128, 93],
-    getWidth: 1,
-    opacity: 0.8,
-    widthMinPixels: 5,
-    rounded: true,
-    trailLength: 500,
+    highlightColor: [255, 56, 56],
+    getWidth: 0.5,
+    opacity: 0.15,
+    widthMinPixels: 2,
+    rounded: false,
+    pickable:true,
+    trailLength: 1000,
     currentTime: 0,
     // currentTime: this.props.sliders.time[1]
   });
+
+  return tripsLayer;
 }
 
 // animate deck trips layer
-export function animate(layer: DeckLayer, start: number = null, end: number = null, time: number = null) {
+export function animate(layer: DeckLayer<any>, start: number = null, end: number = null, time: number = null) {
   // stop animation, if trips layer no longer on map
   if (!store.state.scenario.designScenario) {
     console.log("stopped animation, because no scenario is selected")
@@ -47,18 +53,28 @@ export function animate(layer: DeckLayer, start: number = null, end: number = nu
     time = start
   }
 
-  const animationSpeed = 50
-
   // if loop - start over
   if (time >= end) {
     time = start
   }
+  
+  //get animation values from Store
+  const animationSpeed = store.state.scenario.animationSpeed;
+  const animationRunning = store.state.scenario.animationRunning;
+
+  /*const currentTimeStamp = store.state.scenario.currentTimeStap;
+  if(currentTimeStamp > start || currentTimeStamp < end){
+    time = currentTimeStamp;
+  }*/
+
+  //commit currentTime to Store
+  store.commit("scenario/currentTimeStamp", time + animationSpeed);
 
   // update current time on layer to move the dot
-  (layer as DeckLayer).setProps({currentTime: time})
+  (layer as DeckLayer<any>).setProps({currentTime: time})
 
   // as long as endTime of trips layer is not reached - call next frame iteration
-  if (time <= end) {
+  if (time <= end && animationRunning) {
     window.requestAnimationFrame(() => {
       animate(layer, start, end, time + animationSpeed);
     });
