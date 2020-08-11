@@ -1,12 +1,12 @@
-export const designScenarios = {
-  bridge_1: "bridge_1",
-  bridge_2: "bridge_2",
-  all_bridges: "all_bridges",
+export const bridges = {
+  bridge_north: "bridge_north",
+  bridge_south_horizontal: "bridge_south_horizontal",
+  bridge_south_diagonal: "bridge_south_diagonal",
 }
 
 export const moduleSettingNames = {
-  bridge_1: "bridge_1",
-  bridge_2: "bridge_2",
+  bridge_north: "bridge_north",
+  bridge_south: "bridge_south",
   roofAmenities: "roof_amenities",
   blocks: "blocks",
   mainStreetOrientation: "main_street_orientation"
@@ -15,6 +15,11 @@ export const moduleSettingNames = {
 export const mainStreetOrientationOptions = {
   horizontal: "horizontal",
   vertical: "vertical",
+}
+
+export const bridgeSouthOptions = {
+  horizontal: "horizontal",
+  diagonal: "diagonal",
 }
 
 export const blockPermeabilityOptions = {

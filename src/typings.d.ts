@@ -29,11 +29,11 @@ declare global {
       }
 
       interface AbmScenario extends  ScenarioResult{
-        designScenario: string,
+        bridges: string[],
         isLoading: boolean
         moduleSettings: {
-          bridge_1: boolean,
-          bridge_2: boolean,
+          bridge_north: boolean,
+          bridge_south: "horizontal" | "diagonal",
           roof_amenities: "random" | "complementary",
           blocks: "permeable" | "private",
           main_street_orientation: "vertical" | "horizontal"

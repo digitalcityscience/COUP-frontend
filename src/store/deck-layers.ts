@@ -2,7 +2,7 @@ import {Layer as MapboxLayer} from 'mapbox-gl'
 import {MapboxLayer as DeckLayer} from "@deck.gl/mapbox";
 import {TripsLayer} from "@deck.gl/geo-layers";
 import store from "../store/index"
-import { DataSet } from '@deck.gl/core/lib/layer';
+import { DataSet } from "@deck.gl/core/lib/layer";
 
 
 export const abmTripsLayerName = "abmTrips"
@@ -38,7 +38,7 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
 // animate deck trips layer
 export function animate(layer: DeckLayer<any>, start: number = null, end: number = null, time: number = null) {
   // stop animation, if trips layer no longer on map
-  if (!store.state.scenario.designScenario) {
+  if (!store.state.scenario.bridges) {
     console.log("stopped animation, because no scenario is selected")
     return
   }
@@ -57,7 +57,7 @@ export function animate(layer: DeckLayer<any>, start: number = null, end: number
   if (time >= end) {
     time = start
   }
-  
+
   //get animation values from Store
   const animationSpeed = store.state.scenario.animationSpeed;
   const animationRunning = store.state.scenario.animationRunning;

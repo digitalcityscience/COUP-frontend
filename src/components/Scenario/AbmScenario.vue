@@ -3,23 +3,25 @@
 import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import {
-    designScenarios,
+    bridges,
     moduleSettingNames,
+    bridgeSouthOptions,
     mainStreetOrientationOptions,
     blockPermeabilityOptions,
     roofAmenitiesOptions,
     filters,
     filterOptions
 } from '@/store/abm.ts'
-import TimeSheet from "@/components/Scenario/TimeSheet.vue";
+import TimeSheet from '@/components/Scenario/TimeSheet.vue'
 
 export default {
     name: 'AbmScenario',
     components: {},
     data () {
         return {
-            designScenarioNames: designScenarios,
+            designScenarioNames: bridges,
             moduleSettingOptions: moduleSettingNames,
+            bridgeSouthOptions: bridgeSouthOptions,
             mainStreetOrientationOptions: mainStreetOrientationOptions,
             blockOptions: blockPermeabilityOptions,
             roofAmenitiesOptions: roofAmenitiesOptions,
@@ -33,8 +35,8 @@ export default {
         ...mapState('scenario', ['isLoading']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
-            ['bridge_1', 'scenario/moduleSettings/' + moduleSettingNames.bridge_1],
-            ['bridge_2', 'scenario/moduleSettings/' + moduleSettingNames.bridge_2],
+            ['bridge_north', 'scenario/moduleSettings/' + moduleSettingNames.bridge_north],
+            ['bridge_south', 'scenario/moduleSettings/' + moduleSettingNames.bridge_south],
             ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
             ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
             ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
@@ -47,7 +49,9 @@ export default {
         ])
     },
     watch: {
-        car (newVal, old) {
+        bridge_north (newVal, old) {
+            console.log(newVal, old)
+        },bridge_south (newVal, old) {
             console.log(newVal, old)
         },
         roof_amenities (newVal, old) {
@@ -81,15 +85,25 @@ export default {
                             CONNECTIVITY
                         </header>
                         <v-switch
-                            v-model="bridge_1"
+                            v-model="bridge_north"
                             flat
-                            label="Bridge 1"
+                            label="Connection to HafenCity"
                         />
-                        <v-switch
-                            v-model="bridge_2"
-                            flat
-                            label="Bridge 2"
-                        />
+                        <v-subheader class="bridge_subheader">
+                            Brigde to Veddel
+                        </v-subheader>
+                        <v-radio-group v-model="bridge_south">
+                            <v-radio
+                                :value="bridgeSouthOptions.horizontal"
+                                flat
+                                label="Horizontal connection to Veddel"
+                            />
+                            <v-radio
+                                :value="bridgeSouthOptions.diagonal"
+                                flat
+                                label="Diagonal connection to Veddel"
+                            />
+                        </v-radio-group>
                         <header class="text-sm-left">
                             MAIN STREET
                         </header>
@@ -208,8 +222,7 @@ export default {
             </v-btn>
         </v-expansion-panels>
 
-        <div class='sub'>
-        </div>
+        <div class="sub" />
     </div>
 </template>
 
@@ -217,5 +230,8 @@ export default {
   #scenario {
     height: 100%;
     width: 100%;
+  }
+  .bridge_subheader {
+    height: 5px;
   }
 </style>
