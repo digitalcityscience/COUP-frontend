@@ -5,6 +5,7 @@ export default {
   // load new source from cityPyo due to new scenario settings and re-add layer to the map
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
     // update scenario name
+
     state.designScenario = getScenarioName(
       state.moduleSettings.bridge1,
       state.moduleSettings.bridge2
@@ -18,7 +19,6 @@ export default {
     // delete any scenario layer that is still on the map, before adding a new one
     Scenarios.layers.forEach(layer => {
       if (rootState.map?.getSource(layer.source)) {
-        console.log("deleting this source", layer.source)
         dispatch("removeSourceFromMap", layer.source, { root: true })
       }
     })

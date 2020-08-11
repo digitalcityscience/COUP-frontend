@@ -32,7 +32,7 @@ export async function buildTripsLayer(data: Object): DeckLayer {
 // animate deck trips layer
 export function animate(layer: DeckLayer, start: number = null, end: number = null, time: number = null) {
   // stop animation, if trips layer no longer on map
-  if (!store.state.abmScenario.designScenario) {
+  if (!store.state.scenario.designScenario) {
     console.log("stopped animation, because no scenario is selected")
     return
   }
