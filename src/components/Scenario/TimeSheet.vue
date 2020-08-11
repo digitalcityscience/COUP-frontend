@@ -10,7 +10,7 @@ export default {
             currentTimeSet: 0,
             currentTimeStamp: 0,
             currentValue:0,
-            testMyBrain: 4,
+            animationSpeed: 7,
             timeArray: {},
             timeStamps: [],
             timeCoords: [],
@@ -104,6 +104,15 @@ export default {
         pauseAnimation(){  
             this.$store.commit("scenario/animationRunning", false);
         },
+        increaseAnimationSpeed(){
+            if(this.animationSpeed <= 21) {
+                this.animationSpeed += 7;
+            } else {
+                this.animationSpeed = 7;
+            }
+
+            this.$store.commit("scenario/animationSpeed", this.animationSpeed);
+        },
         changeCurrentTime(){
             //this.$store.commit("scenario/animationRunning", false);
             const newTime = this.currentValue;
@@ -159,23 +168,40 @@ export default {
                     ></v-slider>
                 </div>
             </div>
+            <div class="animation_info">
+                <p>animation speed<strong> x{{animationSpeed/7}}</strong></p>
+            </div>
         </div>
         <div class="button_section">
-            <v-btn @click="functionFollowsForm">
-                <v-icon>mdi-account-circle</v-icon>
-            </v-btn>  
-            <v-btn @click="functionFollowsForm">
-                <v-icon>mdi-pencil</v-icon>
-            </v-btn>   
-            <v-btn@click="functionFollowsForm">
-                <v-icon>mdi-domain</v-icon>
-            </v-btn>   
-            <v-btn
-            @click="triggerAnimation"
-            >
-                <v-icon v-if="animationRunning">mdi-pause</v-icon>
-                <v-icon v-else>mdi-play</v-icon>
-            </v-btn> 
+            <div class="btn_wrapper">   
+                <v-btn @click="functionFollowsForm">
+                    <v-icon>mdi-account-circle</v-icon>
+                </v-btn>
+            </div>
+            <div class="btn_wrapper">   
+                <v-btn @click="functionFollowsForm">
+                    <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+            </div>
+            <div class="btn_wrapper">   
+                <v-btn @click="increaseAnimationSpeed">
+                    <v-icon>mdi-fast-forward</v-icon>
+                </v-btn>
+                <div class="indicators">
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 7 }"></span>
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 14 }"></span>
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 21 }"></span>
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 28 }"></span>
+                </div>
+            </div>
+            <div class="btn_wrapper">   
+                <v-btn
+                @click="triggerAnimation"
+                >
+                    <v-icon v-if="animationRunning">mdi-pause</v-icon>
+                    <v-icon v-else>mdi-play</v-icon>
+                </v-btn> 
+            </div>
         </div>
     </div>
 </template>
@@ -225,6 +251,7 @@ export default {
                     ::v-deep.v-input {
                         .v-input__control {
                             .v-input__slot {
+                                margin-bottom:0px !important;
                                 .v-slider {
                                     
                                     margin:0 !important;
@@ -271,10 +298,27 @@ export default {
                                     }
                                 }
                             }
+
+                            .v-messages {
+                                display:none;
+                            }
                         }
                     }
                 }
             }
+
+            .animation_info {
+                    text-align:right;
+                    opacity:0.5;
+                    p {
+                        color:$bright2;
+                        font-size:80%;
+
+                        strong {
+                            color:$bright1;
+                        }
+                    }
+                }
         }
 
         .button_section {    
@@ -287,23 +331,62 @@ export default {
             width: 30px;
             height: 70%;
 
-             ::v-deep.v-btn {    
-                padding: 0;
-                margin: 0;
-                width: 30px;
-                height: 30px;
-                min-width: 0;
-                filter:invert(1);
-                background:$bright1;
-                margin-bottom:4px;
-                opacity:0.8;
-                @include drop_shadow;
-
-                &:last-child {
-                    opacity:1;
-                    border:1px solid $reversed;
+            .btn_wrapper {
+                position:relative;
+                ::v-deep.v-btn {  
+                    position:relative;  
+                    padding: 0;
+                    margin: 0;
+                    width: 30px;
+                    height: 30px;
+                    min-width: 0;
+                    filter:invert(1);
+                    background:$bright1;
+                    margin-bottom:4px;
+                    opacity:0.8;
+                    @include drop_shadow;
                 }
-             }
+
+                 &:last-child {
+                        ::v-deep.v-btn {   
+                            opacity:1;
+                            border:1px solid $reversed;
+                        }
+                    }
+
+                    .indicators {
+                        display:flex;
+                        flex-flow:row wrap;
+                        justify-content: center;
+                        align-content:center;
+                        position:absolute;
+                        left:calc(100% + 2px);
+                        top:0;
+                        width:5px;
+                        height:30px;
+                        opacity:0;
+
+                        .indicator {
+                            flex:1 0 100%;
+                            background:rgba(0,0,0,0.85);
+
+                            &.marked {
+                                display:block;
+                                margin:1px auto;
+                                width: 5px;
+                                height: 5px;
+                                background:$opaqueorange;
+                            }
+                        }
+                    }
+
+                &:hover {
+                    .indicators {
+                        opacity:1;
+                        transition:0.3s;
+                    }
+                }
+            }
         }
     }
 </style>
