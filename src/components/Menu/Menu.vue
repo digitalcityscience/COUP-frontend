@@ -1,10 +1,18 @@
 <script>
 import { mapState } from 'vuex'
 import AbmScenario from "@/components/Scenario/AbmScenario.vue";
+import SWScenario from "@/components/Scenario/SWScenario.vue";
+import MCScenario from "@/components/Scenario/MCScenario.vue";
+import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
 
 export default {
     name: 'Menu',
-    components: {AbmScenario},
+    components: {AbmScenario, SWScenario, MCScenario, NoiseScenario},
+    data() {
+        return {
+            activeComponent: 'AbmScenario'
+        }
+    },
     methods:{
 
     }
@@ -17,8 +25,19 @@ export default {
             <h3>Grassbrook CityScope</h3>
             <p>Tool for Functional Planning</p>
         </div>
+        <div class="component_switch">
+            <ul class="component_list">
+                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'AbmScenario' }" @click="activeComponent = 'AbmScenario'"><p>ABM</p></li>
+                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SWScenario' }" @click="activeComponent = 'SWScenario'"><p>Stormwater</p></li>
+                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MCScenario' }" @click="activeComponent = 'MCScenario'"><p>Microclimate</p></li>
+                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }" @click="activeComponent = 'NoiseScenario'"><p>Noise</p></li>
+            </ul>
+        </div>
         <div class="body_scope">
-            <AbmScenario />
+            <div v-if="activeComponent === 'AbmScenario'"><AbmScenario /></div>
+            <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
+            <div v-if="activeComponent === 'MCScenario'"><MCScenario /></div>
+            <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario /></div>
         </div>
         <div class="footer_scope">
 
@@ -56,6 +75,59 @@ export default {
                 color:$bright2;
             }
         }
+
+        .component_switch {
+            width:100%;
+
+            .component_list {
+                display: flex;
+                flex-flow: row wrap;
+                justify-content: flex-start;
+                list-style: none;
+                padding: 0;
+                width: 90%;
+                margin: auto;
+
+                .component_link {
+                    position:relative;
+                    height: 30px;
+                    line-height: 30px;
+                    padding: 0px 20px;
+                    box-sizing: border-box;
+                    margin: 3px;
+                    text-align: center;
+
+                    p {
+                        color:$bright1;
+                        font-size:80%;
+                    }
+
+                    &:after {
+                        background: $reversed;
+                        opacity:0.35;
+                        z-index:-1;
+                        @include fullpseudo;
+                    }
+                    
+                    &:hover {
+                        cursor:pointer;
+
+                        &:after {
+                            opacity:0.5;
+                        }
+                    }
+
+                    &.highlight {
+                        outline:1px solid $bright1;
+
+                        &:after {
+                            opacity:0.65;
+                        }
+                    }
+                }
+            }
+        }
+
         .body_scope {}
         .footer_scope {}
 
