@@ -2,17 +2,36 @@
   "layers": [
     {
       "id": "spaces",
-      "type": "fill",
+      "type": "fill-extrusion",
       "source": "spaces",
       "paint": {
-        "fill-opacity": 0.8,
-        "fill-color": [
+        "fill-extrusion-base": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          15,
+          0,
+          30,
+          0.25
+        ],
+        "fill-extrusion-height": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          10,
+          0,
+          30,
+          0.2
+        ],
+        "fill-extrusion-opacity": 0.8,
+        "fill-extrusion-color": [
           "match", ["get", "land_use_detailed_type"],
-            "promenade", "blue",
-            "street", "lightblue",
-            "park", "darkgreen",
-            "plaza", "darkblue",
-          "white"
+            "promenade", "#3c453d",
+            "street", "#3e4141",
+            "bridge", "#3e4141",
+            "park", "#649e6c",
+            "plaza", "#d5e6d8",
+          "#ebf5ec"
         ]
       }
     }, {
@@ -29,7 +48,7 @@
           15.05,
           5
         ],
-        "fill-extrusion-color": "red",
+        "fill-extrusion-color": "#111111",
         "fill-extrusion-opacity": 0.8
       }
     },
@@ -38,7 +57,15 @@
       "type": "fill-extrusion",
       "source": "upperfloor",
       "paint": {
-        "fill-extrusion-base": 5,
+        "fill-extrusion-base": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          15,
+          0,
+          15.05,
+          5
+        ],
         "fill-extrusion-height": [
           "interpolate",
           ["linear"],
@@ -48,6 +75,7 @@
           15.05,
           ["get", "height"]
         ],
+        "fill-extrusion-color": "#111111",
         "fill-extrusion-opacity": 0.8
       }
     }
