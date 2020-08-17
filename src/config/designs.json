@@ -1,10 +1,44 @@
 {
   "layers": [
     {
+      "id": "spaces",
+      "type": "fill",
+      "source": "spaces",
+      "paint": {
+        "fill-opacity": 0.8,
+        "fill-color": [
+          "match", ["get", "land_use_detailed_type"],
+            "promenade", "blue",
+            "street", "lightblue",
+            "park", "darkgreen",
+            "plaza", "darkblue",
+          "white"
+        ]
+      }
+    }, {
       "id": "groundfloor",
       "type": "fill-extrusion",
       "source": "groundfloor",
       "paint": {
+        "fill-extrusion-height": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          10,
+          0,
+          15.05,
+          5
+        ],
+        "fill-extrusion-color": "red",
+        "fill-extrusion-opacity": 0.8
+      }
+    },
+    {
+      "id": "upperfloor",
+      "type": "fill-extrusion",
+      "source": "upperfloor",
+      "paint": {
+        "fill-extrusion-base": 5,
         "fill-extrusion-height": [
           "interpolate",
           ["linear"],
@@ -20,11 +54,27 @@
   ],
   "sources": [
     {
+      "id": "spaces",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "spaces"
+      }
+    },
+    {
       "id": "groundfloor",
       "type": "geojson",
       "data": {
         "from": "cityPyO",
         "id": "groundfloor"
+      }
+    },
+    {
+      "id": "upperfloor",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "upperfloor"
       }
     }
   ]
