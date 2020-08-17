@@ -27,33 +27,54 @@ export default class CityPyO {
         }
     }
 
-    async getLayer (id: string | number) {
-        const res = await fetch(this.url + 'getLayer', {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                userid: this.userid,
-                layer: id
-              // todo add function to build request dependending on requested layer (abm, ..)
-            })
-        })
+  async performRequest(layerId, requestUrl, body) {
 
-        if (res.status === 200) {
-            const json = await res.json();
+    const res = await fetch(requestUrl, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
 
-            return {
-                id,
-                options: {
-                    type: 'geojson',
-                    data: json
-                }
-            }
+    if (res.status == 200) {
+      const json = await res.json();
+
+      return {
+        id: layerId,
+        options: {
+          type: 'geojson',
+          data: json
         }
+      }
+    } else {
+      console.warn(res.status, res.statusText)
+    }
+  }
 
-        return console.warn(res.status, res.statusText)
+    async getLayer (id: string) {
+      console.log("getting layer id from cityPyo", id)
+
+      let requestUrl = this.url +  'getLayer'
+
+      let body = {
+        userid: this.userid,
+        layer: id
+      }
+
+      return this.performRequest(id, requestUrl, body)
+    }
+
+    async getAbmResultLayer (id: string | number, scenario: AbmScenario) {
+      let requestUrl = this.url +  'getLayer/' + "abmScenario"
+      let body = {
+        userid: this.userid,
+        scenario_properties: scenario.moduleSettings,
+        agent_filters: scenario.scenarioViewFilters
+      }
+
+      return this.performRequest(id, requestUrl, body)
     }
 
     getLayerData(query: string) {

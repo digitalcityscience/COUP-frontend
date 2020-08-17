@@ -1,0 +1,31 @@
+{
+  "layers": [
+    {
+      "id": "groundfloor",
+      "type": "fill-extrusion",
+      "source": "groundfloor",
+      "paint": {
+        "fill-extrusion-height": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          10,
+          0,
+          15.05,
+          ["get", "height"]
+        ],
+        "fill-extrusion-opacity": 0.8
+      }
+    }
+  ],
+  "sources": [
+    {
+      "id": "groundfloor",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "groundfloor"
+      }
+    }
+  ]
+}

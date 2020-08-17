@@ -22,10 +22,41 @@ declare global {
         sourceId: string
       }
 
+      interface ScenarioResult {
+        designScenario: string,
+        moduleSettings: {},
+        scenarioViewFilters: {}
+      }
+
+      interface AbmScenario extends  ScenarioResult{
+        bridges: string[],
+        isLoading: boolean
+        moduleSettings: {
+          bridge_north: boolean,
+          bridge_south: "horizontal" | "diagonal",
+          roof_amenities: "random" | "complementary",
+          blocks: "permeable" | "private",
+          main_street_orientation: "vertical" | "horizontal"
+        },
+        scenarioViewFilters: {
+          start_time?: number,
+          end_time?: number,
+          resident_or_visitor?: "resident" | "visitor" | null,
+          student_or_adult?: "student" | "adult" | "any",
+          modes?: {
+            bicycle: boolean
+            car: boolean
+            foot: boolean
+            public_transport: boolean
+          }
+        }
+      }
+
       interface StoreState {
         map: mapboxgl.Map | null,
         layerIds: string[],
-        selectedFeatures: any[]
+        selectedFeatures: any[],
+        currentTime: number,
         view: View,
         accessToken: string,
         cityPyO: CityPyO | null,

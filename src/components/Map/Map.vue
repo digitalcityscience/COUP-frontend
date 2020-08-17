@@ -1,7 +1,7 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-import { tripsLayerName } from '@/store/deck-layers'
+import { abmTripsLayerName } from '@/store/deck-layers'
 
 export default {
     name: 'Map',
@@ -31,7 +31,6 @@ export default {
 
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
-        this.map.on('sourcedata', this.animateTripsLayer)
         this.map.on('contextmenu', this.onMapContextMenu)
     },
     methods: {
@@ -56,15 +55,11 @@ export default {
             this.$store.dispatch('editFeatureProps', newFeature)
         },
         onMapLoaded () {
-            this.$store.dispatch('fetchLayersData')
+            console.log("create design layers")
+            this.$store.dispatch('createDesignLayers')
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
-        },
-        animateTripsLayer () {
-            if (this.$store.state.map.getLayer(tripsLayerName)) {
-                this.$store.dispatch('animateTripsLayer')
-            }
         }
     }
 }
