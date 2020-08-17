@@ -7,6 +7,8 @@ $bright2: #ccc;
 $orange: rgba(253, 128, 93, 1);
 $opaqueorange: rgba(253, 128, 93, 0.65);
 $reversed: #0176AC;
+$darkblue: #2c3e50;
+$greyblue: #56799C;
 
 //mixin
 
@@ -16,6 +18,114 @@ $reversed: #0176AC;
     box-shadow: 0px 15px 25px -10px rgba(0,0,0,0.75);
 }
 
+@mixin fullpseudo {
+    content:'';
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+}
+
 body, html {
     overflow: hidden;
+}
+
+.visible {
+    opacity:1 !important;
+    pointer-events:all !important;
+}
+
+.component_divisions {
+    position:absolute;
+    top:22%;
+    left:calc(0% - 40px);
+
+    ul {
+        display:flex;
+        flex-flow:row wrap;
+        width:40px;
+        height:auto;
+        padding:0;
+        list-style:none;
+
+        li {
+            transform:translateX(2px);
+            width:40px;
+            height:40px;
+            background:rgba(0,0,0,0.7);
+            margin-bottom:2px;
+
+            .component_link {
+                .v-icon {
+                    width:40px;
+                    height:40px;
+                    filter:invert(1);
+                }
+            }
+
+            .toHover {
+                opacity:0;
+            }
+
+            &:hover {
+                cursor:pointer;
+            }
+
+            &.highlight {
+                transform:translateX(1px);
+                background:rgba(0,0,0,0.9);
+                @include drop_shadow;
+            }
+        }
+    }
+}
+
+.division {
+    max-height:80vh;
+    width:calc(100% + 50px);
+    padding-right:50px;
+    overflow:auto;
+
+    .component_content {   
+        padding:20px;
+        box-sizing: border-box;
+
+        h2 {
+            font-size:100%;
+            color:$bright1;
+            text-align:left;
+        }
+
+        .container {
+            border: 1px solid #222;
+            margin: 5px auto;
+
+            header {
+                color:$greyblue;
+            }
+
+            ::v-deep.v-input {
+                margin:4px !important;
+                display:none !important;
+
+                ::v-deep.v-messages {
+                    display:none !important;
+                }
+            }
+        }
+
+        .confirm_btn {
+            width:100%;
+            border-radius:0px;
+            margin: 5px auto;
+            background:$reversed !important;
+            color:$bright1;
+            @include drop_shadow;
+
+            &:hover {
+                cursor:pointer;
+            }
+        }
+    }
 }

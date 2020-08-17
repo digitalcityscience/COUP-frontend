@@ -19,6 +19,8 @@ export default {
     components: {},
     data () {
         return {
+            activeDivision:null,
+            componentDivisions: [],
             designScenarioNames: bridges,
             moduleSettingOptions: moduleSettingNames,
             bridgeSouthOptions: bridgeSouthOptions,
@@ -49,17 +51,27 @@ export default {
         ])
     },
     watch: {
-        bridge_north (newVal, old) {
-            console.log(newVal, old)
-        },bridge_south (newVal, old) {
+        car (newVal, old) {
             console.log(newVal, old)
         },
         roof_amenities (newVal, old) {
             console.log(newVal, old)
         }
     },
-    mounted () {
-        console.log(this.$store)
+    mounted: function() {
+        var divisions = document.getElementsByClassName("division");
+
+        for (var i = 0; i < divisions.length; i++) {
+
+            let divInstance = {
+                title: divisions[i].getAttribute('data-title'),
+                pic: divisions[i].getAttribute('data-pic'),
+            };
+
+            this.componentDivisions.push(divInstance);
+        }
+
+        this.activeDivision = divisions[0].getAttribute('data-title');
     },
     methods: {
         confirmSettings () {
@@ -72,15 +84,22 @@ export default {
 </script>
 
 <template>
-    <div
-        id="scenario"
-        ref="scenario"
-    >
-        <v-expansion-panels>
-            <v-expansion-panel>
-                <v-expansion-panel-header>ABM SCENARIO</v-expansion-panel-header>
-                <v-expansion-panel-content>
-                    <v-container fluid>
+    <div id="scenario" ref="scenario">
+        <div class="component_divisions">
+            <ul>
+                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="{ highlight: activeDivision === division.title }">
+                    <div class="component_link" @click="activeDivision = division.title">
+                        <v-icon>{{division.pic}}</v-icon>
+                    </div>
+                    <div class="toHover">{{division.title}}</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+           <div v-if="activeDivision === 'Scenario'" class="component_content">
+               <h2>ABM Scenario Settings</h2>
+                <v-container fluid>
                         <header class="text-sm-left">
                             CONNECTIVITY
                         </header>
@@ -88,8 +107,9 @@ export default {
                             v-model="bridge_north"
                             flat
                             label="Connection to HafenCity"
+                            dark
                         />
-                        <v-subheader class="bridge_subheader">
+                        <v-subheader class="bridge_subheader" dark>
                             Brigde to Veddel
                         </v-subheader>
                         <v-radio-group v-model="bridge_south">
@@ -97,11 +117,13 @@ export default {
                                 :value="bridgeSouthOptions.horizontal"
                                 flat
                                 label="Horizontal connection to Veddel"
+                                dark
                             />
                             <v-radio
                                 :value="bridgeSouthOptions.diagonal"
                                 flat
                                 label="Diagonal connection to Veddel"
+                                dark
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
@@ -112,11 +134,13 @@ export default {
                                 :value="mainStreetOrientationOptions.horizontal"
                                 flat
                                 label="East-West"
+                                dark
                             />
                             <v-radio
                                 :value="mainStreetOrientationOptions.vertical"
                                 flat
                                 label="North-South"
+                                dark
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
@@ -127,11 +151,13 @@ export default {
                                 :value="blockOptions.permeable"
                                 flat
                                 label="Permeable"
+                                dark
                             />
                             <v-radio
                                 :value="blockOptions.private"
                                 flat
                                 label="Private"
+                                dark
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
@@ -142,14 +168,116 @@ export default {
                                 :value="roofAmenitiesOptions.complementary"
                                 flat
                                 label="Complementary"
+                                dark
                             />
                             <v-radio
                                 :value="roofAmenitiesOptions.random"
                                 flat
                                 label="Random"
+                                dark
                             />
                         </v-radio-group>
                     </v-container>
+
+                    <v-btn @click="confirmSettings" class="confirm_btn">
+                        Confirm Settings
+                    </v-btn>
+
+                    <v-overlay :value="isLoading">
+                        <div>Loading ABM results</div>
+                        <v-progress-linear>...</v-progress-linear>
+                    </v-overlay>
+           </div>
+        </div>
+
+        <div class="division" data-title='Filter' data-pic='mdi-filter'>
+            <div v-if="activeDivision === 'Filter'" class="component_content">
+
+            <h2>ABM Scenario Filters</h2>
+            <v-container fluid>
+                        <v-radio-group v-model="resident_or_visitor">
+                            <v-radio
+                                :value="filterOptions.resident"
+                                flat
+                                label="Residents only"
+                                dark
+                            />
+                            <v-radio
+                                :value="filterOptions.visitor"
+                                flat
+                                label="Visitors only"
+                                dark
+                            />
+                            <v-radio
+                                :value="filterOptions.any"
+                                flat
+                                label="Residents & Visitors"
+                                dark
+                            />
+                        </v-radio-group>
+                        <v-radio-group v-model="student_or_adult">
+                            <v-radio
+                                :value="filterOptions.student"
+                                flat
+                                label="Students only"
+                                dark
+                            />
+                            <v-radio
+                                :value="filterOptions.adult"
+                                flat
+                                label="Adults only"
+                                dark
+                            />
+                            <v-radio
+                                :value="filterOptions.any"
+                                flat
+                                label="Students & Adults"
+                                dark
+                            />
+                        </v-radio-group>
+                        <v-switch
+                            v-model="foot"
+                            flat
+                            label="Walking"
+                            dark
+                        />
+                        <v-switch
+                            v-model="bicycle"
+                            flat
+                            label="Biking"
+                            dark
+                        />
+                        <v-switch
+                            v-model="public_transport"
+                            flat
+                            label="Public Transport"
+                            dark
+                        />
+                        <v-switch
+                            v-model="car"
+                            flat
+                            label="Cars"
+                            dark
+                        />
+                    </v-container>
+
+                    <v-btn @click="confirmSettings" class="confirm_btn">
+                        Confirm Settings
+                    </v-btn>
+
+                    <v-overlay :value="isLoading">
+                        <div>Loading ABM results</div>
+                        <v-progress-linear>...</v-progress-linear>
+                    </v-overlay>
+
+            </div>
+        </div>
+
+        <!--<v-expansion-panels>
+            <v-expansion-panel>
+                <v-expansion-panel-header>ABM SCENARIO</v-expansion-panel-header>
+                <v-expansion-panel-content>
+
                 </v-expansion-panel-content>
                 <v-overlay :value="isLoading">
                     <div>Loading ABM results</div>
@@ -159,70 +287,14 @@ export default {
             <v-expansion-panel>
                 <v-expansion-panel-header>ABM FILTERS</v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <v-container fluid>
-                        <v-radio-group v-model="resident_or_visitor">
-                            <v-radio
-                                :value="filterOptions.resident"
-                                flat
-                                label="Residents only"
-                            />
-                            <v-radio
-                                :value="filterOptions.visitor"
-                                flat
-                                label="Visitors only"
-                            />
-                            <v-radio
-                                :value="filterOptions.any"
-                                flat
-                                label="Residents & Visitors"
-                            />
-                        </v-radio-group>
-                        <v-radio-group v-model="student_or_adult">
-                            <v-radio
-                                :value="filterOptions.student"
-                                flat
-                                label="Students only"
-                            />
-                            <v-radio
-                                :value="filterOptions.adult"
-                                flat
-                                label="Adults only"
-                            />
-                            <v-radio
-                                :value="filterOptions.any"
-                                flat
-                                label="Students & Adults"
-                            />
-                        </v-radio-group>
-                        <v-switch
-                            v-model="foot"
-                            flat
-                            label="Walking"
-                        />
-                        <v-switch
-                            v-model="bicycle"
-                            flat
-                            label="Biking"
-                        />
-                        <v-switch
-                            v-model="public_transport"
-                            flat
-                            label="Public Transport"
-                        />
-                        <v-switch
-                            v-model="car"
-                            flat
-                            label="Cars"
-                        />
-                    </v-container>
+
                 </v-expansion-panel-content>
             </v-expansion-panel>
-            <v-btn @click="confirmSettings">
-                Confirm Settings
-            </v-btn>
+
         </v-expansion-panels>
 
-        <div class="sub" />
+        <div class='sub'>
+        </div>-->
     </div>
 </template>
 
@@ -230,8 +302,5 @@ export default {
   #scenario {
     height: 100%;
     width: 100%;
-  }
-  .bridge_subheader {
-    height: 5px;
   }
 </style>
