@@ -15,7 +15,7 @@
             "bridge", "#3e4141",
             "park", "#649e6c",
             "plaza", "#d5e6d8",
-          "#ebf5ec"
+          "#c0fcee"
         ]
       }
     }, {
@@ -25,7 +25,7 @@
       "paint": {
         "fill-extrusion-height": 5,
         "fill-extrusion-color": "#111111",
-        "fill-extrusion-opacity": 0.8
+        "fill-extrusion-opacity": 0.95
       }
     },
     {
@@ -36,7 +36,7 @@
         "fill-extrusion-base": 5,
         "fill-extrusion-height": ["get", "height"],
         "fill-extrusion-color": "#111111",
-        "fill-extrusion-opacity": 0.8
+        "fill-extrusion-opacity": 0.95
       }
     }
   ],
