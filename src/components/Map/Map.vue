@@ -45,14 +45,6 @@ export default {
 
             this.$store.commit('selectedFeatures', features)
             console.log(this.selectedFeatures)
-
-            /**
-             * @todo build UI component to change feature data
-             */
-            const newFeature = this.selectedFeatures[0]
-
-            newFeature.properties.height = 100
-            this.$store.dispatch('editFeatureProps', newFeature)
         },
         onMapLoaded () {
             console.log("create design layers")
