@@ -161,7 +161,7 @@ export default {
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
-                            ROOF AMENITIES
+                          AMENITY DISTRIBUTION
                         </header>
                         <v-radio-group v-model="roof_amenities">
                             <v-radio

@@ -35,7 +35,7 @@ declare global {
           bridge_north: boolean,
           bridge_south: "horizontal" | "diagonal",
           roof_amenities: "random" | "complementary",
-          blocks: "permeable" | "private",
+          blocks: "open" | "closed",
           main_street_orientation: "vertical" | "horizontal"
         },
         scenarioViewFilters: {
