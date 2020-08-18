@@ -1,24 +1,6 @@
 {
   "layers": [
     {
-      "id": "spaces",
-      "type": "fill-extrusion",
-      "source": "spaces",
-      "paint": {
-        "fill-extrusion-base":  0.25,
-        "fill-extrusion-height": 0.2,
-        "fill-extrusion-opacity": 0.8,
-        "fill-extrusion-color": [
-          "match", ["get", "land_use_detailed_type"],
-            "promenade", "#3c453d",
-            "street", "#3e4141",
-            "bridge", "#3e4141",
-            "park", "#649e6c",
-            "plaza", "#d5e6d8",
-          "#c0fcee"
-        ]
-      }
-    }, {
       "id": "groundfloor",
       "type": "fill-extrusion",
       "source": "groundfloor",
@@ -37,6 +19,32 @@
         "fill-extrusion-height": ["get", "height"],
         "fill-extrusion-color": "#111111",
         "fill-extrusion-opacity": 0.95
+      }
+    },
+    {
+      "id": "spaces",
+      "type": "fill",
+      "source": "spaces",
+      "paint": {
+        "fill-opacity": 0.65,
+        "fill-color": [
+          "match",
+          [
+            "get",
+            "land_use_detailed_type"
+          ],
+          "promenade",
+          "#3c453d",
+          "street",
+          "#3e4141",
+          "bridge",
+          "#3e4141",
+          "park",
+          "#649e6c",
+          "plaza",
+          "#d5e6d8",
+          "#c0fcee"
+        ]
       }
     }
   ],

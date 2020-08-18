@@ -66,6 +66,7 @@ export default {
               }
               // check if scenario is still valid - user input might have changed while loading trips layer
               rootState.map?.addLayer(deckLayer)
+              rootState.map?.moveLayer(abmTripsLayerName);  // add layer on top of the layer stack
               commit('addLayerId', abmTripsLayerName, {root: true})
               animate(deckLayer)
 
