@@ -56,6 +56,7 @@ export default {
         height:100vh;
         transform:translateX(100%);
         font-family: 'Tajawal', sans-serif;
+        z-index: 1000;
 
         .header_scope {
             h3 {

@@ -5,6 +5,7 @@
       "type": "fill-extrusion",
       "source": "groundfloor",
       "paint": {
+        "fill-extrusion-color": "#666",
         "fill-extrusion-height": [
           "interpolate",
           ["linear"],

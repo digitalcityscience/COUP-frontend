@@ -1,7 +1,7 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-import { abmTripsLayerName } from '@/store/deck-layers'
+import { abmTripsLayerName, buildAggregationLayer } from '@/store/deck-layers'
 
 export default {
     name: 'Map',
@@ -11,9 +11,23 @@ export default {
             'view',
             'accessToken',
             'map',
+            'layers',
             'layerIds',
             'selectedFeatures'
-        ])
+        ]),
+        heatMapData(){
+            return this.$store.state.scenario.heatMapData;
+        },
+        heatMapActive(){
+            return this.$store.state.scenario.heatMap;
+        }
+    },watch: {
+        heatMapData(){
+            this.updateHeatMap();
+        },
+        heatMapActive(){
+            this.updateHeatMap();
+        },
     },
     mounted () {
         mapboxgl.accessToken = this.accessToken
@@ -32,6 +46,8 @@ export default {
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
         this.map.on('contextmenu', this.onMapContextMenu)
+
+        console.log(this.$store.state.map);
     },
     methods: {
         onMapClicked (evt) {
@@ -39,6 +55,10 @@ export default {
                 [evt.point.x - 5, evt.point.y - 5],
                 [evt.point.x + 5, evt.point.y + 5]
             ]
+
+            console.log(evt.pageX);
+            console.log(evt.pageY);
+
             const features = this.map.queryRenderedFeatures(bbox, {
                 layers: this.layerIds
             })
@@ -60,6 +80,12 @@ export default {
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
+        },
+        updateHeatMap(){
+            console.log("somethin has changed", this.heatMapActive);
+            if(this.heatMapActive){
+                buildAggregationLayer(this.heatMapData);
+            }
         }
     }
 }

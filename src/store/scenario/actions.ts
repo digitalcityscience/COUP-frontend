@@ -1,5 +1,5 @@
 import Scenarios from "@/config/scenarios.json";
-import {abmTripsLayerName, animate, buildTripsLayer} from "@/store/deck-layers";
+import {abmTripsLayerName, animate, buildTripsLayer, buildAggregationLayer} from "@/store/deck-layers";
 
 export default {
   // load new source from cityPyo due to new scenario settings and re-add layer to the map
@@ -69,6 +69,7 @@ export default {
             // finally remove loading screen
             commit('abmResultLoading', false)
           })
+          
       }
     )
     return

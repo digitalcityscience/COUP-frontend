@@ -1,6 +1,8 @@
 import {Layer as MapboxLayer} from 'mapbox-gl'
 import {MapboxLayer as DeckLayer} from "@deck.gl/mapbox";
+import {HeatmapLayer} from '@deck.gl/aggregation-layers';
 import {TripsLayer} from "@deck.gl/geo-layers";
+import GL from '@luma.gl/constants';
 import store from "../store/index"
 import { DataSet } from '@deck.gl/core/lib/layer';
 
@@ -11,28 +13,58 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
 
   //return new DeckLayer({
     const tripsLayer = new DeckLayer({
-    id: abmTripsLayerName,
-    type: TripsLayer,
-    data: data,
-    getPath: (d) => {
-      return d.path
-    },
-    getTimestamps: (d) => {
-      return d.timestamps
-    },
-    getColor: [253, 128, 93],
-    highlightColor: [255, 56, 56],
-    getWidth: 0.5,
-    opacity: 0.15,
-    widthMinPixels: 2,
-    rounded: false,
-    pickable:true,
-    trailLength: 1000,
-    currentTime: 0,
-    // currentTime: this.props.sliders.time[1]
-  });
+        id: abmTripsLayerName,
+        type: TripsLayer,
+        data: data,
+        getPath: (d) => {
+          return d.path
+        },
+        getTimestamps: (d) => {
+          return d.timestamps
+        },
+        getColor: [253, 128, 93],
+        highlightColor: [255, 56, 56],
+        getWidth: 1,
+        opacity: 0.2,
+        widthMinPixels: 2,
+        rounded: true,
+        pickable:false,
+        trailLength: 750,
+        currentTime: 0,
+        parameters: {
+          // prevent flicker from z-fighting
+          [GL.DEPTH_TEST]: false,
+      
+          // blending for abm
+          [GL.BLEND]: true,
+          //[GL.BLEND_COLOR]: [253, 128, 93,100],
+          [GL.BLEND_COLOR]: [0, 20, 255,100],
+          //[GL.BLEND_SRC_RGB]: GL.ONE,
+          [GL.BLEND_DST_RGB]: GL.ONE,
+          [GL.BLEND_EQUATION]: GL.FUNC_ADD,
+          [GL.BLEND_DST_ALPHA]: GL.ONE,
+          //[GL.BLEND_SRC_ALPHA]: GL.ONE,
+        },
+        // currentTime: this.props.sliders.time[1]
+    });
 
-  return tripsLayer;
+    return tripsLayer;
+}
+
+export function buildAggregationLayer(data) {
+  
+  const aggregationLayer = new HeatmapLayer({
+    id:"abmAggregationLayer",
+    data: data,
+    pickable: false,
+    getPosition: d => d.Coordinates,
+    getWeight: d => d.Weight,
+    intensity: 1,
+    threshold: 0.03,
+    radiusPixels: 30
+  })
+
+  return aggregationLayer;
 }
 
 // animate deck trips layer

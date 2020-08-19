@@ -12,6 +12,7 @@
             "type": "fill-extrusion",
             "source": "groundfloor",
             "paint": {
+                "fill-extrusion-color": "#fff",
                 "fill-extrusion-height": [
                     "interpolate",
                     ["linear"],
@@ -26,7 +27,7 @@
         },
         {
             "id": "bridges",
-            "type": "fill",
+            "type": "fill-extrusion",
             "source": "bridges",
             "paint": {
                 "fill-color": "#314e49",
@@ -39,9 +40,15 @@
         "stroked": true,
         "filled": true,
         "lineWidthMinPixels": 2,
-        "opacity": 0.4,
+        "opacity": 0,
         "getLineColor": [255, 100, 100],
-        "getFillColor": [200, 160, 0, 180]
+        "getFillColor": [255, 255, 255, 180],
+        "style": {
+            "blend-mode": "hard-light"
+        }
+    },
+    "HeatmapLayer": {
+        "filled": true
     },
     "sources": [
         {

@@ -4,6 +4,7 @@ export default {
   designScenario: designScenarios.bridge_1,
   isLoading: false,
   abmData: null,
+  abmObject:{},
   moduleSettings: {
     bridge_1: true,
     bridge_2: false,
@@ -24,5 +25,7 @@ export default {
   currentTimeStamp: 0,
   animationRunning: true,
   animationSpeed: 7,
+  heatMapData:[],
+  heatMap:false,
 }
 
