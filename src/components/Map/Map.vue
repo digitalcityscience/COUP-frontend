@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { abmTripsLayerName } from '@/store/deck-layers'
 import amenities from '@/config/amenities.json'
+import { alkisTranslations } from '@/store/abm'
 
 export default {
     name: 'Map',
@@ -69,7 +70,8 @@ export default {
             this.map.getCanvas().style.cursor = 'pointer'
 
             const coordinates = evt.features[0].geometry.coordinates.slice()
-            const description = evt.features[0].properties.GFK
+            const alkisId = evt.features[0].properties.GFK
+            const description = alkisTranslations[alkisId] || alkisId
 
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
