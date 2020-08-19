@@ -34,7 +34,7 @@
             "land_use_detailed_type"
           ],
           "promenade",
-          "#3c453d",
+          "#5a635b",
           "street",
           "#3e4141",
           "bridge",
@@ -42,8 +42,8 @@
           "park",
           "#00450e",
           "plaza",
-          "#d5e6d8",
-          "#c0fcee"
+          "#5a635b",
+          "#4f635f"
         ]
       }
     }
