@@ -41,10 +41,7 @@ export default {
         this.map.on('click', this.onMapClicked)
         this.map.on('contextmenu', this.onMapContextMenu)
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
-        this.map.on('mouseleave', amenities.layer.id, function () {
-            this.map.getCanvas().style.cursor = ''
-            this.popup.remove()
-        })
+        this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
     },
     methods: {
         onMapClicked (evt) {
@@ -86,6 +83,11 @@ export default {
                 .setLngLat(coordinates)
                 .setHTML(description)
                 .addTo(this.map)
+        },
+        onAmenitiesHoverLeave (evt) {
+            console.log('leaving layer')
+            this.map.getCanvas().style.cursor = ''
+            this.popup.remove()
         }
     }
 }
