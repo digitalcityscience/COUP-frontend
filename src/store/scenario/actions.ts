@@ -26,7 +26,8 @@ export default {
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
-          })
+          }).then(source => { rootState.map?.moveLayer(Amenities.layer.id)}  // add layer on top of the layer stack
+          )
       })
   },
   // load layer source from cityPyo and add the layer to the map
