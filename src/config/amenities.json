@@ -1,0 +1,27 @@
+{
+  "layer":
+    {
+      "id": "abmAmenities",
+      "type": "circle",
+      "source": "abmAmenities",
+      "paint": {
+        "circle-radius": [
+          "interpolate", ["linear"], ["zoom"],
+          10, 15,
+          16, 5,
+          25, 0.1
+        ],
+        "circle-opacity": 0.8,
+        "circle-color": "rgb(171, 72, 33)"
+      }
+    },
+  "mapSource":
+    {
+      "id": "abmAmenities",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "abmAmenities"
+      }
+    }
+}

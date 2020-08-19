@@ -1,3 +1,4 @@
+import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import {abmTripsLayerName, animate, buildTripsLayer} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeSouthOptions} from "@/store/abm";
@@ -12,14 +13,27 @@ export default {
       state.moduleSettings.bridge_south
     )
 
-    console.log(bridges)
     commit('bridges', bridges)
     dispatch('updateDeckLayer')
     dispatch('updateBridgeLayer')
+    dispatch('updateAmenitiesLayer')
+  },
+  // load layer source from cityPyo and add the layer to the map
+  updateAmenitiesLayer({state, commit, dispatch, rootState}, payload) {
+    // load new data from cityPyo
+    rootState.cityPyO.getAbmAmenitiesLayer(Amenities.mapSource.data.id, state).then(
+      source => {
+        dispatch('addSourceToMap', source, {root: true})
+          .then(source => {
+            dispatch('addLayerToMap', Amenities.layer, {root: true})
+          })
+      })
   },
   // load layer source from cityPyo and add the layer to the map
   updateBridgeLayer({state, commit, dispatch, rootState}, payload) {
     // delete any bridge layer that is still on the map, before adding a new one
+
+    // TODO this part can be deleted?? is already moved when calling "addSourceToMap"
     Bridges.layers.forEach(layer => {
       if (rootState.map?.getSource(layer.source)) {
         dispatch("removeSourceFromMap", layer.source, { root: true })

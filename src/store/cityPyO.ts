@@ -77,6 +77,19 @@ export default class CityPyO {
       return this.performRequest(id, requestUrl, body)
     }
 
+    // the amenities layer is dependent on the chosen scenario
+    async getAbmAmenitiesLayer (id: string | number, scenario: AbmScenario) {
+      let query = scenario.moduleSettings.main_street_orientation + "_" + scenario.moduleSettings.roof_amenities
+
+      let requestUrl = this.url +  'getLayer/' + query
+      let body = {
+        userid: this.userid,
+        layer: id,
+      }
+
+      return this.performRequest(id, requestUrl, body)
+    }
+
     getLayerData(query: string) {
 
     }
