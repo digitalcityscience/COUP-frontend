@@ -2,6 +2,7 @@
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { abmTripsLayerName } from '@/store/deck-layers'
+import amenities from '@/config/amenities.json'
 
 export default {
     name: 'Map',
@@ -29,9 +30,20 @@ export default {
 
         this.$store.state.map = new mapboxgl.Map(options)
 
+        // Create a popup, but don't add it to the map yet.
+        this.popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        })
+
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
         this.map.on('contextmenu', this.onMapContextMenu)
+        this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
+        this.map.on('mouseleave', amenities.layer.id, function () {
+            this.map.getCanvas().style.cursor = ''
+            this.popup.remove()
+        })
     },
     methods: {
         onMapClicked (evt) {
@@ -47,11 +59,31 @@ export default {
             console.log(this.selectedFeatures)
         },
         onMapLoaded () {
-            console.log("create design layers")
+            console.log('create design layers')
             this.$store.dispatch('createDesignLayers')
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
+        },
+        onAmenitiesHover (evt) {
+            this.map.getCanvas().style.cursor = 'pointer'
+
+            const coordinates = evt.features[0].geometry.coordinates.slice()
+            const description = evt.features[0].properties.GFK
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(evt.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += evt.lngLat.lng > coordinates[0] ? 360 : -360
+            }
+
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            this.popup
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(this.map)
         }
     }
 }
