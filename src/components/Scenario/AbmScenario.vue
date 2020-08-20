@@ -34,7 +34,8 @@ export default {
             weightObjData:[],
             timeRange:[0, 54000],
             adjustRange:[6, 21],
-            datamsg:''
+            datamsg:'',
+            btnlabel: 'Generate Aggregation Layer'
         }
     },
     computed: {
@@ -57,6 +58,9 @@ export default {
         abmData(){
             return this.$store.state.scenario.abmData;
         },
+        heatMap(){
+            return this.$store.state.scenario.heatMap;
+        }
     },
     watch: {
         car (newVal, old) {
@@ -68,6 +72,13 @@ export default {
         abmData(){
             this.updateData();
         },
+        heatMap(){
+            if(this.heatMap) {
+                this.btnlabel = "Unplug Aggregation Layer"
+            } else if (!this.heatMap) {
+                this.btnlabel = "Generate Aggregation Layer"
+            }
+        }
     },
     mounted: function() {
         var divisions = document.getElementsByClassName("division");
@@ -116,6 +127,11 @@ export default {
             }
             
         },
+        changeHeatMapData(range){
+            if(this.heatMap){
+                this.getWeightData(range);
+            }
+        },
         getWeightData(range) {
             this.weightData = [];
             this.weightObjData = [];
@@ -130,12 +146,6 @@ export default {
                 console.log(filterTimeObj);
 
                 let timeCoordData = {};
-                /*Object.keys(filterTimeObj).forEach(key => {
-                    if(key >= range[0] - 6 && key <= range[1] - 6) {
-                    } else {
-                        delete filterTimeObj[key];
-                    }
-                });*/
 
                 for (const [key, value] of Object.entries(filterTimeObj)) {
                     key = `${key}`;
@@ -159,11 +169,13 @@ export default {
                     key = `${key}`;
                     value = `${value}`;
 
-                    let coordinate = { Coordinates: key.split(","), Weight: value};
+                    let int = parseInt(value);
+                    let coordinate = { Coordinates: key.split(",").map(Number), Weight: int};
                     finalDataSet.push(coordinate);
                 }
 
                 this.$store.commit("scenario/heatMapData", finalDataSet);
+                console.log(finalDataSet);
 
              } else {
                 this.datamsg = "No ABM Data loaded";
@@ -171,8 +183,11 @@ export default {
 
         },
         heatMapActive(){
-            const heatMap = this.$store.state.scenario.heatMap;
-            this.$store.commit("scenario/heatMap", !heatMap);
+            this.$store.commit("scenario/heatMap", !this.heatMap);
+
+            if(this.heatMap){
+                this.getWeightData(this.adjustRange);
+            }
         },
         /*setTimeRange(range){
             const adjustTime = range.map(x => (x - 6) * 3600);
@@ -376,7 +391,7 @@ export default {
                     hide-details
                     dark
                     class="align-center"
-                    @change="getWeightData(adjustRange)"
+                    @change="changeHeatMapData(adjustRange)"
                >
                     <template v-slot:prepend>
                         <v-text-field
@@ -400,7 +415,11 @@ export default {
                     </template>
                </v-range-slider>
                <p>{{datamsg}}</p>
-               <v-btn @click="heatMapActive">Generate Aggregation Layer</v-btn>
+               <v-btn @click="heatMapActive">{{ btnlabel }}</v-btn>
+
+               <div v-if=(heatMap) class="additional">
+                   <p>I am visible</p>
+               </div>
            </div>
         </div>
 

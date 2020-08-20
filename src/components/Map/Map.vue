@@ -76,6 +76,7 @@ export default {
         },
         onMapLoaded () {
             console.log("create design layers")
+            console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers')
         },
         onMapContextMenu (evt) {
@@ -83,9 +84,7 @@ export default {
         },
         updateHeatMap(){
             console.log("somethin has changed", this.heatMapActive);
-            if(this.heatMapActive){
-                buildAggregationLayer(this.heatMapData);
-            }
+                this.$store.dispatch('scenario/rebuildDeckLayer')
         }
     }
 }

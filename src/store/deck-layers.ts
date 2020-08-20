@@ -8,6 +8,7 @@ import { DataSet } from '@deck.gl/core/lib/layer';
 
 
 export const abmTripsLayerName = "abmTrips"
+export const abmAggregationLayerName = "abmHeat"
 
 export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
 
@@ -51,17 +52,24 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
     return tripsLayer;
 }
 
-export function buildAggregationLayer(data) {
-  
-  const aggregationLayer = new HeatmapLayer({
-    id:"abmAggregationLayer",
+export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
+  const testData = [
+    { Coordinates: [10.013102024494415,53.528981608728], Weight: 3} ,
+    { Coordinates: [10.013175558483056,53.531871082921064], Weight: 7},
+    { Coordinates: [10.025822883113655,53.524985242386215], Weight:1}
+  ];
+  const aggregationLayer = new DeckLayer({
+    id: abmAggregationLayerName,
+    type:HeatmapLayer,
     data: data,
     pickable: false,
-    getPosition: d => d.Coordinates,
+    getPosition:  d => d.Coordinates,
     getWeight: d => d.Weight,
-    intensity: 1,
+    intensity: 7,
     threshold: 0.03,
-    radiusPixels: 30
+    radiusPixels: 50,
+    opacity:0.5,
+    visible:true,
   })
 
   return aggregationLayer;

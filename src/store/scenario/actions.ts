@@ -1,5 +1,5 @@
 import Scenarios from "@/config/scenarios.json";
-import {abmTripsLayerName, animate, buildTripsLayer, buildAggregationLayer} from "@/store/deck-layers";
+import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
 
 export default {
   // load new source from cityPyo due to new scenario settings and re-add layer to the map
@@ -54,11 +54,13 @@ export default {
           commit('abmResultLoading', false)
           return
         }
+
         buildTripsLayer(result.options.data.data).then(
           deckLayer => {
             if (rootState.map?.getLayer(abmTripsLayerName)) {
               rootState.map?.removeLayer(abmTripsLayerName)
             }
+
             // check if scenario is still valid - user input might have changed while loading trips layer
             rootState.map?.addLayer(deckLayer)
             commit('addLayerId', abmTripsLayerName, {root: true})
@@ -68,12 +70,55 @@ export default {
 
             // finally remove loading screen
             commit('abmResultLoading', false)
-          })
+          });
           
       }
     )
     return
-  }
+  },
+  rebuildDeckLayer({state, commit, dispatch, rootState}){
+    const abmData = state.abmData;
+    const heatMapActive = state.heatMap;
+    const heatMapData = state.heatMapData;
+
+    console.log(heatMapActive);
+    console.log(heatMapData);
+
+    if(heatMapActive){
+      
+      buildAggregationLayer(heatMapData).then(
+        deckLayer => {
+          if (rootState.map?.getLayer(abmAggregationLayerName)) {
+            rootState.map?.removeLayer(abmAggregationLayerName)
+          }
+
+          if(rootState.map?.getLayer(abmTripsLayerName)) {
+            rootState.map?.removeLayer(abmTripsLayerName)
+          }
+
+          console.log(deckLayer);
+          rootState.map?.addLayer(deckLayer)
+          commit('addLayerId', abmAggregationLayerName, {root: true})
+
+        });
+    } else if (!heatMapActive) {
+      
+      buildTripsLayer(abmData).then(
+        deckLayer => {
+          if (rootState.map?.getLayer(abmAggregationLayerName)) {
+            rootState.map?.removeLayer(abmAggregationLayerName)
+          }
+
+          if(rootState.map?.getLayer(abmTripsLayerName)) {
+            rootState.map?.removeLayer(abmTripsLayerName)
+          }
+          
+          console.log(deckLayer);
+          rootState.map?.addLayer(deckLayer)
+          commit('addLayerId', abmTripsLayerName, {root: true})
+        });
+      }
+  },
 }
 
 function getScenarioName(bridge_1, bridge_2) {

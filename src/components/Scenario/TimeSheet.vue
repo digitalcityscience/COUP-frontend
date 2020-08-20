@@ -37,8 +37,19 @@ export default {
             this.$store.commit("scenario/animationRunning", !animationRunning);
 
             if(!animationRunning) {
+                this.$store.commit("scenario/heatMap", false);
                 const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-                animate(deckLayer.implementation, null, null, animationTime);
+
+                if(deckLayer) {
+                    animate(deckLayer.implementation, null, null, animationTime);
+                } else {
+                    this.$store.dispatch('scenario/rebuildDeckLayer').then(
+                        deckLayer => { 
+                            const newDeckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
+                            animate(newDeckLayer.implementation, null, null, animationTime);
+                        }
+                    );
+                }
             }
         },
         getTimeData(){
@@ -149,8 +160,11 @@ export default {
             this.$store.commit("scenario/currentTimeStamp", newTime);
             //this.$store.commit("scenario/animationRunning", true);
             //getting deckLayer to start over animation
-            const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-            animate(deckLayer.implementation, null, null, newTime);
+
+            if(this.animationRunning) {
+                const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
+                animate(deckLayer.implementation, null, null, newTime);
+            }
         },
         activateFilterGraph(){
             this.timeFilter = true;
@@ -190,6 +204,9 @@ export default {
         abmData(){
             return this.$store.state.scenario.abmData;
         },
+        heatMapActive(){
+            return this.$store.state.scenario.heatMap;
+        },
         animationRunning(){
             return this.$store.state.scenario.animationRunning;
         }
@@ -197,6 +214,11 @@ export default {
     watch: {
         abmData(){
             this.updateData();
+        },
+        heatMapActive(){
+            if(this.heatMapActive) {
+                this.$store.commit('scenario/animationRunning', false);
+            }
         },
         timeStamp(newValue, oldValue){
             this.currentValue = newValue;
