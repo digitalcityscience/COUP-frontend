@@ -23,7 +23,7 @@ export default {
     }
   },
   currentTimeStamp: 0,
-  animationRunning: true,
+  animationRunning: false,
   animationSpeed: 7,
   heatMapData:[],
   heatMap:false,

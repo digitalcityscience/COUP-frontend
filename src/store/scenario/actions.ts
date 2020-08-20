@@ -64,6 +64,7 @@ export default {
             // check if scenario is still valid - user input might have changed while loading trips layer
             rootState.map?.addLayer(deckLayer)
             commit('addLayerId', abmTripsLayerName, {root: true})
+            commit('animationRunning', true);
             animate(deckLayer)
 
             commit('abmData', deckLayer?.props?.data)
@@ -76,7 +77,7 @@ export default {
     )
     return
   },
-  rebuildDeckLayer({state, commit, dispatch, rootState}){
+  rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
     const abmData = state.abmData;
     const heatMapActive = state.heatMap;
     const heatMapData = state.heatMapData;
@@ -86,6 +87,7 @@ export default {
 
     if(heatMapActive){
       
+      /*building Deck.gl Heatmap in deck-layers.ts*/
       buildAggregationLayer(heatMapData).then(
         deckLayer => {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
@@ -101,8 +103,9 @@ export default {
           commit('addLayerId', abmAggregationLayerName, {root: true})
 
         });
-    } else if (!heatMapActive) {
+    } else if (!heatMapActive) { /*if heatMap is not active, reactivate TripsLayer*/
       
+      /*building Deck.gl TripsLayer in deck-layers.ts*/
       buildTripsLayer(abmData).then(
         deckLayer => {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
@@ -115,7 +118,11 @@ export default {
           
           console.log(deckLayer);
           rootState.map?.addLayer(deckLayer)
-          commit('addLayerId', abmTripsLayerName, {root: true})
+          commit('addLayerId', abmTripsLayerName, {root: true});
+
+          /*animating TripsLayer*/
+          commit('animationRunning', true);
+          animate(deckLayer, null, null, state.currentTimeStamp);
         });
       }
   },
