@@ -4,6 +4,7 @@ import {HeatmapLayer} from '@deck.gl/aggregation-layers';
 import {TripsLayer} from "@deck.gl/geo-layers";
 import GL from '@luma.gl/constants';
 import store from "../store/index"
+// @ts-ignore
 import { DataSet } from "@deck.gl/core/lib/layer";
 
 
@@ -35,7 +36,7 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
         parameters: {
           // prevent flicker from z-fighting
           [GL.DEPTH_TEST]: false,
-      
+
           // blending for abm
           [GL.BLEND]: true,
           //[GL.BLEND_COLOR]: [253, 128, 93,100],

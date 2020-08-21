@@ -3,29 +3,46 @@ import CityPyO from '@/store/cityPyO'
 import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
 
-
 export default {
-  createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+  async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
     const sourceConfigs = Designs.sources || [];
-    // iterate over sources in configs
-    sourceConfigs.forEach(source => {
-      // if the data should be loaded from city IO
-      if (source.data?.from === "cityPyO") {
-        state.cityPyO.getLayer(source.data.id)
-          .then(source => {
-            dispatch('addSourceToMap', source).then(source => {
-              // add all layers using this source
-              Designs.layers
-                .filter(l => l.source === source.id)
-                .forEach(l => {
-                  dispatch('addLayerToMap', l)
-                })
+    const loadLayers = new Promise(resolve => {
+      let designLayersLoaded = 0;
+      // iterate over sources in configs
+      sourceConfigs.forEach(source => {
+        //console.log("hans", source.id)
+        // if the data should be loaded from city IO
+        if (source.data?.from === "cityPyO") {
+          state.cityPyO.getLayer(source.data.id)
+            .then(source => {
+              dispatch('addSourceToMap', source).then(source => {
+                // add all layers using this source
+                Designs.layers
+                  .filter(l => l.source === source.id)
+                  .forEach(l => {
+                    dispatch('addLayerToMap', l).then(() => {
+                      designLayersLoaded += 1;
+                      if (designLayersLoaded >= Designs.layers.length) {
+                        resolve()
+                      }
+                    })
+                  })
+              })
             })
-          })
-      } else {
-        console.warn("do not know where to load source data from", source)
-      }
+        } else {
+          console.warn("do not know where to load source data from", source)
+        }
+      })
     })
+
+    await loadLayers;
+    return
+  },
+  orderDesignLayers ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+    // put groundfloor on top of spaces
+    state.map?.moveLayer('spaces', 'groundfloor')
+    // and upperfloor on top of groundfloor
+    state.map?.moveLayer('upperfloor')
   },
   addSourceToMap({state, commit, dispatch}: ActionContext<StoreState, StoreState>, source) {
     if (state.map?.getSource(source.id)) {
@@ -58,6 +75,7 @@ export default {
       state.map?.removeLayer(layer.id)
     }
     state.map?.addLayer(layer as Layer)
+
     commit('addLayerId', layer.id)
   },
   editFeatureProps({state}, feature) {

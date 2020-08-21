@@ -79,7 +79,9 @@ export default {
         onMapLoaded () {
             console.log("create design layers")
             console.log(this.$store.state.map);
-            this.$store.dispatch('createDesignLayers')
+            this.$store.dispatch('createDesignLayers').then(() => {
+                this.$store.dispatch('orderDesignLayers')
+            })
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
