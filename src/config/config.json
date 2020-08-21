@@ -6,36 +6,7 @@
         "bearing": 25
     },
     "mapStyle": "mapbox://styles/grasbrook/ckdka4jml0yak1iphobimn547",
-    "layers": [
-        {
-            "id": "groundfloor",
-            "type": "fill-extrusion",
-            "source": "groundfloor",
-            "paint": {
-                "fill-extrusion-color": "#fff",
-                "fill-extrusion-height": [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    10,
-                    0,
-                    15.05,
-                    ["get", "height"]
-                ],
-                "fill-extrusion-opacity": 0.8
-            }
-        },
-        {
-            "id": "bridges",
-            "type": "fill-extrusion",
-            "source": "bridges",
-            "paint": {
-                "fill-color": "#314e49",
-                "fill-outline-color": "#222",
-                "fill-opacity": 0.8
-            }
-        }
-    ],
+    "layers": [],
     "deckLayer": {
         "stroked": true,
         "filled": true,
@@ -50,15 +21,5 @@
     "HeatmapLayer": {
         "filled": true
     },
-    "sources": [
-        {
-            "id": "groundfloor",
-            "type": "geojson",
-            "data": {
-                "from": "cityPyO",
-                "id": "groundfloor"
-            }
-        }
-
-    ]
+    "sources": []
 }

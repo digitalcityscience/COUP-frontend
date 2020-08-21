@@ -1,42 +1,62 @@
-import Scenarios from "@/config/scenarios.json";
+import Amenities from "@/config/amenities.json";
+import Bridges from "@/config/bridges.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
+import {bridges as bridgeNames, bridgeSouthOptions} from "@/store/abm";
 
 export default {
   // load new source from cityPyo due to new scenario settings and re-add layer to the map
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
     // update scenario name
-    state.designScenario = getScenarioName(
-      state.moduleSettings.bridge_1,
-      state.moduleSettings.bridge_2
+
+    let bridges = updateBridges(
+      state.moduleSettings.bridge_north,
+      state.moduleSettings.bridge_south
     )
 
+    commit('bridges', bridges)
     dispatch('updateDeckLayer')
-    dispatch('updateDesignScenarioLayer')
+    dispatch('updateBridgeLayer')
+    dispatch('updateAmenitiesLayer')
   },
   // load layer source from cityPyo and add the layer to the map
-  updateDesignScenarioLayer({state, commit, dispatch, rootState}, payload) {
-    // delete any scenario layer that is still on the map, before adding a new one
-    Scenarios.layers.forEach(layer => {
+  updateAmenitiesLayer({state, commit, dispatch, rootState}, payload) {
+    // load new data from cityPyo
+    rootState.cityPyO.getAbmAmenitiesLayer(Amenities.mapSource.data.id, state).then(
+      source => {
+        dispatch('addSourceToMap', source, {root: true})
+          .then(source => {
+            dispatch('addLayerToMap', Amenities.layer, {root: true})
+          }).then(source => { rootState.map?.moveLayer(Amenities.layer.id, "groundfloor")}  // add layer on top of the layer stack
+          )
+      })
+  },
+  // load layer source from cityPyo and add the layer to the map
+  updateBridgeLayer({state, commit, dispatch, rootState}, payload) {
+    // delete any bridge layer that is still on the map, before adding a new one
+
+    // TODO this part can be deleted?? is already moved when calling "addSourceToMap"
+    Bridges.layers.forEach(layer => {
       if (rootState.map?.getSource(layer.source)) {
-        console.log("deleting this source", layer.source)
         dispatch("removeSourceFromMap", layer.source, { root: true })
       }
     })
     // identify new scenario layer and add it to the map
-    const layer = Scenarios.layers.filter(layer => layer.id === state.designScenario)[0]
-    if (layer) {
-      const layerSources = Scenarios.sources.filter(source => source.id == layer.source)
-      layerSources.forEach(layerSource => {
-        rootState.cityPyO.getLayer(layerSource.data.id)
-          .then(source => {
-            // check if scenario is still valid - user input might have changed while loading layer
-            dispatch('addSourceToMap', source, { root: true })
-              .then(source => {
-                dispatch('addLayerToMap', layer, { root: true })
-              })
-          })
-      })
+    const layers = []
+    for (let bridgeName of state.bridges) {
+      console.log("bridgeToCheck", bridgeName)
+      layers.push(Bridges.layers.filter(layer => layer.id === bridgeName)[0])
     }
+      console.log("found layers", layers)
+      if (layers) {
+        const mapSource = Bridges.mapSource
+        rootState.cityPyO.getLayer(mapSource.data.id)
+            .then(source => {
+              dispatch('addSourceToMap', source, {root: true})
+                .then(source => {
+                  layers.forEach(layer => dispatch('addLayerToMap', layer, {root: true}))
+                })
+            })
+        }
   },
   updateDeckLayer({state, commit, dispatch, rootState}, payload) {
     // show loading screen
@@ -63,6 +83,7 @@ export default {
 
             // check if scenario is still valid - user input might have changed while loading trips layer
             rootState.map?.addLayer(deckLayer)
+            rootState.map?.moveLayer(abmTripsLayerName);  // add layer on top of the layer stack
             commit('addLayerId', abmTripsLayerName, {root: true})
 
             const heatMap = state.heatMap;
@@ -76,8 +97,8 @@ export default {
 
             // finally remove loading screen
             commit('abmResultLoading', false)
-          });
-          
+          }
+        )
       }
     )
     return
@@ -91,7 +112,7 @@ export default {
     console.log(heatMapData);
 
     if(heatMapActive){
-      
+
       /*building Deck.gl Heatmap in deck-layers.ts*/
       buildAggregationLayer(heatMapData).then(
         deckLayer => {
@@ -110,7 +131,7 @@ export default {
 
         });
     } else if (!heatMapActive) { /*if heatMap is not active, reactivate TripsLayer*/
-      
+
       /*building Deck.gl TripsLayer in deck-layers.ts*/
       buildTripsLayer(abmData).then(
         deckLayer => {
@@ -122,7 +143,7 @@ export default {
           if(rootState.map?.getLayer(abmTripsLayerName)) {
             rootState.map?.removeLayer(abmTripsLayerName)
           }
-          
+
           console.log(deckLayer);
           rootState.map?.addLayer(deckLayer)
           commit('addLayerId', abmTripsLayerName, {root: true});
@@ -135,12 +156,18 @@ export default {
   },
 }
 
-function getScenarioName(bridge_1, bridge_2) {
-  if (bridge_1 && bridge_2) {
-    return "all_bridges"
-  } else if (bridge_1) {
-    return "bridge_1"
-  } else if (bridge_2) {
-    return "bridge_2"
+function updateBridges(bridge_north, bridge_south) {
+  let bridges = []
+
+  if (bridge_north) {
+    bridges.push(bridgeNames.bridge_north)
   }
+  if (bridge_south == bridgeSouthOptions.horizontal) {
+    bridges.push(bridgeNames.bridge_south_horizontal)
+  }
+  if (bridge_south == bridgeSouthOptions.diagonal) {
+    bridges.push(bridgeNames.bridge_south_diagonal)
+  }
+
+  return bridges
 }

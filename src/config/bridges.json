@@ -1,0 +1,80 @@
+{
+  "layers": [
+    {
+      "id": "all_bridges",
+      "type": "line",
+      "source": "bridges",
+      "paint": {
+        "line-color": "#606e6e",
+        "line-width": 8
+      },
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      }
+    },
+    {
+      "id": "bridge_north",
+      "type": "line",
+      "source": "bridges",
+      "paint": {
+        "line-color": "#606e6e",
+        "line-width": 8
+      },
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "filter": [
+        "==",
+        "id",
+        "bridge_north"
+      ]
+    },
+    {
+      "id": "bridge_south_horizontal",
+      "type": "line",
+      "source": "bridges",
+      "paint": {
+        "line-color": "#606e6e",
+        "line-width": 8
+      },
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "filter": [
+        "==",
+        "id",
+        "bridge_south_horizontal"
+      ]
+    },
+    {
+      "id": "bridge_south_diagonal",
+      "type": "line",
+      "source": "bridges",
+      "paint": {
+        "line-color": "#606e6e",
+        "line-width": 8
+      },
+      "layout": {
+        "line-join": "round",
+        "line-cap": "round"
+      },
+      "filter": [
+        "==",
+        "id",
+        "bridge_south_diagonal"
+      ]
+    }
+  ],
+  "mapSource":
+    {
+      "id": "bridges",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "bridges"
+      }
+    }
+}

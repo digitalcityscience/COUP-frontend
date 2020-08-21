@@ -1,15 +1,15 @@
-import {designScenarios, filterOptions, roofAmenitiesOptions} from "@/store/abm";
+import {bridges, filterOptions, roofAmenitiesOptions} from "@/store/abm";
 
 export default {
-  designScenario: designScenarios.bridge_1,
+  bridges: [bridges.bridge_north],
   isLoading: false,
   abmData: null,
   abmObject:{},
   moduleSettings: {
-    bridge_1: true,
-    bridge_2: false,
+    bridge_north: true,
+    bridge_south: "horizontal",
     roof_amenities: roofAmenitiesOptions.random,
-    blocks: "permeable",
+    blocks: "open",
     main_street_orientation: "vertical"
   },
   scenarioViewFilters: {

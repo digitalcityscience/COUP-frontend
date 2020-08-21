@@ -1,0 +1,38 @@
+{
+  "layer":
+    {
+      "id": "abmAmenities",
+      "type": "circle",
+      "source": "abmAmenities",
+      "paint": {
+        "circle-radius": [
+          "interpolate", ["linear"], ["zoom"],
+          10, 0.5,
+          15, 2,
+          25, 10
+        ],
+        "circle-opacity": 0.8,
+        "circle-color":  [
+          "case",
+          ["<=", ["get", "GFK"], 1024],
+          "#ffb121",
+          ["<=", ["get", "GFK"], 2100],
+          "#f76a6a",
+          ["<=", ["get", "GFK"], 2200],
+          "#ff75cf",
+          [">=", ["get", "GFK"], 3000],
+          "#4ebffc",
+          "lightgrey"
+        ]
+      }
+    },
+  "mapSource":
+    {
+      "id": "abmAmenities",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "abmAmenities"
+      }
+    }
+}

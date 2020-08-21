@@ -38,22 +38,17 @@ export default class CityPyO {
       body: JSON.stringify(body)
     })
 
-    if (res.status == 200) {
-      const json = await res.json();
-
-      return {
-        id: layerId,
-        options: {
-          type: 'geojson',
-          data: json
-        }
-      }
-    } else {
-      console.warn(res.status, res.statusText)
+    if (res.status !== 200) {
+      console.warn("could not get ressource from cityPyo ", layerId, res.status, res.statusText)
     }
+
+    return await res
+
   }
 
     async getLayer (id: string) {
+      console.log("getting layer id from cityPyo", id)
+
       let requestUrl = this.url +  'getLayer'
 
       let body = {
@@ -61,7 +56,13 @@ export default class CityPyO {
         layer: id
       }
 
-      return this.performRequest(id, requestUrl, body)
+      const response = await this.performRequest(id, requestUrl, body)
+
+      if (response.status == 200) {
+        const responseJson = await response.json();
+
+        return this.formatResponse(id, responseJson)
+      }
     }
 
     async getAbmResultLayer (id: string | number, scenario: AbmScenario) {
@@ -72,14 +73,45 @@ export default class CityPyO {
         agent_filters: scenario.scenarioViewFilters
       }
 
-      return this.performRequest(id, requestUrl, body)
+      const response = await this.performRequest(id, requestUrl, body)
+      if (response.status == 200) {
+        const responseJson = await response.json();
+
+        return this.formatResponse(id, responseJson)
+      }
+    }
+
+    // the amenities layer is dependent on the chosen scenario
+    async getAbmAmenitiesLayer (id: string | number, scenario: AbmScenario) {
+      let query = scenario.moduleSettings.main_street_orientation + "_" + scenario.moduleSettings.roof_amenities
+
+      let requestUrl = this.url +  'getLayer/' + query
+      let body = {
+        userid: this.userid,
+        layer: id,
+      }
+      const response = await this.performRequest(id, requestUrl, body)
+      if (response.status == 200) {
+        const responseJson = await response.json();
+
+        return this.formatResponse(id, responseJson.data)
+      }
     }
 
     getLayerData(query: string) {
-
     }
 
     updateLayerData (query: string) {
 
     }
+
+  async formatResponse(id, responseJson) {
+    return {
+      id: id,
+      options: {
+        type: 'geojson',
+        data: await responseJson
+      }
+    }
+  }
 }

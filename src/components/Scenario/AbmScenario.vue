@@ -3,8 +3,9 @@
 import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import {
-    designScenarios,
+    bridges,
     moduleSettingNames,
+    bridgeSouthOptions,
     mainStreetOrientationOptions,
     blockPermeabilityOptions,
     roofAmenitiesOptions,
@@ -21,8 +22,9 @@ export default {
         return {
             activeDivision:null,
             componentDivisions: [],
-            designScenarioNames: designScenarios,
+            designScenarioNames: bridges,
             moduleSettingOptions: moduleSettingNames,
+            bridgeSouthOptions: bridgeSouthOptions,
             mainStreetOrientationOptions: mainStreetOrientationOptions,
             blockOptions: blockPermeabilityOptions,
             roofAmenitiesOptions: roofAmenitiesOptions,
@@ -43,8 +45,8 @@ export default {
         ...mapState('scenario', ['isLoading']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
-            ['bridge_1', 'scenario/moduleSettings/' + moduleSettingNames.bridge_1],
-            ['bridge_2', 'scenario/moduleSettings/' + moduleSettingNames.bridge_2],
+            ['bridge_north', 'scenario/moduleSettings/' + moduleSettingNames.bridge_north],
+            ['bridge_south', 'scenario/moduleSettings/' + moduleSettingNames.bridge_south],
             ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
             ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
             ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
@@ -69,7 +71,7 @@ export default {
         roof_amenities (newVal, old) {
             //console.log(newVal, old)
         },
-        abmData(){
+        abmData() {
             this.updateData();
         },
         heatMap(){
@@ -116,7 +118,7 @@ export default {
 
                 /*calculating Weight value for each coordinate (sum up appearences of unique coordinates*/
                 this.timePaths = Object.values(this.timePaths).map(arr => {
-                    
+
                     let weightCount = {};
 
                     const newArr = arr.map(value => {
@@ -132,7 +134,7 @@ export default {
                     /*pre clustering time data done*/
                 });
             }
-            
+
         },
         changeHeatMapData(range){
             if(this.heatMap){
@@ -146,9 +148,10 @@ export default {
 
             if(this.abmData) {
                 this.datamsg = "ABM Data loaded";
-                
-                /*copy original timePaths Object*/
+
                 let filterTimeObj = Object.assign({},this.timePaths);
+
+                console.log(filterTimeObj);
 
                 let timeCoordData = {};
 
@@ -163,7 +166,7 @@ export default {
                         for (const [coord, weight] of Object.entries(filterTimeObj[key])) {
                             coord = `${coord}`;
                             weight = `${weight}`;
-                            
+
                             timeCoordData[coord] = + weight || weight;
                         };
                     } else {
@@ -229,17 +232,28 @@ export default {
                             CONNECTIVITY
                         </header>
                         <v-switch
-                            v-model="bridge_1"
+                            v-model="bridge_north"
                             flat
-                            label="Bridge 1"
+                            label="Connection to HafenCity"
                             dark
                         />
-                        <v-switch
-                            v-model="bridge_2"
-                            flat
-                            label="Bridge 2"
-                            dark
-                        />
+                        <v-subheader class="bridge_subheader" dark>
+                            Brigde to Veddel
+                        </v-subheader>
+                        <v-radio-group v-model="bridge_south">
+                            <v-radio
+                                :value="bridgeSouthOptions.horizontal"
+                                flat
+                                label="Horizontal connection to Veddel"
+                                dark
+                            />
+                            <v-radio
+                                :value="bridgeSouthOptions.diagonal"
+                                flat
+                                label="Diagonal connection to Veddel"
+                                dark
+                            />
+                        </v-radio-group>
                         <header class="text-sm-left">
                             MAIN STREET
                         </header>
@@ -275,7 +289,7 @@ export default {
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
-                            ROOF AMENITIES
+                          AMENITY DISTRIBUTION
                         </header>
                         <v-radio-group v-model="roof_amenities">
                             <v-radio
@@ -306,7 +320,7 @@ export default {
 
         <div class="division" data-title='Filter' data-pic='mdi-filter'>
             <div v-if="activeDivision === 'Filter'" class="component_content">
-                
+
             <h2>ABM Scenario Filters</h2>
             <v-container fluid>
                         <v-radio-group v-model="resident_or_visitor">
@@ -433,7 +447,7 @@ export default {
             <v-expansion-panel>
                 <v-expansion-panel-header>ABM SCENARIO</v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    
+
                 </v-expansion-panel-content>
                 <v-overlay :value="isLoading">
                     <div>Loading ABM results</div>
@@ -443,10 +457,10 @@ export default {
             <v-expansion-panel>
                 <v-expansion-panel-header>ABM FILTERS</v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    
+
                 </v-expansion-panel-content>
             </v-expansion-panel>
-           
+
         </v-expansion-panels>
 
         <div class='sub'>
