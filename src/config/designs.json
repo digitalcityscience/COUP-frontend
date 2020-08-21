@@ -6,7 +6,7 @@
       "source": "groundfloor",
       "paint": {
         "fill-extrusion-height": 5,
-        "fill-extrusion-color": "#111111",
+        "fill-extrusion-color": "#666",
         "fill-extrusion-opacity": 0.95
       }
     },
@@ -17,8 +17,8 @@
       "paint": {
         "fill-extrusion-base": 5,
         "fill-extrusion-height": ["get", "height"],
-        "fill-extrusion-color": "#111111",
-        "fill-extrusion-opacity": 0.8
+        "fill-extrusion-color": "#666",
+        "fill-extrusion-opacity": 0.95
       }
     },
     {

@@ -12,7 +12,8 @@ import {
     filters,
     filterOptions
 } from '@/store/abm.ts'
-import TimeSheet from '@/components/Scenario/TimeSheet.vue'
+import TimeSheet from "@/components/Scenario/TimeSheet.vue";
+//import { filter } from 'vue/types/umd';
 
 export default {
     name: 'AbmScenario',
@@ -29,7 +30,14 @@ export default {
             roofAmenitiesOptions: roofAmenitiesOptions,
             filters: filters,
             filterOptions: filterOptions,
-            age: 21
+            age: 21,
+            timePaths: {},
+            weightData:[],
+            weightObjData:[],
+            timeRange:[0, 54000],
+            adjustRange:[6, 21],
+            datamsg:'',
+            btnlabel: 'Generate Aggregation Layer'
         }
     },
     computed: {
@@ -48,14 +56,30 @@ export default {
             ['bicycle', 'scenario/scenarioViewFilters/modes/' + filterOptions.bicycle],
             ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
             ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
-        ])
+        ]),
+        abmData(){
+            return this.$store.state.scenario.abmData;
+        },
+        heatMap(){
+            return this.$store.state.scenario.heatMap;
+        }
     },
     watch: {
         car (newVal, old) {
-            console.log(newVal, old)
+            //console.log(newVal, old)
         },
         roof_amenities (newVal, old) {
-            console.log(newVal, old)
+            //console.log(newVal, old)
+        },
+        abmData() {
+            this.updateData();
+        },
+        heatMap(){
+            if(this.heatMap) {
+                this.btnlabel = "Unplug Aggregation Layer"
+            } else if (!this.heatMap) {
+                this.btnlabel = "Generate Aggregation Layer"
+            }
         }
     },
     mounted: function() {
@@ -78,6 +102,103 @@ export default {
             this.$store.dispatch(
                 'scenario/updateAbmDesignScenario'
             )
+        },
+        clusterTimeData(){
+            if (this.abmData) {
+                this.abmData.forEach((v,i,a) => {
+                    v.timestamps.forEach((vv,ii,aa) => {
+                       var h = Math.floor(vv / 3600) + 6;
+                       this.timePaths[h] = this.timePaths[h] || [];
+                       this.timePaths[h].push(v.path[ii]);
+                    });
+                });
+
+                this.timePaths = Object.values(this.timePaths).map(arr => {
+
+                    let weightCount = {};
+
+                    const newArr = arr.map(value => {
+                        return value.join()
+                    }).sort().forEach(value => {
+                        weightCount[value] = (weightCount[value] +1)  ||  1;
+                    });
+
+                    const objArr = weightCount;
+                    return objArr;
+                });
+            }
+
+        },
+        changeHeatMapData(range){
+            if(this.heatMap){
+                this.getWeightData(range);
+            }
+        },
+        getWeightData(range) {
+            this.weightData = [];
+            this.weightObjData = [];
+            console.log("weightData starts");
+            console.log(range);
+
+            if(this.abmData) {
+                this.datamsg = "ABM Data loaded";
+
+                let filterTimeObj = Object.assign({},this.timePaths);
+
+                console.log(filterTimeObj);
+
+                let timeCoordData = {};
+
+                for (const [key, value] of Object.entries(filterTimeObj)) {
+                    key = `${key}`;
+                    value = `${value}`;
+
+                    if(key >= range[0] - 6 && key <= range[1] - 6) {
+                        for (const [coord, weight] of Object.entries(filterTimeObj[key])) {
+                            coord = `${coord}`;
+                            weight = `${weight}`;
+
+                            timeCoordData[coord] = + weight || weight;
+                        };
+                    } else {
+                        delete filterTimeObj[key];
+                    }
+                }
+
+                var finalDataSet = [];
+
+                for(const [key, value] of Object.entries(timeCoordData)) {
+                    key = `${key}`;
+                    value = `${value}`;
+
+                    let int = parseInt(value);
+                    let coordinate = { Coordinates: key.split(",").map(Number), Weight: int};
+                    finalDataSet.push(coordinate);
+                }
+
+                this.$store.commit("scenario/heatMapData", finalDataSet);
+                console.log(finalDataSet);
+
+             } else {
+                this.datamsg = "No ABM Data loaded";
+            }
+
+        },
+        heatMapActive(){
+            this.$store.commit("scenario/heatMap", !this.heatMap);
+
+            if(this.heatMap){
+                this.getWeightData(this.adjustRange);
+            }
+        },
+        /*setTimeRange(range){
+            const adjustTime = range.map(x => (x - 6) * 3600);
+
+            this.timeRange = adjustTime;
+            this.getWeightData(this.timeRange);
+        },*/
+        updateData(){
+            this.clusterTimeData();
         }
     }
 }
@@ -271,6 +392,48 @@ export default {
                     </v-overlay>
 
             </div>
+        </div>
+
+        <div class="division" data-title='Heatmap' data-pic='mdi-gauge'>
+           <div v-if="activeDivision === 'Heatmap'" class="component_content">
+            <h2>Capacity Use Map</h2>
+               <v-range-slider
+                    v-model="adjustRange"
+                    :min="6"
+                    :max="21"
+                    hide-details
+                    dark
+                    class="align-center"
+                    @change="changeHeatMapData(adjustRange)"
+               >
+                    <template v-slot:prepend>
+                        <v-text-field
+                            :value="adjustRange[0]"
+                            class="mt-0 pt-0"
+                            hide-details
+                            single-line
+                            type="number"
+                            style="width: 30px"
+                        ></v-text-field>
+                    </template>
+                    <template v-slot:append>
+                        <v-text-field
+                            :value="adjustRange[1]"
+                            class="mt-0 pt-0"
+                            hide-details
+                            single-line
+                            type="number"
+                            style="width: 30px"
+                        ></v-text-field>
+                    </template>
+               </v-range-slider>
+               <p>{{datamsg}}</p>
+               <v-btn @click="heatMapActive">{{ btnlabel }}</v-btn>
+
+               <div v-if=(heatMap) class="additional">
+                   <p>I am visible</p>
+               </div>
+           </div>
         </div>
 
         <!--<v-expansion-panels>

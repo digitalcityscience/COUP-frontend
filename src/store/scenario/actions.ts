@@ -1,6 +1,6 @@
 import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
-import {abmTripsLayerName, animate, buildTripsLayer} from "@/store/deck-layers";
+import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeSouthOptions} from "@/store/abm";
 
 export default {
@@ -73,28 +73,80 @@ export default {
 
           commit('abmResultLoading', false)
           return
-        } else {
-          buildTripsLayer(result.options.data.data).then(
-            deckLayer => {
-              if (rootState.map?.getLayer(abmTripsLayerName)) {
-                rootState.map?.removeLayer(abmTripsLayerName)
-              }
-              // check if scenario is still valid - user input might have changed while loading trips layer
-              rootState.map?.addLayer(deckLayer)
-              rootState.map?.moveLayer(abmTripsLayerName);  // add layer on top of the layer stack
-              commit('addLayerId', abmTripsLayerName, {root: true})
-              animate(deckLayer)
-
-              commit('abmData', deckLayer?.props?.data)
-
-              // finally remove loading screen
-              commit('abmResultLoading', false)
-            })
         }
+
+        buildTripsLayer(result.options.data.data).then(
+          deckLayer => {
+            if (rootState.map?.getLayer(abmTripsLayerName)) {
+              rootState.map?.removeLayer(abmTripsLayerName)
+            }
+
+            // check if scenario is still valid - user input might have changed while loading trips layer
+            rootState.map?.addLayer(deckLayer)
+            rootState.map?.moveLayer(abmTripsLayerName);  // add layer on top of the layer stack
+            commit('addLayerId', abmTripsLayerName, {root: true})
+            commit('animationRunning', true);
+            animate(deckLayer)
+
+            commit('abmData', deckLayer?.props?.data)
+
+            // finally remove loading screen
+            commit('abmResultLoading', false)
+          }
+        )
       }
     )
     return
-  }
+  },
+  rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
+    const abmData = state.abmData;
+    const heatMapActive = state.heatMap;
+    const heatMapData = state.heatMapData;
+
+    console.log(heatMapActive);
+    console.log(heatMapData);
+
+    if(heatMapActive){
+
+      /*building Deck.gl Heatmap in deck-layers.ts*/
+      buildAggregationLayer(heatMapData).then(
+        deckLayer => {
+          if (rootState.map?.getLayer(abmAggregationLayerName)) {
+            rootState.map?.removeLayer(abmAggregationLayerName)
+          }
+
+          if(rootState.map?.getLayer(abmTripsLayerName)) {
+            rootState.map?.removeLayer(abmTripsLayerName)
+          }
+
+          console.log(deckLayer);
+          rootState.map?.addLayer(deckLayer)
+          commit('addLayerId', abmAggregationLayerName, {root: true})
+
+        });
+    } else if (!heatMapActive) { /*if heatMap is not active, reactivate TripsLayer*/
+
+      /*building Deck.gl TripsLayer in deck-layers.ts*/
+      buildTripsLayer(abmData).then(
+        deckLayer => {
+          if (rootState.map?.getLayer(abmAggregationLayerName)) {
+            rootState.map?.removeLayer(abmAggregationLayerName)
+          }
+
+          if(rootState.map?.getLayer(abmTripsLayerName)) {
+            rootState.map?.removeLayer(abmTripsLayerName)
+          }
+
+          console.log(deckLayer);
+          rootState.map?.addLayer(deckLayer)
+          commit('addLayerId', abmTripsLayerName, {root: true});
+
+          /*animating TripsLayer*/
+          commit('animationRunning', true);
+          animate(deckLayer, null, null, state.currentTimeStamp);
+        });
+      }
+  },
 }
 
 function updateBridges(bridge_north, bridge_south) {

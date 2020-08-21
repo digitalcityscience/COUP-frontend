@@ -1,7 +1,7 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-import { abmTripsLayerName } from '@/store/deck-layers'
+import { abmTripsLayerName, buildAggregationLayer } from '@/store/deck-layers'
 import amenities from '@/config/amenities.json'
 import { alkisTranslations } from '@/store/abm'
 
@@ -13,9 +13,23 @@ export default {
             'view',
             'accessToken',
             'map',
+            'layers',
             'layerIds',
             'selectedFeatures'
-        ])
+        ]),
+        heatMapData(){
+            return this.$store.state.scenario.heatMapData;
+        },
+        heatMapActive(){
+            return this.$store.state.scenario.heatMap;
+        }
+    },watch: {
+        heatMapData(){
+            this.updateHeatMap();
+        },
+        heatMapActive(){
+            this.updateHeatMap();
+        },
     },
     mounted () {
         mapboxgl.accessToken = this.accessToken
@@ -42,6 +56,8 @@ export default {
         this.map.on('contextmenu', this.onMapContextMenu)
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
         this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
+
+        console.log(this.$store.state.map);
     },
     methods: {
         onMapClicked (evt) {
@@ -49,6 +65,10 @@ export default {
                 [evt.point.x - 5, evt.point.y - 5],
                 [evt.point.x + 5, evt.point.y + 5]
             ]
+
+            console.log(evt.pageX);
+            console.log(evt.pageY);
+
             const features = this.map.queryRenderedFeatures(bbox, {
                 layers: this.layerIds
             })
@@ -57,11 +77,16 @@ export default {
             console.log(this.selectedFeatures)
         },
         onMapLoaded () {
-            console.log('create design layers')
+            console.log("create design layers")
+            console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers')
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
+        },
+        updateHeatMap(){
+            console.log("somethin has changed", this.heatMapActive);
+                this.$store.dispatch('scenario/rebuildDeckLayer')
         },
         onAmenitiesHover (evt) {
             this.map.getCanvas().style.cursor = 'pointer'

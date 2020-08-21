@@ -4,6 +4,7 @@ export default {
   bridges: [bridges.bridge_north],
   isLoading: false,
   abmData: null,
+  abmObject:{},
   moduleSettings: {
     bridge_north: true,
     bridge_south: "horizontal",
@@ -22,7 +23,9 @@ export default {
     }
   },
   currentTimeStamp: 0,
-  animationRunning: true,
+  animationRunning: false,
   animationSpeed: 7,
+  heatMapData:[],
+  heatMap:false,
 }
 
