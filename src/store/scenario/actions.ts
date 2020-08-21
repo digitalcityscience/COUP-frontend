@@ -64,8 +64,13 @@ export default {
             // check if scenario is still valid - user input might have changed while loading trips layer
             rootState.map?.addLayer(deckLayer)
             commit('addLayerId', abmTripsLayerName, {root: true})
-            commit('animationRunning', true);
-            animate(deckLayer)
+
+            const heatMap = state.heatMap;
+
+            if (!heatMap) {
+              commit('animationRunning', true);
+              animate(deckLayer)
+            }
 
             commit('abmData', deckLayer?.props?.data)
 
@@ -95,7 +100,8 @@ export default {
           }
 
           if(rootState.map?.getLayer(abmTripsLayerName)) {
-            rootState.map?.removeLayer(abmTripsLayerName)
+            rootState.map?.removeLayer(abmTripsLayerName);
+            commit('removeLayerId', abmTripsLayerName, {root: true})
           }
 
           console.log(deckLayer);
@@ -110,6 +116,7 @@ export default {
         deckLayer => {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
             rootState.map?.removeLayer(abmAggregationLayerName)
+            commit('removeLayerId', abmAggregationLayerName, {root: true})
           }
 
           if(rootState.map?.getLayer(abmTripsLayerName)) {

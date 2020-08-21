@@ -32,17 +32,21 @@ export default {
     components: {},
     methods:{
         triggerAnimation(){
+            /*functionality for play button*/
             const animationRunning = this.$store.state.scenario.animationRunning;
             const animationTime = this.$store.state.scenario.currentTimeStamp;
             this.$store.commit("scenario/animationRunning", !animationRunning);
 
             if(!animationRunning) {
+                /*deactivate HeatMap*/
                 this.$store.commit("scenario/heatMap", false);
                 const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
 
                 if(deckLayer) {
+                    /*if TripsLayer exists animate it*/
                     animate(deckLayer.implementation, null, null, animationTime);
                 } else {
+                    /*if TripsLayer was removed by HeatMap rebuild it*/
                     this.$store.dispatch('scenario/rebuildDeckLayer').then(
                         deckLayer => { 
                             const newDeckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
@@ -59,6 +63,7 @@ export default {
             this.timeHours = [];
             let workingObj = {};
 
+            /*Add up total agents per timestamp*/
             this.abmData.forEach((v,i,a) =>{
                 v.timestamps.forEach((v,i,a) => {
                     workingObj[v] = (workingObj[v]+1) || 1;
@@ -67,6 +72,7 @@ export default {
 
             this.timeObj = workingObj;
 
+            /*reformatting data back intro array*/
             for (const [key, value] of Object.entries(workingObj)) {
                 this.timeStamps.push(`${key}`);
                 this.timeCoords.push(`${value}`)
@@ -74,9 +80,11 @@ export default {
 
             this.filterCoords = this.timeCoords;
 
+            /*get Max and Min Timestamp*/
             this.minTime = Math.min(...this.timeStamps);
             this.maxTime = Math.max(...this.timeStamps);
             
+            /*Round Time Stamps to full hours*/
             this.timeStamps.forEach((v,i,a) => {
                 let hour = Math.floor(v / 3600) + 6 + ":00";
                 this.timeHours.push(hour);
@@ -85,12 +93,12 @@ export default {
             this.renderTimeGraph();
         },
         renderTimeGraph(){
+            /*render graph via chart.js*/
             var ctx = document.getElementById('timeChart').getContext('2d');
             var chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: this.timeHours,
-                    //labels: ["8:00", "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"],
                     datasets: [
                     {
                         data: this.timeCoords,
@@ -155,12 +163,11 @@ export default {
             this.$store.commit("scenario/animationSpeed", this.animationSpeed);
         },
         changeCurrentTime(){
-            //this.$store.commit("scenario/animationRunning", false);
+            /*change Time via Slider*/
             const newTime = this.currentValue;
             this.$store.commit("scenario/currentTimeStamp", newTime);
-            //this.$store.commit("scenario/animationRunning", true);
-            //getting deckLayer to start over animation
 
+            /*reanimate abm Tripslayer with new currentTime*/
             if(this.animationRunning) {
                 const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
                 animate(deckLayer.implementation, null, null, newTime);
@@ -172,7 +179,7 @@ export default {
 
             let workingObj = {};
 
-            console.log(this.filter);
+            /*creating filtered Data for TimeGraph*/
             this.abmData.forEach((v,i,a) =>{
                 v.timestamps.forEach((vv,i,a) => {
                         
@@ -187,14 +194,11 @@ export default {
             for (const [key, value] of Object.entries(workingObj)) {
                 this.filterCoords.push(`${value}`)
             }
-
-            console.log(this.filterCoords);
             this.renderTimeGraph();
             
         },
         updateData(){
             this.getTimeData();
-            console.log(this.abmData);
         }
     },
     computed: {

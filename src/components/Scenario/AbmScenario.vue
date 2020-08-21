@@ -81,15 +81,14 @@ export default {
         }
     },
     mounted: function() {
+
+        /*autogenerationg Sub Menu for all divs of Class "division"*/
         var divisions = document.getElementsByClassName("division");
-
         for (var i = 0; i < divisions.length; i++) {
-
             let divInstance = {
                 title: divisions[i].getAttribute('data-title'),
                 pic: divisions[i].getAttribute('data-pic'),
             };
-
             this.componentDivisions.push(divInstance);
         }
 
@@ -101,28 +100,36 @@ export default {
                 'scenario/updateAbmDesignScenario'
             )
         },
+        /*retransformating abmData fitting for TimeMap*/
+        /*cluster Time Stamp Data for rounded full hours*/
         clusterTimeData(){
             if (this.abmData) {
                 this.abmData.forEach((v,i,a) => {
                     v.timestamps.forEach((vv,ii,aa) => {
+                    /*round timestamps to full hours*/
                        var h = Math.floor(vv / 3600) + 6;
+                       /*create Object with hours as Keys and according path data (array) as values*/
                        this.timePaths[h] = this.timePaths[h] || [];
                        this.timePaths[h].push(v.path[ii]);
                     });
                 });
 
+                /*calculating Weight value for each coordinate (sum up appearences of unique coordinates*/
                 this.timePaths = Object.values(this.timePaths).map(arr => {
                     
                     let weightCount = {};
 
                     const newArr = arr.map(value => {
-                        return value.join()
+                        return value.join() /*formating coordinates to string to make them readable*/
                     }).sort().forEach(value => {
+                        /*creating Object with unique coordinates as Keys and number of instances of coordinate as Weight value*/
                         weightCount[value] = (weightCount[value] +1)  ||  1;
                     });
 
                     const objArr = weightCount;
                     return objArr;
+
+                    /*pre clustering time data done*/
                 });
             }
             
@@ -133,25 +140,26 @@ export default {
             }
         },
         getWeightData(range) {
+            /*range from slider*/
             this.weightData = [];
             this.weightObjData = [];
-            console.log("weightData starts");
-            console.log(range);
 
             if(this.abmData) {
                 this.datamsg = "ABM Data loaded";
                 
+                /*copy original timePaths Object*/
                 let filterTimeObj = Object.assign({},this.timePaths);
-                
-                console.log(filterTimeObj);
 
                 let timeCoordData = {};
 
+                /*rearranging object data*/
                 for (const [key, value] of Object.entries(filterTimeObj)) {
                     key = `${key}`;
                     value = `${value}`;
 
+                    /*Only take the values from hours in slider range*/
                     if(key >= range[0] - 6 && key <= range[1] - 6) {
+                        /*Add up the values of each hour into new Object*/
                         for (const [coord, weight] of Object.entries(filterTimeObj[key])) {
                             coord = `${coord}`;
                             weight = `${weight}`;
@@ -159,21 +167,25 @@ export default {
                             timeCoordData[coord] = + weight || weight;
                         };
                     } else {
+                        /*delete Object key outside of slider range*/
                         delete filterTimeObj[key];
                     }
                 }
 
                 var finalDataSet = [];
 
+                /*reformating Object into Array Of Object so it fits deck.gl heatmap data requirements*/
                 for(const [key, value] of Object.entries(timeCoordData)) {
                     key = `${key}`;
                     value = `${value}`;
 
                     let int = parseInt(value);
+                    /*split Coordinates Strings back to Integer Arrays*/
                     let coordinate = { Coordinates: key.split(",").map(Number), Weight: int};
                     finalDataSet.push(coordinate);
                 }
 
+                /*commit final data for heatmap to store*/
                 this.$store.commit("scenario/heatMapData", finalDataSet);
                 console.log(finalDataSet);
 
@@ -189,12 +201,6 @@ export default {
                 this.getWeightData(this.adjustRange);
             }
         },
-        /*setTimeRange(range){
-            const adjustTime = range.map(x => (x - 6) * 3600);
-
-            this.timeRange = adjustTime;
-            this.getWeightData(this.timeRange);
-        },*/
         updateData(){
             this.clusterTimeData();
         }
