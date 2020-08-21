@@ -4,7 +4,7 @@ import {HeatmapLayer} from '@deck.gl/aggregation-layers';
 import {TripsLayer} from "@deck.gl/geo-layers";
 import GL from '@luma.gl/constants';
 import store from "../store/index"
-import { DataSet } from '@deck.gl/core/lib/layer';
+import { DataSet } from "@deck.gl/core/lib/layer";
 
 
 export const abmTripsLayerName = "abmTrips"
@@ -78,7 +78,7 @@ export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLay
 // animate deck trips layer
 export function animate(layer: DeckLayer<any>, start: number = null, end: number = null, time: number = null) {
   // stop animation, if trips layer no longer on map
-  if (!store.state.scenario.designScenario) {
+  if (!store.state.scenario.bridges) {
     console.log("stopped animation, because no scenario is selected")
     return
   }
@@ -97,7 +97,7 @@ export function animate(layer: DeckLayer<any>, start: number = null, end: number
   if (time >= end) {
     time = start
   }
-  
+
   //get animation values from Store
   const animationSpeed = store.state.scenario.animationSpeed;
   const animationRunning = store.state.scenario.animationRunning;
