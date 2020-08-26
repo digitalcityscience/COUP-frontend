@@ -23,7 +23,7 @@ export default {
 <template>
     <div id="menu">
         <div class="header_scope">
-            <h3>Grassbrook CityScope</h3>
+            <h3>Grasbrook CityScope</h3>
             <p>Tool for Functional Planning</p>
         </div>
         <div class="component_switch">
@@ -111,7 +111,7 @@ export default {
                         z-index:-1;
                         @include fullpseudo;
                     }
-                    
+
                     &:hover {
                         cursor:pointer;
 

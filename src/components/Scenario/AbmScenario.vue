@@ -227,12 +227,13 @@ export default {
                 }
         },
         updateData(){
-            this.clusterTimeData();
-            this.origins[0] = this.bridge_north;
-                this.origins[1] = this.bridge_south;
-                this.origins[2] = this.main_street_orientation;
-                this.origins[3] = this.blocks;
-                this.origins[4] = this.roof_amenities
+          this.origins[0] = this.bridge_north;
+          this.origins[1] = this.bridge_south;
+          this.origins[2] = this.main_street_orientation;
+          this.origins[3] = this.blocks;
+          this.origins[4] = this.roof_amenities
+          this.changesMade = false;
+          this.clusterTimeData();
         }
     }
 }
@@ -241,7 +242,7 @@ export default {
 <template>
     <div id="scenario" ref="scenario">
         <div class="component_divisions">
-            <ul>   
+            <ul>
                 <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
                 <li v-for="division in componentDivisions" :key="division.title" v-bind:class="{ highlight: activeDivision === division.title }">
                     <div class="component_link" @click="activeDivision = division.title">
@@ -260,25 +261,22 @@ export default {
                <h2>ABM Scenario Settings</h2>
                 <v-container fluid>
                         <header class="text-sm-left">
-                            CONNECTIVITY
+                            BRIDGES
                         </header>
                         <v-switch
                             v-model="bridge_north"
                             flat
-                            label="Connection to HafenCity"
+                            label="Bridge to HafenCity"
                             dark
                             @change="checkChanges"
                             :color="origins[0] != bridge_north ? '#FD805D' : '#888'"
                             :class="origins[0] != bridge_north ? 'switched' : 'na'"
                         />
-                        <v-subheader class="bridge_subheader" dark>
-                            Brigde to Veddel
-                        </v-subheader>
                         <v-radio-group v-model="bridge_south" :class="origins[1] != bridge_south ? 'switched' : 'na'">
                             <v-radio
                                 :value="bridgeSouthOptions.horizontal"
                                 flat
-                                label="Horizontal connection to Veddel"
+                                label="Bridge to S Veddel (South)"
                                 dark
                                 @change="checkChanges"
                                 :color="origins[1] != bridge_south ? '#FD805D' : '#888'"
@@ -286,39 +284,39 @@ export default {
                             <v-radio
                                 :value="bridgeSouthOptions.diagonal"
                                 flat
-                                label="Diagonal connection to Veddel"
+                                label="Bridge to S Veddel (North)"
                                 dark
                                 @change="checkChanges"
                                 :color="origins[1] != bridge_south ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
-                            MAIN STREET
+                            MAIN STREET ORIENTATION
                         </header>
                         <v-radio-group v-model="main_street_orientation" :class="origins[2] != main_street_orientation ? 'switched' : 'na'">
                             <v-radio
-                                :value="mainStreetOrientationOptions.horizontal"
+                                :value="mainStreetOrientationOptions.vertical"
                                 flat
-                                label="East-West"
-                                dark
+                                label="North-South Axes"
+                                    dark
                                 @change="checkChanges"
                                 :color="origins[2] != main_street_orientation ? '#FD805D' : '#888'"
                             />
                             <v-radio
-                                :value="mainStreetOrientationOptions.vertical"
+                                :value="mainStreetOrientationOptions.horizontal"
                                 flat
-                                label="North-South"
+                                label="East-West Axes"
                                 dark
                                 @change="checkChanges"
                                 :color="origins[2] != main_street_orientation ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
-                            BLOCKS
+                          CITY BLOCK STRUCTURE
                         </header>
                         <v-radio-group v-model="blocks" :class="origins[3] != blocks ? 'switched' : 'na'">
                             <v-radio
-                                :value="blockOptions.permeable"
+                                :value="blockOptions.open"
                                 flat
                                 label="Permeable"
                                 dark
@@ -327,7 +325,7 @@ export default {
 
                             />
                             <v-radio
-                                :value="blockOptions.private"
+                                :value="blockOptions.closed"
                                 flat
                                 label="Private"
                                 dark
@@ -342,7 +340,7 @@ export default {
                             <v-radio
                                 :value="roofAmenitiesOptions.complementary"
                                 flat
-                                label="Complementary"
+                                label="Clustered by Type"
                                 dark
                                 @change="checkChanges"
                                 :color="origins[4] != roof_amenities ? '#FD805D' : '#888'"
@@ -350,7 +348,7 @@ export default {
                             <v-radio
                                 :value="roofAmenitiesOptions.random"
                                 flat
-                                label="Random"
+                                label="Mixed Distribution"
                                 dark
                                 @change="checkChanges"
                                 :color="origins[4] != roof_amenities ? '#FD805D' : '#888'"
@@ -359,11 +357,11 @@ export default {
                     </v-container>
 
                     <v-btn @click="confirmSettings" class="confirm_btn" :class="{ changesMade : changesMade }">
-                        Confirm Settings
+                      Run Scenario
                     </v-btn>
 
                     <v-overlay :value="isLoading">
-                        <div>Loading ABM results</div>
+                        <div>Loading results</div>
                         <v-progress-linear>...</v-progress-linear>
                     </v-overlay>
            </div><!--component_content end-->
@@ -441,7 +439,7 @@ export default {
                     </v-container>
 
                     <v-btn @click="confirmSettings" class="confirm_btn">
-                        Confirm Settings
+                        Run Scenario
                     </v-btn>
 
                     <v-overlay :value="isLoading">
