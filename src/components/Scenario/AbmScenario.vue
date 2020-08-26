@@ -229,65 +229,62 @@ export default {
                <h2>ABM Scenario Settings</h2>
                 <v-container fluid>
                         <header class="text-sm-left">
-                            CONNECTIVITY
+                            BRIDGES
                         </header>
                         <v-switch
                             v-model="bridge_north"
                             flat
-                            label="Connection to HafenCity"
+                            label="Bridge to HafenCity"
                             dark
                         />
-                        <v-subheader class="bridge_subheader" dark>
-                            Brigde to Veddel
-                        </v-subheader>
                         <v-radio-group v-model="bridge_south">
                             <v-radio
                                 :value="bridgeSouthOptions.horizontal"
                                 flat
-                                label="Horizontal connection to Veddel"
+                                label="Bridge to S Veddel (South)"
                                 dark
                             />
                             <v-radio
                                 :value="bridgeSouthOptions.diagonal"
                                 flat
-                                label="Diagonal connection to Veddel"
+                                label="Bridge to S Veddel (North)"
                                 dark
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
-                            MAIN STREET
-                        </header>
-                        <v-radio-group v-model="main_street_orientation">
-                            <v-radio
-                                :value="mainStreetOrientationOptions.horizontal"
-                                flat
-                                label="East-West"
-                                dark
-                            />
-                            <v-radio
-                                :value="mainStreetOrientationOptions.vertical"
-                                flat
-                                label="North-South"
-                                dark
-                            />
-                        </v-radio-group>
-                        <header class="text-sm-left">
-                            BLOCKS
+                            CITY BLOCK STRUCTURE
                         </header>
                         <v-radio-group v-model="blocks">
                             <v-radio
-                                :value="blockOptions.permeable"
+                                :value="blockOptions.open"
                                 flat
-                                label="Permeable"
+                                label="Open"
                                 dark
                             />
                             <v-radio
-                                :value="blockOptions.private"
+                                :value="blockOptions.closed"
                                 flat
-                                label="Private"
+                                label="Closed"
                                 dark
                             />
                         </v-radio-group>
+                    <header class="text-sm-left">
+                      MAIN STREET ORIENTATION
+                    </header>
+                    <v-radio-group v-model="main_street_orientation">
+                      <v-radio
+                        :value="mainStreetOrientationOptions.horizontal"
+                        flat
+                        label="East-West Axes"
+                        dark
+                      />
+                      <v-radio
+                        :value="mainStreetOrientationOptions.vertical"
+                        flat
+                        label="North-South Axes"
+                        dark
+                      />
+                    </v-radio-group>
                         <header class="text-sm-left">
                           AMENITY DISTRIBUTION
                         </header>
@@ -295,24 +292,24 @@ export default {
                             <v-radio
                                 :value="roofAmenitiesOptions.complementary"
                                 flat
-                                label="Complementary"
+                                label="Clustered by Type"
                                 dark
                             />
                             <v-radio
                                 :value="roofAmenitiesOptions.random"
                                 flat
-                                label="Random"
+                                label="Mixed Distribution"
                                 dark
                             />
                         </v-radio-group>
                     </v-container>
 
                     <v-btn @click="confirmSettings" class="confirm_btn">
-                        Confirm Settings
+                        Run Scenario
                     </v-btn>
 
                     <v-overlay :value="isLoading">
-                        <div>Loading ABM results</div>
+                        <div>Loading results</div>
                         <v-progress-linear>...</v-progress-linear>
                     </v-overlay>
            </div>

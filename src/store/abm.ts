@@ -23,8 +23,8 @@ export const bridgeSouthOptions = {
 }
 
 export const blockPermeabilityOptions = {
-  permeable: "open",
-  private: "closed",
+  open: "open",
+  closed: "closed",
 }
 export const roofAmenitiesOptions = {
   random: "random",
