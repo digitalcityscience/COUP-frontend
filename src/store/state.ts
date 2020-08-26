@@ -11,7 +11,7 @@ const initialState: StoreState = {
     mapStyle: Config['mapStyle'] || Defaults.mapStyle,
     accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
     cityPyO: null,
-    currentTime: 0
+    currentTime: 0,
 }
 
 export default initialState;

@@ -26,6 +26,9 @@ export default {
   animationRunning: false,
   animationSpeed: 7,
   heatMapData:[],
+  heatMapAverage: [],
+  heatMapType:'average',
   heatMap:false,
+  lastClick: [],
 }
 

@@ -86,7 +86,7 @@ export default {
             
             /*Round Time Stamps to full hours*/
             this.timeStamps.forEach((v,i,a) => {
-                let hour = Math.floor(v / 3600) + 6 + ":00";
+                let hour = Math.floor(v / 3600) + 8 + ":00";
                 this.timeHours.push(hour);
             });
 

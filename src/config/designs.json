@@ -6,7 +6,7 @@
       "source": "groundfloor",
       "paint": {
         "fill-extrusion-height": 5,
-        "fill-extrusion-color": "#14161a",
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#14161a", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#BDFF8F", "commercialOffice", "#47A7FF", "daycare", "#FF4432", "public", "#E6CE49", "#fff"], "#14161a"],
         "fill-extrusion-opacity": 0.8
       }
     },
@@ -15,7 +15,7 @@
       "type": "fill-extrusion",
       "source": "upperfloor",
       "paint": {
-        "fill-extrusion-color": "#14161a",
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#14161a", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#BDFF8F", "commercialOffice", "#47A7FF", "daycare", "#FF4432", "public", "#E6CE49", "#fff"], "#14161a"],
         "fill-extrusion-height": ["get", "height"],
         "fill-extrusion-base": 5,
         "fill-extrusion-opacity": 0.8

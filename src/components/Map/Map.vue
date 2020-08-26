@@ -4,9 +4,18 @@ import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { abmTripsLayerName, buildAggregationLayer } from '@/store/deck-layers'
 import amenities from '@/config/amenities.json'
 import { alkisTranslations } from '@/store/abm'
+import Contextmenu from "@/components/Menu/Contextmenu.vue";
 
 export default {
     name: 'Map',
+    components:{ Contextmenu },
+    data() {
+        return {
+            lastClicked: [],
+            featuresObject: {},
+            targetFound: false, 
+        }
+    },
     computed: {
         ...mapState([
             'mapStyle',
@@ -22,6 +31,9 @@ export default {
         },
         heatMapActive(){
             return this.$store.state.scenario.heatMap;
+        },
+        heatMapType(){
+            return this.$store.state.scenario.heatMapType;
         }
     },watch: {
         heatMapData(){
@@ -30,6 +42,9 @@ export default {
         heatMapActive(){
             this.updateHeatMap();
         },
+        heatMapType(){
+            this.updateHeatMap();
+        }
     },
     mounted () {
         mapboxgl.accessToken = this.accessToken
@@ -57,24 +72,60 @@ export default {
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
         this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
 
-        console.log(this.$store.state.map);
+        //console.log(this.$store.state.map);
     },
     methods: {
+        mousePos(evt){
+                this.lastClicked = [evt.clientY, evt.clientX];
+                this.$store.commit('scenario/lastClick', this.lastClicked);
+
+                if(this.targetFound){
+                    this.openContextMenu();
+                }
+        },
         onMapClicked (evt) {
+            this.targetFound = false;
             const bbox = [
-                [evt.point.x - 5, evt.point.y - 5],
-                [evt.point.x + 5, evt.point.y + 5]
+                [evt.point.x - 10, evt.point.y - 10],
+                [evt.point.x + 10, evt.point.y + 10]
             ]
 
-            console.log(evt.pageX);
-            console.log(evt.pageY);
-
             const features = this.map.queryRenderedFeatures(bbox, {
-                layers: this.layerIds
-            })
+                layers: this.layerIds,
+            });
 
-            this.$store.commit('selectedFeatures', features)
-            console.log(this.selectedFeatures)
+            const singleOutTarget = [];
+            features.forEach((feature,i,a) => {
+                const initialFeature = a[0].properties.building_id;
+                let specialFeature = feature.properties.building_id;
+                if(specialFeature == initialFeature) {
+                    singleOutTarget.push(feature);
+                }
+            });
+
+            console.log(features, singleOutTarget)
+            
+            this.$store.commit('selectedFeatures', singleOutTarget);
+
+            if(singleOutTarget === undefined || singleOutTarget.length == 0){
+                console.log("no feature selected");
+                this.targetFound = false; 
+            } else {
+                const building = singleOutTarget[0].properties.area_planning_type;
+                if(building == "building"){
+
+                    const newFeature = this.selectedFeatures;
+                    newFeature.forEach(feature => {
+                        feature.properties.selected = "active";
+                        this.$store.dispatch('editFeatureProps', feature);
+                    })
+                    //newFeature.properties.selected = "active";
+                    this.targetFound = true; 
+                    
+                } else {
+                    this.targetFound = false;
+                }
+            }
         },
         onMapLoaded () {
             console.log("create design layers")
@@ -86,8 +137,15 @@ export default {
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
         },
+        openContextMenu(features){
+            this.featuresObject = {click: this.lastClicked, features: features};
+            console.log(this.featuresObject);
+            this.$modal.show(
+                Contextmenu,
+                {draggable: true}
+            )
+        },
         updateHeatMap(){
-            console.log("somethin has changed", this.heatMapActive);
                 this.$store.dispatch('scenario/rebuildDeckLayer')
         },
         onAmenitiesHover (evt) {
@@ -121,7 +179,7 @@ export default {
 </script>
 
 <template>
-    <div
+    <div @click="mousePos"
         id="map"
         ref="map"
     />

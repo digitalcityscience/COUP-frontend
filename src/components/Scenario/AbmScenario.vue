@@ -35,9 +35,12 @@ export default {
             weightData:[],
             weightObjData:[],
             timeRange:[0, 54000],
-            adjustRange:[6, 21],
+            adjustRange:[8, 23],
             datamsg:'',
-            btnlabel: 'Generate Aggregation Layer'
+            heatMapType:'average',
+            btnlabel: 'Generate Aggregation Layer',
+            origins:[],
+            changesMade: false
         }
     },
     computed: {
@@ -83,7 +86,6 @@ export default {
         }
     },
     mounted: function() {
-
         /*autogenerationg Sub Menu for all divs of Class "division"*/
         var divisions = document.getElementsByClassName("division");
         for (var i = 0; i < divisions.length; i++) {
@@ -109,7 +111,7 @@ export default {
                 this.abmData.forEach((v,i,a) => {
                     v.timestamps.forEach((vv,ii,aa) => {
                     /*round timestamps to full hours*/
-                       var h = Math.floor(vv / 3600) + 6;
+                       var h = Math.floor(vv / 3600) + 8;
                        /*create Object with hours as Keys and according path data (array) as values*/
                        this.timePaths[h] = this.timePaths[h] || [];
                        this.timePaths[h].push(v.path[ii]);
@@ -161,7 +163,7 @@ export default {
                     value = `${value}`;
 
                     /*Only take the values from hours in slider range*/
-                    if(key >= range[0] - 6 && key <= range[1] - 6) {
+                    if(key >= range[0] - 8 && key <= range[1] - 8) {
                         /*Add up the values of each hour into new Object*/
                         for (const [coord, weight] of Object.entries(filterTimeObj[key])) {
                             coord = `${coord}`;
@@ -176,6 +178,7 @@ export default {
                 }
 
                 var finalDataSet = [];
+                var averageDataSet = [];
 
                 /*reformating Object into Array Of Object so it fits deck.gl heatmap data requirements*/
                 for(const [key, value] of Object.entries(timeCoordData)) {
@@ -184,18 +187,25 @@ export default {
 
                     let int = parseInt(value);
                     /*split Coordinates Strings back to Integer Arrays*/
+                    /*create relative values*/
                     let coordinate = { Coordinates: key.split(",").map(Number), Weight: int};
+                    /*create average values*/
+                    let coordinateA = { Coordinates: key.split(",").map(Number), Weight: 1};
                     finalDataSet.push(coordinate);
+                    averageDataSet.push(coordinateA);
                 }
 
                 /*commit final data for heatmap to store*/
                 this.$store.commit("scenario/heatMapData", finalDataSet);
-                console.log(finalDataSet);
+                this.$store.commit("scenario/heatMapAverage", averageDataSet);
 
              } else {
                 this.datamsg = "No ABM Data loaded";
             }
 
+        },
+        reloadHeatMap(){
+            this.$store.commit("scenario/heatMapType", this.heatMapType);
         },
         heatMapActive(){
             this.$store.commit("scenario/heatMap", !this.heatMap);
@@ -204,8 +214,25 @@ export default {
                 this.getWeightData(this.adjustRange);
             }
         },
+        checkChanges(){
+            if(
+                this.origins[0] == this.bridge_north &&
+                this.origins[1] == this.bridge_south &&
+                this.origins[2] == this.main_street_orientation &&
+                this.origins[3] == this.blocks &&
+                this.origins[4] == this.roof_amenities) {
+                    this.changesMade = false;
+                } else {
+                    this.changesMade = true;
+                }
+        },
         updateData(){
             this.clusterTimeData();
+            this.origins[0] = this.bridge_north;
+                this.origins[1] = this.bridge_south;
+                this.origins[2] = this.main_street_orientation;
+                this.origins[3] = this.blocks;
+                this.origins[4] = this.roof_amenities
         }
     }
 }
@@ -214,7 +241,8 @@ export default {
 <template>
     <div id="scenario" ref="scenario">
         <div class="component_divisions">
-            <ul>
+            <ul>   
+                <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
                 <li v-for="division in componentDivisions" :key="division.title" v-bind:class="{ highlight: activeDivision === division.title }">
                     <div class="component_link" @click="activeDivision = division.title">
                         <v-icon>{{division.pic}}</v-icon>
@@ -224,7 +252,10 @@ export default {
             </ul>
         </div>
 
+        <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+        <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
         <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+            <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content">
                <h2>ABM Scenario Settings</h2>
                 <v-container fluid>
@@ -236,78 +267,98 @@ export default {
                             flat
                             label="Connection to HafenCity"
                             dark
+                            @change="checkChanges"
+                            :color="origins[0] != bridge_north ? '#FD805D' : '#888'"
+                            :class="origins[0] != bridge_north ? 'switched' : 'na'"
                         />
                         <v-subheader class="bridge_subheader" dark>
                             Brigde to Veddel
                         </v-subheader>
-                        <v-radio-group v-model="bridge_south">
+                        <v-radio-group v-model="bridge_south" :class="origins[1] != bridge_south ? 'switched' : 'na'">
                             <v-radio
                                 :value="bridgeSouthOptions.horizontal"
                                 flat
                                 label="Horizontal connection to Veddel"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[1] != bridge_south ? '#FD805D' : '#888'"
                             />
                             <v-radio
                                 :value="bridgeSouthOptions.diagonal"
                                 flat
                                 label="Diagonal connection to Veddel"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[1] != bridge_south ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
                             MAIN STREET
                         </header>
-                        <v-radio-group v-model="main_street_orientation">
+                        <v-radio-group v-model="main_street_orientation" :class="origins[2] != main_street_orientation ? 'switched' : 'na'">
                             <v-radio
                                 :value="mainStreetOrientationOptions.horizontal"
                                 flat
                                 label="East-West"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[2] != main_street_orientation ? '#FD805D' : '#888'"
                             />
                             <v-radio
                                 :value="mainStreetOrientationOptions.vertical"
                                 flat
                                 label="North-South"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[2] != main_street_orientation ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
                             BLOCKS
                         </header>
-                        <v-radio-group v-model="blocks">
+                        <v-radio-group v-model="blocks" :class="origins[3] != blocks ? 'switched' : 'na'">
                             <v-radio
                                 :value="blockOptions.permeable"
                                 flat
                                 label="Permeable"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[3] != blocks ? '#FD805D' : '#888'"
+
                             />
                             <v-radio
                                 :value="blockOptions.private"
                                 flat
                                 label="Private"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[3] != blocks ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
                           AMENITY DISTRIBUTION
                         </header>
-                        <v-radio-group v-model="roof_amenities">
+                        <v-radio-group v-model="roof_amenities" :class="origins[4] != roof_amenities ? 'switched' : 'na'">
                             <v-radio
                                 :value="roofAmenitiesOptions.complementary"
                                 flat
                                 label="Complementary"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[4] != roof_amenities ? '#FD805D' : '#888'"
                             />
                             <v-radio
                                 :value="roofAmenitiesOptions.random"
                                 flat
                                 label="Random"
                                 dark
+                                @change="checkChanges"
+                                :color="origins[4] != roof_amenities ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                     </v-container>
 
-                    <v-btn @click="confirmSettings" class="confirm_btn">
+                    <v-btn @click="confirmSettings" class="confirm_btn" :class="{ changesMade : changesMade }">
                         Confirm Settings
                     </v-btn>
 
@@ -315,8 +366,8 @@ export default {
                         <div>Loading ABM results</div>
                         <v-progress-linear>...</v-progress-linear>
                     </v-overlay>
-           </div>
-        </div>
+           </div><!--component_content end-->
+        </div><!--division end-->
 
         <div class="division" data-title='Filter' data-pic='mdi-filter'>
             <div v-if="activeDivision === 'Filter'" class="component_content">
@@ -397,7 +448,6 @@ export default {
                         <div>Loading ABM results</div>
                         <v-progress-linear>...</v-progress-linear>
                     </v-overlay>
-
             </div>
         </div>
 
@@ -438,7 +488,17 @@ export default {
                <v-btn @click="heatMapActive">{{ btnlabel }}</v-btn>
 
                <div v-if=(heatMap) class="additional">
-                   <p>I am visible</p>
+                   <div class="additional_options">
+                       <template>
+                            <v-container fluid>
+                                <p>{{ heatMapType || 'null' }}</p>
+                                <v-radio-group v-model="heatMapType" :mandatory="true" @change="reloadHeatMap" dark>
+                                    <v-radio label="Average Data" value="average"></v-radio>
+                                    <v-radio label="Relative Data" value="relative"></v-radio>
+                                </v-radio-group>
+                            </v-container>
+                            </template>
+                    </div>
                </div>
            </div>
         </div>
@@ -469,8 +529,36 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+
   #scenario {
     height: 100%;
     width: 100%;
+
+    .v-input {
+        ::v-deep.v-input__control{
+            .v-input--radio-group__input {
+                .v-radio {
+                    opacity:0.35;
+
+                    &.v-item--active{
+                        opacity:1;
+                    }
+                }
+            }
+        }
+
+        &.switched {
+            ::v-deep.v-input__control {
+                label {
+                    color:#FD805D;
+                }
+                .v-input--switch__thumb {
+                    background: #FD805D;
+                    opacity:0.8;
+                }
+            }
+        }
+    }
+
   }
 </style>

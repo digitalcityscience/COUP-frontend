@@ -27,7 +27,7 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
         getColor: [253, 128, 93],
         highlightColor: [255, 56, 56],
         getWidth: 1,
-        opacity: 0.2,
+        opacity: 0.3,
         widthMinPixels: 2,
         rounded: true,
         pickable:false,
@@ -53,12 +53,8 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
     return tripsLayer;
 }
 
-export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
-  const testData = [
-    { Coordinates: [10.013102024494415,53.528981608728], Weight: 3} ,
-    { Coordinates: [10.013175558483056,53.531871082921064], Weight: 7},
-    { Coordinates: [10.025822883113655,53.524985242386215], Weight:1}
-  ];
+export async function buildAggregationLayer(data: DataSet<any>, settings): Promise<DeckLayer<any>> {
+ 
   const aggregationLayer = new DeckLayer({
     id: abmAggregationLayerName,
     type:HeatmapLayer,
@@ -66,10 +62,10 @@ export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLay
     pickable: false,
     getPosition:  d => d.Coordinates,
     getWeight: d => d.Weight,
-    intensity: 7,
-    threshold: 0.03,
-    radiusPixels: 50,
-    opacity:0.5,
+    intensity: settings[0],
+    threshold: settings[1],
+    radiusPixels: settings[2],
+    opacity:settings[3],
     visible:true,
   })
 

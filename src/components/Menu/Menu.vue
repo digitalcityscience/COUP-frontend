@@ -13,8 +13,9 @@ export default {
             activeComponent: 'AbmScenario'
         }
     },
+    mounted(){
+    },
     methods:{
-
     }
 }
 </script>
@@ -55,6 +56,7 @@ export default {
         width:100vw;
         height:100vh;
         transform:translateX(100%);
+        border-left:1px solid #888;
         font-family: 'Tajawal', sans-serif;
         z-index: 1000;
 

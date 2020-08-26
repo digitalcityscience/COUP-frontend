@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
 
+* {
+    font-family: 'Tajawal', sans-serif;
+}
+
 //color variables
 
 $bright1: whitesmoke;
@@ -9,6 +13,8 @@ $opaqueorange: rgba(253, 128, 93, 0.65);
 $reversed: #0176AC;
 $darkblue: #2c3e50;
 $greyblue: #56799C;
+$red: #E65449;
+$pink: #FE517E;
 
 //mixin
 
@@ -50,15 +56,15 @@ body, html {
         list-style:none;
 
         li {
-            transform:translateX(2px);
             width:40px;
             height:40px;
             background:rgba(0,0,0,0.7);
+            border:1px solid #888;
             margin-bottom:2px;
 
             .component_link {
                 .v-icon {
-                    width:40px;
+                    width:37px;
                     height:40px;
                     filter:invert(1);
                 }
@@ -73,8 +79,11 @@ body, html {
             }
 
             &.highlight {
-                transform:translateX(1px);
+                transform:scale(1.03);
+                width:40px;
+                transform-origin: right;
                 background:rgba(0,0,0,0.9);
+                border-right:1px solid black;
                 @include drop_shadow;
             }
         }
@@ -123,9 +132,58 @@ body, html {
             color:$bright1;
             @include drop_shadow;
 
+            &.changesMade {
+                background:$opaqueorange !important;
+                //animation:pulse 1.5s infinite;
+                //-webkit-animation: pulse 1.5s infinite;
+                overflow:hidden;
+            
+                &:hover {
+                    animation:none;
+                    -webkit-animation: none;
+                }
+
+                &:after {
+                    content:'';
+                    width:300%;
+                    height:3px;
+                    position:absolute;
+                    bottom:0;
+                    left:0;
+                    //border-top:1px solid salmon;
+                    background:linear-gradient(45deg, $orange, $pink, $red, $pink);
+                    animation:pulse-border 2.5s infinite;
+                    -webkit-animation:pulse-border 2.5s infinite;
+                }
+            }
+
             &:hover {
                 cursor:pointer;
             }
         }
     }
 }
+
+@-webkit-keyframes pulse {
+    0% {
+      transform:scale(.99);
+    }
+    70% {
+      transform:scale(1);
+    }
+      100% {
+      transform:scale(.99);
+    }
+  }
+
+@-webkit-keyframes pulse-border {
+    0% {
+            transform:translateX(-100%);
+      }
+      70% {
+            transform:translateX(0);
+      }
+        100% {
+            transform:translateX(100%);
+      }
+    }

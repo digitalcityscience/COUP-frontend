@@ -105,16 +105,12 @@ export default {
   },
   rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
     const abmData = state.abmData;
-    const heatMapActive = state.heatMap;
-    const heatMapData = state.heatMapData;
+    const settings = (state.heatMapType == 'average') ? [4, 0.03, 50, 0.5] : [26, 0.01, 80, 0.5];
+    const heatMapTypeData = (state.heatMapType == 'average') ? state.heatMapAverage : state.heatMapData;
 
-    console.log(heatMapActive);
-    console.log(heatMapData);
-
-    if(heatMapActive){
-
+    if(state.heatMap){
       /*building Deck.gl Heatmap in deck-layers.ts*/
-      buildAggregationLayer(heatMapData).then(
+      buildAggregationLayer(heatMapTypeData, settings).then(
         deckLayer => {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
             rootState.map?.removeLayer(abmAggregationLayerName)
@@ -130,7 +126,7 @@ export default {
           commit('addLayerId', abmAggregationLayerName, {root: true})
 
         });
-    } else if (!heatMapActive) { /*if heatMap is not active, reactivate TripsLayer*/
+    } else if (!state.heatMap) { /*if heatMap is not active, reactivate TripsLayer*/
 
       /*building Deck.gl TripsLayer in deck-layers.ts*/
       buildTripsLayer(abmData).then(
