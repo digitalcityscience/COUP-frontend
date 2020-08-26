@@ -98,6 +98,23 @@ export default class CityPyO {
       }
     }
 
+    // the amenities layer is dependent on the chosen scenario
+    async getNoiseLayer (id: string | number, noiseScenario: NoiseScenario) {
+      let query = noiseScenario.traffic_scenario + "_" + noiseScenario.max_speed
+
+      let requestUrl = this.url +  'getLayer/' + query
+      let body = {
+        userid: this.userid,
+        layer: id,
+      }
+      const response = await this.performRequest(id, requestUrl, body)
+      if (response.status == 200) {
+        const responseJson = await response.json();
+
+        return this.formatResponse(id, responseJson.data)
+      }
+    }
+
     getLayerData(query: string) {
     }
 

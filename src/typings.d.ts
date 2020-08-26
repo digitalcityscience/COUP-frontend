@@ -28,7 +28,7 @@ declare global {
         scenarioViewFilters: {}
       }
 
-      interface AbmScenario extends  ScenarioResult{
+      interface AbmScenario extends ScenarioResult{
         bridges: string[],
         isLoading: boolean,
         currentlyShownScenarioSettings: AbmScenarioSettings,
@@ -46,6 +46,11 @@ declare global {
             public_transport: boolean
           }
         }
+      }
+
+      interface NoiseScenario {
+          traffic_scenario: number
+          max_speed: number
       }
 
       interface AbmScenarioSettings {

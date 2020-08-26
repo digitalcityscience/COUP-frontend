@@ -5,6 +5,10 @@ export default {
   isLoading: false,
   abmData: null,
   abmObject:{},
+  noiseScenario:{
+    traffic_scenario: 2,
+    max_speed: 50,
+  },
   currentlyShownScenarioSettings: {},
   resultOutdated: true,  // in the beginning no results are shown. Trigger user to request results.
   moduleSettings: {
