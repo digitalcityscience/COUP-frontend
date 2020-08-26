@@ -48,7 +48,7 @@ export default {
                 } else {
                     /*if TripsLayer was removed by HeatMap rebuild it*/
                     this.$store.dispatch('scenario/rebuildDeckLayer').then(
-                        deckLayer => { 
+                        deckLayer => {
                             const newDeckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
                             animate(newDeckLayer.implementation, null, null, animationTime);
                         }
@@ -83,7 +83,7 @@ export default {
             /*get Max and Min Timestamp*/
             this.minTime = Math.min(...this.timeStamps);
             this.maxTime = Math.max(...this.timeStamps);
-            
+
             /*Round Time Stamps to full hours*/
             this.timeStamps.forEach((v,i,a) => {
                 let hour = Math.floor(v / 3600) + 6 + ":00";
@@ -150,7 +150,7 @@ export default {
         functionFollowsForm(){
             alert("now function yet. come up with one :) ")
         },
-        pauseAnimation(){  
+        pauseAnimation(){
             this.$store.commit("scenario/animationRunning", false);
         },
         increaseAnimationSpeed(){
@@ -182,7 +182,7 @@ export default {
             /*creating filtered Data for TimeGraph*/
             this.abmData.forEach((v,i,a) =>{
                 v.timestamps.forEach((vv,i,a) => {
-                        
+
                     if(v.agent.mode === this.filter) {
                         workingObj[vv] = (workingObj[vv]+1) || 1;
                     } else {
@@ -195,7 +195,7 @@ export default {
                 this.filterCoords.push(`${value}`)
             }
             this.renderTimeGraph();
-            
+
         },
         updateData(){
             this.getTimeData();
@@ -234,7 +234,7 @@ export default {
 
 <template>
     <div id="timesheet">
-        <h3><strong>Operating grade</strong> /over time</h3>
+        <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel">
             <div class="time_graph">
                 <canvas id="timeChart" width="300" height="160"></canvas>
@@ -255,12 +255,12 @@ export default {
             </div>
         </div>
         <div class="button_section">
-            <div class="btn_wrapper">   
+            <div class="btn_wrapper">
                 <v-btn @click="functionFollowsForm">
                     <v-icon>mdi-account-circle</v-icon>
                 </v-btn>
             </div>
-            <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">   
+            <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
                 <v-btn @click="checkState = !checkState">
                     <v-icon>mdi-chart-line</v-icon>
                 </v-btn>
@@ -282,7 +282,7 @@ export default {
                     </div>
                 </div>
             </div>
-            <div class="btn_wrapper">   
+            <div class="btn_wrapper">
                 <v-btn @click="increaseAnimationSpeed">
                     <v-icon>mdi-fast-forward</v-icon>
                 </v-btn>
@@ -293,13 +293,13 @@ export default {
                     <span class="indicator" v-bind:class="{ marked: animationSpeed >= 28 }"></span>
                 </div>
             </div>
-            <div class="btn_wrapper">   
+            <div class="btn_wrapper">
                 <v-btn
                 @click="triggerAnimation"
                 >
                     <v-icon v-if="animationRunning">mdi-pause</v-icon>
                     <v-icon v-else>mdi-play</v-icon>
-                </v-btn> 
+                </v-btn>
             </div>
         </div>
     </div>
@@ -352,7 +352,7 @@ export default {
                             .v-input__slot {
                                 margin-bottom:0px !important;
                                 .v-slider {
-                                    
+
                                     margin:0 !important;
                                     .v-slider__track-container {
                                         background:radial-gradient(rgba(255,255,255,0.35), rgba(255,255,255,0.9));
@@ -420,7 +420,7 @@ export default {
                 }
         }
 
-        .button_section {    
+        .button_section {
             display: flex;
             flex-flow: row wrap;
             align-content: flex-end;
@@ -432,8 +432,8 @@ export default {
 
             .btn_wrapper {
                 position:relative;
-                ::v-deep.v-btn {  
-                    position:relative;  
+                ::v-deep.v-btn {
+                    position:relative;
                     padding: 0;
                     margin: 0;
                     width: 30px;
@@ -447,7 +447,7 @@ export default {
                 }
 
                  &:last-child {
-                        ::v-deep.v-btn {   
+                        ::v-deep.v-btn {
                             opacity:1;
                             border:1px solid $reversed;
                         }
