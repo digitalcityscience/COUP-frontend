@@ -75,7 +75,7 @@ export default {
           return
         }
 
-        buildTripsLayer(result.options.data.data).then(
+        buildTripsLayer(result.options.data.data, state.currentTimeStamp).then(
           deckLayer => {
             if (rootState.map?.getLayer(abmTripsLayerName)) {
               rootState.map?.removeLayer(abmTripsLayerName)
@@ -90,7 +90,7 @@ export default {
 
             if (!heatMap) {
               commit('animationRunning', true);
-              animate(deckLayer)
+              animate(deckLayer, null, null, state.currentTimeStamp)
             }
 
             commit('abmData', deckLayer?.props?.data)
@@ -129,7 +129,7 @@ export default {
     } else if (!state.heatMap) { /*if heatMap is not active, reactivate TripsLayer*/
 
       /*building Deck.gl TripsLayer in deck-layers.ts*/
-      buildTripsLayer(abmData).then(
+      buildTripsLayer(abmData, state.currentTimeStamp).then(
         deckLayer => {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
             rootState.map?.removeLayer(abmAggregationLayerName)
