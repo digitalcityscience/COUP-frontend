@@ -7,6 +7,7 @@ const initialState: StoreState = {
     map: null,
     layerIds: [],
     selectedFeatures: [],
+    selectedMultiFeatures: [],
     view: Config['view'] || Defaults.view,
     mapStyle: Config['mapStyle'] || Defaults.mapStyle,
     accessToken: process.env.VUE_APP_MAPBOX_TOKEN,

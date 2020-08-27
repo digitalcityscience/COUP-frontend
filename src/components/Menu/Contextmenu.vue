@@ -8,6 +8,7 @@ export default {
         return {
             objType:'',
             objId:'',
+            objGFA:'',
             objectData:[],
         }
     },
@@ -22,7 +23,7 @@ export default {
     beforeMount(){
         this.objType = this.features[0].properties.area_planning_type;
         this.objId = this.features[0].properties.building_id;
-
+        this.objGFA = Math.round(this.features[0].properties.floor_area);
         this.objectData = this.features.filter((feature,i,a) => {
             return a.indexOf(feature.layer.id) === i;
         });
@@ -38,8 +39,8 @@ export default {
     },
     mounted(){
         const ctxMenu = document.querySelector(".ctx_menu");
-        ctxMenu.style.top = this.clickPosition[0] + 10 + "px";
-        ctxMenu.style.left = this.clickPosition[1] + 10 + "px";
+       /* ctxMenu.style.top = this.clickPosition[0] + 10 + "px";
+        ctxMenu.style.left = this.clickPosition[1] + 10 + "px";*/
     },
     beforeDestroy() {
         const newFeature = this.features;
@@ -58,9 +59,11 @@ export default {
     <div class="ctx_menu">
         <div class="wrapper">
             <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ objType }} - {{ objId }}</p></div>
+            <div class="general"><p>GFA: {{ objGFA }}m²</p></div>
             <div class="head_scope" v-for="building in objectData" :key="building.layer.id">
                 <div class="head_bar"><h3>{{ building.layer.id }}</h3></div>
                 <div v-if="building.properties.number_of_stories">
+                    <p><strong>total floorarea</strong> {{ objGFA * building.properties.number_of_stories }}m²</p>
                     <p><strong>stories</strong> {{ building.properties.number_of_stories }}</p>
                 </div>
                 <p><strong>use case</strong> {{ building.properties.land_use_detailed_type }}</p>
@@ -74,7 +77,8 @@ export default {
     @import "../../style.main.scss";
 
     .ctx_menu {
-        position:fixed;
+        position:relative;
+        //position:fixed;
         width:280px;
         //min-height:200px;
         background:rgba(0,0,0,0.9);
@@ -107,6 +111,17 @@ export default {
             }
         }
 
+        .general {
+            padding:5px;
+            box-sizing: border-box;
+
+            p {
+                font-size:80%;
+                color:whitesmoke;
+                font-weight:300;
+            }
+        }
+
         .head_scope{
             width:90%;
             margin:5px auto;
@@ -124,6 +139,7 @@ export default {
                 height:30px;
                 line-height:30px;
                 font-size:100%;
+                z-index:3;
                 //background:linear-gradient(45deg, $red, transparent);
                 @include drop_shadow;
 

@@ -8,6 +8,7 @@ export default {
         return {
             activeComponent: 'AbmScenario',
             toggleSlider: false,
+            toggleFeatures: false,
             brightness:1,
         }
     },
@@ -19,7 +20,8 @@ export default {
             'map',
             'layers',
             'layerIds',
-            'selectedFeatures'
+            'selectedFeatures',
+            'selectedMultiFeatures'
         ]),
     },
     methods:{
@@ -36,6 +38,38 @@ export default {
             let brightnessValue = 1 + this.brightness/100;
             let satureateValue = 1 + this.brightness/500;
             mapCanvas.style.filter = "brightness(" + brightnessValue + ") saturate("+ satureateValue +")";
+        },
+        highlightAllFeatures(){
+            if(this.toggleFeatures){
+                this.toggleFeatures = false;
+                const featuresToRemove = this.selectedMultiFeatures;
+                
+                featuresToRemove.forEach(feature => {
+                    feature.properties.selected = "inactive";
+                    this.$store.dispatch('editFeatureProps', feature);
+                })
+
+            } else {
+                this.toggleFeatures = true;
+                
+                const bbox = [
+                    [0, 0],
+                    [window.innerWidth, window.innerHeight]
+                ]
+
+                console.log(this.layerIds);
+                const features = this.map.queryRenderedFeatures(bbox, {
+                    layers: this.layerIds
+                });
+
+                this.$store.commit('selectedMultiFeatures', features);
+                const newFeature = this.selectedMultiFeatures;
+                
+                newFeature.forEach(feature => {
+                        feature.properties.selected = "active";
+                        this.$store.dispatch('editFeatureProps', feature);
+                    })
+            }
         }
     }
 }
@@ -44,6 +78,7 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
+           <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: toggleFeatures }"><v-icon>mdi-city</v-icon></v-btn>
            <v-btn class="light_view" v-bind:class="{ highlight: toggleSlider }" @click="toggleSlider = !toggleSlider"><v-icon>mdi-lightbulb-on-outline</v-icon>
                 <div class="popup_cnt" v-if="toggleSlider">
                     <p>Adjust Map Lighting</p>

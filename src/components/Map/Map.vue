@@ -76,7 +76,10 @@ export default {
     },
     methods: {
         mousePos(evt){
-                this.lastClicked = [evt.clientY, evt.clientX];
+                this.lastClicked = [];
+                this.lastClicked[0] = ((evt.clientX * 100)/window.innerWidth)/100;
+                this.lastClicked[1] = ((evt.clientY * 100)/window.innerHeight)/100;
+                console.log(this.lastClicked);
                 this.$store.commit('scenario/lastClick', this.lastClicked);
 
                 if(this.targetFound){
@@ -89,7 +92,7 @@ export default {
                 [evt.point.x - 10, evt.point.y - 10],
                 [evt.point.x + 10, evt.point.y + 10]
             ]
-
+            
             const features = this.map.queryRenderedFeatures(bbox, {
                 layers: this.layerIds,
             });
@@ -102,8 +105,6 @@ export default {
                     singleOutTarget.push(feature);
                 }
             });
-
-            console.log(features, singleOutTarget)
             
             this.$store.commit('selectedFeatures', singleOutTarget);
 
@@ -139,10 +140,10 @@ export default {
         },
         openContextMenu(features){
             this.featuresObject = {click: this.lastClicked, features: features};
-            console.log(this.featuresObject);
             this.$modal.show(
                 Contextmenu,
-                {draggable: true}
+                {},
+                {draggable: true, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
             )
         },
         updateHeatMap(){

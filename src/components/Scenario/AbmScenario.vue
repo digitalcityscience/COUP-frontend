@@ -462,8 +462,8 @@ export default {
             <h2>Capacity Use Map</h2>
                <v-range-slider
                     v-model="adjustRange"
-                    :min="6"
-                    :max="21"
+                    :min="8"
+                    :max="24"
                     hide-details
                     dark
                     class="align-center"
