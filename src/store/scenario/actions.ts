@@ -83,7 +83,7 @@ export default {
 
             // check if scenario is still valid - user input might have changed while loading trips layer
             rootState.map?.addLayer(deckLayer)
-            rootState.map?.moveLayer(abmTripsLayerName);  // add layer on top of the layer stack
+            rootState.map?.moveLayer(abmTripsLayerName, "groundfloor")  // add layer on top of the groundfloor layer
             commit('addLayerId', abmTripsLayerName, {root: true})
 
             const heatMap = state.heatMap;
@@ -119,7 +119,7 @@ export default {
             rootState.map?.removeLayer(abmTripsLayerName);
             commit('removeLayerId', abmTripsLayerName, {root: true})
           }
-          
+
           console.log("new aggregation layer loaded");
           rootState.map?.addLayer(deckLayer)
           commit('addLayerId', abmAggregationLayerName, {root: true})
@@ -141,6 +141,7 @@ export default {
 
           console.log(deckLayer);
           rootState.map?.addLayer(deckLayer)
+          rootState.map?.moveLayer(abmTripsLayerName, "groundfloor")  // add layer on top of the groundfloor layer
           commit('addLayerId', abmTripsLayerName, {root: true});
 
           /*animating TripsLayer*/

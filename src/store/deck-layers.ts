@@ -69,6 +69,10 @@ export async function buildAggregationLayer(data: DataSet<any>, settings): Promi
     visible:true,
   })
 
+  aggregationLayer.props.visible = function() {
+    return (aggregationLayer.map.getZoom() < 17.5)
+  }
+
   return aggregationLayer;
 }
 
