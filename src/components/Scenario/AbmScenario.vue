@@ -40,7 +40,8 @@ export default {
             heatMapType:'average',
             btnlabel: 'Generate Aggregation Layer',
             origins:[],
-            changesMade: false
+            changesMade: false,
+            reloadHeatMapLayer: false,
         }
     },
     computed: {
@@ -76,6 +77,8 @@ export default {
         },
         abmData() {
             this.updateData();
+            console.log("new ABM DATA received")
+            this.reloadHeatMapLayer = true;
         },
         heatMap(){
             if(this.heatMap) {
@@ -108,6 +111,7 @@ export default {
         /*cluster Time Stamp Data for rounded full hours*/
         clusterTimeData(){
             if (this.abmData) {
+                this.timePaths = [];
                 this.abmData.forEach((v,i,a) => {
                     v.timestamps.forEach((vv,ii,aa) => {
                     /*round timestamps to full hours*/
@@ -234,6 +238,10 @@ export default {
           this.origins[4] = this.roof_amenities
           this.changesMade = false;
           this.clusterTimeData();
+
+          if(this.reloadHeatMapLayer){
+              this.getWeightData(this.adjustRange);
+          }
         }
     }
 }
