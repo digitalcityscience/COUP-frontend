@@ -87,7 +87,6 @@ export default {
             commit('addLayerId', abmTripsLayerName, {root: true})
 
             const heatMap = state.heatMap;
-
             if (!heatMap) {
               commit('animationRunning', true);
               animate(deckLayer, null, null, state.currentTimeStamp)
@@ -107,7 +106,7 @@ export default {
     const abmData = state.abmData;
     const settings = (state.heatMapType == 'average') ? [4, 0.03, 50, 0.5] : [26, 0.01, 80, 0.5];
     const heatMapTypeData = (state.heatMapType == 'average') ? state.heatMapAverage : state.heatMapData;
-
+    console.log("try to rebuild active deck layer");
     if(state.heatMap){
       /*building Deck.gl Heatmap in deck-layers.ts*/
       buildAggregationLayer(heatMapTypeData, settings).then(
@@ -120,8 +119,8 @@ export default {
             rootState.map?.removeLayer(abmTripsLayerName);
             commit('removeLayerId', abmTripsLayerName, {root: true})
           }
-
-          console.log(deckLayer);
+          
+          console.log("new aggregation layer loaded");
           rootState.map?.addLayer(deckLayer)
           commit('addLayerId', abmAggregationLayerName, {root: true})
 
