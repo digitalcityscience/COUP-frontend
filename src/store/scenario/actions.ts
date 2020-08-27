@@ -14,8 +14,8 @@ export default {
     )
 
     commit('bridges', bridges)
-    dispatch('updateDeckLayer')
     dispatch('updateBridgeLayer')
+    dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
   },
   // load layer source from cityPyo and add the layer to the map
@@ -53,7 +53,13 @@ export default {
             .then(source => {
               dispatch('addSourceToMap', source, {root: true})
                 .then(source => {
-                  layers.forEach(layer => dispatch('addLayerToMap', layer, {root: true}))
+                  layers.forEach(layer => {
+                    dispatch('addLayerToMap', layer, {root: true})
+                    // put bridge layer on top of spaces
+                    if (rootState.map?.moveLayer(layer.id, "spaces")) {
+                      rootState.map?.moveLayer(layer.id, "spaces")
+                    }
+                  })
                 })
             })
         }
