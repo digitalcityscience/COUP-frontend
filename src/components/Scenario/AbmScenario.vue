@@ -31,7 +31,7 @@ export default {
             filters: filters,
             filterOptions: filterOptions,
             age: 21,
-            timePaths: {},
+            timePaths: [],
             weightData:[],
             weightObjData:[],
             timeRange:[0, 54000],
@@ -148,6 +148,9 @@ export default {
             }
         },
         getWeightData(range) {
+
+            console.log("getting weight data and committing")
+
             /*range from slider*/
             this.weightData = [];
             this.weightObjData = [];
