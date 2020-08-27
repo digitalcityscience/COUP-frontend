@@ -11,7 +11,7 @@ import { DataSet } from "@deck.gl/core/lib/layer";
 export const abmTripsLayerName = "abmTrips"
 export const abmAggregationLayerName = "abmHeat"
 
-export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
+export async function buildTripsLayer(data: DataSet<any>, currentTimeStamp: number): Promise<DeckLayer<any>> {
 
   //return new DeckLayer({
     const tripsLayer = new DeckLayer({
@@ -32,7 +32,7 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
         rounded: true,
         pickable:false,
         trailLength: 750,
-        currentTime: 0,
+        currentTime: currentTimeStamp,
         parameters: {
           // prevent flicker from z-fighting
           [GL.DEPTH_TEST]: false,
@@ -54,7 +54,7 @@ export async function buildTripsLayer(data: DataSet<any>): Promise<DeckLayer<any
 }
 
 export async function buildAggregationLayer(data: DataSet<any>, settings): Promise<DeckLayer<any>> {
- 
+
   const aggregationLayer = new DeckLayer({
     id: abmAggregationLayerName,
     type:HeatmapLayer,

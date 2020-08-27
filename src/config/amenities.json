@@ -7,9 +7,9 @@
       "paint": {
         "circle-radius": [
           "interpolate", ["linear"], ["zoom"],
-          10, 0.5,
-          15, 2,
-          25, 10
+          10, 0.60,
+          15, 2.4,
+          25, 12
         ],
         "circle-opacity": 0.8,
         "circle-color":  [
