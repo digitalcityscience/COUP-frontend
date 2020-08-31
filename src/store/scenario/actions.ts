@@ -1,4 +1,4 @@
-import NoiseLayer from "@/config/noise.json";
+import * as NoiseLayer from "../../config/noise.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
 import {noiseLayerName} from "@/store/noise";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";

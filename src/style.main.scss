@@ -116,7 +116,7 @@ body, html {
 
             ::v-deep.v-input {
                 margin:4px !important;
-                display:none !important;
+                // display:none !important; // @bert: why is this set?
 
                 ::v-deep.v-messages {
                     display:none !important;
