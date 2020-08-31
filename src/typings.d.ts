@@ -63,6 +63,7 @@ declare global {
 
       interface StoreState {
         map: mapboxgl.Map | null,
+        activeMenuComponent: string,
         layerIds: string[],
         allFeaturesHighlighted: boolean,
         showLegend: boolean,

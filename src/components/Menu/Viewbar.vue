@@ -8,7 +8,7 @@ export default {
     components: { UseTypesLegend },
     data() {
         return {
-            activeComponent: 'AbmScenario',
+            toggleFeatures: false,
             toggleSlider: false,
             brightness:1,
         }
@@ -19,6 +19,7 @@ export default {
             'view',
             'accessToken',
             'map',
+            'activeMenuComponent',
             'layers',
             'layerIds',
             'selectedFeatures',

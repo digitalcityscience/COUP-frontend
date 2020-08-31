@@ -202,6 +202,9 @@ export default {
         }
     },
       computed: {
+        ...mapState([
+          'activeMenuComponent',
+        ]),
         ...generateStoreGetterSetter([
             ['currentTimeStamp', 'scenario/currentTimeStamp']
           ]
@@ -231,7 +234,7 @@ export default {
 </script>
 
 <template>
-    <div id="timesheet">
+    <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel">
             <div class="time_graph">
@@ -326,6 +329,8 @@ export default {
             </div>
         </div>
     </div>
+  </div>
+
 </template>
 
 <style scoped lang="scss">

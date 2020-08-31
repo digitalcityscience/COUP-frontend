@@ -4,16 +4,26 @@ import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import SWScenario from "@/components/Scenario/SWScenario.vue";
 import MCScenario from "@/components/Scenario/MCScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
+import TimeSheet from "@/components/Scenario/TimeSheet";
+import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
     name: 'Menu',
     components: {AbmScenario, SWScenario, MCScenario, NoiseScenario},
     data() {
-        return {
-            activeComponent: 'AbmScenario'
-        }
+        return {}
     },
     mounted(){
+    },
+    computed: {
+        activeComponent: {
+            get () {
+                return this.$store.state.activeMenuComponent
+            },
+            set (value) {
+                this.$store.commit('activeMenuComponent', value)
+            }
+        }
     },
     methods:{
     }

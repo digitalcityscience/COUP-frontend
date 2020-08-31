@@ -5,6 +5,7 @@ import {bridges, mainStreetOrientationOptions }  from '@/store/abm.ts';
 
 const initialState: StoreState = {
     map: null,
+    activeMenuComponent: "AbmScenario",
     layerIds: [],
     allFeaturesHighlighted: false,
     showLegend: false,
