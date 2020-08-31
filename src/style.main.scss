@@ -114,6 +114,10 @@ body, html {
                 color:$orange;
             }
 
+            .v-slider {
+                margin-top: 25px;
+            }
+
             ::v-deep.v-input {
                 margin:4px !important;
                 // display:none !important; // @bert: why is this set?

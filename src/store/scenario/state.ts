@@ -6,7 +6,7 @@ export default {
   abmData: null,
   abmObject:{},
   noiseScenario:{
-    traffic_scenario: 2,
+    traffic_percent: 0.5,
     max_speed: 50,
   },
   currentlyShownScenarioSettings: {},

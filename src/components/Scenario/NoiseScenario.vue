@@ -23,7 +23,7 @@ export default {
   computed: {
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
-      ['traffic_scenario', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_scenario],
+      ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ])
     },
@@ -31,8 +31,8 @@ export default {
       max_speed(newVal, old) {
         console.log("max_speed", newVal, old)
       },
-      traffic_scenario(newVal, old) {
-        console.log("max_speed", newVal, old)
+      traffic_percent(newVal, old) {
+        console.log("traffic percent", newVal, old)
       }
     },
     mounted:
@@ -86,11 +86,16 @@ export default {
           <header class="text-sm-left">
             Motorized Traffic Level</header>
           <v-slider
-            v-model="traffic_scenario"
-            :tick-labels="traffic_percent_labels"
-            :max="4"
+            v-model="traffic_percent"
+            step=0.25
+            thumb-label="always"
+            label="%"
+            thumb-size="25"
             ticks="always"
-            tick-size="5"
+            tick-size="4"
+            :tick-labels="traffic_percent_labels"
+            min="0"
+            max="1"
             dark
             flat
           ></v-slider>

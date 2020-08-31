@@ -1,4 +1,6 @@
-import * as NoiseLayer from "../../config/noise.json";
+import Amenities from "@/config/amenities.json";
+import Bridges from "@/config/bridges.json";
+import NoiseLayer from "@/config/noise.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
 import {noiseLayerName} from "@/store/noise";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
@@ -6,13 +8,17 @@ import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 export default {
   // load new source from cityPyo due to new scenario settings and re-add layer to the map
   updateNoiseScenario({state, commit, dispatch, rootState}) {
-    rootState.cityPyO.getNoiseLayer(NoiseLayer.mapSource.data.id, state).then(
+    rootState.cityPyO.getNoiseLayer(NoiseLayer.mapSource.data.id, state.noiseScenario).then(
       source => {
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
-          }).then(source => { rootState.map?.moveLayer(noiseLayerName.layer.id, "spaces")}  // add layer on top of the layer stack
-        )
+          }).then(source => {
+          // add layer on top of the layer stack
+          if (rootState.map?.getLayer("spaces")) {
+              rootState.map?.moveLayer(noiseLayerName, "spaces")
+            }
+          })
       })
   },
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {

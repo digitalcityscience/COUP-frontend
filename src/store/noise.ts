@@ -1,5 +1,5 @@
 export const noiseSettingsNames = {
   max_speed: "max_speed",
-  traffic_scenario: "traffic_scenario"
+  traffic_percent: "traffic_percent"
 }
-export const noiseLayerName = 'noiseLayer'
+export const noiseLayerName = 'noise'
