@@ -46,7 +46,7 @@ export default class CityPyO {
 
   }
 
-    async getLayer (id: string) {
+    async getLayer (id: string, formattedAsSource: boolean = true) {
       console.log("getting layer id from cityPyo", id)
 
       let requestUrl = this.url +  'getLayer'
@@ -61,7 +61,11 @@ export default class CityPyO {
       if (response.status == 200) {
         const responseJson = await response.json();
 
-        return this.formatResponse(id, responseJson)
+        if (formattedAsSource) {
+          return this.formatResponse(id, responseJson)
+        }
+
+        return responseJson
       }
     }
 
@@ -90,22 +94,6 @@ export default class CityPyO {
         userid: this.userid,
         layer: id,
       }
-      const response = await this.performRequest(id, requestUrl, body)
-      if (response.status == 200) {
-        const responseJson = await response.json();
-
-        return this.formatResponse(id, responseJson.data)
-      }
-    }
-
-    // the amenities layer is dependent on the chosen scenario
-    async getNoiseLayer (id: string | number, noiseScenario: NoiseScenario) {
-      let requestUrl = this.url +  'getLayer/' + "noise"
-      let body = {
-        userid: this.userid,
-        scenario_properties: noiseScenario,
-      }
-
       const response = await this.performRequest(id, requestUrl, body)
       if (response.status == 200) {
         const responseJson = await response.json();

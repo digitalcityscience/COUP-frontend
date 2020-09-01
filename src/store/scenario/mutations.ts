@@ -3,9 +3,9 @@ import {generateMutations, generateSimpleMutations} from "@/store/utils/generato
 
 export default {
   ...generateMutations(state),
-  abmResultLoading(state: GenericObject, isLoading: boolean) {
+  resultLoading(state: GenericObject, isLoading: boolean) {
     console.log("resetting is loading", isLoading)
-    state.isLoading = isLoading
+    state.resultLoading = isLoading
   },
   updateStreetOrientation(state: GenericObject, payload: string) {
     state.moduleSettings.main_street_orientation = payload;

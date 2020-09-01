@@ -6,20 +6,47 @@ import {noiseLayerName} from "@/store/noise";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 
 export default {
-  // load new source from cityPyo due to new scenario settings and re-add layer to the map
   updateNoiseScenario({state, commit, dispatch, rootState}) {
-    rootState.cityPyO.getNoiseLayer(NoiseLayer.mapSource.data.id, state.noiseScenario).then(
-      source => {
-        dispatch('addSourceToMap', source, {root: true})
-          .then(source => {
-            dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
-          }).then(source => {
-          // add layer on top of the layer stack
-          if (rootState.map?.getLayer("spaces")) {
-              rootState.map?.moveLayer(noiseLayerName, "spaces")
-            }
-          })
+    if (state.noiseResults.length > 0) {
+      const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
+      const geoJsonData = noiseResult['geojson_result']
+      dispatch('addNoiseMapLayer', geoJsonData)
+    } else {
+      // load noise data from cityPyo and add it to the store
+      commit('resultLoading', true)
+      rootState.cityPyO.getLayer("noiseScenarios", false).then(
+        noiseData => {
+          // todo add loading when performing request
+          commit('noiseResults', noiseData["noise_results"])
+          const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
+          dispatch('addNoiseMapLayer', noiseResult['geojson_result']).then(
+            commit('resultLoading', false)
+          )
       })
+    }
+  },
+  addNoiseMapLayer({state, commit, dispatch, rootState}, geoJsonData) {
+    const source = {
+      id: NoiseLayer.mapSource.data.id,
+      options: {
+        type: 'geojson',
+        data: geoJsonData
+      }
+    }
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
+      }).then(source => {
+      // add layer on top of the layer stack
+      if (rootState.map?.getLayer("spaces")) {
+        rootState.map?.moveLayer(noiseLayerName, "spaces")
+      }
+    })
+  },
+  hideNoiseMap({state, commit, dispatch, rootState}) {
+    if (rootState.map?.getSource(NoiseLayer.mapSource.data.id)) {
+      dispatch("removeSourceFromMap", NoiseLayer.mapSource.data.id, { root: true })
+    }
   },
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
     // update scenario name
@@ -82,7 +109,7 @@ export default {
   },
   updateDeckLayer({state, commit, dispatch, rootState}, payload) {
     // show loading screen
-    commit('abmResultLoading', true)
+    commit('resultLoading', true)
 
     // load new data from cityPyo
     rootState.cityPyO.getAbmResultLayer(abmTripsLayerName, state).then(
@@ -92,8 +119,8 @@ export default {
           if (rootState.map?.getLayer(abmTripsLayerName)) {
             rootState.map?.removeLayer(abmTripsLayerName)
           }
-
-          commit('abmResultLoading', false)
+          // finally remove loading screen
+          commit('resultLoading', false)
           return
         }
 
@@ -117,7 +144,7 @@ export default {
             commit('abmData', deckLayer?.props?.data)
 
             // finally remove loading screen
-            commit('abmResultLoading', false)
+            commit('resultLoading', false)
           }
         )
       }
@@ -188,4 +215,9 @@ function updateBridges(bridge_hafencity, bridge_veddel) {
   }
 
   return bridges
+}
+
+function isNoiseScenarioMatching(noiseDataSet,noiseScenario) {
+  return noiseDataSet["noise_scenario"]["traffic_percent"] == noiseScenario.traffic_percent
+    && noiseDataSet["noise_scenario"]["max_speed"] == noiseScenario.max_speed;
 }

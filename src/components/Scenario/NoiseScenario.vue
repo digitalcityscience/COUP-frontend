@@ -21,8 +21,10 @@ export default {
         }
     },
   computed: {
-    // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
-    ...generateStoreGetterSetter([
+      ...mapState('scenario', ['resultLoading']), // getter only
+      // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
+      ...generateStoreGetterSetter([
+      ['showNoise', 'scenario/' + 'showNoise'],
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ])
@@ -51,11 +53,22 @@ export default {
             console.log("active divisoin is", this.activeDivision)
             },
     methods: {
-        confirmSettings () {
+        loadNoiseMap () {
             this.$store.dispatch(
                 'scenario/updateNoiseScenario'
             )
         },
+        showNoiseToggle () {
+            this.showNoise = !this.showNoise
+
+            if (this.showNoise) {
+                // load the noise map
+                this.loadNoiseMap()
+            } else {
+                // hide the noise map
+                this.$store.dispatch('scenario/hideNoiseMap')
+            }
+        }
     }
 }
 
@@ -87,6 +100,7 @@ export default {
             Motorized Traffic Level</header>
           <v-slider
             v-model="traffic_percent"
+            @change="loadNoiseMap"
             step=0.25
             thumb-label="always"
             label="%"
@@ -108,18 +122,27 @@ export default {
             flat
             label="30 kmh/h"
             dark
+            @change="loadNoiseMap"
           />
           <v-radio
             :value="50"
             flat
             label="50 kmh/h"
             dark
+            @change="loadNoiseMap"
           />
         </v-radio-group>
       </v-container>
-      <v-btn @click="confirmSettings" class="confirm_btn">
-        Show Noise Result
+      <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
+       Hide Noise Result
       </v-btn>
+      <v-btn @click="showNoiseToggle" class="confirm_btn" v-else>
+       Show Noise Result
+      </v-btn>
+      <v-overlay :value="resultLoading">
+        <div>Loading results</div>
+        <v-progress-linear>...</v-progress-linear>
+      </v-overlay>
       </div> <!--component_content end-->
     </div><!--division end-->
   </div>

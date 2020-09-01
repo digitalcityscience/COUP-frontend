@@ -5,6 +5,8 @@ export default {
   isLoading: false,
   abmData: null,
   abmObject:{},
+  noiseResults: [],
+  showNoise:false,
   noiseScenario:{
     traffic_percent: 0.5,
     max_speed: 50,
