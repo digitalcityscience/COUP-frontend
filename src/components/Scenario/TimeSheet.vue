@@ -7,6 +7,7 @@ export default {
     name: 'TimeSheet',
     data() {
         return {
+            timeChart: null,
             currentTimeSet: 0,
             animationSpeed: 7,
             timeArray: {},
@@ -93,7 +94,11 @@ export default {
         renderTimeGraph(){
             /*render graph via chart.js*/
             var ctx = document.getElementById('timeChart').getContext('2d');
-            var chart = new Chart(ctx, {
+            if (this.timeChart) {
+              this.timeChart.destroy();
+            }
+
+            this.timeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: this.timeHours,
