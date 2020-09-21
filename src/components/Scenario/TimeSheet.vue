@@ -2,14 +2,13 @@
 import { mapState } from 'vuex';
 import Chart from 'chart.js'
 import {abmTripsLayerName, buildTripsLayer, animate} from "@/store/deck-layers";
+import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
     name: 'TimeSheet',
     data() {
         return {
             currentTimeSet: 0,
-            currentTimeStamp: 0,
-            currentValue:0,
             animationSpeed: 7,
             timeArray: {},
             timeStamps: [],
@@ -162,15 +161,12 @@ export default {
 
             this.$store.commit("scenario/animationSpeed", this.animationSpeed);
         },
-        changeCurrentTime(){
-            /*change Time via Slider*/
-            const newTime = this.currentValue;
-            this.$store.commit("scenario/currentTimeStamp", newTime);
-
+      /*change Time via Slider*/
+      changeCurrentTime(){
             /*reanimate abm Tripslayer with new currentTime*/
             if(this.animationRunning) {
                 const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-                animate(deckLayer.implementation, null, null, newTime);
+                animate(deckLayer.implementation, null, null, this.currentTimeStamp);
             }
         },
         activateFilterGraph(){
@@ -201,10 +197,11 @@ export default {
             this.getTimeData();
         }
     },
-    computed: {
-        timeStamp(){
-            return this.$store.state.scenario.currentTimeStamp;
-        },
+      computed: {
+        ...generateStoreGetterSetter([
+            ['currentTimeStamp', 'scenario/currentTimeStamp']
+          ]
+        ),
         abmData(){
             return this.$store.state.scenario.abmData;
         },
@@ -223,9 +220,6 @@ export default {
             if(this.heatMapActive) {
                 this.$store.commit('scenario/animationRunning', false);
             }
-        },
-        timeStamp(newValue, oldValue){
-            this.currentValue = newValue;
         }
     }
 }
@@ -245,7 +239,7 @@ export default {
                         thumb-label="always"
                         :min="minTime"
                         :max="maxTime"
-                        v-model="currentValue"
+                        v-model="currentTimeStamp"
                         @change="changeCurrentTime"
                     ></v-slider>
                 </div>
