@@ -1,12 +1,12 @@
 export const bridges = {
-  bridge_north: "bridge_north",
-  bridge_south_horizontal: "bridge_south_horizontal",
-  bridge_south_diagonal: "bridge_south_diagonal",
+  bridge_hafencity: "bridge_hafencity",
+  bridge_veddel_horizontal: "bridge_veddel_horizontal",
+  bridge_veddel_diagonal: "bridge_veddel_diagonal",
 }
 
 export const moduleSettingNames = {
-  bridge_north: "bridge_north",
-  bridge_south: "bridge_south",
+  bridge_hafencity: "bridge_hafencity",
+  bridge_veddel: "bridge_veddel",
   roofAmenities: "roof_amenities",
   blocks: "blocks",
   mainStreetOrientation: "main_street_orientation"
@@ -17,7 +17,7 @@ export const mainStreetOrientationOptions = {
   vertical: "vertical",
 }
 
-export const bridgeSouthOptions = {
+export const bridgeVeddelOptions = {
   horizontal: "horizontal",
   diagonal: "diagonal",
 }

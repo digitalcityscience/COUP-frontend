@@ -5,7 +5,7 @@ import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import {
     bridges,
     moduleSettingNames,
-    bridgeSouthOptions,
+    bridgeVeddelOptions,
     mainStreetOrientationOptions,
     blockPermeabilityOptions,
     roofAmenitiesOptions,
@@ -24,7 +24,7 @@ export default {
             componentDivisions: [],
             designScenarioNames: bridges,
             moduleSettingOptions: moduleSettingNames,
-            bridgeSouthOptions: bridgeSouthOptions,
+            bridgeVeddelOptions: bridgeVeddelOptions,
             mainStreetOrientationOptions: mainStreetOrientationOptions,
             blockOptions: blockPermeabilityOptions,
             roofAmenitiesOptions: roofAmenitiesOptions,
@@ -39,18 +39,19 @@ export default {
             datamsg:'',
             heatMapType:'average',
             btnlabel: 'Generate Aggregation Layer',
-            origins:[],
-            changesMade: false,
-            reloadHeatMapLayer: false,
+            reloadHeatMapLayer: false
         }
     },
     computed: {
         ...mapState(['selectedFeatures']),
         ...mapState('scenario', ['isLoading']), // getter only
+        ...mapState('scenario', ['moduleSettings']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
-            ['bridge_north', 'scenario/moduleSettings/' + moduleSettingNames.bridge_north],
-            ['bridge_south', 'scenario/moduleSettings/' + moduleSettingNames.bridge_south],
+            ['resultOutdated', 'scenario/resultOutdated'],
+            ['currentlyShownScenarioSettings', 'scenario/currentlyShownScenarioSettings'],
+            ['bridge_hafencity', 'scenario/moduleSettings/' + moduleSettingNames.bridge_hafencity],
+            ['bridge_veddel', 'scenario/moduleSettings/' + moduleSettingNames.bridge_veddel],
             ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
             ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
             ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
@@ -69,11 +70,15 @@ export default {
         }
     },
     watch: {
-        car (newVal, old) {
-            //console.log(newVal, old)
+        moduleSettings: {
+          handler: function () {
+            this.areResultsOutdated()
+          },
+          deep:true
         },
-        roof_amenities (newVal, old) {
-            //console.log(newVal, old)
+        resultsOutdated(newVal, oldVal) {
+          console.log("changes made")
+          console.log(newVal, oldVal)
         },
         abmData() {
             this.updateData();
@@ -102,8 +107,16 @@ export default {
         this.activeDivision = divisions[0].getAttribute('data-title');
     },
     methods: {
+        areResultsOutdated() {
+          // TODO for filters as well , not only for settings
+          this.resultOutdated = JSON.stringify(this.currentlyShownScenarioSettings) !== JSON.stringify(this.moduleSettings)
+        },
         confirmSettings () {
-            this.$store.dispatch(
+          // update currentlyShowScenarioSettigns
+          this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
+          this.changesMade = false
+          this.resultOutdated = false
+          this.$store.dispatch(
                 'scenario/updateAbmDesignScenario'
             )
         },
@@ -221,27 +234,8 @@ export default {
                 this.getWeightData(this.adjustRange);
             }
         },
-        checkChanges(){
-            if(
-                this.origins[0] == this.bridge_north &&
-                this.origins[1] == this.bridge_south &&
-                this.origins[2] == this.main_street_orientation &&
-                this.origins[3] == this.blocks &&
-                this.origins[4] == this.roof_amenities) {
-                    this.changesMade = false;
-                } else {
-                    this.changesMade = true;
-                }
-        },
         updateData(){
-          this.origins[0] = this.bridge_north;
-          this.origins[1] = this.bridge_south;
-          this.origins[2] = this.main_street_orientation;
-          this.origins[3] = this.blocks;
-          this.origins[4] = this.roof_amenities
-          this.changesMade = false;
           this.clusterTimeData();
-
           if(this.reloadHeatMapLayer){
               this.getWeightData(this.adjustRange);
           }
@@ -275,64 +269,58 @@ export default {
                             BRIDGES
                         </header>
                         <v-switch
-                            v-model="bridge_north"
+                            v-model="bridge_hafencity"
                             flat
                             label="Bridge to HafenCity"
                             dark
-                            @change="checkChanges"
-                            :color="origins[0] != bridge_north ? '#FD805D' : '#888'"
-                            :class="origins[0] != bridge_north ? 'switched' : 'na'"
+                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#FD805D' : '#888'"
+                            :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
                         />
-                        <v-radio-group v-model="bridge_south" :class="origins[1] != bridge_south ? 'switched' : 'na'">
+                        <v-radio-group v-model="bridge_veddel" :class="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? 'switched' : 'na'">
                             <v-radio
-                                :value="bridgeSouthOptions.horizontal"
-                                flat
-                                label="Bridge to S Veddel (South)"
-                                dark
-                                @change="checkChanges"
-                                :color="origins[1] != bridge_south ? '#FD805D' : '#888'"
-                            />
-                            <v-radio
-                                :value="bridgeSouthOptions.diagonal"
+                                :value="bridgeVeddelOptions.diagonal"
                                 flat
                                 label="Bridge to S Veddel (North)"
                                 dark
-                                @change="checkChanges"
-                                :color="origins[1] != bridge_south ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#FD805D' : '#888'"
                             />
+                          <v-radio
+                            :value="bridgeVeddelOptions.horizontal"
+                            flat
+                            label="Bridge to S Veddel (South)"
+                            dark
+                            :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#FD805D' : '#888'"
+                          />
                         </v-radio-group>
                         <header class="text-sm-left">
                             MAIN STREET ORIENTATION
                         </header>
-                        <v-radio-group v-model="main_street_orientation" :class="origins[2] != main_street_orientation ? 'switched' : 'na'">
+                        <v-radio-group v-model="main_street_orientation" :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'switched' : 'na'">
                             <v-radio
                                 :value="mainStreetOrientationOptions.vertical"
                                 flat
                                 label="North-South Axes"
                                     dark
-                                @change="checkChanges"
-                                :color="origins[2] != main_street_orientation ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#FD805D' : '#888'"
                             />
                             <v-radio
                                 :value="mainStreetOrientationOptions.horizontal"
                                 flat
                                 label="East-West Axes"
                                 dark
-                                @change="checkChanges"
-                                :color="origins[2] != main_street_orientation ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
                           CITY BLOCK STRUCTURE
                         </header>
-                        <v-radio-group v-model="blocks" :class="origins[3] != blocks ? 'switched' : 'na'">
+                        <v-radio-group v-model="blocks" :class="currentlyShownScenarioSettings.blocks != blocks ? 'switched' : 'na'">
                             <v-radio
                                 :value="blockOptions.open"
                                 flat
                                 label="Permeable"
                                 dark
-                                @change="checkChanges"
-                                :color="origins[3] != blocks ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#FD805D' : '#888'"
 
                             />
                             <v-radio
@@ -340,34 +328,31 @@ export default {
                                 flat
                                 label="Private"
                                 dark
-                                @change="checkChanges"
-                                :color="origins[3] != blocks ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                         <header class="text-sm-left">
                           AMENITY DISTRIBUTION
                         </header>
-                        <v-radio-group v-model="roof_amenities" :class="origins[4] != roof_amenities ? 'switched' : 'na'">
+                        <v-radio-group v-model="roof_amenities" :class="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? 'switched' : 'na'">
                             <v-radio
                                 :value="roofAmenitiesOptions.complementary"
                                 flat
                                 label="Clustered by Type"
                                 dark
-                                @change="checkChanges"
-                                :color="origins[4] != roof_amenities ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#FD805D' : '#888'"
                             />
                             <v-radio
                                 :value="roofAmenitiesOptions.random"
                                 flat
                                 label="Mixed Distribution"
                                 dark
-                                @change="checkChanges"
-                                :color="origins[4] != roof_amenities ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#FD805D' : '#888'"
                             />
                         </v-radio-group>
                     </v-container>
 
-                    <v-btn @click="confirmSettings" class="confirm_btn" :class="{ changesMade : changesMade }">
+                    <v-btn @click="confirmSettings" class="confirm_btn" :class="{ changesMade : resultOutdated }">
                       Run Scenario
                     </v-btn>
 

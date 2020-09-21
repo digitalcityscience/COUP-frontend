@@ -1,7 +1,7 @@
 import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
-import {bridges as bridgeNames, bridgeSouthOptions} from "@/store/abm";
+import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 
 export default {
   // load new source from cityPyo due to new scenario settings and re-add layer to the map
@@ -9,8 +9,8 @@ export default {
     // update scenario name
 
     let bridges = updateBridges(
-      state.moduleSettings.bridge_north,
-      state.moduleSettings.bridge_south
+      state.moduleSettings.bridge_hafencity,
+      state.moduleSettings.bridge_veddel
     )
 
     commit('bridges', bridges)
@@ -158,17 +158,17 @@ export default {
   },
 }
 
-function updateBridges(bridge_north, bridge_south) {
+function updateBridges(bridge_hafencity, bridge_veddel) {
   let bridges = []
 
-  if (bridge_north) {
-    bridges.push(bridgeNames.bridge_north)
+  if (bridge_hafencity) {
+    bridges.push(bridgeNames.bridge_hafencity)
   }
-  if (bridge_south == bridgeSouthOptions.horizontal) {
-    bridges.push(bridgeNames.bridge_south_horizontal)
+  if (bridge_veddel == bridgeVeddelOptions.horizontal) {
+    bridges.push(bridgeNames.bridge_veddel_horizontal)
   }
-  if (bridge_south == bridgeSouthOptions.diagonal) {
-    bridges.push(bridgeNames.bridge_south_diagonal)
+  if (bridge_veddel == bridgeVeddelOptions.diagonal) {
+    bridges.push(bridgeNames.bridge_veddel_diagonal)
   }
 
   return bridges

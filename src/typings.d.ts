@@ -30,14 +30,10 @@ declare global {
 
       interface AbmScenario extends  ScenarioResult{
         bridges: string[],
-        isLoading: boolean
-        moduleSettings: {
-          bridge_north: boolean,
-          bridge_south: "horizontal" | "diagonal",
-          roof_amenities: "random" | "complementary",
-          blocks: "open" | "closed",
-          main_street_orientation: "vertical" | "horizontal"
-        },
+        isLoading: boolean,
+        currentlyShownScenarioSettings: AbmScenarioSettings,
+        resultOutdated: boolean,
+        moduleSettings: AbmScenarioSettings,
         scenarioViewFilters: {
           start_time?: number,
           end_time?: number,
@@ -50,6 +46,14 @@ declare global {
             public_transport: boolean
           }
         }
+      }
+
+      interface AbmScenarioSettings {
+          bridge_hafencity: boolean,
+          bridge_veddel: "horizontal" | "diagonal",
+          roof_amenities: "random" | "complementary",
+          blocks: "open" | "closed",
+          main_street_orientation: "vertical" | "horizontal"
       }
 
       interface StoreState {

@@ -14,7 +14,7 @@
       }
     },
     {
-      "id": "bridge_north",
+      "id": "bridge_hafencity",
       "type": "line",
       "source": "bridges",
       "paint": {
@@ -28,11 +28,11 @@
       "filter": [
         "==",
         "id",
-        "bridge_north"
+        "bridge_hafencity"
       ]
     },
     {
-      "id": "bridge_south_horizontal",
+      "id": "bridge_veddel_horizontal",
       "type": "line",
       "source": "bridges",
       "paint": {
@@ -46,11 +46,11 @@
       "filter": [
         "==",
         "id",
-        "bridge_south_horizontal"
+        "bridge_veddel_horizontal"
       ]
     },
     {
-      "id": "bridge_south_diagonal",
+      "id": "bridge_veddel_diagonal",
       "type": "line",
       "source": "bridges",
       "paint": {
@@ -64,7 +64,7 @@
       "filter": [
         "==",
         "id",
-        "bridge_south_diagonal"
+        "bridge_veddel_diagonal"
       ]
     }
   ],
