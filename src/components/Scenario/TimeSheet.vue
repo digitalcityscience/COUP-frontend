@@ -1,7 +1,6 @@
 <script>
-import { mapState } from 'vuex';
 import Chart from 'chart.js'
-import {abmTripsLayerName, buildTripsLayer, animate} from "@/store/deck-layers";
+import {abmTripsLayerName, animate} from "@/store/deck-layers";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
@@ -429,13 +428,12 @@ export default {
                 ::v-deep.v-btn {
                     position:relative;
                     padding: 0;
-                    margin: 0;
                     width: 30px;
                     height: 30px;
                     min-width: 0;
                     filter:invert(1);
                     background:$bright1;
-                    margin-bottom:4px;
+                    margin: 0 0 4px;
                     opacity:0.8;
                     @include drop_shadow;
                 }
