@@ -12,7 +12,7 @@ export default {
             brightness:1,
         }
     },
-    computed: { 
+    computed: {
         ...mapState([
             'mapStyle',
             'view',
@@ -43,7 +43,7 @@ export default {
             if(this.toggleFeatures){
                 this.toggleFeatures = false;
                 const featuresToRemove = this.selectedMultiFeatures;
-                
+
                 featuresToRemove.forEach(feature => {
                     feature.properties.selected = "inactive";
                     this.$store.dispatch('editFeatureProps', feature);
@@ -51,7 +51,7 @@ export default {
 
             } else {
                 this.toggleFeatures = true;
-                
+
                 const bbox = [
                     [0, 0],
                     [window.innerWidth, window.innerHeight]
@@ -64,7 +64,7 @@ export default {
 
                 this.$store.commit('selectedMultiFeatures', features);
                 const newFeature = this.selectedMultiFeatures;
-                
+
                 newFeature.forEach(feature => {
                         feature.properties.selected = "active";
                         this.$store.dispatch('editFeatureProps', feature);
@@ -78,8 +78,25 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-           <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: toggleFeatures }"><v-icon>mdi-city</v-icon></v-btn>
-           <v-btn class="light_view" v-bind:class="{ highlight: toggleSlider }" @click="toggleSlider = !toggleSlider"><v-icon>mdi-lightbulb-on-outline</v-icon>
+           <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: toggleFeatures }"><v-tooltip top>
+             <template v-slot:activator="{ on, attrs }">
+               <v-icon
+                 v-bind="attrs"
+                 v-on="on"
+               >mdi-city</v-icon>
+             </template>
+             <span>Highlight All Buildings</span>
+           </v-tooltip>
+           </v-btn>
+           <v-btn class="light_view" v-bind:class="{ highlight: toggleSlider }" @click="toggleSlider = !toggleSlider"> <v-tooltip top>
+                 <template v-slot:activator="{ on, attrs }">
+                   <v-icon
+                     v-bind="attrs"
+                     v-on="on"
+                   >mdi-lightbulb-on-outline</v-icon>
+                 </template>
+                 <span>Adjust Brightness</span>
+               </v-tooltip>
                 <div class="popup_cnt" v-if="toggleSlider">
                     <p>Adjust Map Lighting</p>
                     <v-slider
@@ -101,7 +118,17 @@ export default {
                     </v-slider>
                 </div>
            </v-btn>
-           <v-btn class="reset_view" @click="resetView"><v-icon>mdi-crosshairs-gps</v-icon></v-btn>
+           <v-btn class="reset_view" @click="resetView">
+             <v-tooltip top>
+               <template v-slot:activator="{ on, attrs }">
+                 <v-icon
+                   v-bind="attrs"
+                   v-on="on"
+                 >mdi-crosshairs-gps</v-icon>
+               </template>
+               <span>Home</span>
+             </v-tooltip>
+           </v-btn>
         </div>
     </div>
 </template>
@@ -152,13 +179,13 @@ export default {
                         margin:auto;
 
                         ::v-deep.v-input__append-outer {
-                            position:absolute;    
+                            position:absolute;
                             top: 15px;
                             left: 50%;
                             margin: 0;
                             transform:translateX(-50%);
                             pointer-events:none;
-                            
+
                             .v-input {
                                 width:40px;
                                 .v-input__control{
