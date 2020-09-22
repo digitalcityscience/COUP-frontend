@@ -251,9 +251,16 @@ export default {
                 <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
                 <li v-for="division in componentDivisions" :key="division.title" v-bind:class="{ highlight: activeDivision === division.title }">
                     <div class="component_link" @click="activeDivision = division.title">
-                        <v-icon>{{division.pic}}</v-icon>
+                      <v-tooltip left>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-icon
+                            v-bind="attrs"
+                            v-on="on"
+                          >{{division.pic}}</v-icon>
+                        </template>
+                        <span>{{ division.title }}</span>
+                      </v-tooltip>
                     </div>
-                    <div class="toHover">{{division.title}}</div>
                 </li>
             </ul>
         </div>
