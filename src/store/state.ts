@@ -6,6 +6,7 @@ import {bridges, mainStreetOrientationOptions }  from '@/store/abm.ts';
 const initialState: StoreState = {
     map: null,
     layerIds: [],
+    allFeaturesHighlighted: false,
     selectedFeatures: [],
     selectedMultiFeatures: [],
     view: Config['view'] || Defaults.view,

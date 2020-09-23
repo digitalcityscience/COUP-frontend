@@ -13,6 +13,9 @@ export default {
         }
     },
     computed: {
+      ...mapState([
+        'allFeaturesHighlighted'
+        ]),
         clickPosition(){
             return this.$store.state.scenario.lastClick;
         },
@@ -43,12 +46,13 @@ export default {
         ctxMenu.style.left = this.clickPosition[1] + 10 + "px";*/
     },
     beforeDestroy() {
+      if (!this.allFeaturesHighlighted) {
         const newFeature = this.features;
         newFeature.forEach(feature => {
             feature.properties.selected = "inactive";
             this.$store.dispatch('editFeatureProps', feature)
         });
-        
+      }
     },
     methods:{
     }

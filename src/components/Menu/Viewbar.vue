@@ -1,5 +1,6 @@
 <script>
 import { mapState } from 'vuex'
+import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
     name: 'Viewbar',
@@ -8,7 +9,6 @@ export default {
         return {
             activeComponent: 'AbmScenario',
             toggleSlider: false,
-            toggleFeatures: false,
             brightness:1,
         }
     },
@@ -21,8 +21,11 @@ export default {
             'layers',
             'layerIds',
             'selectedFeatures',
-            'selectedMultiFeatures'
+            'selectedMultiFeatures',
         ]),
+      ...generateStoreGetterSetter([
+        ['allFeaturesHighlighted', 'allFeaturesHighlighted' ]
+      ])
     },
     methods:{
         resetView(){
@@ -40,8 +43,8 @@ export default {
             mapCanvas.style.filter = "brightness(" + brightnessValue + ") saturate("+ satureateValue +")";
         },
         highlightAllFeatures(){
-            if(this.toggleFeatures){
-                this.toggleFeatures = false;
+            if(this.allFeaturesHighlighted){
+                this.allFeaturesHighlighted = false;
                 const featuresToRemove = this.selectedMultiFeatures;
 
                 featuresToRemove.forEach(feature => {
@@ -50,7 +53,7 @@ export default {
                 })
 
             } else {
-                this.toggleFeatures = true;
+                this.allFeaturesHighlighted = true;
 
                 const bbox = [
                     [0, 0],
@@ -78,7 +81,7 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-           <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: toggleFeatures }"><v-tooltip top>
+           <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip top>
              <template v-slot:activator="{ on, attrs }">
                <v-icon
                  v-bind="attrs"

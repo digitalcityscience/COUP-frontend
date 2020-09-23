@@ -59,6 +59,7 @@ declare global {
       interface StoreState {
         map: mapboxgl.Map | null,
         layerIds: string[],
+        allFeaturesHighlighted: boolean,
         selectedFeatures: any[],
         selectedMultiFeatures: any[],
         currentTime: number,
