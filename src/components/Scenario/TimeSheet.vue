@@ -18,7 +18,8 @@ export default {
             timeFilter: false,
             checkState: false,
             filter:null,
-            filterOptions: ["foot","bicycle","public_transport","car"],
+            filterLabels: ["Pedestrian","Bicycle","Public Transport","Car", "No Filter"],
+            filterOptions: {"Pedestrian": "foot", "Bicycle": "bicycle", "Public Transport": "public_transport", "Car": "car"},
             minTime: 0,
             maxTime: 0,
         }
@@ -174,28 +175,27 @@ export default {
             }
         },
         activateFilterGraph(){
-            this.timeFilter = true;
-            this.filterCoords = [];
+             this.timeFilter = true;
+             this.filterCoords = [];
 
-            let workingObj = {};
+             let workingObj = {};
 
-            /*creating filtered Data for TimeGraph*/
-            this.abmData.forEach((v,i,a) =>{
-                v.timestamps.forEach((vv,i,a) => {
+             /*creating filtered Data for TimeGraph*/
+             this.abmData.forEach((v, i, a) => {
+               v.timestamps.forEach((vv, i, a) => {
 
-                    if(v.agent.mode === this.filter) {
-                        workingObj[vv] = (workingObj[vv]+1) || 1;
-                    } else {
-                        workingObj[vv] = (workingObj[vv]+0) || 0;
-                    }
-                });
-            });
+                 if (this.filter === "No Filter" || v.agent.mode === this.filterOptions[this.filter]) {
+                   workingObj[vv] = (workingObj[vv] + 1) || 1;
+                 } else {
+                   workingObj[vv] = (workingObj[vv] + 0) || 0;
+                 }
+               });
+             });
 
-            for (const [key, value] of Object.entries(workingObj)) {
-                this.filterCoords.push(`${value}`)
-            }
-            this.renderTimeGraph();
-
+             for (const [key, value] of Object.entries(workingObj)) {
+               this.filterCoords.push(`${value}`)
+             }
+             this.renderTimeGraph();
         },
         updateData(){
             this.getTimeData();
@@ -253,23 +253,32 @@ export default {
             </div>
         </div>
         <div class="button_section">
+            <!-- unused button with no function
             <div class="btn_wrapper">
                 <v-btn @click="functionFollowsForm">
                     <v-icon>mdi-account-circle</v-icon>
                 </v-btn>
             </div>
+            -->
             <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
-                <v-btn @click="checkState = !checkState">
+              <v-tooltip right>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="checkState = !checkState">
                     <v-icon>mdi-chart-line</v-icon>
-                </v-btn>
-
+                  </v-btn>
+                </template>
+                <span>Filter by Transport Mode</span>
+              </v-tooltip>
                 <div class="filterMenu" v-bind:class="{ visible: checkState }">
                     <div class="wrapper">
                         <!--<div class="hint">
                             <p>Select a dataset to compare</p>
                         </div>-->
                         <v-select
-                            :items="filterOptions"
+                            :items="filterLabels"
                             label="Select"
                             hint="Choose dataset for comparison"
                             persistent-hint
@@ -281,9 +290,17 @@ export default {
                 </div>
             </div>
             <div class="btn_wrapper">
-                <v-btn @click="increaseAnimationSpeed">
-                    <v-icon>mdi-fast-forward</v-icon>
-                </v-btn>
+                  <v-tooltip right>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="increaseAnimationSpeed">
+                        <v-icon
+                          v-bind="attrs"
+                          v-on="on"
+                        >mdi-fast-forward</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Adjust Simulation Speed</span>
+              </v-tooltip>
                 <div class="indicators">
                     <span class="indicator" v-bind:class="{ marked: animationSpeed >= 7 }"></span>
                     <span class="indicator" v-bind:class="{ marked: animationSpeed >= 14 }"></span>
@@ -292,12 +309,20 @@ export default {
                 </div>
             </div>
             <div class="btn_wrapper">
-                <v-btn
-                @click="triggerAnimation"
-                >
+              <v-tooltip right>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="triggerAnimation"
+                  >
                     <v-icon v-if="animationRunning">mdi-pause</v-icon>
                     <v-icon v-else>mdi-play</v-icon>
-                </v-btn>
+                  </v-btn>
+                </template>
+                <span v-if="animationRunning">Pause Animation</span>
+                <span v-else>Play Animation</span>
+              </v-tooltip>
             </div>
         </div>
     </div>
