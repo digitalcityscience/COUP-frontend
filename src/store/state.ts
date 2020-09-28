@@ -7,6 +7,7 @@ const initialState: StoreState = {
     map: null,
     layerIds: [],
     allFeaturesHighlighted: false,
+    showLegend: false,
     selectedFeatures: [],
     selectedMultiFeatures: [],
     view: Config['view'] || Defaults.view,

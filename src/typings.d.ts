@@ -60,6 +60,7 @@ declare global {
         map: mapboxgl.Map | null,
         layerIds: string[],
         allFeaturesHighlighted: boolean,
+        showLegend: boolean,
         selectedFeatures: any[],
         selectedMultiFeatures: any[],
         currentTime: number,

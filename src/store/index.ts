@@ -7,6 +7,7 @@ import mutations from './mutations'
 import actions from './actions'
 import scenario from './scenario'
 import Contextmenu from '@/components/Menu/Contextmenu.vue'
+import UseTypesLegend from '@/components/Menu/UseTypesLegend.vue'
 import {generateSimpleGetters, generateSimpleMutations} from './utils/generators'
 
 Vue.use(Vuex)
@@ -29,6 +30,7 @@ const store = new Vuex.Store({
     }
 })
 Vue.component('ctx-menu', Contextmenu);
+Vue.component('use-types-legend', UseTypesLegend);
 
 Vue.use(VModal, {
     dynamicDefaults: {

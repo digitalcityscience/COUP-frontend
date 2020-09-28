@@ -1,10 +1,11 @@
 <script>
 import { mapState } from 'vuex'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
+import UseTypesLegend from "@/components/Menu/UseTypesLegend.vue";
 
 export default {
     name: 'Viewbar',
-    components: {},
+    components: { UseTypesLegend },
     data() {
         return {
             activeComponent: 'AbmScenario',
@@ -24,7 +25,8 @@ export default {
             'selectedMultiFeatures',
         ]),
       ...generateStoreGetterSetter([
-        ['allFeaturesHighlighted', 'allFeaturesHighlighted' ]
+        ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
+        ['showLegend', 'showLegend' ]
       ])
     },
     methods:{
@@ -42,6 +44,14 @@ export default {
             let satureateValue = 1 + this.brightness/500;
             mapCanvas.style.filter = "brightness(" + brightnessValue + ") saturate("+ satureateValue +")";
         },
+        openUseTypesLegend(){
+          this.showLegend = true
+          this.$modal.show(
+            UseTypesLegend,
+            {},
+            {draggable: true, width:200, adaptive: true, clickToClose: true,  shiftX: 0.025, shiftY: 0.1}
+          )
+        },
         highlightAllFeatures(){
             if(this.allFeaturesHighlighted){
                 this.allFeaturesHighlighted = false;
@@ -54,6 +64,7 @@ export default {
 
             } else {
                 this.allFeaturesHighlighted = true;
+                this.openUseTypesLegend();
 
                 const bbox = [
                     [0, 0],
@@ -81,16 +92,26 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-           <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip top>
+         <v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ highlight: showLegend }"><v-tooltip top>
              <template v-slot:activator="{ on, attrs }">
                <v-icon
                  v-bind="attrs"
                  v-on="on"
-               >mdi-city</v-icon>
+               >mdi-map-legend</v-icon>
              </template>
-             <span>Highlight All Buildings</span>
+             <span>Use Types Legend</span>
            </v-tooltip>
            </v-btn>
+         <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip top>
+           <template v-slot:activator="{ on, attrs }">
+             <v-icon
+               v-bind="attrs"
+               v-on="on"
+             >mdi-city</v-icon>
+           </template>
+           <span>Highlight All Buildings</span>
+         </v-tooltip>
+         </v-btn>
            <v-btn class="light_view" v-bind:class="{ highlight: toggleSlider }" @click="toggleSlider = !toggleSlider"> <v-tooltip top>
                  <template v-slot:activator="{ on, attrs }">
                    <v-icon
