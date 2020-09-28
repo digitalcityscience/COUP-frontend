@@ -30,7 +30,7 @@ declare global {
 
       interface AbmScenario extends ScenarioResult{
         bridges: string[],
-        isLoading: boolean,
+        resultLoading: boolean,
         currentlyShownScenarioSettings: AbmScenarioSettings,
         resultOutdated: boolean,
         moduleSettings: AbmScenarioSettings,

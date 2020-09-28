@@ -44,7 +44,7 @@ export default {
     },
     computed: {
         ...mapState(['selectedFeatures']),
-        ...mapState('scenario', ['isLoading']), // getter only
+        ...mapState('scenario', ['resultLoading']), // getter only
         ...mapState('scenario', ['moduleSettings']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
@@ -363,7 +363,7 @@ export default {
                       Run Scenario
                     </v-btn>
 
-                    <v-overlay :value="isLoading">
+                    <v-overlay :value="resultLoading">
                         <div>Loading results</div>
                         <v-progress-linear>...</v-progress-linear>
                     </v-overlay>
@@ -445,7 +445,7 @@ export default {
                         Run Scenario
                     </v-btn>
 
-                    <v-overlay :value="isLoading">
+                    <v-overlay :value="resultLoading">
                         <div>Loading ABM results</div>
                         <v-progress-linear>...</v-progress-linear>
                     </v-overlay>

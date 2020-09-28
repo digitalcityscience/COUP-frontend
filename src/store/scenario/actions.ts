@@ -7,16 +7,17 @@ import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
+    // check if the requested noise result is already in store
     if (state.noiseResults.length > 0) {
       const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
       const geoJsonData = noiseResult['geojson_result']
       dispatch('addNoiseMapLayer', geoJsonData)
     } else {
       // load noise data from cityPyo and add it to the store
+      // gets one file containing all noise scenario result
       commit('resultLoading', true)
       rootState.cityPyO.getLayer("noiseScenarios", false).then(
         noiseData => {
-          // todo add loading when performing request
           commit('noiseResults', noiseData["noise_results"])
           const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
           dispatch('addNoiseMapLayer', noiseResult['geojson_result']).then(
@@ -124,7 +125,7 @@ export default {
           return
         }
 
-        buildTripsLayer(result.options.data.data, state.currentTimeStamp).then(
+        buildTripsLayer(result.options.data, state.currentTimeStamp).then(
           deckLayer => {
             if (rootState.map?.getLayer(abmTripsLayerName)) {
               rootState.map?.removeLayer(abmTripsLayerName)
@@ -188,7 +189,6 @@ export default {
             rootState.map?.removeLayer(abmTripsLayerName)
           }
 
-          console.log(deckLayer);
           rootState.map?.addLayer(deckLayer)
           rootState.map?.moveLayer(abmTripsLayerName, "groundfloor")  // add layer on top of the groundfloor layer
           commit('addLayerId', abmTripsLayerName, {root: true});
