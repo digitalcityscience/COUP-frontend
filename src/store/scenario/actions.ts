@@ -218,6 +218,9 @@ function updateBridges(bridge_hafencity, bridge_veddel) {
 }
 
 function isNoiseScenarioMatching(noiseDataSet,noiseScenario) {
+  console.log("max_speed")
+  console.log(noiseScenario.max_speed)
+
   return noiseDataSet["noise_scenario"]["traffic_percent"] == noiseScenario.traffic_percent
     && noiseDataSet["noise_scenario"]["max_speed"] == noiseScenario.max_speed;
 }

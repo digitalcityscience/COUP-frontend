@@ -31,10 +31,10 @@ export default {
     },
     watch: {
       max_speed(newVal, old) {
-        console.log("max_speed", newVal, old)
+        this.loadNoiseMap()
       },
       traffic_percent(newVal, old) {
-        console.log("traffic percent", newVal, old)
+        this.loadNoiseMap()
       }
     },
     mounted:
@@ -100,7 +100,6 @@ export default {
             Motorized Traffic Level</header>
           <v-slider
             v-model="traffic_percent"
-            @change="loadNoiseMap"
             step=0.25
             thumb-label="always"
             label="%"
@@ -122,14 +121,12 @@ export default {
             flat
             label="30 kmh/h"
             dark
-            @change="loadNoiseMap"
           />
           <v-radio
             :value="50"
             flat
             label="50 kmh/h"
             dark
-            @change="loadNoiseMap"
           />
         </v-radio-group>
       </v-container>
