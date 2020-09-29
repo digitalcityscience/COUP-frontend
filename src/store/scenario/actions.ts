@@ -1,17 +1,28 @@
 import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
+import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
-import {noiseLayerName} from "@/store/noise";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
+import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
+    // check if traffic counts already in store, otherwise load them from cityPyo
+    if (!state.trafficCounts) {
+      rootState.cityPyO.getLayer("trafficCounts", false).then(
+        trafficData => {
+          commit('trafficCounts', trafficData)
+        })
+    }
     // check if the requested noise result is already in store
     if (state.noiseResults.length > 0) {
       const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
       const geoJsonData = noiseResult['geojson_result']
       dispatch('addNoiseMapLayer', geoJsonData)
+        .then(
+          dispatch('addTrafficCountLayer')
+      )
     } else {
       // load noise data from cityPyo and add it to the store
       // gets one file containing all noise scenario result
@@ -19,9 +30,12 @@ export default {
       rootState.cityPyO.getLayer("noiseScenarios", false).then(
         noiseData => {
           commit('noiseResults', noiseData["noise_results"])
+          // select matching result for current scenario and add it to the map
           const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
-          dispatch('addNoiseMapLayer', noiseResult['geojson_result']).then(
-            commit('resultLoading', false)
+          dispatch('addNoiseMapLayer', noiseResult['geojson_result'])
+            .then(
+              dispatch('addTrafficCountLayer'),
+              commit('resultLoading', false)
           )
       })
     }
@@ -43,6 +57,33 @@ export default {
         rootState.map?.moveLayer(noiseLayerName, "spaces")
       }
     })
+  },
+  addTrafficCountLayer({state, commit, dispatch, rootState}) {
+      //const scenarioTraffic = getFormattedTrafficCounts(state.trafficCountPoints, state.noiseScenario.traffic_percent)
+      const scenarioTraffic = JSON.parse(JSON.stringify(state.trafficCounts))
+      const trafficPercent = state.noiseScenario.traffic_percent
+      scenarioTraffic["features"].forEach(point => {
+        const carTrafficDaily = Math.floor(point["properties"]["car_traffic_daily"] * trafficPercent)
+        const truckTrafficDaily = Math.floor(point["properties"]["truck_traffic_daily"] * trafficPercent)
+        point["properties"]["car_traffic_daily"] = carTrafficDaily
+        point["properties"]["truck_traffic_daily"] = truckTrafficDaily
+        point["properties"]["description"] = "Cars: " + carTrafficDaily + " Trucks: " + truckTrafficDaily
+      });
+
+    const source = {
+      id: TrafficCountLayer.mapSource.data.id,
+      options: {
+        type: 'geojson',
+        data: scenarioTraffic
+      }
+    }
+      dispatch('addSourceToMap', source, {root: true})
+        .then(source => {
+          dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
+        }).then(source => {
+        // add layer on top of the layer stack
+        rootState.map?.moveLayer(TrafficCountLayer.layer.id)
+        })
   },
   hideNoiseMap({state, commit, dispatch, rootState}) {
     if (rootState.map?.getSource(NoiseLayer.mapSource.data.id)) {
@@ -218,9 +259,6 @@ function updateBridges(bridge_hafencity, bridge_veddel) {
 }
 
 function isNoiseScenarioMatching(noiseDataSet,noiseScenario) {
-  console.log("max_speed")
-  console.log(noiseScenario.max_speed)
-
   return noiseDataSet["noise_scenario"]["traffic_percent"] == noiseScenario.traffic_percent
     && noiseDataSet["noise_scenario"]["max_speed"] == noiseScenario.max_speed;
 }

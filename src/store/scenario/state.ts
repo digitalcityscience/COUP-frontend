@@ -6,6 +6,7 @@ export default {
   abmData: null,
   abmObject:{},
   noiseResults: [],
+  trafficCounts: null,
   showNoise:false,
   noiseScenario:{
     traffic_percent: 0.5,
