@@ -22,7 +22,7 @@ export default {
     main_street_orientation: "vertical"
   },
   scenarioViewFilters: {
-    student_or_adult: filterOptions.any,
+    agent_age: ['0-6', '7-17', '18-35', '36-60', '61-100'],  // all ages activated
     resident_or_visitor: filterOptions.any,
     modes: {
       bicycle: true,

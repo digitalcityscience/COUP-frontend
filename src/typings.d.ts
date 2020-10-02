@@ -38,7 +38,7 @@ declare global {
           start_time?: number,
           end_time?: number,
           resident_or_visitor?: "resident" | "visitor" | null,
-          student_or_adult?: "student" | "adult" | "any",
+          student_or_adult?: string[],
           modes?: {
             bicycle: boolean
             car: boolean

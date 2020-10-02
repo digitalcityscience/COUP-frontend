@@ -55,7 +55,7 @@ export default {
             ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
             ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
             ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
-            ['student_or_adult', 'scenario/scenarioViewFilters/' + filters.student_or_adult],
+            ['agent_age', 'scenario/scenarioViewFilters/' + filters.agent_age],
             ['resident_or_visitor', 'scenario/scenarioViewFilters/' + filters.resident_or_visitor],
             ['foot', 'scenario/scenarioViewFilters/modes/' + filterOptions.foot],
             ['bicycle', 'scenario/scenarioViewFilters/modes/' + filterOptions.bicycle],
@@ -395,26 +395,44 @@ export default {
                                 dark
                             />
                         </v-radio-group>
-                        <v-radio-group v-model="student_or_adult">
-                            <v-radio
-                                :value="filterOptions.student"
-                                flat
-                                label="Students only"
-                                dark
-                            />
-                            <v-radio
-                                :value="filterOptions.adult"
-                                flat
-                                label="Adults only"
-                                dark
-                            />
-                            <v-radio
-                                :value="filterOptions.any"
-                                flat
-                                label="Students & Adults"
-                                dark
-                            />
-                        </v-radio-group>
+                        <v-container fluid>
+                          <v-checkbox
+                                hide-details
+                              v-model="agent_age"
+                              :value="'0-6'"
+                              flat
+                              label="0-6 years"
+                              dark
+                          /><v-checkbox
+                              hide-details
+                              v-model="agent_age"
+                              :value="'7-17'"
+                              flat
+                              label="7-17 years"
+                              dark
+                          /><v-checkbox
+                              hide-details
+                              v-model="agent_age"
+                              :value="'18-35'"
+                              flat
+                              label="18-35 years"
+                              dark
+                          /><v-checkbox
+                              hide-details
+                              v-model="agent_age"
+                              :value="'36-60'"
+                              flat
+                              label="36-60 years"
+                              dark
+                          /><v-checkbox
+                              hide-details
+                              v-model="agent_age"
+                              :value="'61-100'"
+                              flat
+                              label="61-100 years"
+                              dark
+                          />
+                        </v-container>
                         <v-switch
                             v-model="foot"
                             flat
