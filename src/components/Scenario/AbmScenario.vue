@@ -67,6 +67,9 @@ export default {
         },
         heatMap(){
             return this.$store.state.scenario.heatMap;
+        },
+        workshop(){
+            return this.$store.state.workshop;
         }
     },
     watch: {
@@ -267,7 +270,7 @@ export default {
 
         <!--each div element needs data-title and data-pic for autocreating menu buttons-->
         <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
-        <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+        <div v-if="!workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content">
                <h2>ABM Scenario Settings</h2>
@@ -369,6 +372,16 @@ export default {
                     </v-overlay>
            </div><!--component_content end-->
         </div><!--division end-->
+
+        <div v-if="workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+            <!--v-if needs to be set to data-title to make switch between divisions possible-->
+           <div v-if="activeDivision === 'Scenario'" class="component_content">
+               <h2>ABM Scenario Settings</h2>
+               <v-btn class="scenario_main_btn" block>Default</v-btn>
+               <v-btn class="scenario_main_btn" block>Scenario I</v-btn>
+               <v-btn class="scenario_main_btn" block>Scenario II</v-btn>
+           </div>
+        </div>
 
         <div class="division" data-title='Filter' data-pic='mdi-filter'>
             <div v-if="activeDivision === 'Filter'" class="component_content">
@@ -548,10 +561,23 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+    @import "../../style.main.scss";
 
   #scenario {
     height: 100%;
     width: 100%;
+
+    .scenario_main_btn {
+        height:200px;
+        line-height:200px;
+        text-align:center;
+        color:whitesmoke;
+        margin:10px auto;
+        border-radius:0px;
+        background:rgba(0,0,0,0.9);
+        border:1px solid #aaa;
+        @include drop_shadow;
+    }
 
     .v-input {
         ::v-deep.v-input__control{

@@ -18,8 +18,21 @@ export default {
         Viewbar
     },
     computed: {
+        workshop(){
+            return this.$store.state.workshop;
+        },
     },
     watch: {
+        workshop(){
+            if(!this.workshop){
+                console.log("URL does not include workshop")
+            } else {
+                console.log("Url does include workshop");
+            }
+        },
+    },
+    mounted(){
+        this.$store.dispatch('checkoutWorkshop')
     },
     created () {
         this.$store.dispatch('connect', {
@@ -27,7 +40,7 @@ export default {
                 username: 'ernie',
                 password: 'bert'
             }
-        })
+        });
     }
 }
 </script>
