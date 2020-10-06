@@ -376,7 +376,7 @@ export default {
         <div v-if="workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content">
-               <h2>ABM Scenario Settings</h2>
+               <h2>ABM Scenario Selection</h2>
                <v-btn class="scenario_main_btn" block>Default</v-btn>
                <v-btn class="scenario_main_btn" block>Scenario I</v-btn>
                <v-btn class="scenario_main_btn" block>Scenario II</v-btn>

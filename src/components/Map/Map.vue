@@ -133,13 +133,18 @@ export default {
                 }
             } else {
                 console.log("Feature not available in workshop mode");
+                this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
             }
         },
         onMapLoaded () {
             console.log("create design layers")
-            console.log(this.$store.state.map);
+            //console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers').then(() => {
-                this.$store.dispatch('orderDesignLayers')
+                this.$store.dispatch('orderDesignLayers').then(() => {
+                    if(this.workshop){
+                        this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
+                    }
+                });
             })
         },
         onMapContextMenu (evt) {
