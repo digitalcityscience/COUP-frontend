@@ -28,7 +28,10 @@ export default {
       ...generateStoreGetterSetter([
         ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
         ['showLegend', 'showLegend' ]
-      ])
+      ]),
+      workshop(){
+          return this.$store.state.workshop;
+      }
     },
     methods:{
         resetView(){
@@ -103,7 +106,7 @@ export default {
              <span>Use Types Legend</span>
            </v-tooltip>
            </v-btn>
-         <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip top>
+         <v-btn v-if="!workshop" @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip top>
            <template v-slot:activator="{ on, attrs }">
              <v-icon
                v-bind="attrs"

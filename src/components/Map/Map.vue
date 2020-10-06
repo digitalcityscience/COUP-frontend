@@ -34,6 +34,9 @@ export default {
         },
         heatMapType(){
             return this.$store.state.scenario.heatMapType;
+        },
+        workshop(){
+            return this.$store.state.workshop;
         }
     },watch: {
         heatMapData(){
@@ -87,45 +90,49 @@ export default {
                 }
         },
         onMapClicked (evt) {
-            this.targetFound = false;
-            const bbox = [
-                [evt.point.x - 10, evt.point.y - 10],
-                [evt.point.x + 10, evt.point.y + 10]
-            ]
-            
-            const features = this.map.queryRenderedFeatures(bbox, {
-                layers: this.layerIds,
-            });
+            if(!this.workshop){
+                this.targetFound = false;
+                const bbox = [
+                    [evt.point.x - 10, evt.point.y - 10],
+                    [evt.point.x + 10, evt.point.y + 10]
+                ]
+                
+                const features = this.map.queryRenderedFeatures(bbox, {
+                    layers: this.layerIds,
+                });
 
-            const singleOutTarget = [];
-            features.forEach((feature,i,a) => {
-                const initialFeature = a[0].properties.building_id;
-                let specialFeature = feature.properties.building_id;
-                if(specialFeature == initialFeature) {
-                    singleOutTarget.push(feature);
-                }
-            });
-            
-            this.$store.commit('selectedFeatures', singleOutTarget);
+                const singleOutTarget = [];
+                features.forEach((feature,i,a) => {
+                    const initialFeature = a[0].properties.building_id;
+                    let specialFeature = feature.properties.building_id;
+                    if(specialFeature == initialFeature) {
+                        singleOutTarget.push(feature);
+                    }
+                });
+                
+                this.$store.commit('selectedFeatures', singleOutTarget);
 
-            if(singleOutTarget === undefined || singleOutTarget.length == 0){
-                console.log("no feature selected");
-                this.targetFound = false; 
-            } else {
-                const building = singleOutTarget[0].properties.area_planning_type;
-                if(building == "building"){
-
-                    const newFeature = this.selectedFeatures;
-                    newFeature.forEach(feature => {
-                        feature.properties.selected = "active";
-                        this.$store.dispatch('editFeatureProps', feature);
-                    })
-                    //newFeature.properties.selected = "active";
-                    this.targetFound = true; 
-                    
+                if(singleOutTarget === undefined || singleOutTarget.length == 0){
+                    console.log("no feature selected");
+                    this.targetFound = false; 
                 } else {
-                    this.targetFound = false;
+                    const building = singleOutTarget[0].properties.area_planning_type;
+                    if(building == "building"){
+
+                        const newFeature = this.selectedFeatures;
+                        newFeature.forEach(feature => {
+                            feature.properties.selected = "active";
+                            this.$store.dispatch('editFeatureProps', feature);
+                        })
+                        //newFeature.properties.selected = "active";
+                        this.targetFound = true; 
+                        
+                    } else {
+                        this.targetFound = false;
+                    }
                 }
+            } else {
+                console.log("Feature not available in workshop mode");
             }
         },
         onMapLoaded () {
