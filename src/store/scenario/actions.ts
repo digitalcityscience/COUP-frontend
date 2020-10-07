@@ -99,7 +99,7 @@ export default {
     commit('bridges', bridges)
     dispatch('updateBridgeLayer')
     dispatch('updateDeckLayer', scenarioId)
-    dispatch('updateAmenitiesLayer')
+    dispatch('updateAmenitiesLayer', scenarioId)
   },
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
     // update scenario name
@@ -115,10 +115,13 @@ export default {
     dispatch('updateAmenitiesLayer')
   },
   // load layer source from cityPyo and add the layer to the map
-  updateAmenitiesLayer({state, commit, dispatch, rootState}, payload) {
+  updateAmenitiesLayer({state, commit, dispatch, rootState}, workshopId) {
     // load new data from cityPyo
-    rootState.cityPyO.getAbmAmenitiesLayer(Amenities.mapSource.data.id, state).then(
+    let amenitiesLayerName = workshopId || Amenities.mapSource.data.id
+
+    rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
       source => {
+        console.log("got amenities", source)
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
