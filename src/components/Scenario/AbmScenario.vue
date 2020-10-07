@@ -10,7 +10,8 @@ import {
     blockPermeabilityOptions,
     roofAmenitiesOptions,
     filters,
-    filterOptions
+    filterOptions,
+    workshopScenarioNames
 } from '@/store/abm.ts'
 import TimeSheet from "@/components/Scenario/TimeSheet.vue";
 //import { filter } from 'vue/types/umd';
@@ -30,6 +31,7 @@ export default {
             roofAmenitiesOptions: roofAmenitiesOptions,
             filters: filters,
             filterOptions: filterOptions,
+            workshopScenarioNames: workshopScenarioNames,
             age: 21,
             timePaths: [],
             weightData:[],
@@ -242,7 +244,12 @@ export default {
           if(this.reloadHeatMapLayer){
               this.getWeightData(this.adjustRange);
           }
-        }
+        },
+      loadWorkshopScenario(scenarioId) {
+        this.$store.dispatch(
+          'scenario/loadWorkshopScenario', scenarioId
+        )
+      }
     }
 }
 </script>
@@ -377,9 +384,14 @@ export default {
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content">
                <h2>ABM Scenario Selection</h2>
-               <v-btn class="scenario_main_btn" block>Default</v-btn>
-               <v-btn class="scenario_main_btn" block>Scenario I</v-btn>
-               <v-btn class="scenario_main_btn" block>Scenario II</v-btn>
+               <v-btn  @click="loadWorkshopScenario(workshopScenarioNames[0])" class="scenario_main_btn" block>Default Planning</v-btn>
+               <v-btn  @click="loadWorkshopScenario(workshopScenarioNames[1])" class="scenario_main_btn" block>Session I</v-btn>
+               <v-btn  @click="loadWorkshopScenario(workshopScenarioNames[2])" class="scenario_main_btn" block>Session II</v-btn>
+
+             <v-overlay :value="resultLoading">
+               <div>Loading results</div>
+               <v-progress-linear>...</v-progress-linear>
+             </v-overlay>
            </div>
         </div>
 

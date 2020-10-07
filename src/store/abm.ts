@@ -47,6 +47,9 @@ export const filterOptions = {
   car: "car"
 }
 
+export const workshopScenarioNames = ['default_abm_scenario','session_1', 'session_2']
+
+
 export const alkisTranslations = {
   2000:	"commercial",
   2020:	"office",

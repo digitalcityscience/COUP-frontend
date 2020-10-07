@@ -90,6 +90,17 @@ export default {
       dispatch("removeSourceFromMap", NoiseLayer.mapSource.data.id, { root: true })
     }
   },
+  loadWorkshopScenario({state, commit, dispatch, rootState}, scenarioId) {
+    let bridges = updateBridges(
+      bridgeNames.bridge_hafencity,
+      bridgeVeddelOptions.diagonal,
+    )
+
+    commit('bridges', bridges)
+    dispatch('updateBridgeLayer')
+    dispatch('updateDeckLayer', scenarioId)
+    dispatch('updateAmenitiesLayer')
+  },
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
     // update scenario name
 
@@ -149,12 +160,14 @@ export default {
             })
         }
   },
-  updateDeckLayer({state, commit, dispatch, rootState}, payload) {
+  updateDeckLayer({state, commit, dispatch, rootState}, workshopScenario) {
     // show loading screen
     commit('resultLoading', true)
 
+    let scenarioName = workshopScenario || abmTripsLayerName
+
     // load new data from cityPyo
-    rootState.cityPyO.getAbmResultLayer(abmTripsLayerName, state).then(
+    rootState.cityPyO.getAbmResultLayer(scenarioName, state).then(
       result => {
         // remove old trips layer from map
         if (!result) {

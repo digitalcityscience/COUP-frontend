@@ -1,3 +1,5 @@
+import { workshopScenarioNames } from '@/store/abm.ts'
+
 export default class CityPyO {
     url: string;
     userid: string;
@@ -69,7 +71,15 @@ export default class CityPyO {
       }
     }
 
-    async getAbmResultLayer (id: string | number, scenario: AbmScenario) {
+    async getAbmResultLayer (id: string, scenario: AbmScenario) {
+      // fetch predefined workshop scenario layer
+      if (workshopScenarioNames.includes(id)) {
+        let responseJson = await this.getLayer(id, false)
+
+        return this.formatResponse(id, responseJson.data)
+      }
+
+      // fetch abm scenario based on module settings and view filters
       let requestUrl = this.url +  'getLayer/' + "abmScenario"
       let body = {
         userid: this.userid,
