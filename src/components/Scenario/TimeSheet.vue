@@ -58,13 +58,13 @@ export default {
             }
         },
         getTimeData(){
-            console.log(this.abmData);
+            /*console.log(this.abmData);
             this.timeStamps = [];
             this.timeCoords = [];
             this.timeHours = [];
             let workingObj = {};
 
-            /*Add up total agents per timestamp*/
+            /!*Add up total agents per timestamp*!/
             this.abmData.forEach((v,i,a) =>{
                 v.timestamps.forEach((v,i,a) => {
                     workingObj[v] = (workingObj[v]+1) || 1;
@@ -73,7 +73,7 @@ export default {
 
             this.timeObj = workingObj;
 
-            /*reformatting data back intro array*/
+            /!*reformatting data back intro array*!/
             for (const [key, value] of Object.entries(workingObj)) {
                 this.timeStamps.push(`${key}`);
                 this.timeCoords.push(`${value}`)
@@ -81,17 +81,17 @@ export default {
 
             this.filterCoords = this.timeCoords;
 
-            /*get Max and Min Timestamp*/
+            /!*get Max and Min Timestamp*!/
             this.minTime = Math.min(...this.timeStamps);
             this.maxTime = Math.max(...this.timeStamps);
 
-            /*Round Time Stamps to full hours*/
+            /!*Round Time Stamps to full hours*!/
             this.timeStamps.forEach((v,i,a) => {
                 let hour = Math.floor(v / 3600) + 8 + ":00";
                 this.timeHours.push(hour);
             });
 
-            this.renderTimeGraph();
+            this.renderTimeGraph();*/
         },
         renderTimeGraph(){
             /*render graph via chart.js*/
@@ -199,7 +199,7 @@ export default {
              this.renderTimeGraph();
         },
         updateData(){
-            this.getTimeData();
+            //this.getTimeData();
         }
     },
       computed: {
@@ -221,9 +221,9 @@ export default {
         }
     },
     watch: {
-        abmData(){
+        /*abmData(){
             this.updateData();
-        },
+        },*/
         heatMapActive(){
             if(this.heatMapActive) {
                 this.$store.commit('scenario/animationRunning', false);
@@ -235,7 +235,8 @@ export default {
 </script>
 
 <template>
-    <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet">
+    <!-- <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet"> -->
+    <div v-if="activeMenuComponent === 'DO_NOT_SHOW'" id="timesheet">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel">
             <div class="time_graph">
