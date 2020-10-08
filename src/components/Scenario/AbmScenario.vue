@@ -86,8 +86,8 @@ export default {
           console.log(newVal, oldVal)
         },
         abmData() {
-            //this.updateData();
-            //console.log("new ABM DATA received")
+            this.updateData();
+            console.log("new ABM DATA received")
             this.reloadHeatMapLayer = true;
         },
         heatMap(){
@@ -240,12 +240,10 @@ export default {
             }
         },
         updateData(){
-          /*
           this.clusterTimeData();
           if(this.reloadHeatMapLayer){
               this.getWeightData(this.adjustRange);
           }
-           */
         },
       loadWorkshopScenario(scenarioId) {
         this.$store.dispatch(
