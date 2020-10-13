@@ -65,7 +65,7 @@ export default {
 
           let intervals = []
           this.intervalLabels = [];
-          let busyAgentsPerInterval = {}
+          this.busyAgentsPerInterval = {}
           this.timeCoords = [];
 
           /* create time intervals and their labels on x-axis */
@@ -78,13 +78,21 @@ export default {
           }
 
           // initialize busy agents per interval with 0
-          for (let interval of intervals) {
-            busyAgentsPerInterval[`${interval}`] = 0
+          const emptyInterval = {}
+          for (let mode of [...Object.values(this.filterOptions), 'total']) {
+            emptyInterval[mode] = 0
           }
+          for (let interval of intervals) {
+            this.busyAgentsPerInterval[`${interval}`] = JSON.parse(JSON.stringify(emptyInterval))
+          }
+
+
+          // TODO include information on transport mode to enable filter!
 
           /*Add up total active agents per interval*/
           // iterate over each agent's timestamps first and log the intervals during which the agent is active
           this.abmData.forEach((agent,i,a) => {
+            let transportMode = agent["agent"]["mode"]
             let activeIntervals = []
             agent.timestamps.forEach((timeStampValue,i,a) => {
               // iterate over all timestamps and find intervals during which the agent is active
@@ -93,30 +101,29 @@ export default {
                 // if the agent's activity in this interval wasn't logged yet
                 // increment the busy agents count for this interval
                 activeIntervals.push(matchingInterval)
-                busyAgentsPerInterval[matchingInterval] += 1
+                this.busyAgentsPerInterval[matchingInterval][transportMode] += 1
+                this.busyAgentsPerInterval[matchingInterval]["total"] += 1
               }
             });
           });
 
-          /*reformatting data back intro array*/
-          for (const [key, value] of Object.entries(busyAgentsPerInterval)) {
-            this.timeCoords.push(`${value}`)
+          /* get total active active agents (no matter the transport mode) and reformat data back into array*/
+          for (const [key, value] of Object.entries(this.busyAgentsPerInterval)) {
+            this.timeCoords.push(`${value['total']}`)
           }
-          this.filterCoords = this.timeCoords;
 
+          this.filterCoords = this.timeCoords;
           this.renderTimeGraph();
         },
         renderTimeGraph(){
-          console.log("lengths of input arrays into time graph")
-          console.log("time hours / labels", this.intervalLabels.length)
-          console.log("time coords / values", this.timeCoords.length)
-
-
             /*render graph via chart.js*/
             var ctx = document.getElementById('timeChart').getContext('2d');
             if (this.timeChart) {
               this.timeChart.destroy();
             }
+
+            console.log("fiilter coords")
+            console.log(this.filterCoords)
 
             this.timeChart = new Chart(ctx, {
                 type: 'line',
@@ -194,27 +201,19 @@ export default {
             }
         },
         activateFilterGraph(){
-             this.timeFilter = true;
-             this.filterCoords = [];
+           this.timeFilter = true;
+           this.filterCoords = [];
 
-             let workingObj = {};
-
-             /*creating filtered Data for TimeGraph*/
-             this.abmData.forEach((v, i, a) => {
-               v.timestamps.forEach((vv, i, a) => {
-
-                 if (this.filter === "No Filter" || v.agent.mode === this.filterOptions[this.filter]) {
-                   workingObj[vv] = (workingObj[vv] + 1) || 1;
-                 } else {
-                   workingObj[vv] = (workingObj[vv] + 0) || 0;
-                 }
-               });
-             });
-
-             for (const [key, value] of Object.entries(workingObj)) {
-               this.filterCoords.push(`${value}`)
+           if (this.filter === "No Filter") {
+             // do not filter timeCoords
+             this.filterCoords = [...this.timeCoords]
+           } else {
+             // iterate over busy agents and filter for chosen transport option
+             for (const [timestamp, counts] of Object.entries(this.busyAgentsPerInterval)) {
+               this.filterCoords.push(`${counts[this.filterOptions[this.filter]]}`)
              }
-             this.renderTimeGraph();
+           }
+           this.renderTimeGraph();
         }
     },
       computed: {
