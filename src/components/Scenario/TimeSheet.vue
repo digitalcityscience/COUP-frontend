@@ -58,86 +58,51 @@ export default {
             }
         },
         getDataForTimeChart(){
-          console.log("getting time data")
-          this.minTime = 8
-          this.maxTime = 24
+          this.minTime = 8 // time chart start time
+          this.maxTime = 24 // time chart end time
           const intervalLength = 5 * 60; // interval length in seconds; max interval length = 1h for labels to work
+          const simulationLength = (this.maxTime - this.minTime) * 60 * 60  // max time in seconds / intervalLength
+
           let intervals = []
           this.intervalLabels = [];
           let busyAgentsPerInterval = {}
           this.timeCoords = [];
 
-          console.log("starting looping the data now")
-
-
-          // create time intervals and their labels on x-axis
-
-          // this could just be: max-min time in seconds / intervalLength, for loop
-
-          for (let hour = this.minTime; hour <= this.maxTime; hour++) {
-            console.log("hour and parts per hour", hour, ((60*60) / intervalLength))
-            const intervalsPerHour = ((60*60) / intervalLength)
-            for (let partHour = 0; partHour < intervalsPerHour; partHour++) {
-              // interval length per hour after start time
-              const interval = ((hour - this.minTime) * intervalLength * intervalsPerHour) + (partHour * intervalLength)
-              intervals.push(interval)
-              // for label round to full hours; add start time
-              const intervalLabel = Math.floor((interval / 3600) + 8) + ":00"
-              this.intervalLabels.push(intervalLabel) // labels for full hours
-            }
+          /* create time intervals and their labels on x-axis */
+          const intervalCount = Math.round(simulationLength  / intervalLength)
+          for (let intervalIndex = 0; intervalIndex <= intervalCount; intervalIndex++) {
+            const interval = intervalIndex * intervalLength
+            const intervalLabel = Math.floor((interval / 3600) + 8) + ":00" // labels for full hours
+            intervals.push(interval)
+            this.intervalLabels.push(intervalLabel)
           }
-
-          console.log("intervals", intervals)
-          console.log("intervalLabels", this.intervalLabels)
 
           // initialize busy agents per interval with 0
           for (let interval of intervals) {
             busyAgentsPerInterval[`${interval}`] = 0
           }
 
-          console.log("starting to sort busy agents", busyAgentsPerInterval)
-
           /*Add up total active agents per interval*/
-          this.abmData.forEach((v,i,a) =>{
+          // iterate over each agent's timestamps first and log the intervals during which the agent is active
+          this.abmData.forEach((agent,i,a) => {
             let activeIntervals = []
-            v.timestamps.forEach((v,i,a) => {
+            agent.timestamps.forEach((timeStampValue,i,a) => {
               // iterate over all timestamps and find intervals during which the agent is active
-              let matchingInterval = Math.floor( v / intervalLength) * intervalLength
+              let matchingInterval = Math.floor( timeStampValue / intervalLength) * intervalLength
               if (!activeIntervals.includes(matchingInterval)) {
+                // if the agent's activity in this interval wasn't logged yet
+                // increment the busy agents count for this interval
                 activeIntervals.push(matchingInterval)
+                busyAgentsPerInterval[matchingInterval] += 1
               }
-              // workingObj[v] = (workingObj[v]+1) || 1;
             });
-            // increment busy agents per each activeInterval
-            activeIntervals.forEach((v,i,a) => {
-              busyAgentsPerInterval[v] += 1
-            })
           });
-
-          console.log("busy agents per interval", busyAgentsPerInterval)
 
           /*reformatting data back intro array*/
           for (const [key, value] of Object.entries(busyAgentsPerInterval)) {
             this.timeCoords.push(`${value}`)
           }
-
           this.filterCoords = this.timeCoords;
-
-          console.log("final time choords", this.timeCoords)
-
-          /*get Max and Min Timestamp
-          this.minTime = Math.min(...this.timeStamps);
-          this.maxTime = Math.max(...this.timeStamps);
-          */
-
-          /*
-          /!*Round Time Stamps to full hours*!/
-          this.timeStamps.forEach((v,i,a) => {
-              let hour = Math.floor(v / 3600) + 8 + ":00";
-              this.timeHours.push(hour);
-          });
-
-          */
 
           this.renderTimeGraph();
         },
