@@ -39,5 +39,6 @@ export default {
   heatMapType:'average',
   heatMap:false,
   lastClick: [],
+  showUi: true,
 }
 

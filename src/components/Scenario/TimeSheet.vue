@@ -25,17 +25,30 @@ export default {
             maxTime: 0,
         }
     },
+    computed: {
+        currentTimeStamp(){
+            return this.$store.state.scenario.currentTimeStamp;
+        }
+    },
     mounted(){
     },
     updated(){
         //this.renderTimeGraph();
     },
+    created(){
+        document.onkeydown = this.onkeydown
+    },
     components: {},
     methods:{
+        onkeydown(e){
+            if(e.which === 32){
+                this.triggerAnimation();
+            }
+        },
         triggerAnimation(){
             /*functionality for play button*/
+            console.log(this.currentTimeStamp);
             const animationRunning = this.$store.state.scenario.animationRunning;
-            const animationTime = this.$store.state.scenario.currentTimeStamp;
             this.$store.commit("scenario/animationRunning", !animationRunning);
 
             if(!animationRunning) {
@@ -45,13 +58,13 @@ export default {
 
                 if(deckLayer) {
                     /*if TripsLayer exists animate it*/
-                    animate(deckLayer.implementation, null, null, animationTime);
+                    animate(deckLayer.implementation, null, null, this.currentTimeStamp);
                 } else {
                     /*if TripsLayer was removed by HeatMap rebuild it*/
                     this.$store.dispatch('scenario/rebuildDeckLayer').then(
                         deckLayer => {
                             const newDeckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-                            animate(newDeckLayer.implementation, null, null, animationTime);
+                            animate(newDeckLayer.implementation, null, null, this.currentTimeStamp);
                         }
                     );
                 }
@@ -60,6 +73,7 @@ export default {
         getDataForTimeChart(){
           this.minTime = 8 // time chart start time
           this.maxTime = 24 // time chart end time
+          //this.maxTime = 99999;
           const intervalLength = 5 * 60; // interval length in seconds; max interval length = 1h for labels to work
           const simulationLength = (this.maxTime - this.minTime) * 60 * 60  // max time in seconds / intervalLength
 
@@ -214,7 +228,7 @@ export default {
              }
            }
            this.renderTimeGraph();
-        }
+        },
     },
       computed: {
         ...mapState([
@@ -232,6 +246,9 @@ export default {
         },
         animationRunning(){
             return this.$store.state.scenario.animationRunning;
+        },
+        showUi(){
+            return this.$store.state.scenario.showUi;
         }
     },
     watch: {
@@ -251,7 +268,7 @@ export default {
 </script>
 
 <template>
-    <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet">
+    <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi }">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel">
             <div class="time_graph">
@@ -346,8 +363,6 @@ export default {
             </div>
         </div>
     </div>
-  </div>
-
 </template>
 
 <style scoped lang="scss">
@@ -365,6 +380,11 @@ export default {
         padding:10px;
         box-sizing: border-box;
         @include drop_shadow;
+
+        &.ui_hide {
+            transform:translateX(-100vw);
+            transition:0.3s;
+        }
 
         h3 {
             width:100%;

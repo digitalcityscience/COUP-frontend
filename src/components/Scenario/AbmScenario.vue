@@ -72,6 +72,9 @@ export default {
         },
         workshop(){
             return this.$store.state.workshop;
+        },
+        showUi(){
+            return this.$store.state.scenario.showUi;
         }
     },
     watch: {
@@ -86,6 +89,7 @@ export default {
           console.log(newVal, oldVal)
         },
         abmData() {
+            console.log(this.abmData);
             /*this.processAbmDataForHeatmap();
             this.reloadHeatMapLayer = true;
             */
@@ -382,6 +386,7 @@ export default {
            </div><!--component_content end-->
         </div><!--division end-->
 
+        <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
         <div v-if="workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content">
@@ -395,7 +400,21 @@ export default {
                <v-progress-linear>...</v-progress-linear>
              </v-overlay>
            </div>
-        </div>
+        </div><!--division-end-->
+
+        <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+        <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+        <div v-if="!workshop" class="division" data-title='Dashboard' data-pic='mdi-view-dashboard'>
+            <!--v-if needs to be set to data-title to make switch between divisions possible-->
+           <div v-if="activeDivision === 'Dashboard'" class="component_content">
+               <h2>ABM Dashboard</h2>
+                <ul>
+                    <li>Number Of Agents active: </li>
+                    <li>Average length of track: </li>
+                    <li>Stuff like this: </li>
+                </ul>
+           </div><!--component_content end-->
+        </div><!--division end-->
 
         <div class="division" data-title='Filter' data-pic='mdi-filter'>
             <div v-if="activeDivision === 'Filter'" class="component_content">
@@ -497,8 +516,8 @@ export default {
             </div>
         </div>
 
-        <div class="division" data-title='Heatmap' data-pic='mdi-gauge'>
-           <div v-if="activeDivision === 'Heatmap'" class="component_content">
+        <div class="division" data-title='Aggregation Layer' data-pic='mdi-gauge'>
+           <div v-if="activeDivision === 'Aggregation Layer'" class="component_content">
             <h2>Capacity Use Map</h2>
                <v-range-slider
                     v-model="adjustRange"
