@@ -5,6 +5,7 @@ import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
+import { mdiControllerClassicOutline } from '@mdi/js';
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -194,23 +195,67 @@ export default {
             commit('addLayerId', abmTripsLayerName, {root: true})
 
             const heatMap = state.heatMap;
+            commit('abmData', deckLayer?.props?.data)
+            dispatch('preclusteringAbm', deckLayer?.props?.data)
+            // finally remove loading screen
+            commit('resultLoading', false)
+
+            const abmData = state.abmData;
+            const activeAbmSet = state.activeAbmSet;
+
             if (!heatMap) {
               commit('animationRunning', true);
               animate(deckLayer, null, null, state.currentTimeStamp)
             }
-
-            commit('abmData', deckLayer?.props?.data)
-
-            // finally remove loading screen
-            commit('resultLoading', false)
           }
         )
       }
     )
     return
   },
-  rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
+  preclusteringAbm({state, commit, dispatch, rootState}, abm){
+    const abmObj = {};
+    console.log(abm);
+    abm.forEach((v)=> {
+      for (const [key, value] of Object.entries(v.agent)) {
+        if(`${key}` !== 'id' && `${key}` !== 'source'){
+          if(`${value}` !== 'unknown' && `${value}` !== 'nil'){
+            abmObj[`${value}`] = abmObj[`${value}`] || [];
+            abmObj[`${value}`].push(v.agent.id);
+          }
+        }
+      }
+    });
+    commit('clusteredAbmData', abmObj);
+  },
+  filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
     const abmData = state.abmData;
+    const filterSet = {...state.clusteredAbmData};
+    const spliceArr = [];
+    //console.log(JSON.parse(JSON.stringify(filterSet)));
+    Object.entries(filterSettings).forEach(([key, value]) => {
+      if(value === true){
+        delete filterSet[key];
+      } else {
+        filterSet[key].forEach(v => {
+          spliceArr.push(v);
+        });
+      }
+    });
+
+    const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id))
+    commit('activeAbmSet', filteredAbm);
+    dispatch('rebuildDeckLayer');
+  },
+  rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
+    //const abmData = state.abmData;
+    const activeAbmSet = state.activeAbmSet;
+
+    if(activeAbmSet != null && activeAbmSet != 'undefined'){
+      var abmData = activeAbmSet;
+    } else {
+      var abmData = state.abmData;
+    }
     const settings = (state.heatMapType == 'average') ? [4, 0.03, 50, 0.5] : [26, 0.01, 80, 0.5];
     const heatMapTypeData = (state.heatMapType == 'average') ? state.heatMapAverage : state.heatMapData;
     console.log("try to rebuild active deck layer");
