@@ -11,6 +11,16 @@
       }
     },
     {
+      "id": "table",
+      "type": "fill-extrusion",
+      "source": "table",
+      "paint": {
+        "fill-extrusion-height": 5,
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "red", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFB121", "commercialOffice", "#F76A6A", "daycare", "#4EBFFC", "public", "#4EBFFC", "#CDCDCD"], "red"],
+        "fill-extrusion-opacity": 0.8
+      }
+    },
+    {
       "id": "upperfloor",
       "type": "fill-extrusion",
       "source": "upperfloor",
@@ -64,6 +74,14 @@
       "data": {
         "from": "cityPyO",
         "id": "groundfloor"
+      }
+    },
+    {
+      "id": "table",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "table"
       }
     },
     {

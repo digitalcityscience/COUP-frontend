@@ -10,29 +10,33 @@ export default {
       let designLayersLoaded = 0;
       // iterate over sources in configs
       sourceConfigs.forEach(source => {
-        //console.log("hans", source.id)
-        // if the data should be loaded from city IO
-        if (source.data?.from === "cityPyO") {
-          state.cityPyO.getLayer(source.data.id)
-            .then(source => {
-              dispatch('addSourceToMap', source).then(source => {
-                // add all layers using this source
-                Designs.layers
-                  .filter(l => l.source === source.id)
-                  .forEach(l => {
-                    dispatch('addLayerToMap', l).then(() => {
-                      designLayersLoaded += 1;
-                      if (designLayersLoaded >= Designs.layers.length) {
-                        resolve()
-                      }
+        if (source.id == "table") {
+          //console.log("hans", source.id)
+          // if the data should be loaded from city IO
+          if (source.data?.from === "cityPyO") {
+            state.cityPyO.getLayer(source.data.id)
+              .then(source => {
+                console.log("add source to map", source)
+                dispatch('addSourceToMap', source).then(source => {
+                  console.log("desgin layers", Designs.layers)
+                  // add all layers using this source
+                  Designs.layers
+                    .filter(l => l.source === source.id)
+                    .forEach(l => {
+                      console.log("add layer to map", l)
+                      dispatch('addLayerToMap', l).then(() => {
+                        designLayersLoaded += 1;
+                        if (designLayersLoaded >= Designs.layers.length) {
+                          resolve()
+                        }
+                      })
                     })
-                  })
+                })
               })
-            })
         } else {
           console.warn("do not know where to load source data from", source)
         }
-      })
+      }})
     })
 
     await loadLayers;
