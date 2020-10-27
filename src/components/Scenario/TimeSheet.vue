@@ -28,6 +28,7 @@ export default {
     mounted(){
     },
     updated(){
+      // test
         //this.renderTimeGraph();
     },
     components: {},
