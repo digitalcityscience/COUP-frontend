@@ -226,11 +226,13 @@ export default {
         }
       }
     });
+    console.log("PRECLUSTERED ABMOBJ", abmObj);
     commit('clusteredAbmData', abmObj);
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
     const abmData = state.abmData;
     const filterSet = {...state.clusteredAbmData};
+    console.log("FilterSET!", filterSet);
     const spliceArr = [];
     //console.log(JSON.parse(JSON.stringify(filterSet)));
     Object.entries(filterSettings).forEach(([key, value]) => {
@@ -243,7 +245,9 @@ export default {
       }
     });
 
-    const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id))
+    console.log("SPLICE ARRAY", spliceArr)
+    const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id));
+    console.log("FINAL FILTER VALUES", filteredAbm)
     commit('activeAbmSet', filteredAbm);
     dispatch('rebuildDeckLayer');
   },

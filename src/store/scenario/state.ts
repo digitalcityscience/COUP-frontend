@@ -44,5 +44,7 @@ export default {
   heatMap:false,
   lastClick: [],
   showUi: true,
+  modalIndex: 0,
+  allFeaturesHighlighted: false,
 }
 

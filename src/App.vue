@@ -52,6 +52,8 @@ export default {
         <Menu />
         <TimeSheet />
         <Viewbar />
+        
+       <div id="line_canvas"></div>
     </v-app>
 </template>
 
@@ -66,5 +68,16 @@ export default {
 
     .v-application p {
         margin-bottom:0px;
+    }
+
+    #line_canvas {
+        position:fixed;
+        top:0;
+        left:0;
+        /*width:100vw;
+        height:100vh;*/
+        z-index:2;
+        background:transparent;;
+        pointer-events:none;
     }
 </style>

@@ -4,6 +4,7 @@ import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
 import { abmTripsLayerName, buildAggregationLayer } from '@/store/deck-layers'
 import amenities from '@/config/amenities.json'
 import { alkisTranslations } from '@/store/abm'
+import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
 
 export default {
@@ -14,6 +15,7 @@ export default {
             lastClicked: [],
             featuresObject: {},
             targetFound: false, 
+            featureFound: false,
         }
     },
     computed: {
@@ -26,6 +28,10 @@ export default {
             'layerIds',
             'selectedFeatures'
         ]),
+        ...generateStoreGetterSetter([
+            ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
+            ['showLegend', 'showLegend' ]
+        ]),
         heatMapData(){
             return this.$store.state.scenario.heatMapData;
         },
@@ -37,6 +43,9 @@ export default {
         },
         workshop(){
             return this.$store.state.workshop;
+        },
+        selectedFeatures(){
+            return this.$store.state.selectedFeatures;
         }
     },watch: {
         heatMapData(){
@@ -82,12 +91,9 @@ export default {
                 this.lastClicked = [];
                 this.lastClicked[0] = ((evt.clientX * 100)/window.innerWidth)/100;
                 this.lastClicked[1] = ((evt.clientY * 100)/window.innerHeight)/100;
-                console.log(this.lastClicked);
                 this.$store.commit('scenario/lastClick', this.lastClicked);
-
-                if(this.targetFound){
-                    this.openContextMenu();
-                }
+                
+                if(this.targetFound){this.openContextMenu();}
         },
         onMapClicked (evt) {
             if(!this.workshop){
@@ -118,12 +124,24 @@ export default {
                 } else {
                     const building = singleOutTarget[0].properties.area_planning_type;
                     if(building == "building"){
-
                         const newFeature = this.selectedFeatures;
                         newFeature.forEach(feature => {
-                            feature.properties.selected = "active";
-                            this.$store.dispatch('editFeatureProps', feature);
-                        })
+                            if(feature.properties.selected != 'active'){
+                                feature.properties.selected = "active";
+                                this.featureFound = true;
+                                this.$store.dispatch('editFeatureProps', feature);
+                            } else {
+                                if(!this.allFeaturesHighlighted){
+                                    feature.properties.selected = "inactive";
+                                    this.featureFound = false;
+                                    this.$store.dispatch('editFeatureProps', feature);
+                                } else {
+                                    feature.properties.selected = "active";
+                                    this.featureFound = true;
+                                    this.$store.dispatch('editFeatureProps', feature);
+                                }
+                            }
+                        });
                         //newFeature.properties.selected = "active";
                         this.targetFound = true; 
                         
@@ -148,15 +166,71 @@ export default {
             })
         },
         onMapContextMenu (evt) {
-            console.log('Contextmenu', evt)
+            if(this.allFeaturesHighlighted){
+                this.targetFound = false;
+                const bbox = [
+                    [evt.point.x - 10, evt.point.y - 10],
+                    [evt.point.x + 10, evt.point.y + 10]
+                ]
+                
+                const features = this.map.queryRenderedFeatures(bbox, {
+                    layers: this.layerIds,
+                });
+
+                const singleOutTarget = [];
+                features.forEach((feature,i,a) => {
+                    const initialFeature = a[0].properties.building_id;
+                    let specialFeature = feature.properties.building_id;
+                    if(specialFeature == initialFeature) {
+                        singleOutTarget.push(feature);
+                    }
+                });
+                
+                this.$store.commit('selectedFeatures', singleOutTarget);
+
+                if(singleOutTarget === undefined || singleOutTarget.length == 0){
+                    console.log("no feature selected");
+                    this.targetFound = false; 
+                } else {
+                    const building = singleOutTarget[0].properties.area_planning_type;
+                    if(building == "building"){
+                        const newFeature = this.selectedFeatures;
+                        newFeature.forEach(feature => {
+                            if(feature.properties.selected != 'active'){
+                               
+                            } else {
+                                if(this.allFeaturesHighlighted){
+                                    feature.properties.selected = "inactive";
+                                    this.featureFound = false;
+                                    this.$store.dispatch('editFeatureProps', feature);
+                                }
+                            }
+                        });
+
+                        const targetId = newFeature[0].properties.building_id;
+                        this.$modal.hide(targetId);
+                        //newFeature.properties.selected = "active";
+                        this.targetFound = true; 
+                        
+                    } else {
+                        this.targetFound = false;
+                    }
+                }
+            }
         },
         openContextMenu(features){
-            this.featuresObject = {click: this.lastClicked, features: features};
-            this.$modal.show(
-                Contextmenu,
-                {},
-                {draggable: true, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
-            )
+            this.featuresObject = {click: this.lastClicked};
+            console.log(this.selectedFeatures);
+            let modal_id = this.selectedFeatures[0].properties.building_id;
+            if(this.featureFound){
+                this.$modal.show(
+                    Contextmenu,
+                    {},
+                    {name: modal_id, draggable: true, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
+                )
+            } else {
+                this.$modal.hide(modal_id);
+            }
         },
         updateHeatMap(){
                 this.$store.dispatch('scenario/rebuildDeckLayer')
@@ -192,10 +266,8 @@ export default {
 </script>
 
 <template>
-    <div @click="mousePos"
-        id="map"
-        ref="map"
-    />
+    <div @click="mousePos" id="map" ref="map">
+    </div>
 </template>
 
 <style scoped lang="scss">
