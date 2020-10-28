@@ -1,5 +1,5 @@
-
   module.exports = {
+  publicPath: '/physical-table/',
   runtimeCompiler: true,
   transpileDependencies: [
       'vuetify'
