@@ -178,9 +178,8 @@ export default {
         },
         checkTableStatus() {
           setInterval(function () {
-            console.log("check table status")
             this.$store.dispatch('checkTableStatus')
-          }.bind(this), 1000);
+          }.bind(this), 500);
         }
     }
 }

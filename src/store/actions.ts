@@ -8,15 +8,15 @@ export default {
     const loadLayers = new Promise(resolve => {
       let designLayersLoaded = 0;
       state.cityPyO.getLayer('table')
-        .then(source => {
-            commit('tableGeojson', source.options.data)
-            dispatch('addSourceToMap', source).then(source => {
-              console.log("desgin layers", Designs.layers)
+        .then(tableSource => {
+          //if (JSON.parse(JSON.stringify(state.tableGeojson)) !== JSON.parse(JSON.stringify(tableSource.options.data))) {
+          if (JSON.stringify(state.tableGeojson) !== JSON.stringify(tableSource.options.data)) {
+            commit('tableGeojson', tableSource.options.data)
+            dispatch('addSourceToMap', tableSource).then(source => {
               // add all layers using this source
               Designs.layers
                 .filter(l => l.source === source.id)
                 .forEach(l => {
-                  console.log("add layer to map", l)
                   dispatch('addLayerToMap', l).then(() => {
                     designLayersLoaded += 1;
                     if (designLayersLoaded >= Designs.layers.length) {
@@ -25,8 +25,12 @@ export default {
                   })
                 })
             })
+          }
         })
     })
+
+    await loadLayers;
+    return
   },
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
     const sourceConfigs = Designs.sources || [];
@@ -35,7 +39,6 @@ export default {
       // iterate over sources in configs
       sourceConfigs.forEach(source => {
         if (source.id == "table") {
-          //console.log("hans", source.id)
           // if the data should be loaded from city IO
           if (source.data?.from === "cityPyO") {
             state.cityPyO.getLayer(source.data.id)
