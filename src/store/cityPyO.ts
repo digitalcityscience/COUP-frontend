@@ -47,10 +47,7 @@ export default class CityPyO {
   }
 
     async getLayer (id: string, formattedAsSource: boolean = true) {
-      console.log("getting layer id from cityPyo", id)
-
       let requestUrl = this.url +  'getLayer'
-
       let body = {
         userid: this.userid,
         layer: id
