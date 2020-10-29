@@ -51,10 +51,15 @@ export default class CityPyO {
 
       let requestUrl = this.url +  'getLayer'
 
+      console.log("citypyo debug")
+      console.log(this.userid)
+
       let body = {
         userid: this.userid,
         layer: id
       }
+
+      console.log(body)
 
       const response = await this.performRequest(id, requestUrl, body)
 

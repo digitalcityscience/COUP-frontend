@@ -13,7 +13,7 @@ export default {
         return {
             lastClicked: [],
             featuresObject: {},
-            targetFound: false, 
+            targetFound: false,
         }
     },
     computed: {
@@ -92,7 +92,7 @@ export default {
                 [evt.point.x - 10, evt.point.y - 10],
                 [evt.point.x + 10, evt.point.y + 10]
             ]
-            
+
             const features = this.map.queryRenderedFeatures(bbox, {
                 layers: this.layerIds,
             });
@@ -105,12 +105,12 @@ export default {
                     singleOutTarget.push(feature);
                 }
             });
-            
+
             this.$store.commit('selectedFeatures', singleOutTarget);
 
             if(singleOutTarget === undefined || singleOutTarget.length == 0){
                 console.log("no feature selected");
-                this.targetFound = false; 
+                this.targetFound = false;
             } else {
                 const building = singleOutTarget[0].properties.area_planning_type;
                 if(building == "building"){
@@ -121,8 +121,8 @@ export default {
                         this.$store.dispatch('editFeatureProps', feature);
                     })
                     //newFeature.properties.selected = "active";
-                    this.targetFound = true; 
-                    
+                    this.targetFound = true;
+
                 } else {
                     this.targetFound = false;
                 }
@@ -132,8 +132,9 @@ export default {
             console.log("create design layers")
             console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers').then(() => {
-                this.$store.dispatch('orderDesignLayers')
+              this.$store.dispatch('orderDesignLayers')
             })
+          this.checkTableStatus()
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
@@ -174,6 +175,12 @@ export default {
             console.log('leaving layer')
             this.map.getCanvas().style.cursor = ''
             this.popup.remove()
+        },
+        checkTableStatus() {
+          setInterval(function () {
+            console.log("check table status")
+            this.$store.dispatch('checkTableStatus')
+          }.bind(this), 1000);
         }
     }
 }

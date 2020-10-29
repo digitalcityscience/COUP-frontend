@@ -4,6 +4,30 @@ import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
 
 export default {
+  async checkTableStatus({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+    const loadLayers = new Promise(resolve => {
+      let designLayersLoaded = 0;
+      state.cityPyO.getLayer('table')
+        .then(source => {
+            commit('tableGeojson', source.options.data)
+            dispatch('addSourceToMap', source).then(source => {
+              console.log("desgin layers", Designs.layers)
+              // add all layers using this source
+              Designs.layers
+                .filter(l => l.source === source.id)
+                .forEach(l => {
+                  console.log("add layer to map", l)
+                  dispatch('addLayerToMap', l).then(() => {
+                    designLayersLoaded += 1;
+                    if (designLayersLoaded >= Designs.layers.length) {
+                      resolve()
+                    }
+                  })
+                })
+            })
+        })
+    })
+  },
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
     const sourceConfigs = Designs.sources || [];
     const loadLayers = new Promise(resolve => {
