@@ -1,0 +1,20 @@
+{
+  "layer": {
+    "id": "lego-buildings",
+    "type": "fill-extrusion",
+    "source": "lego-buildings",
+    "paint": {
+      "fill-extrusion-color": ["match", ["get", "land_use_detailed_type"], "residential", "#ffb121", "commercialOffice", "#f76a6a", "industrial", "#ff75cf", "daycare", "#4ebffc", "public", "#4ebffc", "#cdcdcd"],
+      "fill-extrusion-height": ["get", "height"],
+      "fill-extrusion-base": 5,
+      "fill-extrusion-opacity": 0.8
+    }
+  },
+  "mapSource": {
+    "id": "lego-buildings",
+    "options": {
+      "type": "geojson",
+      "data": {}
+    }
+  }
+}

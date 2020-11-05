@@ -5,6 +5,12 @@
         "pitch": 0,
         "bearing": 25
     },
+    "tableView": {
+        "center": [10.013542, 53.528397],
+        "zoom": 14.7,
+        "pitch": 0,
+        "bearing": 25
+    },
     "mapStyle": "mapbox://styles/grasbrook/ckdka4jml0yak1iphobimn547",
     "layers": [],
     "deckLayer": {

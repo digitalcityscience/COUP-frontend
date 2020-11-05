@@ -5,6 +5,7 @@ import { abmTripsLayerName, buildAggregationLayer } from '@/store/deck-layers'
 import amenities from '@/config/amenities.json'
 import { alkisTranslations } from '@/store/abm'
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
+import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
     name: 'Map',
@@ -14,6 +15,7 @@ export default {
             lastClicked: [],
             featuresObject: {},
             targetFound: false,
+            connection: null
         }
     },
     computed: {
@@ -24,7 +26,10 @@ export default {
             'map',
             'layers',
             'layerIds',
-            'selectedFeatures'
+            'selectedFeatures',
+        ]),
+        ...generateStoreGetterSetter([
+          ['tableGeojson', 'tableGeojson']
         ]),
         heatMapData(){
             return this.$store.state.scenario.heatMapData;
@@ -44,6 +49,9 @@ export default {
         },
         heatMapType(){
             this.updateHeatMap();
+        },
+        tableGeojson(){
+          this.updateLegoBuildings()
         }
     },
     mounted () {
@@ -73,8 +81,37 @@ export default {
         this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
 
         //console.log(this.$store.state.map);
+
+        this.makeWebsocket()
     },
     methods: {
+      makeWebsocket() {
+        console.log("Starting connection to WebSocket Server")
+        this.connection = new WebSocket('ws://fierce-dawn-73363.herokuapp.com')
+
+        this.connection.onmessage = function connect (e) {
+          var dataString = e.data;
+          if (dataString.indexOf('detectedGeoJson') !== -1 || dataString.indexOf('GeometryCollection') !== -1) {
+            const featureListElement = JSON.parse(dataString)['detectedGeoJson'];
+            this.tableGeojson = JSON.parse(featureListElement);
+          } else {
+            console.log('Received message but not featureCollection: ', dataString)
+          }
+          return false;
+        }.bind(this)
+
+        this.connection.onclose = function (e) {
+          console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+          setTimeout(function () {
+            this.connect();
+          }, 1000);
+        }.bind(this);
+
+        this.connection.onerror = function (err) {
+          console.error('Socket encountered error: ', err.message, 'Closing socket');
+          this.connection.close();
+        };
+      },
         mousePos(evt){
                 this.lastClicked = [];
                 this.lastClicked[0] = ((evt.clientX * 100)/window.innerWidth)/100;
@@ -134,7 +171,7 @@ export default {
             this.$store.dispatch('createDesignLayers').then(() => {
               this.$store.dispatch('orderDesignLayers')
             })
-          this.checkTableStatus()
+          //this.checkTableStatus()
         },
         onMapContextMenu (evt) {
             console.log('Contextmenu', evt)
@@ -148,7 +185,10 @@ export default {
             )
         },
         updateHeatMap(){
-                this.$store.dispatch('scenario/rebuildDeckLayer')
+            this.$store.dispatch('scenario/rebuildDeckLayer')
+        },
+        updateLegoBuildings(){
+            this.$store.dispatch('updateLegoBuildings')
         },
         onAmenitiesHover (evt) {
             this.map.getCanvas().style.cursor = 'pointer'

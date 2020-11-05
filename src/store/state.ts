@@ -11,12 +11,16 @@ const initialState: StoreState = {
     showLegend: false,
     selectedFeatures: [],
     selectedMultiFeatures: [],
-    view: Config['view'] || Defaults.view,
+    view: getView() || Defaults.view,
     mapStyle: Config['mapStyle'] || Defaults.mapStyle,
     accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
     cityPyO: null,
     currentTime: 0,
     tableGeojson: null
+}
+
+function getView() {
+  return Config['view']
 }
 
 export default initialState;

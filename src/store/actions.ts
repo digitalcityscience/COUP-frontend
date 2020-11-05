@@ -1,36 +1,17 @@
 import Designs from '@/config/designs.json'
+import PhysicalTable from '@/config/physicalTable.json'
 import CityPyO from '@/store/cityPyO'
 import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
 
 export default {
-  async checkTableStatus({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
-    const loadLayers = new Promise(resolve => {
-      let designLayersLoaded = 0;
-      state.cityPyO.getLayer('table')
-        .then(tableSource => {
-          //if (JSON.parse(JSON.stringify(state.tableGeojson)) !== JSON.parse(JSON.stringify(tableSource.options.data))) {
-          if (JSON.stringify(state.tableGeojson) !== JSON.stringify(tableSource.options.data)) {
-            commit('tableGeojson', tableSource.options.data)
-            dispatch('addSourceToMap', tableSource).then(source => {
-              // add all layers using this source
-              Designs.layers
-                .filter(l => l.source === source.id)
-                .forEach(l => {
-                  dispatch('addLayerToMap', l).then(() => {
-                    designLayersLoaded += 1;
-                    if (designLayersLoaded >= Designs.layers.length) {
-                      resolve()
-                    }
-                  })
-                })
-            })
-          }
-        })
-    })
+  async updateLegoBuildings({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+      const tableSource = PhysicalTable.mapSource
+      tableSource.options.data = state.tableGeojson
 
-    await loadLayers;
-    return
+      dispatch('addSourceToMap', tableSource).then(source => {
+          dispatch('addLayerToMap', PhysicalTable.layer)
+      })
   },
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
     const sourceConfigs = Designs.sources || [];
