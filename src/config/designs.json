@@ -16,8 +16,19 @@
       "source": "upperfloor",
       "paint": {
         "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#14161a", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#ffb121", "commercialOffice", "#f76a6a", "industrial", "#ff75cf", "daycare", "#4ebffc", "public", "#4ebffc", "#cdcdcd"], "#14161a"],
-        "fill-extrusion-height": ["get", "height"],
+        "fill-extrusion-height": ["get", "building_height"],
         "fill-extrusion-base": 5,
+        "fill-extrusion-opacity": 0.8
+      }
+    },
+    {
+      "id": "rooftops",
+      "type": "fill-extrusion",
+      "source": "rooftops",
+      "paint": {
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#14161a", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#ffb121", "commercialOffice", "#f76a6a", "industrial", "#ff75cf", "daycare", "#4ebffc", "public", "#4ebffc", "#cdcdcd"], "#14161a"],
+        "fill-extrusion-height": ["get", "additional_roof_height"],
+        "fill-extrusion-base": ["get", "building_height"],
         "fill-extrusion-opacity": 0.8
       }
     },
@@ -72,6 +83,14 @@
       "data": {
         "from": "cityPyO",
         "id": "upperfloor"
+      }
+    },
+    {
+      "id": "rooftops",
+      "type": "geojson",
+      "data": {
+        "from": "cityPyO",
+        "id": "rooftops"
       }
     }
   ]
