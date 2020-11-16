@@ -54,8 +54,8 @@ export default {
         dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
       }).then(source => {
       // add layer on top of the layer stack
-      if (rootState.map?.getLayer("spaces")) {
-        rootState.map?.moveLayer(noiseLayerName, "spaces")
+      if (rootState.map?.getLayer("groundfloor")) {
+        rootState.map?.moveLayer(noiseLayerName, "groundfloor")
       }
     })
   },
