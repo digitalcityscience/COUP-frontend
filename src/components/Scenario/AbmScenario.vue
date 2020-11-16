@@ -10,7 +10,8 @@ import {
     blockPermeabilityOptions,
     roofAmenitiesOptions,
     filters,
-    filterOptions
+    filterOptions,
+    workshopScenarioNames
 } from '@/store/abm.ts'
 import TimeSheet from "@/components/Scenario/TimeSheet.vue";
 //import { filter } from 'vue/types/umd';
@@ -30,6 +31,8 @@ export default {
             roofAmenitiesOptions: roofAmenitiesOptions,
             filters: filters,
             filterOptions: filterOptions,
+            filterSettings: {},
+            workshopScenarioNames: workshopScenarioNames,
             age: 21,
             timePaths: [],
             weightData:[],
@@ -65,8 +68,23 @@ export default {
         abmData(){
             return this.$store.state.scenario.abmData;
         },
+        filterSet(){
+            return this.$store.state.scenario.clusteredAbmData;
+        },
+        activeAbmSet(){
+            return this.$store.state.scenario.activeAbmSet;
+        },
+        filterActive(){
+            return this.$store.state.scenario.filterActive;
+        },
         heatMap(){
             return this.$store.state.scenario.heatMap;
+        },
+        workshop(){
+            return this.$store.state.workshop;
+        },
+        showUi(){
+            return this.$store.state.scenario.showUi;
         }
     },
     watch: {
@@ -81,9 +99,14 @@ export default {
           console.log(newVal, oldVal)
         },
         abmData() {
-            this.updateData();
-            console.log("new ABM DATA received")
+            /*this.processAbmDataForHeatmap();
             this.reloadHeatMapLayer = true;
+            */
+        },
+        filterSet(){
+            for(var key in this.filterSet){
+                this.filterSettings[key] = true;
+            }
         },
         heatMap(){
             if(this.heatMap) {
@@ -161,9 +184,6 @@ export default {
             }
         },
         getWeightData(range) {
-
-            console.log("getting weight data and committing")
-
             /*range from slider*/
             this.weightData = [];
             this.weightObjData = [];
@@ -234,11 +254,31 @@ export default {
                 this.getWeightData(this.adjustRange);
             }
         },
-        updateData(){
+        processAbmDataForHeatmap(){
+          /*
           this.clusterTimeData();
           if(this.reloadHeatMapLayer){
               this.getWeightData(this.adjustRange);
           }
+           */
+        },
+        updateFilter(){
+            this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
+            this.$store.commit("scenario/filterSettings", {...this.filterSettings});
+            console.log(this.filterSettings);
+            for(var key in this.filterSettings){
+                if(!this.filterSettings[key]) {
+                    this.$store.commit("scenario/filterActive", true);
+                    return;
+                } else {
+                    this.$store.commit("scenario/filterActive", false);
+                }
+            }
+        },
+        loadWorkshopScenario(scenarioId) {
+            this.$store.dispatch(
+            'scenario/loadWorkshopScenario', scenarioId
+            )
         }
     }
 }
@@ -267,7 +307,7 @@ export default {
 
         <!--each div element needs data-title and data-pic for autocreating menu buttons-->
         <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
-        <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+        <div v-if="!workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content">
                <h2>ABM Scenario Settings</h2>
@@ -370,98 +410,132 @@ export default {
            </div><!--component_content end-->
         </div><!--division end-->
 
+        <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
+        <div v-if="workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+            <!--v-if needs to be set to data-title to make switch between divisions possible-->
+           <div v-if="activeDivision === 'Scenario'" class="component_content">
+               <h2>ABM Scenario Selection</h2>
+               <v-btn  @click="loadWorkshopScenario(workshopScenarioNames[0])" class="scenario_main_btn" block>Default Planning</v-btn>
+               <v-btn  @click="loadWorkshopScenario(workshopScenarioNames[1])" class="scenario_main_btn" block>Session I</v-btn>
+               <v-btn  @click="loadWorkshopScenario(workshopScenarioNames[2])" class="scenario_main_btn" block>Session II</v-btn>
+
+             <v-overlay :value="resultLoading">
+               <div>Loading results</div>
+               <v-progress-linear>...</v-progress-linear>
+             </v-overlay>
+           </div>
+        </div><!--division-end-->
+
+        <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+        <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+        <div v-if="!workshop" class="division" data-title='Dashboard' data-pic='mdi-view-dashboard'>
+            <!--v-if needs to be set to data-title to make switch between divisions possible-->
+           <div v-if="activeDivision === 'Dashboard'" class="component_content">
+               <h2>ABM Dashboard</h2>
+                <ul>
+                    <li>Number Of Agents active: </li>
+                    <li>Average length of track: </li>
+                    <li>Stuff like this: </li>
+                </ul>
+           </div><!--component_content end-->
+        </div><!--division end-->
+
         <div class="division" data-title='Filter' data-pic='mdi-filter'>
             <div v-if="activeDivision === 'Filter'" class="component_content">
 
             <h2>ABM Scenario Filters</h2>
             <v-container fluid>
-                        <v-radio-group v-model="resident_or_visitor">
-                            <v-radio
-                                :value="filterOptions.resident"
+                            <v-checkbox
+                                v-model="filterSettings.resident"
                                 flat
-                                label="Residents only"
+                                label="Show Residents"
                                 dark
-                            />
-                            <v-radio
-                                :value="filterOptions.visitor"
+                                @change="updateFilter"
+                            ></v-checkbox>
+                            <v-checkbox
+                                v-model="filterSettings.visitor"
                                 flat
-                                label="Visitors only"
+                                label="Show Visitors"
                                 dark
-                            />
-                            <v-radio
+                                @change="updateFilter"
+                            ></v-checkbox>
+                            <!--<v-radio
                                 :value="filterOptions.any"
                                 flat
                                 label="Residents & Visitors"
                                 dark
-                            />
-                        </v-radio-group>
+                            />-->
                         <v-container fluid>
                           <v-checkbox
-                                hide-details
-                              v-model="agent_age"
-                              :value="'0-6'"
+                            hide-details
+                              v-model="filterSettings['0-6']"
                               flat
                               label="0-6 years"
                               dark
+                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
-                              v-model="agent_age"
-                              :value="'7-17'"
+                              v-model="filterSettings['7-17']"
                               flat
                               label="7-17 years"
                               dark
+                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
-                              v-model="agent_age"
-                              :value="'18-35'"
+                              v-model="filterSettings['18-35']"
                               flat
                               label="18-35 years"
                               dark
+                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
-                              v-model="agent_age"
-                              :value="'36-60'"
+                              v-model="filterSettings['36-60']"
                               flat
                               label="36-60 years"
                               dark
+                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
-                              v-model="agent_age"
-                              :value="'61-100'"
+                              v-model="filterSettings['61-100']"
                               flat
                               label="61-100 years"
                               dark
+                              @change="updateFilter"
                           />
                         </v-container>
                         <v-switch
-                            v-model="foot"
+                            v-model="filterSettings.foot"
                             flat
                             label="Walking"
                             dark
+                            @change="updateFilter"
                         />
                         <v-switch
-                            v-model="bicycle"
+                            v-model="filterSettings.bicycle"
                             flat
                             label="Biking"
                             dark
+                            @change="updateFilter"
                         />
                         <v-switch
-                            v-model="public_transport"
+                            v-model="filterSettings.public_transport"
                             flat
                             label="Public Transport"
                             dark
+                            @change="updateFilter"
                         />
                         <v-switch
-                            v-model="car"
+                            v-model="filterSettings.car"
                             flat
                             label="Cars"
                             dark
+                            @change="updateFilter"
                         />
                     </v-container>
 
-                    <v-btn @click="confirmSettings" class="confirm_btn">
+                   <!--<v-btn @click="confirmSettings" class="confirm_btn">
                         Run Scenario
-                    </v-btn>
+                    </v-btn>-->
 
                     <v-overlay :value="resultLoading">
                         <div>Loading ABM results</div>
@@ -470,8 +544,8 @@ export default {
             </div>
         </div>
 
-        <div class="division" data-title='Heatmap' data-pic='mdi-gauge'>
-           <div v-if="activeDivision === 'Heatmap'" class="component_content">
+        <div class="division" data-title='Aggregation Layer' data-pic='mdi-gauge'>
+           <div v-if="activeDivision === 'Aggregation Layer'" class="component_content">
             <h2>Capacity Use Map</h2>
                <v-range-slider
                     v-model="adjustRange"
@@ -548,10 +622,23 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+    @import "../../style.main.scss";
 
   #scenario {
     height: 100%;
     width: 100%;
+
+    .scenario_main_btn {
+        height:200px;
+        line-height:200px;
+        text-align:center;
+        color:whitesmoke;
+        margin:10px auto;
+        border-radius:0px;
+        background:rgba(0,0,0,0.9);
+        border:1px solid #aaa;
+        @include drop_shadow;
+    }
 
     .v-input {
         ::v-deep.v-input__control{

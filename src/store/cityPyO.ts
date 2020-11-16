@@ -1,3 +1,6 @@
+import { workshopScenarioNames } from '@/store/abm.ts'
+import Amenities from "@/config/amenities.json";
+
 export default class CityPyO {
     url: string;
     userid: string;
@@ -69,7 +72,15 @@ export default class CityPyO {
       }
     }
 
-    async getAbmResultLayer (id: string | number, scenario: AbmScenario) {
+    async getAbmResultLayer (id: string, scenario: AbmScenario) {
+      // fetch predefined workshop scenario layer
+      if (workshopScenarioNames.includes(id)) {
+        let responseJson = await this.getLayer(id, false)
+
+        return this.formatResponse(id, responseJson.data)
+      }
+
+      // fetch abm scenario based on module settings and view filters
       let requestUrl = this.url +  'getLayer/' + "abmScenario"
       let body = {
         userid: this.userid,
@@ -86,7 +97,15 @@ export default class CityPyO {
     }
 
     // the amenities layer is dependent on the chosen scenario
-    async getAbmAmenitiesLayer (id: string | number, scenario: AbmScenario) {
+    async getAbmAmenitiesLayer (id: string, scenario: AbmScenario) {
+      // fetch predefined workshop scenario layer
+      if (workshopScenarioNames.includes(id)) {
+        let responseJson = await this.getLayer("amenities_" + id)
+        responseJson.id = Amenities.mapSource.data.id
+        return responseJson
+      }
+
+      // else: fetch abmScenario file, including all scenarios from CityPyo
       let query = scenario.moduleSettings.main_street_orientation + "_" + scenario.moduleSettings.roof_amenities
 
       let requestUrl = this.url +  'getLayer/' + query

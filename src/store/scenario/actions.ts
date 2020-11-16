@@ -5,6 +5,7 @@ import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
+import { mdiControllerClassicOutline } from '@mdi/js';
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -90,6 +91,17 @@ export default {
       dispatch("removeSourceFromMap", NoiseLayer.mapSource.data.id, { root: true })
     }
   },
+  loadWorkshopScenario({state, commit, dispatch, rootState}, scenarioId) {
+    let bridges = updateBridges(
+      bridgeNames.bridge_hafencity,
+      bridgeVeddelOptions.diagonal,
+    )
+
+    commit('bridges', bridges)
+    dispatch('updateBridgeLayer')
+    dispatch('updateDeckLayer', scenarioId)
+    dispatch('updateAmenitiesLayer', scenarioId)
+  },
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
     // update scenario name
 
@@ -104,10 +116,13 @@ export default {
     dispatch('updateAmenitiesLayer')
   },
   // load layer source from cityPyo and add the layer to the map
-  updateAmenitiesLayer({state, commit, dispatch, rootState}, payload) {
+  updateAmenitiesLayer({state, commit, dispatch, rootState}, workshopId) {
     // load new data from cityPyo
-    rootState.cityPyO.getAbmAmenitiesLayer(Amenities.mapSource.data.id, state).then(
+    let amenitiesLayerName = workshopId || Amenities.mapSource.data.id
+
+    rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
       source => {
+        console.log("got amenities", source)
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
@@ -149,12 +164,14 @@ export default {
             })
         }
   },
-  updateDeckLayer({state, commit, dispatch, rootState}, payload) {
+  updateDeckLayer({state, commit, dispatch, rootState}, workshopScenario) {
     // show loading screen
     commit('resultLoading', true)
 
+    let scenarioName = workshopScenario || abmTripsLayerName
+
     // load new data from cityPyo
-    rootState.cityPyO.getAbmResultLayer(abmTripsLayerName, state).then(
+    rootState.cityPyO.getAbmResultLayer(scenarioName, state).then(
       result => {
         // remove old trips layer from map
         if (!result) {
@@ -178,23 +195,71 @@ export default {
             commit('addLayerId', abmTripsLayerName, {root: true})
 
             const heatMap = state.heatMap;
+            commit('abmData', deckLayer?.props?.data)
+            dispatch('preclusteringAbm', deckLayer?.props?.data)
+            // finally remove loading screen
+            commit('resultLoading', false)
+
+            const abmData = state.abmData;
+            const activeAbmSet = state.activeAbmSet;
+
             if (!heatMap) {
               commit('animationRunning', true);
               animate(deckLayer, null, null, state.currentTimeStamp)
             }
-
-            commit('abmData', deckLayer?.props?.data)
-
-            // finally remove loading screen
-            commit('resultLoading', false)
           }
         )
       }
     )
     return
   },
-  rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
+  preclusteringAbm({state, commit, dispatch, rootState}, abm){
+    const abmObj = {};
+    console.log(abm);
+    abm.forEach((v)=> {
+      for (const [key, value] of Object.entries(v.agent)) {
+        if(`${key}` !== 'id' && `${key}` !== 'source'){
+          if(`${value}` !== 'unknown' && `${value}` !== 'nil'){
+            abmObj[`${value}`] = abmObj[`${value}`] || [];
+            abmObj[`${value}`].push(v.agent.id);
+          }
+        }
+      }
+    });
+    console.log("PRECLUSTERED ABMOBJ", abmObj);
+    commit('clusteredAbmData', abmObj);
+  },
+  filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
     const abmData = state.abmData;
+    const filterSet = {...state.clusteredAbmData};
+    console.log("FilterSET!", filterSet);
+    const spliceArr = [];
+    //console.log(JSON.parse(JSON.stringify(filterSet)));
+    Object.entries(filterSettings).forEach(([key, value]) => {
+      if(value === true){
+        delete filterSet[key];
+      } else {
+        filterSet[key].forEach(v => {
+          spliceArr.push(v);
+        });
+      }
+    });
+
+    console.log("SPLICE ARRAY", spliceArr)
+    const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id));
+    console.log("FINAL FILTER VALUES", filteredAbm)
+    commit('activeAbmSet', filteredAbm);
+    dispatch('rebuildDeckLayer');
+  },
+  rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
+    //const abmData = state.abmData;
+    const activeAbmSet = state.activeAbmSet;
+
+    if(activeAbmSet != null && activeAbmSet != 'undefined'){
+      var abmData = activeAbmSet;
+    } else {
+      var abmData = state.abmData;
+    }
     const settings = (state.heatMapType == 'average') ? [4, 0.03, 50, 0.5] : [26, 0.01, 80, 0.5];
     const heatMapTypeData = (state.heatMapType == 'average') ? state.heatMapAverage : state.heatMapData;
     console.log("try to rebuild active deck layer");

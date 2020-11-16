@@ -11,6 +11,8 @@ export default {
             toggleFeatures: false,
             toggleSlider: false,
             brightness:1,
+            showUi: true,
+            presentationRunning: false,
         }
     },
     computed: {
@@ -28,9 +30,16 @@ export default {
       ...generateStoreGetterSetter([
         ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
         ['showLegend', 'showLegend' ]
-      ])
+      ]),
+      workshop(){
+          return this.$store.state.workshop;
+      }
     },
     methods:{
+        toggleUi(){
+            this.showUi = !this.showUi;
+            this.$store.commit("scenario/showUi", this.showUi);
+        },
         resetView(){
             this.map.flyTo({
                 center: this.view.center,
@@ -72,7 +81,7 @@ export default {
                     [window.innerWidth, window.innerHeight]
                 ]
 
-                console.log(this.layerIds);
+                //console.log(this.layerIds);
                 const features = this.map.queryRenderedFeatures(bbox, {
                     layers: this.layerIds
                 });
@@ -85,7 +94,40 @@ export default {
                         this.$store.dispatch('editFeatureProps', feature);
                     })
             }
-        }
+        },
+        async adjustPitch(){
+            var zoom = this.map.getZoom();
+            var pitch = this.map.getPitch();
+            var bearing = this.map.getBearing();
+
+            if(zoom > 16 || zoom < 9){
+                this.map.setZoom(13);
+            }
+
+            if(pitch < 25){
+                this.map.setPitch(45);
+            }
+
+            /*if(bearing < 35){
+                this.map.setBearing(65);
+            }*/
+        },
+        presentationMode(){
+            this.presentationRunning = !this.presentationRunning;
+
+            if(this.presentationRunning){
+                this.adjustPitch().then(
+                    this.rotateCamera(0)
+                )
+            }
+        },
+        rotateCamera(timestamp) {
+            this.map.rotateTo((timestamp / 200) % 360, { duration: 0 });
+            // Request the next frame of the animation.
+            if(this.presentationRunning){
+                requestAnimationFrame(this.rotateCamera);
+            }
+        },
     }
 }
 </script>
@@ -93,7 +135,7 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-         <v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ highlight: showLegend }"><v-tooltip top>
+         <v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ highlight: showLegend }"><v-tooltip right>
              <template v-slot:activator="{ on, attrs }">
                <v-icon
                  v-bind="attrs"
@@ -103,7 +145,7 @@ export default {
              <span>Use Types Legend</span>
            </v-tooltip>
            </v-btn>
-         <v-btn @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip top>
+         <v-btn v-if="!workshop" @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
              <v-icon
                v-bind="attrs"
@@ -113,7 +155,7 @@ export default {
            <span>Highlight All Buildings</span>
          </v-tooltip>
          </v-btn>
-           <v-btn class="light_view" v-bind:class="{ highlight: toggleSlider }" @click="toggleSlider = !toggleSlider"> <v-tooltip top>
+           <v-btn class="light_view" v-bind:class="{ highlight: toggleSlider }" @click="toggleSlider = !toggleSlider"> <v-tooltip right>
                  <template v-slot:activator="{ on, attrs }">
                    <v-icon
                      v-bind="attrs"
@@ -144,7 +186,7 @@ export default {
                 </div>
            </v-btn>
            <v-btn class="reset_view" @click="resetView">
-             <v-tooltip top>
+             <v-tooltip right>
                <template v-slot:activator="{ on, attrs }">
                  <v-icon
                    v-bind="attrs"
@@ -154,6 +196,37 @@ export default {
                <span>Home</span>
              </v-tooltip>
            </v-btn>
+           <v-btn class="toggle_ui" @click="toggleUi">
+             <v-tooltip right>
+               <template v-slot:activator="{ on, attrs }">
+                 <v-icon
+                    v-if="showUi"
+                    v-bind="attrs"
+                    v-on="on"
+                 >mdi-eye-off</v-icon>
+                 <v-icon
+                    v-else
+                    v-bind="attrs"
+                    v-on="on"
+                 >mdi-eye</v-icon>
+               </template>
+               <span>Toggle UI</span>
+             </v-tooltip>
+           </v-btn>
+        </div>
+
+        <div class="rogue_btn" v-if="!showUi" :class="{ toggled: presentationRunning }">
+            <v-btn @click="presentationMode">
+                <v-tooltip left>
+                    <template v-slot:activator="{ on, attrs }">
+                        <v-icon
+                            v-bind="attrs"
+                            v-on="on"
+                        >mdi-video</v-icon>
+                    </template>
+                    <span>Presentation Mode</span>
+                </v-tooltip>
+            </v-btn>
         </div>
     </div>
 </template>
@@ -163,17 +236,22 @@ export default {
 
     #viewbar {
         position:fixed;
-        right:31vw;
-        bottom:10px;
+        left:10px;
+        top:50%;
+        transform:translateY(-50%);
         width:auto;
         background:transparent;
 
         .button_bar {
+            display:flex;
+            flex-flow:column wrap;
+            width:40px;
+
             .v-btn {
                 width:40px;
                 min-width:0px;
                 height:30px;
-                margin:0px 2px;
+                margin:2px;
                 background:rgba(255,255,255,0.9);
                 @include drop_shadow;
 
@@ -183,8 +261,8 @@ export default {
 
                 .popup_cnt {
                     position:absolute;
-                    bottom:34px;
-                    right:-12px;
+                    left:34px;
+                    top:0x;
                     width:200px;
                     background:rgba(0,0,0,0.8);
                     @include drop_shadow;
@@ -239,8 +317,33 @@ export default {
             }
         }
 
-        @media(min-device-width:1080px) {
-            right:345px;
+        .rogue_btn {
+            position:fixed;
+            top:calc(-50vh + 100px);
+            left:0px;
+
+            .v-btn {
+                border:1px solid #888;
+                background:transparent;
+                border-radius:0px;
+                @include drop_shadow;
+
+                .v-icon {
+                    color:whitesmoke;
+                }
+            }
+
+            &:after {
+                content:'';
+                position:absolute;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                opacity:0.75;
+                background:$reversed;
+                z-index:-1;
+            }
         }
     }
 </style>

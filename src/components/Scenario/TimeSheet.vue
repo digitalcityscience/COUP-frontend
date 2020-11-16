@@ -10,12 +10,14 @@ export default {
         return {
             timeChart: null,
             currentTimeSet: 0,
-            animationSpeed: 7,
+            animationSpeed: 21,
             timeArray: {},
             timeStamps: [],
             timeCoords: [],
             timeHours: [],
             filterCoords:[],
+            activeAbmTimeCoords:[],
+            intervalNes:[],
             timeFilter: false,
             checkState: false,
             filter:null,
@@ -30,12 +32,20 @@ export default {
     updated(){
         //this.renderTimeGraph();
     },
+    created(){
+        document.onkeydown = this.onkeydown
+    },
     components: {},
     methods:{
+        onkeydown(e){
+            if(e.which === 32){
+                this.triggerAnimation();
+            }
+        },
         triggerAnimation(){
             /*functionality for play button*/
+            console.log(this.currentTimeStamp);
             const animationRunning = this.$store.state.scenario.animationRunning;
-            const animationTime = this.$store.state.scenario.currentTimeStamp;
             this.$store.commit("scenario/animationRunning", !animationRunning);
 
             if(!animationRunning) {
@@ -45,51 +55,83 @@ export default {
 
                 if(deckLayer) {
                     /*if TripsLayer exists animate it*/
-                    animate(deckLayer.implementation, null, null, animationTime);
+                    animate(deckLayer.implementation, null, null, this.currentTimeStamp);
                 } else {
                     /*if TripsLayer was removed by HeatMap rebuild it*/
                     this.$store.dispatch('scenario/rebuildDeckLayer').then(
                         deckLayer => {
                             const newDeckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-                            animate(newDeckLayer.implementation, null, null, animationTime);
+                            animate(newDeckLayer.implementation, null, null, this.currentTimeStamp);
                         }
                     );
                 }
             }
         },
-        getTimeData(){
-            console.log(this.abmData);
-            this.timeStamps = [];
-            this.timeCoords = [];
-            this.timeHours = [];
-            let workingObj = {};
+        getDataForTimeChart(){
+          this.minTime = 8 // time chart start time
+          this.maxTime = 24 // time chart end time
+          //this.maxTime = 99999;
+          const intervalLength = 5 * 60; // interval length in seconds; max interval length = 1h for labels to work
+          const simulationLength = (this.maxTime - this.minTime) * 60 * 60;  // max time in seconds / intervalLength
 
-            /*Add up total agents per timestamp*/
-            this.abmData.forEach((v,i,a) =>{
-                v.timestamps.forEach((v,i,a) => {
-                    workingObj[v] = (workingObj[v]+1) || 1;
+          let intervals = [];
+          this.intervalLabels = [];
+          this.busyAgentsPerInterval = {};
+          //this.timeCoords = [];
+
+          /* create time intervals and their labels on x-axis */
+          const intervalCount = Math.round(simulationLength  / intervalLength)
+          for (let intervalIndex = 0; intervalIndex <= intervalCount; intervalIndex++) {
+            const interval = intervalIndex * intervalLength
+            this.intervalNes = intervalLength;
+            const intervalLabel = Math.floor((interval / 3600) + 8) + ":00" // labels for full hours
+            intervals.push(interval)
+            this.intervalLabels.push(intervalLabel)
+          }
+
+          // initialize busy agents per interval with 0
+          const emptyInterval = {}
+          for (let mode of [...Object.values(this.filterOptions), 'resident', 'visitor', '0-6', '7-17', '18-35', '36-60', '61-100', 'total']) {
+            emptyInterval[mode] = 0
+          }
+          for (let interval of intervals) {
+            this.busyAgentsPerInterval[`${interval}`] = JSON.parse(JSON.stringify(emptyInterval));
+          }
+          
+          if(this.activeAbmSet != null && this.activeAbmSet != 'undefined') {
+            this.activeAbmTimeCoords = [];
+            this.calculateTimeData(this.activeAbmSet, this.intervalNes, this.activeAbmTimeCoords);
+          } else {
+            this.timeCoords = [];
+            this.calculateTimeData(this.abmData, this.intervalNes, this.timeCoords);
+          }
+        },
+        calculateTimeData(data, intervalLength, targetArray){
+            /*Add up total active agents per interval*/
+            // iterate over each agent's timestamps first and log the intervals during which the agent is active
+            data.forEach((agent,i,a) => {
+                let transportMode = agent["agent"]["mode"]
+                let age = agent["agent"]["agent_age"]
+                let resvis = agent["agent"]["resident_or_visitor"]
+                let activeIntervals = []
+                agent.timestamps.forEach((timeStampValue,i,a) => {
+                // iterate over all timestamps and find intervals during which the agent is active
+                let matchingInterval = Math.floor( timeStampValue / intervalLength) * intervalLength
+                if (!activeIntervals.includes(matchingInterval)) {
+                    // if the agent's activity in this interval wasn't logged yet
+                    // increment the busy agents count for this interval
+                    activeIntervals.push(matchingInterval)
+                    this.busyAgentsPerInterval[matchingInterval][age] += 1
+                    this.busyAgentsPerInterval[matchingInterval][resvis] += 1
+                    this.busyAgentsPerInterval[matchingInterval][transportMode] += 1
+                    this.busyAgentsPerInterval[matchingInterval]["total"] += 1
+                }
                 });
             });
 
-            this.timeObj = workingObj;
-
-            /*reformatting data back intro array*/
-            for (const [key, value] of Object.entries(workingObj)) {
-                this.timeStamps.push(`${key}`);
-                this.timeCoords.push(`${value}`)
+            for (const [key, value] of Object.entries(this.busyAgentsPerInterval)) {
+                targetArray.push(`${value['total']}`)
             }
-
-            this.filterCoords = this.timeCoords;
-
-            /*get Max and Min Timestamp*/
-            this.minTime = Math.min(...this.timeStamps);
-            this.maxTime = Math.max(...this.timeStamps);
-
-            /*Round Time Stamps to full hours*/
-            this.timeStamps.forEach((v,i,a) => {
-                let hour = Math.floor(v / 3600) + 8 + ":00";
-                this.timeHours.push(hour);
-            });
 
             this.renderTimeGraph();
         },
@@ -100,10 +142,12 @@ export default {
               this.timeChart.destroy();
             }
 
+            console.log(this.filterCoords)
+
             this.timeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: this.timeHours,
+                    labels: this.intervalLabels,
                     datasets: [
                     {
                         data: this.timeCoords,
@@ -115,8 +159,15 @@ export default {
                     },{
                         data: this.filterCoords,
                         display:this.timeFilter,
-                        label: 'filtered Agents',
+                        label: 'compared Agents',
                         borderColor: 'rgba(81,209,252,0.85)',
+                        borderWidth:1,
+                        fill:true,
+                    },{
+                        data: this.activeAbmTimeCoords,
+                        display:this.filterActive,
+                        label: 'filtered Agents',
+                        borderColor: 'rgba(10,171,135,0.85)',
                         borderWidth:1,
                         fill:true,
                     }
@@ -176,31 +227,20 @@ export default {
             }
         },
         activateFilterGraph(){
-             this.timeFilter = true;
-             this.filterCoords = [];
+           this.timeFilter = true;
+           this.filterCoords = [];
 
-             let workingObj = {};
-
-             /*creating filtered Data for TimeGraph*/
-             this.abmData.forEach((v, i, a) => {
-               v.timestamps.forEach((vv, i, a) => {
-
-                 if (this.filter === "No Filter" || v.agent.mode === this.filterOptions[this.filter]) {
-                   workingObj[vv] = (workingObj[vv] + 1) || 1;
-                 } else {
-                   workingObj[vv] = (workingObj[vv] + 0) || 0;
-                 }
-               });
-             });
-
-             for (const [key, value] of Object.entries(workingObj)) {
-               this.filterCoords.push(`${value}`)
+           if (this.filter === "No Filter") {
+             // do not filter timeCoords
+             this.filterCoords = [...this.timeCoords]
+           } else {
+             // iterate over busy agents and filter for chosen transport option
+             for (const [timestamp, counts] of Object.entries(this.busyAgentsPerInterval)) {
+               this.filterCoords.push(`${counts[this.filterOptions[this.filter]]}`)
              }
-             this.renderTimeGraph();
+           }
+           this.renderTimeGraph();
         },
-        updateData(){
-            this.getTimeData();
-        }
     },
       computed: {
         ...mapState([
@@ -213,20 +253,51 @@ export default {
         abmData(){
             return this.$store.state.scenario.abmData;
         },
+        currentTimeStamp(){
+            return this.$store.state.scenario.currentTimeStamp;
+        },
+        filterSet(){
+            return this.$store.state.scenario.clusteredAbmData;
+        },
+        filterSettings(){
+            return this.$store.state.scenario.filterSettings;
+        },
+        activeAbmSet(){
+            return this.$store.state.scenario.activeAbmSet;
+        },
         heatMapActive(){
             return this.$store.state.scenario.heatMap;
         },
         animationRunning(){
             return this.$store.state.scenario.animationRunning;
+        },
+        filterActive(){
+            return this.$store.state.scenario.filterActive;
+        },
+        showUi(){
+            return this.$store.state.scenario.showUi;
         }
     },
     watch: {
         abmData(){
-            this.updateData();
+          console.log("time sheet watcher")
+          console.log("calling getDataForTimeChart")
+          this.getDataForTimeChart();
         },
         heatMapActive(){
             if(this.heatMapActive) {
                 this.$store.commit('scenario/animationRunning', false);
+            }
+        },
+        filterSettings:{
+            deep: true,
+            handler(){
+                if(this.filterActive){
+                    this.getDataForTimeChart()
+                } else {
+                    this.activeAbmTimeCoords = [];
+                    this.renderTimeGraph();
+                }
             }
         }
     }
@@ -235,7 +306,7 @@ export default {
 </script>
 
 <template>
-    <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet">
+    <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi }">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel">
             <div class="time_graph">
@@ -246,7 +317,7 @@ export default {
                     <v-slider
                         thumb-label="always"
                         :min="minTime"
-                        :max="maxTime"
+                        :max="maxTime * 60 * 60"
                         v-model="currentTimeStamp"
                         @change="changeCurrentTime"
                     ></v-slider>
@@ -274,7 +345,7 @@ export default {
                     <v-icon>mdi-chart-line</v-icon>
                   </v-btn>
                 </template>
-                <span>Filter by Transport Mode</span>
+                <span>Compare by Transport Mode</span>
               </v-tooltip>
                 <div class="filterMenu" v-bind:class="{ visible: checkState }">
                     <div class="wrapper">
@@ -330,8 +401,6 @@ export default {
             </div>
         </div>
     </div>
-  </div>
-
 </template>
 
 <style scoped lang="scss">
@@ -349,6 +418,11 @@ export default {
         padding:10px;
         box-sizing: border-box;
         @include drop_shadow;
+
+        &.ui_hide {
+            transform:translateX(-100vw);
+            transition:0.3s;
+        }
 
         h3 {
             width:100%;

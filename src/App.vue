@@ -18,8 +18,21 @@ export default {
         Viewbar
     },
     computed: {
+        workshop(){
+            return this.$store.state.workshop;
+        },
     },
     watch: {
+        workshop(){
+            if(!this.workshop){
+                console.log("URL does not include workshop")
+            } else {
+                console.log("Url does include workshop");
+            }
+        },
+    },
+    mounted(){
+        this.$store.dispatch('checkoutWorkshop')
     },
     created () {
         this.$store.dispatch('connect', {
@@ -27,7 +40,7 @@ export default {
                 username: 'ernie',
                 password: 'bert'
             }
-        })
+        });
     }
 }
 </script>
@@ -39,6 +52,8 @@ export default {
         <Menu />
         <TimeSheet />
         <Viewbar />
+        
+       <div id="line_canvas"></div>
     </v-app>
 </template>
 
@@ -53,5 +68,16 @@ export default {
 
     .v-application p {
         margin-bottom:0px;
+    }
+
+    #line_canvas {
+        position:fixed;
+        top:0;
+        left:0;
+        /*width:100vw;
+        height:100vh;*/
+        z-index:2;
+        background:transparent;;
+        pointer-events:none;
     }
 </style>

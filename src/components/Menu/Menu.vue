@@ -11,7 +11,8 @@ export default {
     name: 'Menu',
     components: {AbmScenario, SWScenario, MCScenario, NoiseScenario},
     data() {
-        return {}
+        return {
+        }
     },
     mounted(){
     },
@@ -23,7 +24,12 @@ export default {
             set (value) {
                 this.$store.commit('activeMenuComponent', value)
             }
+        },
+        showUi(){
+            return this.$store.state.scenario.showUi;
         }
+    },
+    watch: {
     },
     methods:{
     }
@@ -31,7 +37,7 @@ export default {
 </script>
 
 <template>
-    <div id="menu">
+    <div id="menu" :class="{ ui_hide: !showUi }">
         <div class="header_scope">
             <h3>Grasbrook CityScope</h3>
             <p>Tool for Functional Planning</p>
@@ -69,6 +75,11 @@ export default {
         border-left:1px solid #888;
         font-family: 'Tajawal', sans-serif;
         z-index: 1000;
+
+         &.ui_hide {
+            transform:translateX(100vw);
+            transition:0.3s;
+        }
 
         .header_scope {
             h3 {

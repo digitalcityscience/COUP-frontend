@@ -94,6 +94,12 @@ export default {
       }
     }
   },
+  checkoutWorkshop({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
+    console.log(window.location.href);
+    if (window.location.href.indexOf("/workshop") > -1) {
+      commit('checkoutWorkshop', true);
+    }
+  },
   connect({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
     commit('cityPyO', new CityPyO(options.userdata))
   }

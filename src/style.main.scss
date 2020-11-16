@@ -182,12 +182,34 @@ body, html {
 
 @-webkit-keyframes pulse-border {
     0% {
-            transform:translateX(-100%);
-      }
-      70% {
-            transform:translateX(0);
-      }
-        100% {
-            transform:translateX(100%);
-      }
+        transform:translateX(-100%);
     }
+    70% {
+        transform:translateX(0);
+    }
+    100% {
+        transform:translateX(100%);
+    }
+}
+
+
+//MODAL STYLING
+
+#modals-container {
+    .vm--container {
+        pointer-events:none;
+        .vm--overlay {
+            background:transparent;
+        }
+
+        .vm--modal {
+            pointer-events:all;
+            background:transparent;
+            z-index:1;
+
+            &:hover {
+                z-index:3;
+            }
+        }
+    }
+}

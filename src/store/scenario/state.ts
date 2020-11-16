@@ -4,7 +4,11 @@ export default {
   bridges: [bridges.bridge_hafencity],
   resultLoading: false,
   abmData: null,
+  clusteredAbmData: null,
+  activeAbmSet: null,
   abmObject:{},
+  filterActive: false,
+  filterSettings: null,
   noiseResults: [],
   trafficCounts: null,
   showNoise:false,
@@ -39,5 +43,8 @@ export default {
   heatMapType:'average',
   heatMap:false,
   lastClick: [],
+  showUi: true,
+  modalIndex: 0,
+  allFeaturesHighlighted: false,
 }
 

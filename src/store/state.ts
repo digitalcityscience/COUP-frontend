@@ -16,6 +16,7 @@ const initialState: StoreState = {
     accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
     cityPyO: null,
     currentTime: 0,
+    workshop: false,
 }
 
 export default initialState;
