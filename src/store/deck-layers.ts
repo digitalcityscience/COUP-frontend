@@ -24,7 +24,18 @@ export async function buildTripsLayer(data: DataSet<any>, currentTimeStamp: numb
         getTimestamps: (d) => {
           return d.timestamps
         },
-        getColor: [253, 128, 93],
+        getColor: () => {
+          return [253,128,93];
+          /*if(!store.state.scenario.heatMap){
+            return [253, 128, 93];
+          } else {
+            if(store.state.scenario.heatMapVisible){
+              return [93, 252, 205];
+            } else {
+              return [253, 128, 93];
+            }
+          }*/
+        },
         highlightColor: [255, 56, 56],
         getWidth: 1,
         opacity: 0.3,

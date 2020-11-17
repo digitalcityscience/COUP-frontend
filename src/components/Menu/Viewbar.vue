@@ -9,9 +9,26 @@ export default {
     data() {
         return {
             toggleFeatures: false,
-            toggleSlider: false,
             brightness:1,
             showUi: true,
+            visibility: {
+                layers: false,
+                buildings: false,
+                slider: false,
+            },
+            visibleLayers: {
+                abm: true,
+                heat: true,
+                noise: true,
+                stormwater: true,
+                microclimate: true,
+            },
+            visibleBuildings: {
+                show: true,
+                highlight: false,
+                amenities: true,
+            },
+            legendVisible: false,
             presentationRunning: false,
         }
     },
@@ -33,7 +50,31 @@ export default {
       ]),
       workshop(){
           return this.$store.state.workshop;
+      },
+      abmData(){
+          return this.$store.state.scenario.abmData;
+      },
+      heatMap(){
+          return this.$store.state.scenario.heatMap;
+      },
+      noiseMap(){
+          return this.$store.state.scenario.noiseMap;
+      },
+      stormWater(){
+          return this.$store.state.scenario.stormWater;
+      },
+      microClimate(){
+          return this.$store.state.scenario.microClimate;
       }
+    },
+    watch: {
+        abmData(){},
+        heatMap(newVal, oldVal){
+            console.log(newVal, oldVal);
+        },
+        noiseMap(){},
+        stormWater(){},
+        microClimate(){},
     },
     methods:{
         toggleUi(){
@@ -74,7 +115,7 @@ export default {
 
             } else {
                 this.allFeaturesHighlighted = true;
-                this.openUseTypesLegend();
+                //this.openUseTypesLegend();
 
                 const bbox = [
                     [0, 0],
@@ -94,6 +135,59 @@ export default {
                         this.$store.dispatch('editFeatureProps', feature);
                     })
             }
+        },
+        updateBuildingVisibility(){
+            console.log(this.layerIds);
+            if(!this.visibleBuildings.show){
+                this.map.setLayoutProperty("groundfloor", 'visibility', 'none');
+                this.map.setLayoutProperty("upperfloor", 'visibility', 'none');
+                this.map.setLayoutProperty("rooftops", 'visibility', 'none');
+            } else {
+                this.map.setLayoutProperty("groundfloor", 'visibility', 'visible');
+                this.map.setLayoutProperty("upperfloor", 'visibility', 'visible');
+                this.map.setLayoutProperty("rooftops", 'visibility', 'visible');
+            }
+
+            if(!this.visibleBuildings.amenities){
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'none');
+            } else {
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'visible');
+            }
+        },
+        updateLayerVisibility(){
+            console.log(this.layerIds);
+            if(this.layerIds.indexOf("abmTrips") > -1){
+                if(this.visibleLayers.abm){
+                    this.map.setLayoutProperty("abmTrips", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("abmTrips", 'visibility', 'none');
+                }
+            }
+
+            if(this.layerIds.indexOf("abmHeat") > -1){
+                if(this.visibleLayers.heat){
+                    this.map.setLayoutProperty("abmHeat", 'visibility', 'visible');
+                    //this.$store.commit("scenario/heatMapVisible", true);
+                } else {
+                    this.map.setLayoutProperty("abmHeat", 'visibility', 'none');
+                    //this.$store.commit("scenario/heatMapVisible", false);
+                }
+
+                //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
+            }
+
+            if(this.layerIds.indexOf("noise") > -1){
+                if(this.visibleLayers.noise){
+                    this.map.setLayoutProperty("noise", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("noise", 'visibility', 'none');
+                }
+            }
+        },
+        checkHighlights(active){
+            Object.entries(this.visibility).map(([key, value]) => {
+                return key == active ? this.visibility[key] = !this.visibility[key] : this.visibility[key] = false
+            });
         },
         async adjustPitch(){
             var zoom = this.map.getZoom();
@@ -135,7 +229,7 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-         <v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ highlight: showLegend }"><v-tooltip right>
+         <!--<v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ highlight: showLegend }"><v-tooltip right>
              <template v-slot:activator="{ on, attrs }">
                <v-icon
                  v-bind="attrs"
@@ -144,18 +238,125 @@ export default {
              </template>
              <span>Use Types Legend</span>
            </v-tooltip>
-           </v-btn>
-         <v-btn v-if="!workshop" @click="highlightAllFeatures" v-bind:class="{ highlight: allFeaturesHighlighted }"><v-tooltip right>
-           <template v-slot:activator="{ on, attrs }">
+           </v-btn>-->
+        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFB121;">mdi-city</v-icon> <div class="infobox"><p>Residential</p></div></v-btn>
+        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #F76A6A;">mdi-city</v-icon> <div class="infobox"><p>Commercial</p></div></v-btn>
+        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #4EBFFC;">mdi-city</v-icon> <div class="infobox"><p>Special Use</p></div></v-btn>
+         <v-btn v-if="!workshop" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
+           <template v-slot:activator="{ on, attrs }">   
+            <span @click="checkHighlights('buildings')">
              <v-icon
                v-bind="attrs"
                v-on="on"
              >mdi-city</v-icon>
+             </span>
            </template>
            <span>Highlight All Buildings</span>
          </v-tooltip>
+         <div v-if="visibility.buildings" class="view_popup buildings">
+             <v-checkbox
+                v-model="visibleBuildings.show"
+                label="Show Buildings"
+                @change="updateBuildingVisibility"
+                dark
+                hide-details
+             ></v-checkbox>
+             <v-checkbox
+                v-model="visibleBuildings.highlight"
+                label="Highlight All Buildings"
+                @change="highlightAllFeatures"
+                dark
+                hide-details
+                :disabled="visibleBuildings.show == false"
+             ></v-checkbox>
+             <v-checkbox
+                v-model="visibleBuildings.amenities"
+                label="Show Amenities"
+                @change="updateBuildingVisibility"
+                dark
+                hide-details
+                :disabled="abmData == null"
+             ></v-checkbox>
+             <v-btn class="legendbutton" @click="legendVisible = !legendVisible">
+                 <v-icon>mdi-map-legend</v-icon>
+                <template v-if="legendVisible">Hide Use Type Legend</template>
+                <template v-else>Show Use Type Legend</template>
+             </v-btn>
+         </div>
          </v-btn>
-           <v-btn class="light_view" v-bind:class="{ highlight: toggleSlider }" @click="toggleSlider = !toggleSlider"> <v-tooltip right>
+         <v-btn v-if="!workshop" v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
+             
+           <template v-slot:activator="{ on, attrs }">
+               <span  @click="checkHighlights('layers')">
+             <v-icon
+               v-bind="attrs"
+               v-on="on"
+             >mdi-layers</v-icon>
+           </span>
+           </template>
+           <span>Layer Visibility</span>
+         </v-tooltip>
+         <div v-if="visibility.layers" class="view_popup">
+             <div class="layers">
+                 <h3>ABM Layers</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.abm"
+                    label="ABM Animation Layer"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="abmData == null"
+                 ></v-checkbox>
+                 <v-checkbox
+                    v-model="visibleLayers.heat"
+                    label="ABM Aggregation Layer"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!heatMap"
+                 ></v-checkbox>
+             </div>
+             <div class="layers">
+                 <h3>Noise Layers</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.noise"
+                    label="Noise Polution"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!noiseMap"
+                 ></v-checkbox>
+             </div>
+             <div class="layers">
+                 <h3>Stormwater Layers</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.stormwater"
+                    label="Stormwater Layer"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!stormWater"
+                 ></v-checkbox>
+             </div>
+             <div class="layers">
+                 <h3>Microclimate Layers</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.microclimate"
+                    label="Microclimate Layer"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!microClimate"
+                 ></v-checkbox>
+             </div>
+         </div>
+         </v-btn>
+         <v-btn class="light_view" v-bind:class="{ highlight: visibility.slider }" @click="checkHighlights('slider')"> <v-tooltip right>
                  <template v-slot:activator="{ on, attrs }">
                    <v-icon
                      v-bind="attrs"
@@ -164,7 +365,7 @@ export default {
                  </template>
                  <span>Adjust Brightness</span>
                </v-tooltip>
-                <div class="popup_cnt" v-if="toggleSlider">
+                <div class="popup_cnt" v-if="visibility.slider">
                     <p>Adjust Map Lighting</p>
                     <v-slider
                         dark
@@ -215,6 +416,14 @@ export default {
            </v-btn>
         </div>
 
+        <!--<div class="building_legend" v-if="legendVisible">
+            <h3>Building Use Types</h3>
+            <ul>
+                <li><v-icon class="yellow">mdi-city</v-icon><p>Residential</p></li>
+                <li><v-icon class="red">mdi-city</v-icon><p>Commercial</p></li>
+                <li><v-icon class="blue">mdi-city</v-icon><p>Special Use</p></li>
+            </ul>
+        </div>-->
         <div class="rogue_btn" v-if="!showUi" :class="{ toggled: presentationRunning }">
             <v-btn @click="presentationMode">
                 <v-tooltip left>
@@ -255,8 +464,104 @@ export default {
                 background:rgba(255,255,255,0.9);
                 @include drop_shadow;
 
+                &.legend {
+                    pointer-events:none;
+                    background:rgba(0,0,0,0.9);
+
+                    /*&.yellow {
+                        .v-icon {
+                            color:#FFB121;
+                        }
+                    }
+                    &.red {
+                        .v-icon {
+                            color:#F76A6A;
+                        }
+                    }
+                    &.blue {
+                        .v-icon {
+                            color:#4EBFFC;
+                        }
+                    }*/
+
+                    .infobox {
+                        width:100px;
+                        height:28px;
+                        position:absolute;
+                        top:0;
+                        left:34px;
+                        background:rgba(0,0,0,0.75);
+                        @include drop_shadow;
+
+                        p {
+                            text-transform: none;
+                            color:whitesmoke;
+                            line-height:28px;
+                            font-size:90%;
+                            font-weight:300;
+                        }
+                    }
+                }
+
                 .v-icon {
                     font-size:18px;
+                }
+
+                .view_popup {
+                    position:absolute;
+                    left:34px;
+                    top:50%;
+                    transform:translateY(-50%);
+                    width:200px;
+                    background:rgba(0,0,0,0.8);
+                    @include drop_shadow;
+
+                    &.buildings {
+                        top:0;
+                        transform:translateY(0);
+                    }
+
+                    .layers {
+                        width:100%;
+
+                        h3 {
+                            width:100%;
+                            background:#222;
+                            @include drop_shadow;
+                            font-size:12px;
+                            padding:3px;
+                            text-align:left;
+                            color:#aaa;
+                        }
+                    }
+
+                    .v-input--checkbox {
+                        margin:5px 5px 5px 20px;
+
+                        ::v-deep.v-input__control {
+                            label {
+                                text-transform:none;
+                                color:white;
+                                font-size:90%;
+                                font-weight:200;
+                            }
+                        }
+                    }
+
+                    .legendbutton {
+                        width:calc(100% - 20px);
+                        background:$reversed;
+                        color:whitesmoke;
+                        font-size:85%;
+                        font-weight:300;
+                        text-transform:none;
+                        border-radius:0px;
+                        margin:10px auto;
+
+                        .v-icon {
+                            margin-right:5px;
+                        }
+                    }
                 }
 
                 .popup_cnt {

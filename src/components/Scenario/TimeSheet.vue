@@ -306,7 +306,8 @@ export default {
 </script>
 
 <template>
-    <div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi }">
+    <!--<div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">-->
+        <div id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel">
             <div class="time_graph">
