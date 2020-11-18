@@ -64,9 +64,11 @@ export default {
             if (this.showNoise) {
                 // load the noise map
                 this.loadNoiseMap()
+                this.$store.commit("scenario/noiseMap", true);
             } else {
                 // hide the noise map
-                this.$store.dispatch('scenario/hideNoiseMap')
+                /* old this.$store.dispatch('scenario/hideNoiseMap')*/
+                this.$store.commit("scenario/noiseMap", false);
             }
         }
     }
@@ -130,10 +132,10 @@ export default {
           />
         </v-radio-group>
       </v-container>
-      <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
+      <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
        Hide Noise Result
-      </v-btn>
-      <v-btn @click="showNoiseToggle" class="confirm_btn" v-else>
+      </v-btn>-->
+      <v-btn @click="showNoiseToggle" class="confirm_btn">
        Show Noise Result
       </v-btn>
       <v-overlay :value="resultLoading">

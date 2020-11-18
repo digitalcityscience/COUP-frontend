@@ -40,7 +40,8 @@ export default {
             timeRange:[0, 54000],
             adjustRange:[8, 23],
             datamsg:'',
-            heatMapType:'average',
+            heatMapType:'absolute',
+            pedestrianModel: true,
             btnlabel: 'Generate Aggregation Layer',
             reloadHeatMapLayer: false
         }
@@ -99,8 +100,8 @@ export default {
           console.log(newVal, oldVal)
         },
         abmData() {
-            /*this.processAbmDataForHeatmap();
-            this.reloadHeatMapLayer = true;
+            this.processAbmDataForHeatmap();
+            /*this.reloadHeatMapLayer = true;
             */
         },
         filterSet(){
@@ -183,6 +184,10 @@ export default {
                 this.getWeightData(range);
             }
         },
+        setHeatMapTimes(x,y){
+            this.adjustRange = [x,y];
+            this.changeHeatMapData(this.adjustRange);
+        },
         getWeightData(range) {
             /*range from slider*/
             this.weightData = [];
@@ -255,12 +260,12 @@ export default {
             }
         },
         processAbmDataForHeatmap(){
-          /*
+          
           this.clusterTimeData();
           if(this.reloadHeatMapLayer){
               this.getWeightData(this.adjustRange);
           }
-           */
+           
         },
         updateFilter(){
             this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
@@ -466,6 +471,7 @@ export default {
                                 dark
                             />-->
                         <v-container fluid>
+                            <h3>Age Filters</h3>
                           <v-checkbox
                             hide-details
                               v-model="filterSettings['0-6']"
@@ -503,34 +509,36 @@ export default {
                               @change="updateFilter"
                           />
                         </v-container>
-                        <v-switch
-                            v-model="filterSettings.foot"
-                            flat
-                            label="Walking"
-                            dark
-                            @change="updateFilter"
-                        />
-                        <v-switch
-                            v-model="filterSettings.bicycle"
-                            flat
-                            label="Biking"
-                            dark
-                            @change="updateFilter"
-                        />
-                        <v-switch
-                            v-model="filterSettings.public_transport"
-                            flat
-                            label="Public Transport"
-                            dark
-                            @change="updateFilter"
-                        />
-                        <v-switch
-                            v-model="filterSettings.car"
-                            flat
-                            label="Cars"
-                            dark
-                            @change="updateFilter"
-                        />
+                        <v-container v-if="!pedestrianModel">
+                            <v-switch
+                                v-model="filterSettings.foot"
+                                flat
+                                label="Walking"
+                                dark
+                                @change="updateFilter"
+                            />
+                            <v-switch
+                                v-model="filterSettings.bicycle"
+                                flat
+                                label="Biking"
+                                dark
+                                @change="updateFilter"
+                            />
+                            <v-switch
+                                v-model="filterSettings.public_transport"
+                                flat
+                                label="Public Transport"
+                                dark
+                                @change="updateFilter"
+                            />
+                            <v-switch
+                                v-model="filterSettings.car"
+                                flat
+                                label="Cars"
+                                dark
+                                @change="updateFilter"
+                            />
+                        </v-container>
                     </v-container>
 
                    <!--<v-btn @click="confirmSettings" class="confirm_btn">
@@ -564,6 +572,7 @@ export default {
                             single-line
                             type="number"
                             style="width: 30px"
+                            readonly
                         ></v-text-field>
                     </template>
                     <template v-slot:append>
@@ -574,11 +583,18 @@ export default {
                             single-line
                             type="number"
                             style="width: 30px"
+                            readonly
                         ></v-text-field>
                     </template>
                </v-range-slider>
+               <div class="heatmap_buttons">
+                   <v-btn @click="setHeatMapTimes(8,23)"><v-icon>mdi-av-timer</v-icon></v-btn>
+                   <v-btn @click="setHeatMapTimes(8,10)"><v-icon>mdi-weather-sunset-up</v-icon></v-btn>
+                   <v-btn @click="setHeatMapTimes(11,15)"><v-icon>mdi-weather-sunny</v-icon></v-btn>
+                   <v-btn @click="setHeatMapTimes(17,20)"><v-icon>mdi-weather-sunset-down</v-icon></v-btn>
+               </div>
                <p>{{datamsg}}</p>
-               <v-btn @click="heatMapActive">{{ btnlabel }}</v-btn>
+               <v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>
 
                <div v-if=(heatMap) class="additional">
                    <div class="additional_options">
@@ -586,7 +602,7 @@ export default {
                             <v-container fluid>
                                 <p>{{ heatMapType || 'null' }}</p>
                                 <v-radio-group v-model="heatMapType" :mandatory="true" @change="reloadHeatMap" dark>
-                                    <v-radio label="Average Data" value="average"></v-radio>
+                                    <v-radio label="Absolute Data" value="absolute"></v-radio>
                                     <v-radio label="Relative Data" value="relative"></v-radio>
                                 </v-radio-group>
                             </v-container>

@@ -6,7 +6,7 @@
       "source": "groundfloor",
       "paint": {
         "fill-extrusion-height": 5,
-        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#14161a", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFB121", "commercialOffice", "#F76A6A", "daycare", "#4EBFFC", "public", "#4EBFFC", "#CDCDCD"], "#14161a"],
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFB121", "commercialOffice", "#F76A6A", "daycare", "#4EBFFC", "public", "#4EBFFC", "specialUse", "#4ebffc", "#CDCDCD"], "#f5f5f5"],
         "fill-extrusion-opacity": 0.8
       }
     },
@@ -15,7 +15,7 @@
       "type": "fill-extrusion",
       "source": "upperfloor",
       "paint": {
-        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#14161a", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#ffb121", "commercialOffice", "#f76a6a", "industrial", "#ff75cf", "daycare", "#4ebffc", "public", "#4ebffc", "#cdcdcd"], "#14161a"],
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#ffb121", "commercialOffice", "#f76a6a", "industrial", "#ff75cf", "daycare", "#4ebffc", "public", "#4ebffc", "specialUse", "#4ebffc", "#cdcdcd"], "#f5f5f5"],
         "fill-extrusion-height": ["get", "building_height"],
         "fill-extrusion-base": 5,
         "fill-extrusion-opacity": 0.8
@@ -26,7 +26,7 @@
       "type": "fill-extrusion",
       "source": "rooftops",
       "paint": {
-        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#14161a", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#ffb121", "commercialOffice", "#f76a6a", "industrial", "#ff75cf", "daycare", "#4ebffc", "public", "#4ebffc", "#cdcdcd"], "#14161a"],
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#ffb121", "commercialOffice", "#f76a6a", "industrial", "#ff75cf", "daycare", "#4ebffc", "public", "#4ebffc", "specialUse", "#4ebffc", "#cdcdcd"], "#f5f5f5"],
         "fill-extrusion-height": ["get", "additional_roof_height"],
         "fill-extrusion-base": ["get", "building_height"],
         "fill-extrusion-opacity": 0.8

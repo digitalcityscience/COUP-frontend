@@ -96,6 +96,40 @@ body, html {
     padding-right:50px;
     overflow:auto;
 
+    .heatmap_buttons {
+        display:flex;
+        justify-content:space-between;
+        margin:20px auto;
+
+        .v-btn {
+            flex:0 0 24%;
+            border:1px solid whitesmoke;
+            border-radius:0px;
+            background:$reversed !important;
+
+            .v-icon {
+                color:whitesmoke;
+                font-size: 18px;
+            }
+
+            &:hover {
+                background:#222 !important;
+            }
+        }
+    }
+
+    .main_btn {
+        width:100%;
+        border-radius:0px;
+        border:1px solid #222;
+
+        &:hover {
+            background: black !important;
+            color:whitesmoke;
+            border:1px solid $orange;
+        }
+    }
+
     .component_content {   
         padding:20px;
         box-sizing: border-box;
