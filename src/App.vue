@@ -35,12 +35,7 @@ export default {
         this.$store.dispatch('checkoutWorkshop')
     },
     created () {
-        this.$store.dispatch('connect', {
-            userdata: {
-                username: 'ernie',
-                password: 'bert'
-            }
-        });
+        this.$store.dispatch('connect')
     }
 }
 </script>
@@ -52,7 +47,7 @@ export default {
         <Menu />
         <TimeSheet />
         <Viewbar />
-        
+
        <div id="line_canvas"></div>
     </v-app>
 </template>

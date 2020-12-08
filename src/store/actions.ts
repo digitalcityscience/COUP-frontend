@@ -2,6 +2,7 @@ import Designs from '@/config/designs.json'
 import CityPyO from '@/store/cityPyO'
 import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
+import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
@@ -100,8 +101,13 @@ export default {
       commit('checkoutWorkshop', true);
     }
   },
-  connect({commit}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
-    commit('cityPyO', new CityPyO(options.userdata))
+  connect({commit}: ActionContext<StoreState, StoreState>, options?: ConnectionOptions) {
+    if (!options) {
+      // login with default user if no userdata is passed
+      commit('cityPyO', new CityPyO(CityPyODefaultUser))
+    } else {
+      commit('cityPyO', new CityPyO(options.userdata))
+    }
   }
 
   /***** DO WE STILL NEED THIS?
