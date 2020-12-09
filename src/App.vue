@@ -7,6 +7,9 @@ import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
 import { mapGetters } from 'vuex';
 
+// TODO: just for debugging
+import { filterAbmDataByRegion } from './store/scenario/abmStats';
+
 export default {
     name: 'App',
     components: {
@@ -36,6 +39,7 @@ export default {
     },
     created () {
         this.$store.dispatch('connect')
+        filterAbmDataByRegion()
     }
 }
 </script>

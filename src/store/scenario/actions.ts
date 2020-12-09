@@ -6,6 +6,7 @@ import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, bu
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
+import { calculateDensityOfAmenities } from '@/store/scenario/abmStats'
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -123,11 +124,14 @@ export default {
     rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
       source => {
         console.log("got amenities", source)
+        commit('amenitiesGeoJson', source.options.data)
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
-          }).then(source => { rootState.map?.moveLayer(Amenities.layer.id, "groundfloor")}  // add layer on top of the layer stack
-          )
+          }).then(source => {
+            rootState.map?.moveLayer(Amenities.layer.id, "groundfloor")  // add layer on top of the layer stack
+            calculateDensityOfAmenities()
+          })
       })
   },
   // load layer source from cityPyo and add the layer to the map
@@ -316,21 +320,21 @@ export default {
             if (rootState.map?.getLayer(abmAggregationLayerName)) {
               rootState.map?.removeLayer(abmAggregationLayerName)
             }
-  
+
             /*if(rootState.map?.getLayer(abmTripsLayerName)) {
               rootState.map?.removeLayer(abmTripsLayerName);
               commit('removeLayerId', abmTripsLayerName, {root: true})
             }*/
-  
+
             console.log("new aggregation layer loaded");
             rootState.map?.addLayer(deckLayer)
             commit('addLayerId', abmAggregationLayerName, {root: true})
             if (rootState.map?.getLayer("groundfloor")) {
               rootState.map?.moveLayer("abmHeat", "groundfloor")
             }
-  
+
           });
-      } 
+      }
   },
 }
 
