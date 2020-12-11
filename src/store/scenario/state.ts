@@ -3,7 +3,8 @@ import {bridges, filterOptions, roofAmenitiesOptions} from "@/store/abm";
 export default {
   bridges: [bridges.bridge_hafencity],
   resultLoading: false,
-  loader: false,
+  loader: true,
+  loaderTxt: 'data is loading ... ', 
   abmData: null,
   clusteredAbmData: null,
   activeAbmSet: null,

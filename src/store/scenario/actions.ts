@@ -176,6 +176,8 @@ export default {
     let scenarioName = workshopScenario || abmTripsLayerName
 
     //LOAD DATA FROM CITYPYO
+    
+    commit("loaderTxt", "Getting ABM Simulation Data from CityPyO ... ");
     rootState.cityPyO.getAbmResultLayer(scenarioName, state).then(
       result => {
         if (!result) {
@@ -185,6 +187,8 @@ export default {
           return
         }
 
+        
+        commit("loaderTxt", "Serving Abm Data ... ");
         commit('abmData', result.options?.data);
         dispatch("computeLoop", result.options?.data);
       }
@@ -199,6 +203,8 @@ export default {
 
     console.log(abmCore);
     //go through each agent inside the abm set (agent, index, array)
+    
+    commit("loaderTxt", "Clustering ABM Data for functional purposes ... ");
     abmCore.forEach((who,index,array) => {
       let agent_id = who.agent.id;
       // #1 Clustering Agent Sets for faster Filtering in Frontend
@@ -217,6 +223,8 @@ export default {
       // #2 Clustering TIME DATA for Aggregation Layer
       // ---------------- TIME DATA ------------------------------
 
+      
+      commit("loaderTxt", "Analyzing Time Data ... ");
       who.timestamps.forEach((v,i,a) => {
         /*round timestamps to full hours*/
         var h = Math.floor(v / 3600) + 8;
@@ -235,6 +243,8 @@ export default {
         /*simpleTimeData[v] = simpleTimeData[v] || [];
         simpleTimeData[v].push(agent_id);*/
 
+        
+        commit("loaderTxt", "Creating Simple Time Data Arrays ... ");
         simpleTimeData[Math.floor(v/300)*300] = simpleTimeData[Math.floor(v/300)*300] || {};
         simpleTimeData[Math.floor(v/300)*300]["all"] = simpleTimeData[Math.floor(v/300)*300]["all"] || [];
         simpleTimeData[Math.floor(v/300)*300][who.agent.mode] = simpleTimeData[Math.floor(v/300)*300][who.agent.mode] || [];
@@ -245,6 +255,8 @@ export default {
         simpleTimeData[Math.floor(v/300)*300][who.agent.agent_age].push(agent_id);
         simpleTimeData[Math.floor(v/300)*300][who.agent.resident_or_visitor].push(agent_id);
 
+        
+        commit("loaderTxt", "Creating Busy Agents ... ");
         if(i == 0){
           timePaths[h].busyAgents.push(agent_id);
         }
@@ -394,9 +406,7 @@ export default {
       const timePaths = state.abmTimePaths;
       const filterSet = {...state.clusteredAbmData};
       const spliceArr = [];
-
-      
-
+  
       Object.entries(filterSettings).forEach(([key, value]) => {
         if(value === true){
           delete filterSet[key];
@@ -406,35 +416,21 @@ export default {
           });
         }
       });
-
+  
       const filteredTimePaths = JSON.parse(JSON.stringify(timePaths));
       console.log(filteredTimePaths);
       const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id));
       Object.entries(filteredTimePaths).forEach(([key, value]) => {
         if(value){
           filteredTimePaths[key].busyAgents = filteredTimePaths[key].busyAgents.filter(v => !spliceArr.includes(v));
-          console.log("saeraer", filteredTimePaths[key].busyAgents.length);
-        } else {
-          console.log("i am not 0");
         }
       });
-      
+
       console.log("new Filter Setting applied");
       commit('activeAbmSet', filteredAbm);
       commit('activeTimePaths', filteredTimePaths);
       dispatch('updateLayers', "all");
-
-      //commit("loader", false);
-
-    
-      /**/
-     
       commit("loader", false);
-  },
-  
-
-  dispatchLoader({state, commit, dispatch, rootState}, obj){
-    commit("loader", obj);
   }
 }
 

@@ -156,7 +156,6 @@ export default {
         },
         updateFilter(){
             this.$store.commit("scenario/loader", true);
-            console.log("I GO TRUE", this.loader);
             this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
             this.$store.commit("scenario/filterSettings", {...this.filterSettings});
             
@@ -203,9 +202,10 @@ export default {
         <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
         <div v-if="!workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
-           <div v-if="activeDivision === 'Scenario'" class="component_content">
+           <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
                <h2>ABM Scenario Settings</h2>
                 <v-container fluid>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                             BRIDGES
                         </header>
@@ -214,7 +214,7 @@ export default {
                             flat
                             label="Bridge to HafenCity"
                             dark
-                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#FD805D' : '#888'"
+                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#fff' : '#888'"
                             :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
                         />
                         <v-radio-group v-model="bridge_veddel" :class="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? 'switched' : 'na'">
@@ -223,16 +223,18 @@ export default {
                                 flat
                                 label="Bridge to S Veddel (North)"
                                 dark
-                                :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#fff' : '#888'"
                             />
                           <v-radio
                             :value="bridgeVeddelOptions.horizontal"
                             flat
                             label="Bridge to S Veddel (South)"
                             dark
-                            :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#FD805D' : '#888'"
+                            :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#fff' : '#888'"
                           />
                         </v-radio-group>
+                     </div>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'highlight' : 'na'">  
                         <header class="text-sm-left">
                             MAIN STREET ORIENTATION
                         </header>
@@ -242,16 +244,18 @@ export default {
                                 flat
                                 label="North-South Axes"
                                     dark
-                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#fff' : '#888'"
                             />
                             <v-radio
                                 :value="mainStreetOrientationOptions.horizontal"
                                 flat
                                 label="East-West Axes"
                                 dark
-                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#fff' : '#888'"
                             />
                         </v-radio-group>
+                    </div>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.blocks != blocks ? 'highlight' : 'na'">  
                         <header class="text-sm-left">
                           CITY BLOCK STRUCTURE
                         </header>
@@ -261,7 +265,7 @@ export default {
                                 flat
                                 label="Permeable"
                                 dark
-                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#fff' : '#888'"
 
                             />
                             <v-radio
@@ -269,9 +273,11 @@ export default {
                                 flat
                                 label="Private"
                                 dark
-                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#fff' : '#888'"
                             />
                         </v-radio-group>
+                    </div>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                           AMENITY DISTRIBUTION
                         </header>
@@ -281,18 +287,18 @@ export default {
                                 flat
                                 label="Clustered by Type"
                                 dark
-                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#fff' : '#888'"
                             />
                             <v-radio
                                 :value="roofAmenitiesOptions.random"
                                 flat
                                 label="Mixed Distribution"
                                 dark
-                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#fff' : '#888'"
                             />
                         </v-radio-group>
+                    </div>
                     </v-container>
-
                     <v-btn @click="confirmSettings" class="confirm_btn" :class="{ changesMade : resultOutdated }">
                       Run Scenario
                     </v-btn>
@@ -344,14 +350,12 @@ export default {
                                 flat
                                 label="Show Residents"
                                 dark
-                                @change="updateFilter"
                             ></v-checkbox>
                             <v-checkbox
                                 v-model="filterSettings.visitor"
                                 flat
                                 label="Show Visitors"
                                 dark
-                                @change="updateFilter"
                             ></v-checkbox>
                             <!--<v-radio
                                 :value="filterOptions.any"
@@ -367,35 +371,30 @@ export default {
                               flat
                               label="0-6 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['7-17']"
                               flat
                               label="7-17 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['18-35']"
                               flat
                               label="18-35 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['36-60']"
                               flat
                               label="36-60 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['61-100']"
                               flat
                               label="61-100 years"
                               dark
-                              @change="updateFilter"
                           />
                         </v-container>
                         <!--<v-container v-if="!pedestrianModel">
@@ -428,6 +427,7 @@ export default {
                                 @change="updateFilter"
                             />
                         </v-container>-->
+                        <v-btn @click="updateFilter">Apply Filters</v-btn>
                     </v-container>
 
                    <!--<v-btn @click="confirmSettings" class="confirm_btn">
@@ -533,6 +533,37 @@ export default {
     height: 100%;
     width: 100%;
 
+    .scenario_box {
+        position:relative;
+        padding:10px;
+        box-sizing: border-box;
+        margin:3px auto;
+
+        &:after {
+            display:block;
+            content:'';
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:$darkblue;
+            opacity:0.35;
+            z-index:-1;
+        }
+
+        &.highlight {
+            &:after {
+                background:$darkred;
+            }
+        }
+
+        &:hover {
+            &:after {
+                opacity:0.5;
+            }
+        }
+    }
     .scenario_main_btn {
         height:200px;
         line-height:200px;
@@ -561,10 +592,10 @@ export default {
         &.switched {
             ::v-deep.v-input__control {
                 label {
-                    color:#FD805D;
+                    color:white;
                 }
                 .v-input--switch__thumb {
-                    background: #FD805D;
+                    background: white;
                     opacity:0.8;
                 }
             }

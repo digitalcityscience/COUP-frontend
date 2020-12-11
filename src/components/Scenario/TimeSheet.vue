@@ -15,6 +15,7 @@ export default {
             timeStamps: [],
             timeCoords: [],
             timeHours: [],
+            heatMapRange:{ left: "0%", width: "100%"},
             filterCoords:[],
             activeAbmTimeCoords:[],
             transCoords: [],
@@ -204,6 +205,9 @@ export default {
         abmData(){
             return this.$store.state.scenario.abmData;
         },
+        selectedRange(){
+            return this.$store.state.scenario.selectedRange;
+        },
         abmTimePaths(){
             return this.$store.state.scenario.abmTimePaths;
         },
@@ -249,6 +253,15 @@ export default {
         },
         currentTimeStamp(){
             this.currentTime = this.currentTimeStamp;
+            console.log(this.currentTime);
+        },
+        selectedRange(){
+            var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
+            var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
+            
+            this.heatMapRange.left = (leftVal * 100)/57600 + "%";
+            this.heatMapRange.width = ((rightVal - leftVal) * 100)/57600 + "%";
+            console.log(this.heatMapRange);
         },
         filterSettings:{
             deep: true,
@@ -279,10 +292,12 @@ export default {
                     <v-slider
                         thumb-label="always"
                         :min="minTime"
-                        :max="maxTime * 60 * 60"
+                        :max="57600"
                         v-model="currentTime"
                         @change="changeCurrentTime"
                     ></v-slider>
+                </div>
+                <div class="range_slider" :style="{ 'left': heatMapRange.left, 'width': heatMapRange.width }">>
                 </div>
             </div>
             <div class="animation_info">
@@ -408,8 +423,10 @@ export default {
                 background:rgba(0,0,0,0.5);
             }
             .time_slider {
+                position:relative;
                 width: 265px;
                 margin: 0px 0px 0px auto;
+
                 #run_slider {
 
                     ::v-deep.v-input {
@@ -469,6 +486,13 @@ export default {
                         }
                     }
                 }
+
+                .range_slider {
+                    position:absolute;
+                    height:120px;
+                    bottom:70px;
+                    background:rgba(255,255,255,0.15);
+                }
             }
 
             .animation_info {
@@ -513,7 +537,7 @@ export default {
                  &:last-child {
                         ::v-deep.v-btn {
                             opacity:1;
-                            border:1px solid $reversed;
+                            border:1px solid $darkred;
                         }
                     }
 

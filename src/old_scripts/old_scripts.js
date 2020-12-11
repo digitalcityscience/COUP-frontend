@@ -205,3 +205,7 @@ getDataForTimeChart(){
           });
       } 
   },
+
+  //OLD COLORS FOR USE CASE
+
+  "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFB121", "commercialOffice", "#F76A6A", "daycare", "#4EBFFC", "public", "#4EBFFC", "specialUse", "#4ebffc", "#CDCDCD"], "#f5f5f5"],

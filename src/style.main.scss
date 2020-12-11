@@ -13,7 +13,8 @@ $orange: rgba(16,245,229,1);
 $opaqueorange: rgba(16, 245, 229, 0.2);
 $darkred: #ab0124;
 $reversed: #0176AC;
-$darkblue: #436C8F;
+$darkblue: #294252;
+$darkgrey:#222;
 $greyblue: #56799C;
 $red: #E65449;
 $pink: #FE517E;
@@ -149,6 +150,16 @@ body, html {
         padding:20px;
         box-sizing: border-box;
 
+        &.scenario {
+            padding:0;
+
+            h2 {
+                padding:10px;
+                margin-top:20px;
+                margin-bottom:-20px;
+            }
+        }
+
         h2 {
             font-size:100%;
             color:$bright1;
@@ -156,11 +167,13 @@ body, html {
         }
 
         .container {
-            border: 1px solid #222;
+            //border: 1px solid #222;
             margin: 5px auto;
 
             header {
-                color:$orange;
+                //color:$orange;
+                font-size:90%;
+                color:white;
             }
 
             .v-slider {
@@ -169,6 +182,7 @@ body, html {
 
             ::v-deep.v-input {
                 margin:4px !important;
+                font-size:90%;
                 // display:none !important; // @bert: why is this set?
 
                 ::v-deep.v-messages {
@@ -178,15 +192,15 @@ body, html {
         }
 
         .confirm_btn {
-            width:100%;
+            width:calc(100% - 20px);
             border-radius:0px;
-            margin: 5px auto;
+            margin: 0px 10px;
             background:$reversed !important;
             color:$bright1;
             @include drop_shadow;
 
             &.changesMade {
-                background:$opaqueorange !important;
+                background:$greyblue !important;
                 //animation:pulse 1.5s infinite;
                 //-webkit-animation: pulse 1.5s infinite;
                 overflow:hidden;
@@ -199,12 +213,12 @@ body, html {
                 &:after {
                     content:'';
                     width:300%;
-                    height:3px;
+                    height:1px;
                     position:absolute;
                     bottom:0;
                     left:0;
                     //border-top:1px solid salmon;
-                    background:linear-gradient(45deg, $orange, $pink, $red, $pink);
+                    background:linear-gradient(45deg, white, $darkred);
                     animation:pulse-border 2.5s infinite;
                     -webkit-animation:pulse-border 2.5s infinite;
                 }

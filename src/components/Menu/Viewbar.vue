@@ -250,9 +250,9 @@ export default {
              <span>Use Types Legend</span>
            </v-tooltip>
            </v-btn>-->
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFB121;">mdi-city</v-icon> <div class="infobox"><p>Residential</p></div></v-btn>
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #F76A6A;">mdi-city</v-icon> <div class="infobox"><p>Commercial</p></div></v-btn>
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #4EBFFC;">mdi-city</v-icon> <div class="infobox"><p>Special Use</p></div></v-btn>
+        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-city</v-icon> <div class="infobox"><p>Residential</p></div></v-btn>
+        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #ab0124;">mdi-city</v-icon> <div class="infobox"><p>Commercial</p></div></v-btn>
+        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Special Use</p></div></v-btn>
          <v-btn v-if="!workshop" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">   
             <span @click="checkHighlights('buildings')">
