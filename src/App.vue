@@ -5,6 +5,7 @@ import Scenario from "@/components/Scenario/AbmScenario";
 import Menu from "./components/Menu/Menu.vue";
 import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
+import Loader from "./components/Loader/Loader.vue";
 import { mapGetters } from 'vuex';
 
 export default {
@@ -15,12 +16,16 @@ export default {
         Scenario,
         TimeSheet,
         Menu,
-        Viewbar
+        Viewbar,
+        Loader
     },
     computed: {
         workshop(){
             return this.$store.state.workshop;
         },
+        loader(){
+            return this.$store.state.loader;
+        }
     },
     watch: {
         workshop(){
@@ -30,9 +35,15 @@ export default {
                 console.log("Url does include workshop");
             }
         },
+        loader(){
+            console.log("something is happening with me", this.loader);
+        }
     },
     mounted(){
-        this.$store.dispatch('checkoutWorkshop')
+        console.log("i am loaded", this.loader);
+        this.$store.dispatch('checkoutWorkshop');
+        this.$on('showLoader', this.displayLoader(true));
+        this.$on('hideLoader', this.displayLoader(false));
     },
     created () {
         this.$store.dispatch('connect', {
@@ -41,7 +52,12 @@ export default {
                 password: 'bert'
             }
         });
-    }
+    },
+    methods:{
+        displayLoader(status){
+            console.log("i am triggering", status);
+        }
+    },
 }
 </script>
 
@@ -52,8 +68,8 @@ export default {
         <Menu />
         <TimeSheet />
         <Viewbar />
-        
-       <div id="line_canvas"></div>
+        <Loader />
+        <div id="line_canvas"></div>
     </v-app>
 </template>
 
@@ -64,6 +80,18 @@ export default {
         -moz-osx-font-smoothing: grayscale;
         text-align: center;
         color: #2c3e50;
+    }
+
+    Map, GFI, TimeSheet {
+        z-index:2;
+    }
+
+    Loader {
+        z-index:5;
+    }
+
+    Menu, Viewbar {
+        z-index:7;
     }
 
     .v-application p {
@@ -80,4 +108,7 @@ export default {
         background:transparent;;
         pointer-events:none;
     }
+
+    
 </style>
+

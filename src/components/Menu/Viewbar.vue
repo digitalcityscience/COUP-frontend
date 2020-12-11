@@ -51,6 +51,9 @@ export default {
       workshop(){
           return this.$store.state.workshop;
       },
+      loader(){
+          return this.$store.state.scenario.loader;
+      },
       abmData(){
           return this.$store.state.scenario.abmData;
       },
@@ -104,6 +107,10 @@ export default {
           )
         },
         highlightAllFeatures(){
+            
+            this.$store.commit("scenario/loader", true);
+            console.log(this.loader)
+
             if(this.allFeaturesHighlighted){
                 this.allFeaturesHighlighted = false;
                 const featuresToRemove = this.selectedMultiFeatures;
@@ -135,6 +142,10 @@ export default {
                         this.$store.dispatch('editFeatureProps', feature);
                     })
             }
+
+            
+            this.$store.commit("scenario/loader", false);
+            console.log(this.loader)
         },
         updateBuildingVisibility(){
             console.log(this.layerIds);

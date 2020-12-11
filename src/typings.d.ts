@@ -74,7 +74,7 @@ declare global {
         accessToken: string,
         cityPyO: CityPyO | null,
         mapStyle: string,
-        workshop: Boolean
+        workshop: Boolean,
       }
 
       interface View {

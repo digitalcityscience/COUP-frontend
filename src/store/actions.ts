@@ -36,6 +36,7 @@ export default {
     })
 
     await loadLayers;
+    commit("scenario/loader", false);
     return
   },
   orderDesignLayers ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {

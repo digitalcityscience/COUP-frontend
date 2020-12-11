@@ -8,10 +8,12 @@
 
 $bright1: whitesmoke;
 $bright2: #ccc;
-$orange: rgba(253, 128, 93, 1);
-$opaqueorange: rgba(253, 128, 93, 0.65);
+//$orange: rgba(253, 128, 93, 1);
+$orange: rgba(16,245,229,1);
+$opaqueorange: rgba(16, 245, 229, 0.2);
+$darkred: #ab0124;
 $reversed: #0176AC;
-$darkblue: #2c3e50;
+$darkblue: #436C8F;
 $greyblue: #56799C;
 $red: #E65449;
 $pink: #FE517E;
@@ -58,8 +60,9 @@ body, html {
         li {
             width:40px;
             height:40px;
+            transform:scale(0.9);
             background:rgba(0,0,0,0.7);
-            border:1px solid #888;
+            //border:1px solid #888;
             margin-bottom:2px;
 
             .component_link {
@@ -83,8 +86,20 @@ body, html {
                 width:40px;
                 transform-origin: right;
                 background:rgba(0,0,0,0.9);
+                border:1px solid $bright1;
                 border-right:1px solid black;
                 @include drop_shadow;
+
+                &.hidden {
+                    opacity:1;
+                    transform:scale(1.03);
+                }
+            }
+
+            &.hidden {
+                transform:translateX(50px) scale(0.5);
+                opacity:0;
+                transition:0.3s;
             }
         }
     }

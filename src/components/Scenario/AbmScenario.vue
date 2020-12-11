@@ -40,7 +40,7 @@ export default {
             timeRange:[0, 54000],
             adjustRange:[8, 23],
             datamsg:'',
-            heatMapType:'absolute',
+            heatMapType:'default',
             pedestrianModel: true,
             btnlabel: 'Generate Aggregation Layer',
             reloadHeatMapLayer: false
@@ -66,6 +66,9 @@ export default {
             ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
             ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
         ]),
+        loader(){
+            return this.$store.state.loader;
+        },
         abmData(){
             return this.$store.state.scenario.abmData;
         },
@@ -99,11 +102,6 @@ export default {
           console.log("changes made")
           console.log(newVal, oldVal)
         },
-        abmData() {
-            this.processAbmDataForHeatmap();
-            /*this.reloadHeatMapLayer = true;
-            */
-        },
         filterSet(){
             for(var key in this.filterSet){
                 this.filterSettings[key] = true;
@@ -111,9 +109,9 @@ export default {
         },
         heatMap(){
             if(this.heatMap) {
-                this.btnlabel = "Unplug Aggregation Layer"
+                this.btnlabel = "Hide Aggregation Layer"
             } else if (!this.heatMap) {
-                this.btnlabel = "Generate Aggregation Layer"
+                this.btnlabel = "Show Aggregation Layer"
             }
         }
     },
@@ -144,133 +142,23 @@ export default {
                 'scenario/updateAbmDesignScenario'
             )
         },
-        /*retransformating abmData fitting for TimeMap*/
-        /*cluster Time Stamp Data for rounded full hours*/
-        clusterTimeData(){
-            if (this.abmData) {
-                this.timePaths = [];
-                this.abmData.forEach((v,i,a) => {
-                    v.timestamps.forEach((vv,ii,aa) => {
-                    /*round timestamps to full hours*/
-                       var h = Math.floor(vv / 3600) + 8;
-                       /*create Object with hours as Keys and according path data (array) as values*/
-                       this.timePaths[h] = this.timePaths[h] || [];
-                       this.timePaths[h].push(v.path[ii]);
-                    });
-                });
-
-                /*calculating Weight value for each coordinate (sum up appearences of unique coordinates*/
-                this.timePaths = Object.values(this.timePaths).map(arr => {
-
-                    let weightCount = {};
-
-                    const newArr = arr.map(value => {
-                        return value.join() /*formating coordinates to string to make them readable*/
-                    }).sort().forEach(value => {
-                        /*creating Object with unique coordinates as Keys and number of instances of coordinate as Weight value*/
-                        weightCount[value] = (weightCount[value] +1)  ||  1;
-                    });
-
-                    const objArr = weightCount;
-                    return objArr;
-
-                    /*pre clustering time data done*/
-                });
-            }
-
-        },
-        changeHeatMapData(range){
-            if(this.heatMap){
-                this.getWeightData(range);
-            }
+        changeHeatMapData(){
+            this.$store.commit("scenario/selectedRange", this.adjustRange);
+            this.$store.commit("scenario/heatMapType", this.heatMapType);
+            this.$store.dispatch("scenario/updateLayers", "heatMap")
         },
         setHeatMapTimes(x,y){
             this.adjustRange = [x,y];
-            this.changeHeatMapData(this.adjustRange);
-        },
-        getWeightData(range) {
-            /*range from slider*/
-            this.weightData = [];
-            this.weightObjData = [];
-
-            if(this.abmData) {
-                this.datamsg = "ABM Data loaded";
-
-                let filterTimeObj = Object.assign({},this.timePaths);
-
-                console.log(filterTimeObj);
-
-                let timeCoordData = {};
-
-                /*rearranging object data*/
-                for (const [key, value] of Object.entries(filterTimeObj)) {
-                    key = `${key}`;
-                    value = `${value}`;
-
-                    /*Only take the values from hours in slider range*/
-                    if(key >= range[0] - 8 && key <= range[1] - 8) {
-                        /*Add up the values of each hour into new Object*/
-                        for (const [coord, weight] of Object.entries(filterTimeObj[key])) {
-                            coord = `${coord}`;
-                            weight = `${weight}`;
-
-                            timeCoordData[coord] = + weight || weight;
-                        };
-                    } else {
-                        /*delete Object key outside of slider range*/
-                        delete filterTimeObj[key];
-                    }
-                }
-
-                var finalDataSet = [];
-                var averageDataSet = [];
-
-                /*reformating Object into Array Of Object so it fits deck.gl heatmap data requirements*/
-                for(const [key, value] of Object.entries(timeCoordData)) {
-                    key = `${key}`;
-                    value = `${value}`;
-
-                    let int = parseInt(value);
-                    /*split Coordinates Strings back to Integer Arrays*/
-                    /*create relative values*/
-                    let coordinate = { Coordinates: key.split(",").map(Number), Weight: int};
-                    /*create average values*/
-                    let coordinateA = { Coordinates: key.split(",").map(Number), Weight: 1};
-                    finalDataSet.push(coordinate);
-                    averageDataSet.push(coordinateA);
-                }
-
-                /*commit final data for heatmap to store*/
-                this.$store.commit("scenario/heatMapData", finalDataSet);
-                this.$store.commit("scenario/heatMapAverage", averageDataSet);
-
-             } else {
-                this.datamsg = "No ABM Data loaded";
-            }
-
-        },
-        reloadHeatMap(){
-            this.$store.commit("scenario/heatMapType", this.heatMapType);
+            this.changeHeatMapData();
         },
         heatMapActive(){
             this.$store.commit("scenario/heatMap", !this.heatMap);
-
-            if(this.heatMap){
-                this.getWeightData(this.adjustRange);
-            }
-        },
-        processAbmDataForHeatmap(){
-          
-          this.clusterTimeData();
-          if(this.reloadHeatMapLayer){
-              this.getWeightData(this.adjustRange);
-          }
-           
         },
         updateFilter(){
+            this.$store.commit("scenario/loader", true);
             this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
             this.$store.commit("scenario/filterSettings", {...this.filterSettings});
-            console.log(this.filterSettings);
+            
             for(var key in this.filterSettings){
                 if(!this.filterSettings[key]) {
                     this.$store.commit("scenario/filterActive", true);
@@ -294,7 +182,7 @@ export default {
         <div class="component_divisions">
             <ul>
                 <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="{ highlight: activeDivision === division.title }">
+                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', abmData == 'undefined' || abmData == null ? 'hidden' : '']">
                     <div class="component_link" @click="activeDivision = division.title">
                       <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">
@@ -509,7 +397,7 @@ export default {
                               @change="updateFilter"
                           />
                         </v-container>
-                        <v-container v-if="!pedestrianModel">
+                        <!--<v-container v-if="!pedestrianModel">
                             <v-switch
                                 v-model="filterSettings.foot"
                                 flat
@@ -538,7 +426,7 @@ export default {
                                 dark
                                 @change="updateFilter"
                             />
-                        </v-container>
+                        </v-container>-->
                     </v-container>
 
                    <!--<v-btn @click="confirmSettings" class="confirm_btn">
@@ -562,7 +450,7 @@ export default {
                     hide-details
                     dark
                     class="align-center"
-                    @change="changeHeatMapData(adjustRange)"
+                    @change="changeHeatMapData()"
                >
                     <template v-slot:prepend>
                         <v-text-field
@@ -601,8 +489,8 @@ export default {
                        <template>
                             <v-container fluid>
                                 <p>{{ heatMapType || 'null' }}</p>
-                                <v-radio-group v-model="heatMapType" :mandatory="true" @change="reloadHeatMap" dark>
-                                    <v-radio label="Absolute Data" value="absolute"></v-radio>
+                                <v-radio-group v-model="heatMapType" :mandatory="true" @change="changeHeatMapData" dark>
+                                    <v-radio label="Absolute Data" value="default"></v-radio>
                                     <v-radio label="Relative Data" value="relative"></v-radio>
                                 </v-radio-group>
                             </v-container>
