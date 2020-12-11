@@ -35,12 +35,8 @@ export default {
                 console.log("Url does include workshop");
             }
         },
-        loader(){
-            console.log("something is happening with me", this.loader);
-        }
     },
     mounted(){
-        console.log("i am loaded", this.loader);
         this.$store.dispatch('checkoutWorkshop');
         this.$on('showLoader', this.displayLoader(true));
         this.$on('hideLoader', this.displayLoader(false));

@@ -67,7 +67,7 @@ export default {
             ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
         ]),
         loader(){
-            return this.$store.state.loader;
+            return this.$store.state.scenario.loader;
         },
         abmData(){
             return this.$store.state.scenario.abmData;
@@ -156,6 +156,7 @@ export default {
         },
         updateFilter(){
             this.$store.commit("scenario/loader", true);
+            console.log("I GO TRUE", this.loader);
             this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
             this.$store.commit("scenario/filterSettings", {...this.filterSettings});
             

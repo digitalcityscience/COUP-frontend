@@ -6,7 +6,7 @@ export default {
     components: {},
     data() {
         return {
-           
+           loading: this.loader,
         }
     },
     computed: {
@@ -18,7 +18,14 @@ export default {
             return this.$store.state.scenario.loader;
         }
     },
+    watch: {
+        loader(val){
+            console.log("iam logging", val);
+            this.loading = val;
+        }
+    },
     mounted(){ 
+        console.log("at beginners lvl", this.loading);
     },
     methods:{
         
@@ -28,7 +35,7 @@ export default {
 
 <template>
  
-        <div id="big_loader" :class="loader ? '' : 'hidden'">
+        <div id="big_loader" :class="loading ? '' : 'hidden'">
             <div class="css-loader"><div></div><div></div><div></div><div></div></div>
         </div>
 </template>
@@ -46,7 +53,7 @@ export default {
         backdrop-filter:blur(5px) saturate(180%);
         background:radial-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.8));
 
-        &:hidden {
+        &.hidden {
             display:none;
         }
 

@@ -5,6 +5,8 @@ import {Layer} from 'mapbox-gl'
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+    
+    commit("scenario/loader", true);
     const sourceConfigs = Designs.sources || [];
     const loadLayers = new Promise(resolve => {
       let designLayersLoaded = 0;

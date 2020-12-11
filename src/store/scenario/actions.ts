@@ -170,6 +170,7 @@ export default {
   initialAbmComputing({state, commit, dispatch, rootState}, workshopScenario){
     //show loading screen
     commit('resultLoading', true)
+    commit("loader", true);
 
     //check if special workshop Scenario should be loaded
     let scenarioName = workshopScenario || abmTripsLayerName
@@ -272,6 +273,7 @@ export default {
 
     // hide loading screen
     commit('resultLoading', false);
+    commit('loader', false);
   },
   buildLayers({state, commit, dispatch, rootState}){
     const tripsLayerData = state.activeAbmSet;
@@ -388,7 +390,6 @@ export default {
     }
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
-    console.log("2", state.loader);
       const abmData = state.abmData;
       const timePaths = state.abmTimePaths;
       const filterSet = {...state.clusteredAbmData};
@@ -428,12 +429,12 @@ export default {
     
       /**/
      
-      commit("scenario/loader", false);
+      commit("loader", false);
   },
   
 
   dispatchLoader({state, commit, dispatch, rootState}, obj){
-    commit("scenario/loader", obj);
+    commit("loader", obj);
   }
 }
 
