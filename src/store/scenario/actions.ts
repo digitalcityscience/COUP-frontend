@@ -6,7 +6,6 @@ import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, bu
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
-import { calculateDensityOfAmenities } from '@/store/scenario/abmStats'
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -130,7 +129,6 @@ export default {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
           }).then(source => {
             rootState.map?.moveLayer(Amenities.layer.id, "groundfloor")  // add layer on top of the layer stack
-            calculateDensityOfAmenities()
           })
       })
   },

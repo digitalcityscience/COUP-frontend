@@ -14,6 +14,7 @@ import {
     workshopScenarioNames
 } from '@/store/abm.ts'
 import TimeSheet from "@/components/Scenario/TimeSheet.vue";
+import {calculateDensityOfAmenities, calculatePedestrianDensity, clusterTimeData} from "@/store/scenario/abmStats";
 //import { filter } from 'vue/types/umd';
 
 export default {
@@ -143,6 +144,11 @@ export default {
           this.$store.dispatch(
                 'scenario/updateAbmDesignScenario'
             )
+        },
+        calculateAbmStats() {
+          //calculateDensityOfAmenities()
+          //calculatePedestrianDensity()
+          clusterTimeData()
         },
         /*retransformating abmData fitting for TimeMap*/
         /*cluster Time Stamp Data for rounded full hours*/
@@ -442,6 +448,10 @@ export default {
                     <li>Average length of track: </li>
                     <li>Stuff like this: </li>
                 </ul>
+
+             <v-btn @click="calculateAbmStats()">
+               Calculate Stats
+             </v-btn>
            </div><!--component_content end-->
         </div><!--division end-->
 
