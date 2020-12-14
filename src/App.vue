@@ -42,18 +42,8 @@ export default {
         this.$on('hideLoader', this.displayLoader(false));
     },
     created () {
-        this.$store.dispatch('connect', {
-            userdata: {
-                username: 'ernie',
-                password: 'bert'
-            }
-        });
-    },
-    methods:{
-        displayLoader(status){
-            console.log("i am triggering", status);
-        }
-    },
+        this.$store.dispatch('connect')
+    }
 }
 </script>
 

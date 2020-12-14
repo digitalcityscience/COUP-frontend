@@ -312,6 +312,9 @@ export default {
                 </v-btn>
             </div>
             -->
+            <!-- Filter disabled for now, as we do currently have no transport mode data in the ABM results.
+                  However function can be reused later for different filter topics
+
             <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
               <v-tooltip right>
                 <template v-slot:activator="{ on, attrs }">
@@ -326,9 +329,6 @@ export default {
               </v-tooltip>
                 <div class="filterMenu" v-bind:class="{ visible: checkState }">
                     <div class="wrapper">
-                        <!--<div class="hint">
-                            <p>Select a dataset to compare</p>
-                        </div>-->
                         <v-select
                             :items="filterLabels"
                             label="Select"
@@ -341,6 +341,7 @@ export default {
                     </div>
                 </div>
             </div>
+           END OF FILTER BUTTON SECTION  -->
             <div class="btn_wrapper">
                   <v-tooltip right>
                     <template v-slot:activator="{ on, attrs }">
