@@ -56,7 +56,7 @@ export default {
         },
         heatMapType(){
             this.updateHeatMap();
-        }
+        },
     },
     mounted () {
         mapboxgl.accessToken = this.accessToken
@@ -233,7 +233,7 @@ export default {
             }
         },
         updateHeatMap(){
-                this.$store.dispatch('scenario/rebuildDeckLayer')
+                //this.$store.dispatch('scenario/rebuildDeckLayer')
         },
         onAmenitiesHover (evt) {
             this.map.getCanvas().style.cursor = 'pointer'

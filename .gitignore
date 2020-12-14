@@ -3,7 +3,7 @@ node_modules
 /dist
 
 # user credentials
-/src/config/cityPyoDefaultUser.json
+src/config/cityPyoDefaultUser.json
 
 # local env files
 .env.local

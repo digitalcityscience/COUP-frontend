@@ -15,8 +15,10 @@ export default {
             timeStamps: [],
             timeCoords: [],
             timeHours: [],
+            heatMapRange:{ left: "0%", width: "100%"},
             filterCoords:[],
             activeAbmTimeCoords:[],
+            transCoords: [],
             intervalNes:[],
             timeFilter: false,
             checkState: false,
@@ -25,6 +27,7 @@ export default {
             filterOptions: {"Pedestrian": "foot", "Bicycle": "bicycle", "Public Transport": "public_transport", "Car": "car"},
             minTime: 0,
             maxTime: 0,
+            currentTime:0,
         }
     },
     mounted(){
@@ -44,95 +47,42 @@ export default {
         },
         triggerAnimation(){
             /*functionality for play button*/
-            console.log(this.currentTimeStamp);
             const animationRunning = this.$store.state.scenario.animationRunning;
             this.$store.commit("scenario/animationRunning", !animationRunning);
 
-            if(!animationRunning) {
-                /*deactivate HeatMap*/
-                this.$store.commit("scenario/heatMap", false);
+            if(!animationRunning){
                 const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-
-                if(deckLayer) {
-                    /*if TripsLayer exists animate it*/
-                    animate(deckLayer.implementation, null, null, this.currentTimeStamp);
-                } else {
-                    /*if TripsLayer was removed by HeatMap rebuild it*/
-                    this.$store.dispatch('scenario/rebuildDeckLayer').then(
-                        deckLayer => {
-                            const newDeckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-                            animate(newDeckLayer.implementation, null, null, this.currentTimeStamp);
-                        }
-                    );
-                }
+                animate(deckLayer.implementation, null, null, this.currentTimeStamp);
             }
         },
         getDataForTimeChart(){
-          this.minTime = 8 // time chart start time
-          this.maxTime = 24 // time chart end time
-          //this.maxTime = 99999;
-          const intervalLength = 5 * 60; // interval length in seconds; max interval length = 1h for labels to work
-          const simulationLength = (this.maxTime - this.minTime) * 60 * 60;  // max time in seconds / intervalLength
+            Object.entries(this.abmSimpleTimes).forEach(entry =>{
+                const [key, value] = entry;
+                let label = Math.floor(key/3600) + 8 + ":00";
+                let coords = [...new Set(value.all)];
 
-          let intervals = [];
-          this.intervalLabels = [];
-          this.busyAgentsPerInterval = {};
-          //this.timeCoords = [];
-
-          /* create time intervals and their labels on x-axis */
-          const intervalCount = Math.round(simulationLength  / intervalLength)
-          for (let intervalIndex = 0; intervalIndex <= intervalCount; intervalIndex++) {
-            const interval = intervalIndex * intervalLength
-            this.intervalNes = intervalLength;
-            const intervalLabel = Math.floor((interval / 3600) + 8) + ":00" // labels for full hours
-            intervals.push(interval)
-            this.intervalLabels.push(intervalLabel)
-          }
-
-          // initialize busy agents per interval with 0
-          const emptyInterval = {}
-          for (let mode of [...Object.values(this.filterOptions), 'resident', 'visitor', '0-6', '7-17', '18-35', '36-60', '61-100', 'total']) {
-            emptyInterval[mode] = 0
-          }
-          for (let interval of intervals) {
-            this.busyAgentsPerInterval[`${interval}`] = JSON.parse(JSON.stringify(emptyInterval));
-          }
-
-          if(this.activeAbmSet != null && this.activeAbmSet != 'undefined') {
-            this.activeAbmTimeCoords = [];
-            this.calculateTimeData(this.activeAbmSet, this.intervalNes, this.activeAbmTimeCoords);
-          } else {
-            this.timeCoords = [];
-            this.calculateTimeData(this.abmData, this.intervalNes, this.timeCoords);
-          }
-        },
-        calculateTimeData(data, intervalLength, targetArray){
-            /*Add up total active agents per interval*/
-            // iterate over each agent's timestamps first and log the intervals during which the agent is active
-            data.forEach((agent,i,a) => {
-                let transportMode = agent["agent"]["mode"]
-                let age = agent["agent"]["agent_age"]
-                let resvis = agent["agent"]["resident_or_visitor"]
-                let activeIntervals = []
-                agent.timestamps.forEach((timeStampValue,i,a) => {
-                // iterate over all timestamps and find intervals during which the agent is active
-                let matchingInterval = Math.floor( timeStampValue / intervalLength) * intervalLength
-                if (!activeIntervals.includes(matchingInterval)) {
-                    // if the agent's activity in this interval wasn't logged yet
-                    // increment the busy agents count for this interval
-                    activeIntervals.push(matchingInterval)
-                    this.busyAgentsPerInterval[matchingInterval][age] += 1
-                    this.busyAgentsPerInterval[matchingInterval][resvis] += 1
-                    this.busyAgentsPerInterval[matchingInterval][transportMode] += 1
-                    this.busyAgentsPerInterval[matchingInterval]["total"] += 1
-                }
-                });
+                this.timeStamps.push(label);
+                this.timeCoords.push(coords.length);
             });
 
-            for (const [key, value] of Object.entries(this.busyAgentsPerInterval)) {
-                targetArray.push(`${value['total']}`)
-            }
+            this.renderTimeGraph();
+        },
+        getFilteredDataForTimeChart(){
+            this.activeAbmTimeCoords = [];
+            Object.entries(this.abmSimpleTimes).forEach(([key, value]) => {
+                this.transCoords = [];
+                var spliceArr = [];
 
+                Object.entries(this.filterSettings).forEach(([filterKey, filterValue]) => {
+                    if(!filterValue){
+                        spliceArr = [...new Set(value[filterKey]), ...spliceArr];
+                    }
+                });
+                
+                let removeDuplicates = [...new Set(value.all)];
+                this.transCoords = removeDuplicates.filter(el => !spliceArr.includes(el));
+                this.activeAbmTimeCoords.push(this.transCoords.length);
+            });
             this.renderTimeGraph();
         },
         renderTimeGraph(){
@@ -142,16 +92,15 @@ export default {
               this.timeChart.destroy();
             }
 
-            console.log(this.filterCoords)
-
             this.timeChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: this.intervalLabels,
+                    labels: this.timeStamps,
                     datasets: [
                     {
                         data: this.timeCoords,
-                        borderColor: 'rgba(253, 128, 93, 1)',
+                        //borderColor: 'rgba(253, 128, 93, 1)',
+                        borderColor: 'rgba(16,245,229,1)',
                         backgroundColor: 'rgba(0,0,0,0.75)',
                         borderWidth: 1,
                         fill: false,
@@ -223,10 +172,10 @@ export default {
             /*reanimate abm Tripslayer with new currentTime*/
             if(this.animationRunning) {
                 const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-                animate(deckLayer.implementation, null, null, this.currentTimeStamp);
+                animate(deckLayer.implementation, null, null, this.currentTime);
             }
         },
-        activateFilterGraph(){
+        activateComparisonGraph(){
            this.timeFilter = true;
            this.filterCoords = [];
 
@@ -234,10 +183,13 @@ export default {
              // do not filter timeCoords
              this.filterCoords = [...this.timeCoords]
            } else {
-             // iterate over busy agents and filter for chosen transport option
-             for (const [timestamp, counts] of Object.entries(this.busyAgentsPerInterval)) {
-               this.filterCoords.push(`${counts[this.filterOptions[this.filter]]}`)
-             }
+               
+                Object.values(this.abmSimpleTimes).forEach(value =>{
+                    let coords = [...new Set(value[this.filterOptions[this.filter]])];
+                    this.filterCoords.push(coords.length);
+                });
+
+                this.renderTimeGraph();
            }
            this.renderTimeGraph();
         },
@@ -252,6 +204,18 @@ export default {
         ),
         abmData(){
             return this.$store.state.scenario.abmData;
+        },
+        selectedRange(){
+            return this.$store.state.scenario.selectedRange;
+        },
+        abmTimePaths(){
+            return this.$store.state.scenario.abmTimePaths;
+        },
+        activeTimePaths(){
+            return this.$store.state.scenario.activeTimePaths;
+        },
+        abmSimpleTimes(){
+            return this.$store.state.scenario.abmSimpleTimes;
         },
         currentTimeStamp(){
             return this.$store.state.scenario.currentTimeStamp;
@@ -280,20 +244,30 @@ export default {
     },
     watch: {
         abmData(){
-          console.log("time sheet watcher")
-          console.log("calling getDataForTimeChart")
-          this.getDataForTimeChart();
+            this.getDataForTimeChart();
         },
         heatMapActive(){
             if(this.heatMapActive) {
                 this.$store.commit('scenario/animationRunning', false);
             }
         },
+        currentTimeStamp(){
+            this.currentTime = this.currentTimeStamp;
+            console.log(this.currentTime);
+        },
+        selectedRange(){
+            var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
+            var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
+            
+            this.heatMapRange.left = (leftVal * 100)/57600 + "%";
+            this.heatMapRange.width = ((rightVal - leftVal) * 100)/57600 + "%";
+            console.log(this.heatMapRange);
+        },
         filterSettings:{
             deep: true,
             handler(){
                 if(this.filterActive){
-                    this.getDataForTimeChart()
+                    this.getFilteredDataForTimeChart();
                 } else {
                     this.activeAbmTimeCoords = [];
                     this.renderTimeGraph();
@@ -318,10 +292,12 @@ export default {
                     <v-slider
                         thumb-label="always"
                         :min="minTime"
-                        :max="maxTime * 60 * 60"
-                        v-model="currentTimeStamp"
+                        :max="57600"
+                        v-model="currentTime"
                         @change="changeCurrentTime"
                     ></v-slider>
+                </div>
+                <div class="range_slider" :style="{ 'left': heatMapRange.left, 'width': heatMapRange.width }">>
                 </div>
             </div>
             <div class="animation_info">
@@ -360,7 +336,7 @@ export default {
                             persistent-hint
                             dark
                             v-model="filter"
-                            @change="activateFilterGraph"
+                            @change="activateComparisonGraph"
                         ></v-select>
                     </div>
                 </div>
@@ -448,8 +424,10 @@ export default {
                 background:rgba(0,0,0,0.5);
             }
             .time_slider {
+                position:relative;
                 width: 265px;
                 margin: 0px 0px 0px auto;
+
                 #run_slider {
 
                     ::v-deep.v-input {
@@ -509,6 +487,13 @@ export default {
                         }
                     }
                 }
+
+                .range_slider {
+                    position:absolute;
+                    height:120px;
+                    bottom:70px;
+                    background:rgba(255,255,255,0.15);
+                }
             }
 
             .animation_info {
@@ -553,7 +538,7 @@ export default {
                  &:last-child {
                         ::v-deep.v-btn {
                             opacity:1;
-                            border:1px solid $reversed;
+                            border:1px solid $darkred;
                         }
                     }
 

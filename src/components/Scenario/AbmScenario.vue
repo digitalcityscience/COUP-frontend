@@ -41,7 +41,7 @@ export default {
             timeRange:[0, 54000],
             adjustRange:[8, 23],
             datamsg:'',
-            heatMapType:'absolute',
+            heatMapType:'default',
             pedestrianModel: true,
             btnlabel: 'Generate Aggregation Layer',
             reloadHeatMapLayer: false
@@ -67,6 +67,9 @@ export default {
             ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
             ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
         ]),
+        loader(){
+            return this.$store.state.scenario.loader;
+        },
         abmData(){
             return this.$store.state.scenario.abmData;
         },
@@ -100,11 +103,6 @@ export default {
           console.log("changes made")
           console.log(newVal, oldVal)
         },
-        abmData() {
-            this.processAbmDataForHeatmap();
-            /*this.reloadHeatMapLayer = true;
-            */
-        },
         filterSet(){
             for(var key in this.filterSet){
                 this.filterSettings[key] = true;
@@ -112,9 +110,9 @@ export default {
         },
         heatMap(){
             if(this.heatMap) {
-                this.btnlabel = "Unplug Aggregation Layer"
+                this.btnlabel = "Hide Aggregation Layer"
             } else if (!this.heatMap) {
-                this.btnlabel = "Generate Aggregation Layer"
+                this.btnlabel = "Show Aggregation Layer"
             }
         }
     },
@@ -150,133 +148,23 @@ export default {
           //calculatePedestrianDensity()
           clusterTimeData()
         },
-        /*retransformating abmData fitting for TimeMap*/
-        /*cluster Time Stamp Data for rounded full hours*/
-        clusterTimeData(){
-            if (this.abmData) {
-                this.timePaths = [];
-                this.abmData.forEach((v,i,a) => {
-                    v.timestamps.forEach((vv,ii,aa) => {
-                    /*round timestamps to full hours*/
-                       var h = Math.floor(vv / 3600) + 8;
-                       /*create Object with hours as Keys and according path data (array) as values*/
-                       this.timePaths[h] = this.timePaths[h] || [];
-                       this.timePaths[h].push(v.path[ii]);
-                    });
-                });
-
-                /*calculating Weight value for each coordinate (sum up appearences of unique coordinates*/
-                this.timePaths = Object.values(this.timePaths).map(arr => {
-
-                    let weightCount = {};
-
-                    const newArr = arr.map(value => {
-                        return value.join() /*formating coordinates to string to make them readable*/
-                    }).sort().forEach(value => {
-                        /*creating Object with unique coordinates as Keys and number of instances of coordinate as Weight value*/
-                        weightCount[value] = (weightCount[value] +1)  ||  1;
-                    });
-
-                    const objArr = weightCount;
-                    return objArr;
-
-                    /*pre clustering time data done*/
-                });
-            }
-
-        },
-        changeHeatMapData(range){
-            if(this.heatMap){
-                this.getWeightData(range);
-            }
+        changeHeatMapData(){
+            this.$store.commit("scenario/selectedRange", this.adjustRange);
+            this.$store.commit("scenario/heatMapType", this.heatMapType);
+            this.$store.dispatch("scenario/updateLayers", "heatMap")
         },
         setHeatMapTimes(x,y){
             this.adjustRange = [x,y];
-            this.changeHeatMapData(this.adjustRange);
-        },
-        getWeightData(range) {
-            /*range from slider*/
-            this.weightData = [];
-            this.weightObjData = [];
-
-            if(this.abmData) {
-                this.datamsg = "ABM Data loaded";
-
-                let filterTimeObj = Object.assign({},this.timePaths);
-
-                console.log(filterTimeObj);
-
-                let timeCoordData = {};
-
-                /*rearranging object data*/
-                for (const [key, value] of Object.entries(filterTimeObj)) {
-                    key = `${key}`;
-                    value = `${value}`;
-
-                    /*Only take the values from hours in slider range*/
-                    if(key >= range[0] - 8 && key <= range[1] - 8) {
-                        /*Add up the values of each hour into new Object*/
-                        for (const [coord, weight] of Object.entries(filterTimeObj[key])) {
-                            coord = `${coord}`;
-                            weight = `${weight}`;
-
-                            timeCoordData[coord] = + weight || weight;
-                        };
-                    } else {
-                        /*delete Object key outside of slider range*/
-                        delete filterTimeObj[key];
-                    }
-                }
-
-                var finalDataSet = [];
-                var averageDataSet = [];
-
-                /*reformating Object into Array Of Object so it fits deck.gl heatmap data requirements*/
-                for(const [key, value] of Object.entries(timeCoordData)) {
-                    key = `${key}`;
-                    value = `${value}`;
-
-                    let int = parseInt(value);
-                    /*split Coordinates Strings back to Integer Arrays*/
-                    /*create relative values*/
-                    let coordinate = { Coordinates: key.split(",").map(Number), Weight: int};
-                    /*create average values*/
-                    let coordinateA = { Coordinates: key.split(",").map(Number), Weight: 1};
-                    finalDataSet.push(coordinate);
-                    averageDataSet.push(coordinateA);
-                }
-
-                /*commit final data for heatmap to store*/
-                this.$store.commit("scenario/heatMapData", finalDataSet);
-                this.$store.commit("scenario/heatMapAverage", averageDataSet);
-
-             } else {
-                this.datamsg = "No ABM Data loaded";
-            }
-
-        },
-        reloadHeatMap(){
-            this.$store.commit("scenario/heatMapType", this.heatMapType);
+            this.changeHeatMapData();
         },
         heatMapActive(){
             this.$store.commit("scenario/heatMap", !this.heatMap);
-
-            if(this.heatMap){
-                this.getWeightData(this.adjustRange);
-            }
-        },
-        processAbmDataForHeatmap(){
-
-          this.clusterTimeData();
-          if(this.reloadHeatMapLayer){
-              this.getWeightData(this.adjustRange);
-          }
-
         },
         updateFilter(){
+            this.$store.commit("scenario/loader", true);
             this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
             this.$store.commit("scenario/filterSettings", {...this.filterSettings});
-            console.log(this.filterSettings);
+
             for(var key in this.filterSettings){
                 if(!this.filterSettings[key]) {
                     this.$store.commit("scenario/filterActive", true);
@@ -300,7 +188,7 @@ export default {
         <div class="component_divisions">
             <ul>
                 <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="{ highlight: activeDivision === division.title }">
+                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', abmData == 'undefined' || abmData == null ? 'hidden' : '']">
                     <div class="component_link" @click="activeDivision = division.title">
                       <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">
@@ -320,9 +208,10 @@ export default {
         <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
         <div v-if="!workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
-           <div v-if="activeDivision === 'Scenario'" class="component_content">
+           <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
                <h2>ABM Scenario Settings</h2>
                 <v-container fluid>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                             BRIDGES
                         </header>
@@ -331,7 +220,7 @@ export default {
                             flat
                             label="Bridge to HafenCity"
                             dark
-                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#FD805D' : '#888'"
+                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#fff' : '#888'"
                             :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
                         />
                         <v-radio-group v-model="bridge_veddel" :class="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? 'switched' : 'na'">
@@ -340,16 +229,18 @@ export default {
                                 flat
                                 label="Bridge to S Veddel (North)"
                                 dark
-                                :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#fff' : '#888'"
                             />
                           <v-radio
                             :value="bridgeVeddelOptions.horizontal"
                             flat
                             label="Bridge to S Veddel (South)"
                             dark
-                            :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#FD805D' : '#888'"
+                            :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#fff' : '#888'"
                           />
                         </v-radio-group>
+                     </div>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                             MAIN STREET ORIENTATION
                         </header>
@@ -359,16 +250,18 @@ export default {
                                 flat
                                 label="North-South Axes"
                                     dark
-                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#fff' : '#888'"
                             />
                             <v-radio
                                 :value="mainStreetOrientationOptions.horizontal"
                                 flat
                                 label="East-West Axes"
                                 dark
-                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#fff' : '#888'"
                             />
                         </v-radio-group>
+                    </div>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.blocks != blocks ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                           CITY BLOCK STRUCTURE
                         </header>
@@ -378,7 +271,7 @@ export default {
                                 flat
                                 label="Permeable"
                                 dark
-                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#fff' : '#888'"
 
                             />
                             <v-radio
@@ -386,9 +279,11 @@ export default {
                                 flat
                                 label="Private"
                                 dark
-                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#fff' : '#888'"
                             />
                         </v-radio-group>
+                    </div>
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                           AMENITY DISTRIBUTION
                         </header>
@@ -398,18 +293,18 @@ export default {
                                 flat
                                 label="Clustered by Type"
                                 dark
-                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#fff' : '#888'"
                             />
                             <v-radio
                                 :value="roofAmenitiesOptions.random"
                                 flat
                                 label="Mixed Distribution"
                                 dark
-                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#FD805D' : '#888'"
+                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#fff' : '#888'"
                             />
                         </v-radio-group>
+                    </div>
                     </v-container>
-
                     <v-btn @click="confirmSettings" class="confirm_btn" :class="{ changesMade : resultOutdated }">
                       Run Scenario
                     </v-btn>
@@ -448,7 +343,6 @@ export default {
                     <li>Average length of track: </li>
                     <li>Stuff like this: </li>
                 </ul>
-
              <v-btn @click="calculateAbmStats()">
                Calculate Stats
              </v-btn>
@@ -465,14 +359,12 @@ export default {
                                 flat
                                 label="Show Residents"
                                 dark
-                                @change="updateFilter"
                             ></v-checkbox>
                             <v-checkbox
                                 v-model="filterSettings.visitor"
                                 flat
                                 label="Show Visitors"
                                 dark
-                                @change="updateFilter"
                             ></v-checkbox>
                             <!--<v-radio
                                 :value="filterOptions.any"
@@ -488,38 +380,33 @@ export default {
                               flat
                               label="0-6 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['7-17']"
                               flat
                               label="7-17 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['18-35']"
                               flat
                               label="18-35 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['36-60']"
                               flat
                               label="36-60 years"
                               dark
-                              @change="updateFilter"
                           /><v-checkbox
                               hide-details
                               v-model="filterSettings['61-100']"
                               flat
                               label="61-100 years"
                               dark
-                              @change="updateFilter"
                           />
                         </v-container>
-                        <v-container v-if="!pedestrianModel">
+                        <!--<v-container v-if="!pedestrianModel">
                             <v-switch
                                 v-model="filterSettings.foot"
                                 flat
@@ -548,7 +435,8 @@ export default {
                                 dark
                                 @change="updateFilter"
                             />
-                        </v-container>
+                        </v-container>-->
+                        <v-btn @click="updateFilter">Apply Filters</v-btn>
                     </v-container>
 
                    <!--<v-btn @click="confirmSettings" class="confirm_btn">
@@ -572,7 +460,7 @@ export default {
                     hide-details
                     dark
                     class="align-center"
-                    @change="changeHeatMapData(adjustRange)"
+                    @change="changeHeatMapData()"
                >
                     <template v-slot:prepend>
                         <v-text-field
@@ -611,8 +499,8 @@ export default {
                        <template>
                             <v-container fluid>
                                 <p>{{ heatMapType || 'null' }}</p>
-                                <v-radio-group v-model="heatMapType" :mandatory="true" @change="reloadHeatMap" dark>
-                                    <v-radio label="Absolute Data" value="absolute"></v-radio>
+                                <v-radio-group v-model="heatMapType" :mandatory="true" @change="changeHeatMapData" dark>
+                                    <v-radio label="Absolute Data" value="default"></v-radio>
                                     <v-radio label="Relative Data" value="relative"></v-radio>
                                 </v-radio-group>
                             </v-container>
@@ -654,6 +542,37 @@ export default {
     height: 100%;
     width: 100%;
 
+    .scenario_box {
+        position:relative;
+        padding:10px;
+        box-sizing: border-box;
+        margin:3px auto;
+
+        &:after {
+            display:block;
+            content:'';
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:$darkblue;
+            opacity:0.35;
+            z-index:-1;
+        }
+
+        &.highlight {
+            &:after {
+                background:$darkred;
+            }
+        }
+
+        &:hover {
+            &:after {
+                opacity:0.5;
+            }
+        }
+    }
     .scenario_main_btn {
         height:200px;
         line-height:200px;
@@ -682,10 +601,10 @@ export default {
         &.switched {
             ::v-deep.v-input__control {
                 label {
-                    color:#FD805D;
+                    color:white;
                 }
                 .v-input--switch__thumb {
-                    background: #FD805D;
+                    background: white;
                     opacity:0.8;
                 }
             }

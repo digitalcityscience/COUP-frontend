@@ -25,18 +25,10 @@ export async function buildTripsLayer(data: DataSet<any>, currentTimeStamp: numb
           return d.timestamps
         },
         getColor: () => {
-          return [253,128,93];
-          /*if(!store.state.scenario.heatMap){
-            return [253, 128, 93];
-          } else {
-            if(store.state.scenario.heatMapVisible){
-              return [93, 252, 205];
-            } else {
-              return [253, 128, 93];
-            }
-          }*/
+          return [16,245,229];
+          //return [253,128,93];
         },
-        highlightColor: [255, 56, 56],
+        //highlightColor: [255, 56, 56],
         getWidth: 1,
         opacity: 0.3,
         widthMinPixels: 2,
@@ -64,19 +56,19 @@ export async function buildTripsLayer(data: DataSet<any>, currentTimeStamp: numb
     return tripsLayer;
 }
 
-export async function buildAggregationLayer(data: DataSet<any>, settings): Promise<DeckLayer<any>> {
+export async function buildAggregationLayer(data: DataSet<any>, type): Promise<DeckLayer<any>> {
 
   const aggregationLayer = new DeckLayer({
     id: abmAggregationLayerName,
     type:HeatmapLayer,
     data: data,
     pickable: false,
-    getPosition:  d => d.Coordinates,
-    getWeight: d => d.Weight,
-    intensity: settings[0],
-    threshold: settings[1],
-    radiusPixels: settings[2],
-    opacity:settings[3],
+    getPosition:  d => d.c,
+    getWeight: type == "default" ? d => d.w : 1,
+    intensity: type == "default" ? 20 : 3,
+    threshold: type == "default" ? 10 : 0.5,
+    radiusPixels: type == "default" ? 50 : 70,
+    opacity:type == "default" ? 0.8 : 0.8,
     visible:true,
   })
 
