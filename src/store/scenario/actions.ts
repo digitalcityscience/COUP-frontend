@@ -6,6 +6,7 @@ import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, bu
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
+import { VCarouselReverseTransition } from 'vuetify/lib';
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -112,7 +113,8 @@ export default {
 
     commit('bridges', bridges)
     dispatch('updateBridgeLayer')
-    dispatch('updateDeckLayer')
+    dispatch('initialAbmComputing')
+    //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
   },
   // load layer source from cityPyo and add the layer to the map
@@ -164,174 +166,272 @@ export default {
             })
         }
   },
-  updateDeckLayer({state, commit, dispatch, rootState}, workshopScenario) {
-    // show loading screen
+  //LOADING INITIAL ABM DATA
+  initialAbmComputing({state, commit, dispatch, rootState}, workshopScenario){
+    //show loading screen
     commit('resultLoading', true)
+    commit("loader", true);
 
+    //check if special workshop Scenario should be loaded
     let scenarioName = workshopScenario || abmTripsLayerName
 
-    // load new data from cityPyo
+    //LOAD DATA FROM CITYPYO
+    
+    commit("loaderTxt", "Getting ABM Simulation Data from CityPyO ... ");
     rootState.cityPyO.getAbmResultLayer(scenarioName, state).then(
       result => {
-        // remove old trips layer from map
         if (!result) {
-          if (rootState.map?.getLayer(abmTripsLayerName)) {
-            rootState.map?.removeLayer(abmTripsLayerName)
-          }
-          // finally remove loading screen
+          alert("There was an error requesting the data from the server. Please get in contact with the admins.");
+          //remove loading screen
           commit('resultLoading', false)
           return
         }
 
-        buildTripsLayer(result.options.data, state.currentTimeStamp).then(
-          deckLayer => {
-            if (rootState.map?.getLayer(abmTripsLayerName)) {
-              rootState.map?.removeLayer(abmTripsLayerName)
-            }
-
-            // check if scenario is still valid - user input might have changed while loading trips layer
-            rootState.map?.addLayer(deckLayer)
-            rootState.map?.moveLayer(abmTripsLayerName, "groundfloor")  // add layer on top of the groundfloor layer
-            commit('addLayerId', abmTripsLayerName, {root: true})
-
-            const heatMap = state.heatMap;
-            commit('abmData', deckLayer?.props?.data)
-            dispatch('preclusteringAbm', deckLayer?.props?.data)
-            // finally remove loading screen
-            commit('resultLoading', false)
-
-            const abmData = state.abmData;
-            const activeAbmSet = state.activeAbmSet;
-
-            //if (!heatMap) {
-              commit('animationRunning', true);
-              animate(deckLayer, null, null, state.currentTimeStamp)
-            //}
-          }
-        )
+        
+        commit("loaderTxt", "Serving Abm Data ... ");
+        commit('abmData', result.options?.data);
+        dispatch("computeLoop", result.options?.data);
       }
     )
-    return
   },
-  preclusteringAbm({state, commit, dispatch, rootState}, abm){
-    const abmObj = {};
-    console.log(abm);
-    abm.forEach((v)=> {
-      for (const [key, value] of Object.entries(v.agent)) {
+  //compute ABM Data Set
+  computeLoop({state, commit, dispatch, rootState}, abmCore){
+
+    var abmFilterData = {};
+    var timePaths = [];
+    var simpleTimeData = {};
+
+    console.log(abmCore);
+    //go through each agent inside the abm set (agent, index, array)
+    
+    commit("loaderTxt", "Clustering ABM Data for functional purposes ... ");
+    abmCore.forEach((who,index,array) => {
+      let agent_id = who.agent.id;
+      // #1 Clustering Agent Sets for faster Filtering in Frontend
+      // ---------------- FILTER SET -----------------------------
+      for (const [key, value] of Object.entries(who.agent)) {
         if(`${key}` !== 'id' && `${key}` !== 'source'){
           if(`${value}` !== 'unknown' && `${value}` !== 'nil'){
-            abmObj[`${value}`] = abmObj[`${value}`] || [];
-            abmObj[`${value}`].push(v.agent.id);
+            abmFilterData[`${value}`] = abmFilterData[`${value}`] || [];
+            abmFilterData[`${value}`].push(agent_id);
           }
         }
       }
-    });
-    console.log("PRECLUSTERED ABMOBJ", abmObj);
-    commit('clusteredAbmData', abmObj);
-  },
-  filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
-    const abmData = state.abmData;
-    const filterSet = {...state.clusteredAbmData};
-    console.log("FilterSET!", filterSet);
-    const spliceArr = [];
-    //console.log(JSON.parse(JSON.stringify(filterSet)));
-    Object.entries(filterSettings).forEach(([key, value]) => {
-      if(value === true){
-        delete filterSet[key];
-      } else {
-        filterSet[key].forEach(v => {
-          spliceArr.push(v);
-        });
-      }
-    });
 
-    console.log("SPLICE ARRAY", spliceArr)
-    const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id));
-    console.log("FINAL FILTER VALUES", filteredAbm)
-    commit('activeAbmSet', filteredAbm);
-    dispatch('rebuildDeckLayer');
-  },
-  rebuildTripsLayer({state, commit, dispatch, rootState}){
-    const activeAbmSet = state.activeAbmSet;
-    if(activeAbmSet != null && activeAbmSet != 'undefined'){
-      var abmData = activeAbmSet;
-    } else {
-      var abmData = state.abmData;
-    }
+      // ---------------- FILTER SET END--------------------------
 
-    buildTripsLayer(abmData, state.currentTimeStamp).then(
+      // #2 Clustering TIME DATA for Aggregation Layer
+      // ---------------- TIME DATA ------------------------------
+
+      
+      commit("loaderTxt", "Analyzing Time Data ... ");
+      who.timestamps.forEach((v,i,a) => {
+        /*round timestamps to full hours*/
+        var h = Math.floor(v / 3600) + 8;
+        /*create object keys from full hours*/
+        timePaths[h] = timePaths[h] || {};
+        timePaths[h].busyAgents = timePaths[h].busyAgents || [];
+        timePaths[h].values = timePaths[h].values || {};
+        timePaths[h].stamps = timePaths[h].stamps + 1 || 1;
+        let coords = who.path[i].toString();
+        
+        timePaths[h].values[coords] = timePaths[h].values[coords] || [];
+        //timePaths[h].values[coords].agents = timePaths[h].values[coords].agents || [agent_id];
+        if (!timePaths[h].values[coords].includes(agent_id)) timePaths[h].values[coords].push(agent_id);
+        //timePaths[h].values[coords].weight = timePaths[h].values[coords].agents.length;
+        
+        /*simpleTimeData[v] = simpleTimeData[v] || [];
+        simpleTimeData[v].push(agent_id);*/
+
+        
+        commit("loaderTxt", "Creating Simple Time Data Arrays ... ");
+        simpleTimeData[Math.floor(v/300)*300] = simpleTimeData[Math.floor(v/300)*300] || {};
+        simpleTimeData[Math.floor(v/300)*300]["all"] = simpleTimeData[Math.floor(v/300)*300]["all"] || [];
+        simpleTimeData[Math.floor(v/300)*300][who.agent.mode] = simpleTimeData[Math.floor(v/300)*300][who.agent.mode] || [];
+        simpleTimeData[Math.floor(v/300)*300][who.agent.agent_age] = simpleTimeData[Math.floor(v/300)*300][who.agent.agent_age] || [];
+        simpleTimeData[Math.floor(v/300)*300][who.agent.resident_or_visitor] = simpleTimeData[Math.floor(v/300)*300][who.agent.resident_or_visitor] || [];
+        simpleTimeData[Math.floor(v/300)*300]["all"].push(agent_id);
+        simpleTimeData[Math.floor(v/300)*300][who.agent.mode].push(agent_id);
+        simpleTimeData[Math.floor(v/300)*300][who.agent.agent_age].push(agent_id);
+        simpleTimeData[Math.floor(v/300)*300][who.agent.resident_or_visitor].push(agent_id);
+
+        
+        commit("loaderTxt", "Creating Busy Agents ... ");
+        if(i == 0){
+          timePaths[h].busyAgents.push(agent_id);
+        }
+      });
+      
+      // ---------------- TIME DATA END---------------------------
+
+    }); //END OF COMPUTING LOOP
+
+    //functions working on whole data set
+    
+    //Commit computed results to the store
+    commit('clusteredAbmData', abmFilterData);
+    commit('abmTimePaths', timePaths);
+    commit('activeTimePaths', timePaths);
+    
+    console.log(timePaths);
+
+    commit('abmSimpleTimes', simpleTimeData);
+    commit('activeAbmSet', abmCore);
+
+    //buildLayers
+    dispatch("buildLayers");
+
+    //layer Show/Hide
+
+    // hide loading screen
+    commit('resultLoading', false);
+    commit('loader', false);
+  },
+  buildLayers({state, commit, dispatch, rootState}){
+    const tripsLayerData = state.activeAbmSet;
+    const heatLayerData = state.activeTimePaths;
+    const currentTimeStamp = 0
+    const heatLayerFormed = [];
+
+    buildTripsLayer(tripsLayerData, currentTimeStamp).then(
       deckLayer => {
-
-        if(rootState.map?.getLayer(abmTripsLayerName)) {
+        if (rootState.map?.getLayer(abmTripsLayerName)) {
           rootState.map?.removeLayer(abmTripsLayerName)
         }
 
-        rootState.map?.addLayer(deckLayer)
-        rootState.map?.moveLayer(abmTripsLayerName, "groundfloor")  // add layer on top of the groundfloor layer
+        // check if scenario is still valid - user input might have changed while loading trips layer
+        rootState.map?.addLayer(deckLayer);
+        rootState.map?.moveLayer(abmTripsLayerName, "groundfloor");  // add layer on top of the groundfloor layer
+
+        console.log("new trips layer loaded");
         commit('addLayerId', abmTripsLayerName, {root: true});
-
         commit('animationRunning', true);
-        animate(deckLayer, null, null, state.currentTimeStamp);
-      });
-  },
-  rebuildDeckLayer({state, commit, dispatch, rootState}){ /*recalculate DeckLayer if HeatMap or TripsLayer is somehow changed*/
-    //const abmData = state.abmData;
-    const activeAbmSet = state.activeAbmSet;
+        animate(deckLayer, null, null, currentTimeStamp)
+      }
+    );
+    
+    //preparing Data for HeatMap Layer
+    Object.entries(heatLayerData).forEach(([key, value]) => {
+      Object.entries(heatLayerData[key].values).forEach(([subKey, subValue]) => {
+        let coordinate = { c: subKey.split(",").map(Number), w: heatLayerData[key].values[subKey].length };
+        heatLayerFormed.push(coordinate);
+      })
+    });
 
-    if(activeAbmSet != null && activeAbmSet != 'undefined'){
-      var abmData = activeAbmSet;
-    } else {
-      var abmData = state.abmData;
-    }
-
-    /*Passing different setting for absolute (not average) and relative aggLayer data*/
-    const settings = (state.heatMapType == 'average') ? [4, 0.03, 50, 0.5] : [26, 0.01, 80, 0.5];
-    const heatMapTypeData = (state.heatMapType == 'average') ? state.heatMapAverage : state.heatMapData;
-    console.log("try to rebuild active deck layers");
-
-    buildTripsLayer(abmData, state.currentTimeStamp).then(
+    buildAggregationLayer(heatLayerFormed, "default").then(
       deckLayer => {
-        /*Do not remove Aggregation Layer on Building Trips Layer anymore
         if (rootState.map?.getLayer(abmAggregationLayerName)) {
           rootState.map?.removeLayer(abmAggregationLayerName)
-          commit('removeLayerId', abmAggregationLayerName, {root: true})
-        }*/
-
-        if(rootState.map?.getLayer(abmTripsLayerName)) {
-          rootState.map?.removeLayer(abmTripsLayerName)
         }
 
+        console.log("new aggregation layer loaded");
         rootState.map?.addLayer(deckLayer)
-        rootState.map?.moveLayer(abmTripsLayerName, "groundfloor")  // add layer on top of the groundfloor layer
-        commit('addLayerId', abmTripsLayerName, {root: true});
+        commit('addLayerId', abmAggregationLayerName, {root: true});
+        commit('heatMap', true);
+        console.log(state.heatMap);
+        if (rootState.map?.getLayer("groundfloor")) {
+          rootState.map?.moveLayer("abmHeat", "groundfloor")
+        }
 
-        commit('animationRunning', true);
-        animate(deckLayer, null, null, state.currentTimeStamp);
       });
 
-      if(state.heatMap){
-        /*building Deck.gl Heatmap in deck-layers.ts*/
-        buildAggregationLayer(heatMapTypeData, settings).then(
-          deckLayer => {
-            if (rootState.map?.getLayer(abmAggregationLayerName)) {
-              rootState.map?.removeLayer(abmAggregationLayerName)
-            }
-  
-            /*if(rootState.map?.getLayer(abmTripsLayerName)) {
-              rootState.map?.removeLayer(abmTripsLayerName);
-              commit('removeLayerId', abmTripsLayerName, {root: true})
-            }*/
-  
-            console.log("new aggregation layer loaded");
-            rootState.map?.addLayer(deckLayer)
-            commit('addLayerId', abmAggregationLayerName, {root: true})
-            if (rootState.map?.getLayer("groundfloor")) {
-              rootState.map?.moveLayer("abmHeat", "groundfloor")
-            }
-  
-          });
-      } 
   },
+  updateLayers({state, commit, dispatch, rootState}, layer){
+    const range = state.selectedRange;
+    const type = state.heatMapType;
+    const tripsLayerData = state.activeAbmSet;
+    const heatLayerData = state.activeTimePaths;
+    const currentTimeStamp = state.currentTimeStamp;
+    const heatLayerFormed = [];
+
+    if(layer == "tripsLayer" || layer == "all"){
+      buildTripsLayer(tripsLayerData, currentTimeStamp).then(
+        deckLayer => {
+          if (rootState.map?.getLayer(abmTripsLayerName)) {
+            rootState.map?.removeLayer(abmTripsLayerName)
+          }
+  
+          // check if scenario is still valid - user input might have changed while loading trips layer
+          rootState.map?.addLayer(deckLayer);
+          rootState.map?.moveLayer(abmTripsLayerName, "groundfloor");  // add layer on top of the groundfloor layer
+  
+          console.log("new trips layer loaded");
+          commit('addLayerId', abmTripsLayerName, {root: true});
+          if(state.animationRunning){
+            animate(deckLayer, null, null, currentTimeStamp)
+          }
+        }
+      );
+    }
+
+    if(layer == "heatMap" || layer == "all"){
+      Object.entries(heatLayerData).forEach(([key, value]) => {
+
+        if(key >= range[0] && key <= range[1]){
+          Object.entries(heatLayerData[key].values).forEach(([subKey, subValue]) => {
+            
+            heatLayerData[key].values[subKey].forEach((v,i,a) => {
+              if(!heatLayerData[key].busyAgents.includes(v)){
+                heatLayerData[key].values[subKey].splice(i, 1);
+              }
+            });
+
+            if(heatLayerData[key].values[subKey].length > 0){
+              let coordinate = { c: subKey.split(",").map(Number), w: heatLayerData[key].values[subKey].length };
+              heatLayerFormed.push(coordinate);
+            } else {
+            }
+          });
+        }
+      });
+  
+      buildAggregationLayer(heatLayerFormed, type).then(
+        deckLayer => {
+          if (rootState.map?.getLayer(abmAggregationLayerName)) {
+            rootState.map?.removeLayer(abmAggregationLayerName)
+          }
+  
+          console.log("new aggregation layer loaded");
+          rootState.map?.addLayer(deckLayer)
+          commit('addLayerId', abmAggregationLayerName, {root: true})
+          if (rootState.map?.getLayer("groundfloor")) {
+            rootState.map?.moveLayer("abmHeat", "groundfloor")
+          }
+  
+        });
+    }
+  },
+  filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
+      const abmData = state.abmData;
+      const timePaths = state.abmTimePaths;
+      const filterSet = {...state.clusteredAbmData};
+      const spliceArr = [];
+  
+      Object.entries(filterSettings).forEach(([key, value]) => {
+        if(value === true){
+          delete filterSet[key];
+        } else {
+          filterSet[key].forEach(v => {
+            spliceArr.push(v);
+          });
+        }
+      });
+  
+      const filteredTimePaths = JSON.parse(JSON.stringify(timePaths));
+      console.log(filteredTimePaths);
+      const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id));
+      Object.entries(filteredTimePaths).forEach(([key, value]) => {
+        if(value){
+          filteredTimePaths[key].busyAgents = filteredTimePaths[key].busyAgents.filter(v => !spliceArr.includes(v));
+        }
+      });
+
+      console.log("new Filter Setting applied");
+      commit('activeAbmSet', filteredAbm);
+      commit('activeTimePaths', filteredTimePaths);
+      dispatch('updateLayers', "all");
+      commit("loader", false);
+  }
 }
 
 function updateBridges(bridge_hafencity, bridge_veddel) {

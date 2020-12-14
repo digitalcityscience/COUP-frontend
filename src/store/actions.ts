@@ -6,6 +6,8 @@ import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
+    commit("scenario/loader", true);
+    commit("scenario/loaderTxt", "Creating Design Layers ... ");
     const sourceConfigs = Designs.sources || [];
     const loadLayers = new Promise(resolve => {
       let designLayersLoaded = 0;
@@ -14,6 +16,7 @@ export default {
         //console.log("hans", source.id)
         // if the data should be loaded from city IO
         if (source.data?.from === "cityPyO") {
+          commit("scenario/loaderTxt", "Getting GeoData from CityPyO ... ");
           state.cityPyO.getLayer(source.data.id)
             .then(source => {
               dispatch('addSourceToMap', source).then(source => {
@@ -23,6 +26,7 @@ export default {
                   .forEach(l => {
                     dispatch('addLayerToMap', l).then(() => {
                       designLayersLoaded += 1;
+                      commit("scenario/loaderTxt", "Design Layer #" + designLayersLoaded + " successfully loaded ... ");
                       if (designLayersLoaded >= Designs.layers.length) {
                         resolve()
                       }
@@ -37,6 +41,7 @@ export default {
     })
 
     await loadLayers;
+    commit("scenario/loader", false);
     return
   },
   orderDesignLayers ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
