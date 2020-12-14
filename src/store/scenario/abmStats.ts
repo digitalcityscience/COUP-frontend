@@ -5,6 +5,8 @@ import FocusAreas from '@/assets/focus_areas.json'
 import timePaths from '@/assets/timePaths.json'
 
 const focusAreaFeatures = turf.featureCollection(FocusAreas["features"])
+const grasbrookRegion = focusAreaFeatures.bbox // todo : is there no way to use UNION ?
+
 
 function calculateAreaSizes() {
   let sizes = {}
@@ -161,6 +163,49 @@ export function calculateDensityOfAmenities() {
   }
 
   return amenityDensity
+}
+
+/*
+* calculating diversity index for amenities using the simpson index
+* This is using the Simpson index - basically the probability of finding the same amenity type when picking 2 random
+* amenities within a polygon.
+* https://de.wikipedia.org/wiki/Simpson-Index
+*/
+export function calculateAmenityDiversity(forRegion= grasbrookRegion) {
+  let amenities = store.state.scenario.amenitiesGeoJson
+  let amenityTypeCounts = {}
+  let amenityTypes = []
+
+  // all amenities that are non-residential
+  let amenitiesFeatures = turf.featureCollection(amenities["features"].filter(
+    feature => (feature["properties"]["GFK"] > 2000))
+  )
+
+  // calculate total amount of amenity types
+  turf.propEach(amenitiesFeatures, function (currentProperties, featureIndex) {
+    if (!amenityTypes.includes(currentProperties.gfk)) {
+      amenityTypes.push(currentProperties.gfk)
+    }
+  });
+  let amenityTypesTotalCount = amenityTypes.length
+
+  // calculate count for each amenity type in a certain region
+  let amenitiesWithin = turf.pointsWithinPolygon(amenitiesFeatures, forRegion);
+  for (let amenityType in amenityTypes) {
+    let filteredAmenities =  turf.featureCollection(amenitiesWithin["features"].filter(
+      feature => (feature["properties"]["GFK"] === amenityType))
+    )
+    amenityTypeCounts[amenityType] = filteredAmenities.length
+  }
+
+  // simpson: 1- SUM[(count/totalCount)²]
+  let simpson = 1 - (Object.values(amenityTypeCounts).reduce((result: number, value: number) => {
+    return result + Math.pow((value / amenityTypesTotalCount), 2)
+  }, 0) as number)
+
+
+  console.log("SIMPSON", simpson)
+  return simpson
 }
 
 
