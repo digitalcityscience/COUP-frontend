@@ -41,8 +41,6 @@ export default {
     },
     mounted(){
         this.$store.dispatch('checkoutWorkshop');
-        this.$on('showLoader', this.displayLoader(true));
-        this.$on('hideLoader', this.displayLoader(false));
     },
     created () {
         this.$store.dispatch('connect')
@@ -99,6 +97,6 @@ export default {
         pointer-events:none;
     }
 
-    
+
 </style>
 
