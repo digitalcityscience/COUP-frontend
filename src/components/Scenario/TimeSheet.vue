@@ -78,7 +78,7 @@ export default {
                         spliceArr = [...new Set(value[filterKey]), ...spliceArr];
                     }
                 });
-                
+
                 let removeDuplicates = [...new Set(value.all)];
                 this.transCoords = removeDuplicates.filter(el => !spliceArr.includes(el));
                 this.activeAbmTimeCoords.push(this.transCoords.length);
@@ -183,7 +183,7 @@ export default {
              // do not filter timeCoords
              this.filterCoords = [...this.timeCoords]
            } else {
-               
+
                 Object.values(this.abmSimpleTimes).forEach(value =>{
                     let coords = [...new Set(value[this.filterOptions[this.filter]])];
                     this.filterCoords.push(coords.length);
@@ -253,12 +253,12 @@ export default {
         },
         currentTimeStamp(){
             this.currentTime = this.currentTimeStamp;
-            console.log(this.currentTime);
+            //console.log(this.currentTime);
         },
         selectedRange(){
             var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
             var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
-            
+
             this.heatMapRange.left = (leftVal * 100)/57600 + "%";
             this.heatMapRange.width = ((rightVal - leftVal) * 100)/57600 + "%";
             console.log(this.heatMapRange);
