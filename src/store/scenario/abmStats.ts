@@ -1,127 +1,84 @@
 import * as turf from '@turf/turf'
 import store from '@/store'
-// TODO: get from CityPyo
-import FocusAreas from '@/assets/focus_areas.json'
-import timePaths from '@/assets/timePaths.json'
 
-const focusAreaFeatures = turf.featureCollection(FocusAreas["features"])
-const grasbrookRegion = focusAreaFeatures.bbox // todo : is there no way to use UNION ?
+import GrasbrookArea from '@/assets/grasbrook_area.json'  // TODO: get from CityPyo
+const grasbrookRegion = turf.featureCollection(GrasbrookArea["features"])
 
+/* timePath object looks like this    *
+ * for every hour in timePaths
+ * match the pedestrian counts to a region
+ */
+export function calculatePedestrianIndices(forRegion = grasbrookRegion) {
+  console.log("calculating pedestrian indices")
+  let pedestrianCountsPerHour = {}
+  let matchedPointsPerHour = {}  // collection of Points with active agents within the investigation region
 
-function calculateAreaSizes() {
-  let sizes = {}
-  sizes["grasbrook"] = 10000 // todo : grasbrook size in m²??
-  turf.featureEach(focusAreaFeatures, function (currentFocusArea, focusAreaIndex) {
-    let currentSize = sizes[currentFocusArea["properties"]["focus_area_id"]] || 0
-    sizes[currentFocusArea["properties"]["focus_area_id"]] = currentSize + turf.area(turf.multiPolygon(currentFocusArea.geometry.coordinates))
-    }
-  )
+  for (const [hour, currentTimePaths] of Object.entries(store.state.scenario.abmTimePaths)) {
+    // create featureCollection from pathPoints
+    let pathPointCollection = createPathPointCollection(currentTimePaths)
 
-  return sizes
+    // find all pathPoints within the region
+    let matchedPoints = turf.pointsWithinPolygon(pathPointCollection, forRegion)
+    let currentPedCount = matchedPoints.features.reduce(getSumOfPedestrians, 0)  // reduce matchedPoints features to a sum of its pedestrian count values
+
+    matchedPointsPerHour[hour] = matchedPoints
+    pedestrianCountsPerHour[hour] = currentPedCount
+  }
+
+  // calculate pedestrian density
+  let pedestrianSum = (Object.values(pedestrianCountsPerHour).reduce((result: number, value: number) => {
+    return result + value
+  }, 0) as number)
+  let pedestrianDensity = pedestrianSum / turf.area(forRegion)
+
+  console.log("pedestrianDensity", pedestrianDensity)
+
+  /*
+   * calculate the Shannon Index as temporal entropy
+   * Assumes hours of the day = species
+   */
+  let temporalEntropy = -1 * (Object.values(pedestrianCountsPerHour).reduce((result: number, value: number) => {
+    return calculateShannonSummand(result, value, pedestrianSum)
+  }, 0) as number)
+
+  console.log("temporalEntropy", temporalEntropy)
+  console.log("Hmax", Math.log(24))// compute Hmax = ln(numberOfSpecies) , Assumes hours of the day = species
+
+ /*
+  * calculate opportunities of interaction
+  * The number of times that multiple agents are in the same place at the same time
+ */
+  let opportunitiesOfInteraction = 0
+  for (const [hour, points] of Object.entries(matchedPointsPerHour)) {
+    turf.featureEach(points, function (point, pointIdx) {
+      let opportunitiesOfInteractionAtPoint = countPotentialMeetingsAtPoint(point, hour)
+      opportunitiesOfInteraction += opportunitiesOfInteractionAtPoint
+    })
+  }
+  console.log("total opportunities of interaction in area", opportunitiesOfInteraction)
 }
 
-const focusAreaSizes = calculateAreaSizes()
-
-
-export function clusterTimeData() {
-
-  let pointCollection = createTimePathPointCollection(timePaths[0], 0)
-  console.log("amount of points", pointCollection.features.length)
-
-  console.log("clustering")
-  let maxDistance = 0.001; // 50meters
-  let clustered_db = turf.clustersDbscan(pointCollection, maxDistance);
-  var options = {numberOfClusters: 5};
-  let clustered_k = turf.clustersKmeans(pointCollection, options);
-  console.log("clustered", clustered_db)
-
-  // Calculate the total number of clusters
-  var total = 0
-  turf.clusterEach(clustered_db, 'cluster', function () {
-    total++;
-  });
-
-  console.log("number of clusters db", total)
-
-  // Calculate the total number of clusters
-  var total_k = 0
-  turf.clusterEach(clustered_k, 'cluster', function () {
-    total++;
-  });
-
-  console.log("number of clusters k", total_k)
-
-
-
-}
-
-
-function createTimePathPointCollection(currentTimePaths, hour) {
+/**
+ *  creates a featureCollection with all points in a timePath value set
+ * @param currentTimePaths
+ */
+function createPathPointCollection(currentTimePaths) {
   // create an array of Point objects from all points in the current hour of timePaths
   let pathPoints = Object.keys(currentTimePaths["values"]).map(coordinateString => {
     let coords = coordinateString.split(',').map(x => {
       return parseFloat(x)
     })
-    return turf.point(coords, {"pedestrianCount": timePaths[hour]["values"][coordinateString]["weight"]})
+
+    return turf.point(coords, {
+      "pedestrianCount": currentTimePaths["values"][coordinateString].length,
+      "busyAgents": currentTimePaths["values"][coordinateString]
+    })
   })
 
   return turf.featureCollection(pathPoints)
 }
 
-
-/* timePath object looks like this    *
- * TODO Example timePathObject
- * for every hour in timePaths
- * match the pedestrian counts to a region
- */
-export function calculatePedestrianDensity() {
-  console.log("calculating pedestrian density")
-  let pedestrianCounts = {}
-  for (const [hour, currentTimePaths] of Object.entries(timePaths)) {
-
-    /* create an array of Point objects from all points in the current hour of timePaths
-    let pathPoints = Object.keys(currentTimePaths["values"]).map(coordinateString => {
-      let coords = coordinateString.split(',').map(x => {
-        return parseFloat(x)
-      })
-      return turf.point(coords, {"pedestrianCount": timePaths[hour]["values"][coordinateString]["weight"]})
-    })
-     */
-
-    // create featureCollection from pathPoints
-    let pathPointCollection = createTimePathPointCollection(timePaths, hour)
-
-    // iterate over all regions and find all pathPoints within the region
-    focusAreaFeatures.features.forEach(region => {
-      let matchedPoints = turf.pointsWithinPolygon(pathPointCollection, region)
-      let currentPedCount = matchedPoints.features.reduce(getSum, 0)  // reduce matchedPoints features to a sum of its pedestrian count values
-      pedestrianCounts[hour] = pedestrianCounts[hour] || {}
-      let oldPedCount = pedestrianCounts[hour][region["properties"]["focus_area_id"]] || 0
-      pedestrianCounts[hour][region["properties"]["focus_area_id"]] = oldPedCount + currentPedCount
-
-      // filter out all points that are already matched to a region
-      pathPointCollection.features = pathPointCollection.features.filter(function (pt) {
-        return matchedPoints.features.every(matchedPoint => {
-          return (matchedPoint.geometry.coordinates !== pt.geometry.coordinates)
-        })
-      })
-    })
-
-  }
-
-  // compute density as amenityCount per area
-  console.log(pedestrianCounts)
-  let pedestrianDensity = {}
-  for (const [hour, pedCounts] of Object.entries(pedestrianCounts)) {
-    pedestrianDensity[hour] = {}
-    for (const[area_key, count] of Object.entries(pedestrianCounts[hour]))
-    pedestrianDensity[hour][area_key] = count / focusAreaSizes[area_key]
-  }
-
-  console.log("pedestrian density", pedestrianDensity)
-}
-
-function getSum(total, point) {
+function getSumOfPedestrians(total, point) {
   // initial value is 0
   if (point === 0) {
     return total + point;
@@ -131,119 +88,89 @@ function getSum(total, point) {
 }
 
 
-
 /**
- * TODO : flexible areas
- *
- * calculate densitiy of non-residential amenities all over grasbrook and each focus area
+ * find out how often 2 agents are at the same point at the same time.
+ * only count them if time diff <= 5min
+ * @param point
+ * @param currentHour
  */
-export function calculateDensityOfAmenities() {
-  console.log("calculating amenity density")
-
-  let amenities = store.state.scenario.amenitiesGeoJson
-  let amenityDensity = {}
-  let amenityCounts = {}
-
-  // all amenities that are non-residential
-  let amenitiesFeatures = turf.featureCollection(amenities["features"].filter(
-    feature => (feature["properties"]["GFK"] > 2000))
-  )
-
-  // iterate over all amenities and find corresponding focus area
-  turf.featureEach(focusAreaFeatures, function (currentFocusArea, focusAreaIndex) {
-      let ptsWithin = turf.pointsWithinPolygon(amenitiesFeatures, turf.multiPolygon(currentFocusArea.geometry.coordinates));
-      console.log("ptsWithin", ptsWithin)
-      amenityCounts[currentFocusArea["properties"]["focus_area_id"]] = ptsWithin.features.length
-  });
-  amenityCounts["grasbrook"] = amenityCounts["grasbrook"] = amenitiesFeatures.features.length  // all of grasbrook
-
-  // compute density as amenityCount per area
-  for (const [key, amenityCount] of Object.entries(amenityCounts)) {
-    amenityDensity[key] = amenityCount / focusAreaSizes[key]
+function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
+  if (point.properties["busyAgents"].length === 1) {
+    return 0 // min. 2 people at point per meeting
   }
 
-  return amenityDensity
+  // find all agents that are the point
+  let agentsAtPoint = {}
+  for (const agentName of point.properties["busyAgents"]) {
+    agentsAtPoint[agentName] = {"time": null}
+    agentsAtPoint[agentName]["time"] = getTimeAgentIsAtPoint(agentName, currentHour, point.geometry.coordinates)
+  }
+
+  // iterate over the agents at the same point and extract pairs of agents within similar timeframes
+  let meetingsAtPoint = []
+  for (const agentName of Object.keys(agentsAtPoint)) {
+    // number of potential agents met by our agent
+    // every agent that was at the same point within a timeframe of 5min
+    for (const [currentName, currentValues] of Object.entries(agentsAtPoint)) {
+      if (currentName !== agentName) {
+        let timeDiff = Math.abs(currentValues["time"] - agentsAtPoint[agentName]["time"])
+        if (timeDiff <= 5 * 60) {   // 5 minutes
+          // example meeting = ["agent_1", "agent_2"]
+          let meeting = [agentName, currentName].sort()
+          meetingsAtPoint.push(meeting)
+        }
+      }
+    }
+  }
+
+  // remove duplicates meetings
+  meetingsAtPoint = Array.from(new Set(meetingsAtPoint.map(JSON.stringify)), JSON.parse)
+  return meetingsAtPoint.length
+}
+
+
+/**
+ * get the timestamp at which the agent is at the point
+ *
+ * @param agentName
+ * @param relevantHour
+ * @param pointCoords
+ */
+function getTimeAgentIsAtPoint(agentName, relevantHour, pointCoords) {
+  let activeAbmSet = store.state.scenario.activeAbmSet
+  let agentIdx = store.state.scenario.agentIndexes[agentName]
+  let agentData = activeAbmSet[agentIdx]
+
+  // the agent might be at the point at multiple times. get the array indexes of those path points.
+  let pathIndexes = []
+  agentData.path.forEach((pathCoords, index) => {
+    if (parseFloat(pathCoords[0]) == pointCoords[0] && parseFloat(pathCoords[1]) == pointCoords[1]) {
+      // the agent could be at this point at multiple times
+      pathIndexes.push(index)
+    }
+  })
+
+  if (pathIndexes.length === 1) {
+    // agent was at point only once. return this timestamp
+    return agentData.timestamps[pathIndexes[0]]
+  }
+
+  // else: find the timeStamps at which the agent was at the point and match it with the relevant hour
+  for (const idx of pathIndexes) {
+    let timeStamp = agentData.timestamps[idx]
+    const timeStampHour = Math.floor(timeStamp / (60*60)) + 8  // TODO move to central function to avoid magic numbers!!!
+
+    // return the relevant time stamp
+    if (timeStampHour === parseInt(relevantHour)) {
+      return timeStamp
+    }
+  }
 }
 
 /*
-* calculating diversity index for amenities using the simpson index
-* This is using the Simpson index - basically the probability of finding the same amenity type when picking 2 random
-* amenities within a polygon.
-* https://de.wikipedia.org/wiki/Simpson-Index
-*/
-export function calculateAmenityDiversity(forRegion= grasbrookRegion) {
-  let amenities = store.state.scenario.amenitiesGeoJson
-  let amenityTypeCounts = {}
-  let amenityTypes = []
-
-  // all amenities that are non-residential
-  let amenitiesFeatures = turf.featureCollection(amenities["features"].filter(
-    feature => (feature["properties"]["GFK"] > 2000))
-  )
-
-  // calculate total amount of amenity types
-  turf.propEach(amenitiesFeatures, function (currentProperties, featureIndex) {
-    if (!amenityTypes.includes(currentProperties.gfk)) {
-      amenityTypes.push(currentProperties.gfk)
-    }
-  });
-  let amenityTypesTotalCount = amenityTypes.length
-
-  // calculate count for each amenity type in a certain region
-  let amenitiesWithin = turf.pointsWithinPolygon(amenitiesFeatures, forRegion);
-  for (let amenityType in amenityTypes) {
-    let filteredAmenities =  turf.featureCollection(amenitiesWithin["features"].filter(
-      feature => (feature["properties"]["GFK"] === amenityType))
-    )
-    amenityTypeCounts[amenityType] = filteredAmenities.length
-  }
-
-  // simpson: 1- SUM[(count/totalCount)²]
-  let simpson = 1 - (Object.values(amenityTypeCounts).reduce((result: number, value: number) => {
-    return result + Math.pow((value / amenityTypesTotalCount), 2)
-  }, 0) as number)
-
-
-  console.log("SIMPSON", simpson)
-  return simpson
-}
-
-
-/**
- * filters the current Abm dataset by a region
- * data is inlcuded, if a on of the coordinates is in the region
+ * calculates a summand of the Shannon formula.
  */
-export function filterAbmDataByRegion() {
-  console.log("test filter")
-  let testPoint = turf.point(["10.01499", "53.53267"])
-  let focusAreasFeatures = getFocusAreaGeoJson()
-
-  console.log(focusAreasFeatures)
-  console.log(focusAreasFeatures.features)
-
-  // for each feature : Is the point in here?
-  turf.featureEach(focusAreasFeatures, function (
-    currentFeature, featureIndex
-  ) {
-    if (turf.booleanPointInPolygon(testPoint, turf.multiPolygon(currentFeature.geometry.coordinates))) {
-      console.log("point in polygon", currentFeature["properties"]["focus_area_id"])
-    }
-  });
-}
-
-
-/**
- * filters the current Abm dataset by a region
- * data is inlcuded, if a on of the coordinates is in the region
- */
-export function filterTimePathsByRegion() {
-  console.log("filterTimePathsByRegion")
-}
-
-/**
- * Feature collection with MultiPolygons of FocusAreas
- * @return turf featureCollection
- */
-function getFocusAreaGeoJson() {
-  return turf.featureCollection(FocusAreas["features"])
+function calculateShannonSummand(currentSum: number, currentIndividualCount: number, totalIndividualsCount: number) {
+  let p = currentIndividualCount / totalIndividualsCount
+  return currentSum + (p * Math.log(p))   // Math.log(x) == ln(x)
 }

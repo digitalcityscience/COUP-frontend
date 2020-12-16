@@ -14,7 +14,7 @@ import {
     workshopScenarioNames
 } from '@/store/abm.ts'
 import TimeSheet from "@/components/Scenario/TimeSheet.vue";
-import {calculateDensityOfAmenities, calculatePedestrianDensity, clusterTimeData} from "@/store/scenario/abmStats";
+import {calculatePedestrianIndices} from "@/store/scenario/abmStats";
 //import { filter } from 'vue/types/umd';
 
 export default {
@@ -144,9 +144,7 @@ export default {
             )
         },
         calculateAbmStats() {
-          //calculateDensityOfAmenities()
-          //calculatePedestrianDensity()
-          clusterTimeData()
+          calculatePedestrianIndices()
         },
         changeHeatMapData(){
             this.$store.commit("scenario/selectedRange", this.adjustRange);

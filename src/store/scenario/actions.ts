@@ -198,6 +198,7 @@ export default {
   //compute ABM Data Set
   computeLoop({state, commit, dispatch, rootState}, abmCore){
 
+    var agentIndexes = {};
     var abmFilterData = {};
     var timePaths = [];
     var simpleTimeData = {};
@@ -208,6 +209,10 @@ export default {
     commit("loaderTxt", "Clustering ABM Data for functional purposes ... ");
     abmCore.forEach((who,index,array) => {
       let agent_id = who.agent.id;
+
+      // #0 create a simple lookup with all agent id's and their index in the abmCore
+      agentIndexes[agent_id] = index
+
       // #1 Clustering Agent Sets for faster Filtering in Frontend
       // ---------------- FILTER SET -----------------------------
       for (const [key, value] of Object.entries(who.agent)) {
@@ -270,6 +275,7 @@ export default {
     //functions working on whole data set
 
     //Commit computed results to the store
+    commit('agentIndexes', agentIndexes);
     commit('clusteredAbmData', abmFilterData);
     commit('abmTimePaths', timePaths);
     commit('activeTimePaths', timePaths);
