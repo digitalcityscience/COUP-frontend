@@ -4,9 +4,12 @@ import store from '@/store'
 import GrasbrookArea from '@/assets/grasbrook_area.json'  // TODO: get from CityPyo
 const grasbrookRegion = turf.featureCollection(GrasbrookArea["features"])
 
-/* timePath object looks like this    *
- * for every hour in timePaths
- * match the pedestrian counts to a region
+
+
+/*
+ * Filter timePaths for all path-points within the region
+ * Compute stats based on pedestrian counts in region (hour for hour)
+ * timePath object looks like this  TODO: example
  */
 export function calculatePedestrianIndices(forRegion = grasbrookRegion) {
   console.log("calculating pedestrian indices")
@@ -31,7 +34,7 @@ export function calculatePedestrianIndices(forRegion = grasbrookRegion) {
   }, 0) as number)
   let pedestrianDensity = pedestrianSum / turf.area(forRegion)
 
-  console.log("pedestrianDensity", pedestrianDensity)
+  console.log("pedestrianDensity in people / m²", pedestrianDensity)
 
   /*
    * calculate the Shannon Index as temporal entropy
@@ -40,9 +43,12 @@ export function calculatePedestrianIndices(forRegion = grasbrookRegion) {
   let temporalEntropy = -1 * (Object.values(pedestrianCountsPerHour).reduce((result: number, value: number) => {
     return calculateShannonSummand(result, value, pedestrianSum)
   }, 0) as number)
+  const hMax = Math.log(24) // compute Hmax = ln(numberOfSpecies) , Assumes hours of the day = species
+  let temporalEntropyPercent = (temporalEntropy / hMax) * 100
 
+  console.log("temporalEntropyPercent", temporalEntropyPercent)
   console.log("temporalEntropy", temporalEntropy)
-  console.log("Hmax", Math.log(24))// compute Hmax = ln(numberOfSpecies) , Assumes hours of the day = species
+  console.log("Hmax", hMax)
 
  /*
   * calculate opportunities of interaction
@@ -56,6 +62,24 @@ export function calculatePedestrianIndices(forRegion = grasbrookRegion) {
     })
   }
   console.log("total opportunities of interaction in area", opportunitiesOfInteraction)
+
+  /*
+   * Calculate trips averages (average duration and length)
+   */
+  let averages = calculateTripAverages(forRegion)
+
+
+  // pack den shit in den store.
+  let abmStats = {
+    "pedestrianDensity": pedestrianDensity,
+    "temporalEntropyPercent": temporalEntropyPercent,
+    "opportunitiesOfInteraction": opportunitiesOfInteraction,
+    "averageDuration": averages["duration"],
+    "averageLength": averages["length"]
+  }
+  store.commit("scenario/abmStats", abmStats)
+
+  console.log("commited abmStats to store")
 }
 
 /**
@@ -174,3 +198,32 @@ function calculateShannonSummand(currentSum: number, currentIndividualCount: num
   let p = currentIndividualCount / totalIndividualsCount
   return currentSum + (p * Math.log(p))   // Math.log(x) == ln(x)
 }
+
+/**
+ * Calculates average duration and length of the trips in the region
+ *
+ * Iterates over all abmTrips and filters those with origin or destination with region
+ * Computes averages on filter set
+ *
+ * @param forRegion
+ *
+ * @returns {"duration": number, "length": number}
+ */
+function calculateTripAverages(forRegion  = grasbrookRegion) {
+  // array of all trips [{"agent", "origin", "destination", "length", "duration", "pathIndexes" }]
+  let allTrips = store.state.scenario.abmTrips
+
+  // filter all trips who's origin or destination are in the region
+  let tripsInRegion = allTrips.filter(trip => {
+    return turf.pointsWithinPolygon(turf.points([trip.origin, trip.destination]), forRegion).features.length
+  })
+
+  let averageDurationSec = tripsInRegion.reduce((acc, trip) => acc + trip["duration"], 0) / tripsInRegion.length
+  let averageLengthMeters = tripsInRegion.reduce((acc, trip) => acc + trip["length"], 0) / tripsInRegion.length
+
+  let averageDuration = averageDurationSec / 60
+  let averageLength = averageLengthMeters / 1000
+
+  return {"duration": averageDuration, "length": averageLength}
+}
+

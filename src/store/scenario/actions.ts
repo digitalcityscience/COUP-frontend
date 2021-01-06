@@ -113,6 +113,7 @@ export default {
 
     commit('bridges', bridges)
     dispatch('updateBridgeLayer')
+    commit("abmStats", null) // reset abmStats
     dispatch('initialAbmComputing')
     //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
@@ -202,6 +203,7 @@ export default {
     var abmFilterData = {};
     var timePaths = [];
     var simpleTimeData = {};
+    var trips = []
 
     console.log(abmCore);
     //go through each agent inside the abm set (agent, index, array)
@@ -213,7 +215,16 @@ export default {
       // #0 create a simple lookup with all agent id's and their index in the abmCore
       agentIndexes[agent_id] = index
 
-      // #1 Clustering Agent Sets for faster Filtering in Frontend
+      // #1 create a bin with data on trips each agent makes (origin, destination, pathIndexes, duration, length)
+      if (who.trips) {
+        for (let trip of who.trips) {
+            // trip has following information {"agent", "origin", "destination", "length", "duration", "pathIndexes" }
+           trip["agent"] = agent_id
+           trips.push(trip)
+        }
+      }
+
+      // #2 Clustering Agent Sets for faster Filtering in Frontend
       // ---------------- FILTER SET -----------------------------
       for (const [key, value] of Object.entries(who.agent)) {
         if(`${key}` !== 'id' && `${key}` !== 'source'){
@@ -226,7 +237,7 @@ export default {
 
       // ---------------- FILTER SET END--------------------------
 
-      // #2 Clustering TIME DATA for Aggregation Layer
+      // #3 Clustering TIME DATA for Aggregation Layer
       // ---------------- TIME DATA ------------------------------
 
 
@@ -279,7 +290,9 @@ export default {
     commit('clusteredAbmData', abmFilterData);
     commit('abmTimePaths', timePaths);
     commit('activeTimePaths', timePaths);
+    commit('abmTrips', trips);
 
+    console.log("trips", trips)
     console.log(timePaths);
 
     commit('abmSimpleTimes', simpleTimeData);
