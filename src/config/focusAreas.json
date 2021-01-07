@@ -1,0 +1,25 @@
+{
+  "layer": {
+    "id": "focusAreas",
+    "type": "fill",
+    "source": "focusAreas",
+    "paint": {
+      "fill-color": "lightgrey",
+      "fill-outline-color": "black",
+      "fill-opacity": [
+        "case",
+        ["boolean", ["feature-state", "hover"], false],
+        1,
+        0.5
+      ]
+    }
+  },
+  "mapSource": {
+    "id": "focusAreas",
+    "type": "geojson",
+    "data": {
+      "from": "cityPyO",
+      "id": "focusAreas"
+    }
+  }
+}

@@ -14,8 +14,10 @@ export default {
         return {
             lastClicked: [],
             featuresObject: {},
-            targetFound: false, 
+            targetFound: false,
             featureFound: false,
+            hoveredFocusArea: null,
+            selectedFocusArea: null
         }
     },
     computed: {
@@ -78,11 +80,19 @@ export default {
             closeOnClick: false
         })
 
+        // general map interaction
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
         this.map.on('contextmenu', this.onMapContextMenu)
+
+        // amenties layer
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
         this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
+
+        // focus areas layer
+        this.map.on('mousemove', 'focusAreas', this.onFocusAreaHover)
+        this.map.on('mouseleave', 'focusAreas', this.onFocusAreaLeave)
+        this.map.on('click', 'focusAreas', this.onFocusAreaClick)
 
         //console.log(this.$store.state.map);
     },
@@ -92,7 +102,7 @@ export default {
                 this.lastClicked[0] = ((evt.clientX * 100)/window.innerWidth)/100;
                 this.lastClicked[1] = ((evt.clientY * 100)/window.innerHeight)/100;
                 this.$store.commit('scenario/lastClick', this.lastClicked);
-                
+
                 if(this.targetFound){this.openContextMenu();}
         },
         onMapClicked (evt) {
@@ -102,7 +112,7 @@ export default {
                     [evt.point.x - 10, evt.point.y - 10],
                     [evt.point.x + 10, evt.point.y + 10]
                 ]
-                
+
                 const features = this.map.queryRenderedFeatures(bbox, {
                     layers: this.layerIds,
                 });
@@ -115,12 +125,12 @@ export default {
                         singleOutTarget.push(feature);
                     }
                 });
-                
+
                 this.$store.commit('selectedFeatures', singleOutTarget);
 
                 if(singleOutTarget === undefined || singleOutTarget.length == 0){
                     console.log("no feature selected");
-                    this.targetFound = false; 
+                    this.targetFound = false;
                 } else {
                     const building = singleOutTarget[0].properties.area_planning_type;
                     if(building == "building"){
@@ -143,8 +153,8 @@ export default {
                             }
                         });
                         //newFeature.properties.selected = "active";
-                        this.targetFound = true; 
-                        
+                        this.targetFound = true;
+
                     } else {
                         this.targetFound = false;
                     }
@@ -172,7 +182,7 @@ export default {
                     [evt.point.x - 10, evt.point.y - 10],
                     [evt.point.x + 10, evt.point.y + 10]
                 ]
-                
+
                 const features = this.map.queryRenderedFeatures(bbox, {
                     layers: this.layerIds,
                 });
@@ -185,19 +195,19 @@ export default {
                         singleOutTarget.push(feature);
                     }
                 });
-                
+
                 this.$store.commit('selectedFeatures', singleOutTarget);
 
                 if(singleOutTarget === undefined || singleOutTarget.length == 0){
                     console.log("no feature selected");
-                    this.targetFound = false; 
+                    this.targetFound = false;
                 } else {
                     const building = singleOutTarget[0].properties.area_planning_type;
                     if(building == "building"){
                         const newFeature = this.selectedFeatures;
                         newFeature.forEach(feature => {
                             if(feature.properties.selected != 'active'){
-                               
+
                             } else {
                                 if(this.allFeaturesHighlighted){
                                     feature.properties.selected = "inactive";
@@ -210,8 +220,8 @@ export default {
                         const targetId = newFeature[0].properties.building_id;
                         this.$modal.hide(targetId);
                         //newFeature.properties.selected = "active";
-                        this.targetFound = true; 
-                        
+                        this.targetFound = true;
+
                     } else {
                         this.targetFound = false;
                     }
@@ -260,7 +270,44 @@ export default {
             console.log('leaving layer')
             this.map.getCanvas().style.cursor = ''
             this.popup.remove()
-        }
+        },
+        onFocusAreaHover (evt) {
+          if (evt.features.length > 0) {
+            if (this.hoveredFocusArea) {
+              this.map.setFeatureState(
+                { source: 'focusAreas', id: this.hoveredFocusArea },
+                { hover: false }
+              )
+            }
+            this.hoveredFocusArea = evt.features[0].id
+
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: this.hoveredFocusArea },
+              { hover: true }
+            )
+          }
+        },
+        onFocusAreaLeave (evt) {
+          if (this.hoveredFocusArea) {
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: this.hoveredFocusArea },
+              { hover: false }
+            )
+          }
+          this.hoveredFocusArea = null
+        },
+        onFocusAreaClick (evt) {
+          console.log("click!", evt.features)
+          if (evt.features.length > 0) {
+            this.selectedFocusArea = evt.features[0].id
+
+            console.log("selected focus area", this.selectedFocusArea)
+
+            // compute results. potentially create turf.featureCollection here?
+
+            // this.selectedNeighborhood = Neighborhoods[selectedFocusArea]
+          }
+        },
     }
 }
 </script>

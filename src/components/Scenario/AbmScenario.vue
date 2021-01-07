@@ -114,6 +114,12 @@ export default {
             } else if (!this.heatMap) {
                 this.btnlabel = "Show Aggregation Layer"
             }
+        },
+        activeDivision() {
+          if (this.activeDivision === 'Dashboard') {
+            // load map layer with focus areas
+            this.$store.dispatch("scenario/addFocusAreasMapLayer")
+          }
         }
     },
     mounted: function() {
