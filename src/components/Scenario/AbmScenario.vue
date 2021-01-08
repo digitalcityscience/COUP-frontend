@@ -14,7 +14,7 @@ import {
     workshopScenarioNames
 } from '@/store/abm.ts'
 import TimeSheet from "@/components/Scenario/TimeSheet.vue";
-import {calculatePedestrianIndices} from "@/store/scenario/abmStats";
+import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 //import { filter } from 'vue/types/umd';
 
 export default {
@@ -150,7 +150,7 @@ export default {
             )
         },
         calculateAbmStats() {
-          calculatePedestrianIndices()
+          calculateAbmStatsForFocusArea()
         },
         changeHeatMapData(){
             this.$store.commit("scenario/selectedRange", this.adjustRange);

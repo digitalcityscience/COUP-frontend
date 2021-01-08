@@ -2,8 +2,28 @@ import * as turf from '@turf/turf'
 import store from '@/store'
 
 import GrasbrookArea from '@/assets/grasbrook_area.json'  // TODO: get from CityPyo
+import FocusAreas from '@/assets/focus_areas.json'  // TODO: get from CityPyo
 const grasbrookRegion = turf.featureCollection(GrasbrookArea["features"])
 
+
+export function calculateAbmStatsForFocusArea(focusAreaId: number) {
+  //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
+  let focusAreas = turf.featureCollection(FocusAreas["features"])
+
+
+  if (focusAreaId) {
+    focusAreas.features = focusAreas.features.filter(feature => {
+      return feature.id == focusAreaId
+    })
+  }
+
+  let results = calculatePedestrianIndices(focusAreas)
+  let abmStats = store.state.scenario.abmStats || {}
+  abmStats[focusAreaId || "grasbrook"] = results
+
+  store.commit("scenario/abmStats", abmStats)
+  console.log("commited abmStats to store")
+}
 
 
 /*
@@ -11,7 +31,7 @@ const grasbrookRegion = turf.featureCollection(GrasbrookArea["features"])
  * Compute stats based on pedestrian counts in region (hour for hour)
  * timePath object looks like this  TODO: example
  */
-export function calculatePedestrianIndices(forRegion = grasbrookRegion) {
+function calculatePedestrianIndices(forRegion = grasbrookRegion) {
   console.log("calculating pedestrian indices")
   let pedestrianCountsPerHour = {}
   let matchedPointsPerHour = {}  // collection of Points with active agents within the investigation region
@@ -70,16 +90,13 @@ export function calculatePedestrianIndices(forRegion = grasbrookRegion) {
 
 
   // pack den shit in den store.
-  let abmStats = {
+  return {
     "pedestrianDensity": pedestrianDensity,
     "temporalEntropyPercent": temporalEntropyPercent,
     "opportunitiesOfInteraction": opportunitiesOfInteraction,
     "averageDuration": averages["duration"],
     "averageLength": averages["length"]
   }
-  store.commit("scenario/abmStats", abmStats)
-
-  console.log("commited abmStats to store")
 }
 
 /**

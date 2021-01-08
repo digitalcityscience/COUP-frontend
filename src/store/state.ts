@@ -17,6 +17,7 @@ const initialState: StoreState = {
     cityPyO: null,
     currentTime: 0,
     workshop: false,
+    focusAreasGeoJson: null
 }
 
 export default initialState;

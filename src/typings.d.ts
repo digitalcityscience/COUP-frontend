@@ -75,6 +75,7 @@ declare global {
         cityPyO: CityPyO | null,
         mapStyle: string,
         workshop: Boolean,
+        focusAreasGeoJson: GenericObject | null
       }
 
       interface View {

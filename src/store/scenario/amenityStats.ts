@@ -98,7 +98,7 @@ export function calculateAmenityDiversity(forRegion= grasbrookRegion) {
 
 /**
  * filters the current Abm dataset by a region
- * data is inlcuded, if a on of the coordinates is in the region
+ * data is inlcuded, if a one of the coordinates is in the region
  */
 export function filterAbmDataByRegion() {
   console.log("test filter")

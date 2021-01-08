@@ -6,6 +6,7 @@ import amenities from '@/config/amenities.json'
 import { alkisTranslations } from '@/store/abm'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
+import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 
 export default {
     name: 'Map',
@@ -297,15 +298,16 @@ export default {
           this.hoveredFocusArea = null
         },
         onFocusAreaClick (evt) {
+          // TODO set color!
+
           console.log("click!", evt.features)
           if (evt.features.length > 0) {
             this.selectedFocusArea = evt.features[0].id
 
             console.log("selected focus area", this.selectedFocusArea)
 
-            // compute results. potentially create turf.featureCollection here?
-
-            // this.selectedNeighborhood = Neighborhoods[selectedFocusArea]
+            // compute results.
+            calculateAbmStatsForFocusArea(this.selectedFocusArea)
           }
         },
     }
