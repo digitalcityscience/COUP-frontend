@@ -6,7 +6,8 @@ import FocusAreas from '@/assets/focus_areas.json'  // TODO: get from CityPyo
 const grasbrookRegion = turf.featureCollection(GrasbrookArea["features"])
 
 
-export function calculateAbmStatsForFocusArea(focusAreaId: number) {
+export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
+  console.log("focusarea", focusAreaId)
   //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
   let focusAreas = turf.featureCollection(FocusAreas["features"])
 
@@ -19,10 +20,14 @@ export function calculateAbmStatsForFocusArea(focusAreaId: number) {
 
   let results = calculatePedestrianIndices(focusAreas)
   let abmStats = store.state.scenario.abmStats || {}
-  abmStats[focusAreaId || "grasbrook"] = results
+
+  const id = focusAreaId || "grasbrook"
+  abmStats[id] = results
 
   store.commit("scenario/abmStats", abmStats)
   console.log("commited abmStats to store")
+  store.commit("scenario/updateRadarChart", true)
+  store.commit("scenario/loader", false)
 }
 
 
@@ -81,23 +86,38 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
       opportunitiesOfInteraction += opportunitiesOfInteractionAtPoint
     })
   }
+  opportunitiesOfInteraction = opportunitiesOfInteraction / turf.area(forRegion)
   console.log("total opportunities of interaction in area", opportunitiesOfInteraction)
+
 
   /*
    * Calculate trips averages (average duration and length)
    */
   let averages = calculateTripAverages(forRegion)
 
-
-  // pack den shit in den store.
-  return {
+  let results = {
+    "orginal" : {
     "pedestrianDensity": pedestrianDensity,
     "temporalEntropyPercent": temporalEntropyPercent,
     "opportunitiesOfInteraction": opportunitiesOfInteraction,
     "averageDuration": averages["duration"],
     "averageLength": averages["length"]
+    },
+
+    // TODO translated results: schöne labels für die Ergebnisse
+
+    "scaledResults": {
+      "Pedestrian Density": Math.min((pedestrianDensity / 0.3) * 100, 100), // 0.3 as max. reachable value for ped. density
+      "Temporal Entropy": temporalEntropyPercent,  // already in percent no need for scaling
+      "Opportunities for Interaction": Math.min(opportunitiesOfInteraction * 1000, 100), // 20000 max. reachable value
+      "Trip Duration": Math.min((averages["duration"] / 60) * 100, 100),
+      "Trip Length": Math.min((averages["length"] / 1500) * 100, 100)
+    }
   }
+
+  return results
 }
+
 
 /**
  *  creates a featureCollection with all points in a timePath value set
@@ -239,8 +259,7 @@ function calculateTripAverages(forRegion  = grasbrookRegion) {
   let averageLengthMeters = tripsInRegion.reduce((acc, trip) => acc + trip["length"], 0) / tripsInRegion.length
 
   let averageDuration = averageDurationSec / 60
-  let averageLength = averageLengthMeters / 1000
 
-  return {"duration": averageDuration, "length": averageLength}
+  return {"duration": averageDuration, "length": averageLengthMeters}
 }
 

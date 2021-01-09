@@ -7,6 +7,8 @@ import { alkisTranslations } from '@/store/abm'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
+import store from "@/store";
+import Vue from 'vue';
 
 export default {
     name: 'Map',
@@ -18,7 +20,7 @@ export default {
             targetFound: false,
             featureFound: false,
             hoveredFocusArea: null,
-            selectedFocusArea: null
+            selectedFocusAreas: []
         }
     },
     computed: {
@@ -33,7 +35,8 @@ export default {
         ]),
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
-            ['showLegend', 'showLegend' ]
+            ['showLegend', 'showLegend' ],
+            ['loader', 'scenario/loader' ]
         ]),
         heatMapData(){
             return this.$store.state.scenario.heatMapData;
@@ -51,6 +54,9 @@ export default {
             return this.$store.state.selectedFeatures;
         }
     },watch: {
+        loader() {
+          console.log("loader changed")
+        },
         heatMapData(){
             this.updateHeatMap();
         },
@@ -107,6 +113,8 @@ export default {
                 if(this.targetFound){this.openContextMenu();}
         },
         onMapClicked (evt) {
+          console.log("click!")
+          console.log(evt)
             if(!this.workshop){
                 this.targetFound = false;
                 const bbox = [
@@ -298,16 +306,29 @@ export default {
           this.hoveredFocusArea = null
         },
         onFocusAreaClick (evt) {
-          // TODO set color!
-
-          console.log("click!", evt.features)
           if (evt.features.length > 0) {
-            this.selectedFocusArea = evt.features[0].id
-
-            console.log("selected focus area", this.selectedFocusArea)
-
-            // compute results.
-            calculateAbmStatsForFocusArea(this.selectedFocusArea)
+            const selectedFocusArea = evt.features[0].id
+            const idx = this.selectedFocusAreas.indexOf(selectedFocusArea)
+            if (idx > -1) {
+              // if area already selected -> deselect focus area
+              this.selectedFocusAreas.splice(idx, 1);
+              this.map.setFeatureState(
+                { source: 'focusAreas', id: selectedFocusArea },
+                { clicked: false, hover: false }
+              )
+            } else {
+              // add to selected areas
+              //this.$store.commit("scenario/loader", true)
+              this.loader = true
+              this.$store.commit("scenario/loaderTxt", "Calculating ABM stats")
+              this.selectedFocusAreas.push(selectedFocusArea)
+              this.map.setFeatureState(
+                { source: 'focusAreas', id: selectedFocusArea },
+                { clicked: true, hover: false }
+              )
+              // compute results.
+              calculateAbmStatsForFocusArea(selectedFocusArea)
+            }
           }
         },
     }

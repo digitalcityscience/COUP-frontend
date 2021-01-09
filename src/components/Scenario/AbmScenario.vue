@@ -13,13 +13,16 @@ import {
     filterOptions,
     workshopScenarioNames
 } from '@/store/abm.ts'
-import TimeSheet from "@/components/Scenario/TimeSheet.vue";
+
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
-//import { filter } from 'vue/types/umd';
+import Chart from "chart.js";
+import RadarChart from "./RadarChart.vue";
 
 export default {
     name: 'AbmScenario',
-    components: {},
+    components: {
+      RadarChart
+    },
     data () {
         return {
             activeDivision:null,
@@ -44,7 +47,8 @@ export default {
             heatMapType:'default',
             pedestrianModel: true,
             btnlabel: 'Generate Aggregation Layer',
-            reloadHeatMapLayer: false
+            reloadHeatMapLayer: false,
+            radarChart: null
         }
     },
     computed: {
@@ -54,6 +58,8 @@ export default {
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
             ['resultOutdated', 'scenario/resultOutdated'],
+            ['loader', 'scenario/loader'],
+            ['updateRadarChart', 'scenario/updateRadarChart'],
             ['currentlyShownScenarioSettings', 'scenario/currentlyShownScenarioSettings'],
             ['bridge_hafencity', 'scenario/moduleSettings/' + moduleSettingNames.bridge_hafencity],
             ['bridge_veddel', 'scenario/moduleSettings/' + moduleSettingNames.bridge_veddel],
@@ -67,8 +73,8 @@ export default {
             ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
             ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
         ]),
-        loader(){
-            return this.$store.state.scenario.loader;
+        abmStats(){
+          return this.$store.state.scenario.abmStats;
         },
         abmData(){
             return this.$store.state.scenario.abmData;
@@ -93,12 +99,17 @@ export default {
         }
     },
     watch: {
-        moduleSettings: {
-          handler: function () {
-            this.areResultsOutdated()
-          },
-          deep:true
+      /*updateRadarChart() {
+        if (this.updateRadarChart) {
+          console.log("updating the chart")
+          this.renderRadarChart()
+          this.updateRadarChart = !this.updateRadarChart
+        }
+      }, */
+        loader() {
+          console.log("loader changed in abmScenario.vue")
         },
+
         resultsOutdated(newVal, oldVal) {
           console.log("changes made")
           console.log(newVal, oldVal)
@@ -117,8 +128,13 @@ export default {
         },
         activeDivision() {
           if (this.activeDivision === 'Dashboard') {
+            //this.loader = true
             // load map layer with focus areas
             this.$store.dispatch("scenario/addFocusAreasMapLayer")
+            // calculate stats if not provided yet
+            if (!this.$store.state.scenario.abmStats["grasbrook"]) {
+              // calculateAbmStatsForFocusArea()
+            }
           }
         }
     },
@@ -136,6 +152,9 @@ export default {
         this.activeDivision = divisions[0].getAttribute('data-title');
     },
     methods: {
+      showChart() {
+        this.updateRadarChart = true
+      },
         areResultsOutdated() {
           // TODO for filters as well , not only for settings
           this.resultOutdated = JSON.stringify(this.currentlyShownScenarioSettings) !== JSON.stringify(this.moduleSettings)
@@ -148,9 +167,6 @@ export default {
           this.$store.dispatch(
                 'scenario/updateAbmDesignScenario'
             )
-        },
-        calculateAbmStats() {
-          calculateAbmStatsForFocusArea()
         },
         changeHeatMapData(){
             this.$store.commit("scenario/selectedRange", this.adjustRange);
@@ -182,8 +198,52 @@ export default {
             this.$store.dispatch(
             'scenario/loadWorkshopScenario', scenarioId
             )
-        }
-    }
+        },
+        /* renderRadarChart(){
+          console.log("rendering radar chart")
+          console.log("abmStats for chart", this.abmStats)
+          /*render graph via chart.js
+          var ctx = document.getElementById('radarChart').getContext('2d');
+          if (this.radarChart) {
+            this.radarChart.destroy();
+          }
+
+          // create datasets
+          let datasets = []
+          for (const [focusArea, results] of Object.entries(this.abmStats)) {
+            // TODO: if in selectedFocusAreas (from store)
+
+            console.log(focusArea, results);
+
+            let dataset = {
+              data: Object.values(results["scaledResults"]),
+              borderColor: 'rgba(16,245,229,1)',
+              backgroundColor: 'rgba(0,0,0,0.75)',
+              borderWidth: 1,
+              fill: true,
+              label: "Focus Area: " + focusArea.toString(),
+              }
+            datasets.push(dataset)
+            }
+          let labels = Object.keys(this.abmStats["grasbrook"]["scaledResults"])
+
+          this.radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+              labels: labels,
+              datasets: datasets
+            },
+            options: {
+              legend: {
+                display:true,
+              }
+            }
+          });
+        } */
+    },
+  created() {
+    this.$set(this.abmStats, 'grasbrook', {})
+  }
 }
 </script>
 
@@ -192,7 +252,8 @@ export default {
         <div class="component_divisions">
             <ul>
                 <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', abmData == 'undefined' || abmData == null ? 'hidden' : '']">
+                <!-- <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', abmData == 'undefined' || abmData == null ? 'hidden' : '']">
+                --><li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '']">
                     <div class="component_link" @click="activeDivision = division.title">
                       <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">
@@ -342,14 +403,12 @@ export default {
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Dashboard'" class="component_content">
                <h2>ABM Dashboard</h2>
-                <ul>
-                    <li>Number Of Agents active: </li>
-                    <li>Average length of track: </li>
-                    <li>Stuff like this: </li>
-                </ul>
-             <v-btn @click="calculateAbmStats()">
-               Calculate Stats
-             </v-btn>
+                   <v-btn @click="showChart()" class="confirm_btn">
+                     Click
+                   </v-btn>
+
+                 <RadarChart></RadarChart>
+
            </div><!--component_content end-->
         </div><!--division end-->
 
