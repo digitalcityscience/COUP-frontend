@@ -6,7 +6,10 @@
     "paint": {
       "fill-color":[
         "case",
-        ["boolean", ["feature-state", "clicked"], false],
+        ["boolean", ["feature-state", "hover"], false],
+        [
+          "get", "color"
+        ],["boolean", ["feature-state", "clicked"], false],
         [
           "get", "color"
         ],
