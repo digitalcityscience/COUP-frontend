@@ -116,7 +116,7 @@ export function calculateDensityOfAmenities(amenitiesWithin, forRegion) {
   console.log("amenities count", amenityCount)
   console.log("area", turf.area(forRegion) / (1000*1000))
 
-  return amenityCount / (turf.area(forRegion) / (1000*1000) ) // in count / km²
+  return Math.round(amenityCount / (turf.area(forRegion) / (1000*1000) )) // in count / km²
 }
 
 /**
@@ -150,7 +150,7 @@ export function calculateAmenityDiversity(grasbrookAmenities, amenitiesWithin) {
   }, 0) as number)
 
   console.log("SIMPSON", simpson)
-  return simpson * 100
+  return Math.round(simpson * 100)
 }
 
 function getAmenityTypes(amenities) {

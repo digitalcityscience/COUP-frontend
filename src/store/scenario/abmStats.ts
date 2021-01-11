@@ -57,7 +57,7 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
   let pedestrianSum = (Object.values(pedestrianCountsPerHour).reduce((result: number, value: number) => {
     return result + value
   }, 0) as number)
-  let pedestrianDensity = pedestrianSum / turf.area(forRegion)
+  let pedestrianDensity = Math.round(pedestrianSum / turf.area(forRegion))
 
   console.log("pedestrianDensity in people / m²", pedestrianDensity)
 
@@ -69,7 +69,7 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
     return calculateShannonSummand(result, value, pedestrianSum)
   }, 0) as number)
   const hMax = Math.log(24) // compute Hmax = ln(numberOfSpecies) , Assumes hours of the day = species
-  let temporalEntropyPercent = (temporalEntropy / hMax) * 100
+  let temporalEntropyPercent = Math.round((temporalEntropy / hMax) * 100)
 
   console.log("temporalEntropyPercent", temporalEntropyPercent)
   console.log("temporalEntropy", temporalEntropy)
@@ -86,7 +86,7 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
       opportunitiesOfInteraction += opportunitiesOfInteractionAtPoint
     })
   }
-  opportunitiesOfInteraction = opportunitiesOfInteraction / turf.area(forRegion)
+  opportunitiesOfInteraction = Math.round(opportunitiesOfInteraction / turf.area(forRegion))
   console.log("total opportunities of interaction in area", opportunitiesOfInteraction)
 
 
@@ -97,15 +97,12 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
 
   let results = {
     "orginal" : {
-    "pedestrianDensity": pedestrianDensity,
-    "temporalEntropyPercent": temporalEntropyPercent,
+    "pedestrianDensity": pedestrianDensity.toString() + ' Pedestrians/m²',
+    "temporalEntropyPercent": temporalEntropyPercent.toString() + '%',
     "opportunitiesOfInteraction": opportunitiesOfInteraction,
-    "averageDuration": averages["duration"],
-    "averageLength": averages["length"]
+    "averageDuration": averages["duration"].toString() + ' minutes',
+    "averageLength": averages["length"].toString() + ' meters'
     },
-
-    // TODO translated results: schöne labels für die Ergebnisse
-
     "scaledResults": {
       "Pedestrian Density": Math.min((pedestrianDensity / 0.3) * 100, 100), // 0.3 as max. reachable value for ped. density
       "Temporal Entropy": temporalEntropyPercent,  // already in percent no need for scaling
@@ -260,6 +257,6 @@ function calculateTripAverages(forRegion  = grasbrookRegion) {
 
   let averageDuration = averageDurationSec / 60
 
-  return {"duration": averageDuration, "length": averageLengthMeters}
+  return {"duration": Math.round(averageDuration), "length": Math.round(averageLengthMeters)}
 }
 
