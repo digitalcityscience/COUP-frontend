@@ -25,7 +25,7 @@ export default {
               12: "#70b6c9"
             },
             amenityStats: {
-              1: {
+              11: {
               complementary: 75,
               density: 190.60700164317015,
               diversity: 99.88310929281122,
