@@ -9,6 +9,7 @@ import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import store from "@/store";
 import Vue from 'vue';
+import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 
 export default {
     name: 'Map',
@@ -327,7 +328,8 @@ export default {
                 { clicked: true, hover: false }
               )
               // compute results.
-              calculateAbmStatsForFocusArea(selectedFocusArea)
+              // TODO calculateAbmStatsForFocusArea(selectedFocusArea)
+              calculateAmenityStatsForFocusArea(selectedFocusArea)
             }
           }
         },

@@ -150,7 +150,7 @@ export function calculateAmenityDiversity(grasbrookAmenities, amenitiesWithin) {
   }, 0) as number)
 
   console.log("SIMPSON", simpson)
-  return simpson
+  return simpson * 100
 }
 
 function getAmenityTypes(amenities) {

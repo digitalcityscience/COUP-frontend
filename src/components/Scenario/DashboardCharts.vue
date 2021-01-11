@@ -1,14 +1,43 @@
 <script>
 import { mapState } from 'vuex'
 import Chart from 'chart.js'
-import {abmTripsLayerName, animate} from "@/store/deck-layers";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
-    name: 'RadarChart',
+    name: 'DashboardCharts',
     data() {
         return {
             radarChart: null,
+            barChart: null,
+            chartColors: {
+              "grasbrook": "lightgrey",
+              1: "#e172d8",
+              2: "#eda361",
+              3: "#8712cf",
+              4: "#d37373",
+              5: "#32cd17",
+              6: "#2bca5b",
+              7: "#1a51d1",
+              8: "#d2c74f",
+              9: "#56ebc8",
+              10: "#ed80b3",
+              11: "#6a4fef",
+              12: "#70b6c9"
+            },
+            amenityStats: {
+              1: {
+              complementary: 75,
+              density: 190.60700164317015,
+              diversity: 99.88310929281122,
+              typesCount: 13
+              },
+              "grasbrook": {
+              complementary: 122,
+              density: 12.60700164317015,
+              diversity: 90,
+              typesCount: 32
+              }
+            },
             abmStats: {
               "grasbrook": {
                 original: {
@@ -55,30 +84,67 @@ export default {
     },
     components: {},
     methods:{
+
+      // TODO : create labels using this library
+      //  https://chartjs-plugin-datalabels.netlify.app/guide/labels.html#dataset-overrides
+
+      renderBarChart() {
+        console.log("rendering bar chart")
+
+        /*render graph via chart.js*/
+        var ctx = document.getElementById('barChart').getContext('2d');
+        if (this.barChart) {
+          this.barChart.destroy();
+        }
+
+        var chartColors = this.chartColors;
+
+        // create datasets
+        let datasets = []
+        for (const [focusArea, results] of Object.entries(this.amenityStats)) {
+          let dataset = {
+            data: Object.values(results),
+            label: "Focus Area: " + focusArea.toString(),
+            backgroundColor: chartColors[focusArea],
+            borderColor: chartColors[focusArea],
+            hoverBackgroundColor: chartColors[focusArea],
+            hoverBorderColor: chartColors[focusArea],
+            notes: Object.values(results)
+          }
+          datasets.push(dataset)
+        }
+        let labels = Object.keys(this.amenityStats["grasbrook"])
+
+        console.log("labels", labels)
+        console.log("datasets", datasets)
+
+        this.barChart = new Chart(ctx, {
+          type: 'horizontalBar',
+          data: {
+            labels: labels,
+            datasets: datasets
+          },
+          options: {
+            scales: {
+              xAxes: [{
+                stacked: true
+              }],
+              yAxes: [{
+                stacked: true
+              }]
+            }
+          }
+        })
+      },
+
       renderRadarChart(){
-        console.log("rendering radar chart")
-        console.log("abmStats for chart", this.abmStats)
         /*render graph via chart.js*/
         var ctx = document.getElementById('radarChart').getContext('2d');
         if (this.radarChart) {
           this.radarChart.destroy();
         }
         var color = Chart.helpers.color;
-        var chartColors = {
-          "grasbrook": "lightgrey",
-          1: "#e172d8",
-          2: "#eda361",
-          3: "#8712cf",
-          4: "#d37373",
-          5: "#32cd17",
-          6: "#2bca5b",
-          7: "#1a51d1",
-          8: "#d2c74f",
-          9: "#56ebc8",
-          10: "#ed80b3",
-          11: "#6a4fef",
-          12: "#70b6c9"
-        }
+        var chartColors = this.chartColors;
 
         // create datasets
         let datasets = []
@@ -145,6 +211,7 @@ export default {
         ...generateStoreGetterSetter([
           ['loader', 'scenario/loader'],
           ['updateRadarChart', 'scenario/updateRadarChart'],
+          ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
          // ['abmStats', 'scenario/abmStats']
         ])
     },
@@ -156,20 +223,28 @@ export default {
           this.updateRadarChart = !this.updateRadarChart
         }
       },
-      loader() {
-        if (this.loader) {
-          this.loader = false
+      updateAmenityStatsChart() {
+        if (this.updateAmenityStatsChart) {
+          console.log("updating the BAR chart")
+          this.renderBarChart()
+          this.updateAmenityStatsChart = !this.updateRadarChart
         }
-        console.log("loader changed in abmScenario.vue")
-      },
+      }
     }
 }
 
 </script>
 
 <template>
-  <div v-show="this.abmStats" class="radar_chart">
-    <canvas id="radarChart" width="500" height="300"></canvas>
+  <div class="charts">
+    <div v-show="this.amenityStats" class="bar_chart">
+      <h3>Amenity Index</h3>
+      <canvas id="barChart" width="500" height="300"></canvas>
+    </div>
+    <div v-show="this.abmStats" class="radar_chart" style="margin-top: 20px;">
+      <h3>Activity Index</h3>
+      <canvas id="radarChart" width="500" height="300"></canvas>
+    </div>
   </div>
 
 </template>

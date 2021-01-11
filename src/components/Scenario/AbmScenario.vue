@@ -16,12 +16,12 @@ import {
 
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import Chart from "chart.js";
-import RadarChart from "./RadarChart.vue";
+import DashboardCharts from "./DashboardCharts";
 
 export default {
     name: 'AbmScenario',
     components: {
-      RadarChart
+      DashboardCharts: DashboardCharts
     },
     data () {
         return {
@@ -60,6 +60,7 @@ export default {
             ['resultOutdated', 'scenario/resultOutdated'],
             ['loader', 'scenario/loader'],
             ['updateRadarChart', 'scenario/updateRadarChart'],
+            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
             ['currentlyShownScenarioSettings', 'scenario/currentlyShownScenarioSettings'],
             ['bridge_hafencity', 'scenario/moduleSettings/' + moduleSettingNames.bridge_hafencity],
             ['bridge_veddel', 'scenario/moduleSettings/' + moduleSettingNames.bridge_veddel],
@@ -99,13 +100,6 @@ export default {
         }
     },
     watch: {
-      /*updateRadarChart() {
-        if (this.updateRadarChart) {
-          console.log("updating the chart")
-          this.renderRadarChart()
-          this.updateRadarChart = !this.updateRadarChart
-        }
-      }, */
         loader() {
           console.log("loader changed in abmScenario.vue")
         },
@@ -154,6 +148,7 @@ export default {
     methods: {
       showChart() {
         this.updateRadarChart = true
+        this.updateAmenityStatsChart = true
       },
         areResultsOutdated() {
           // TODO for filters as well , not only for settings
@@ -198,48 +193,7 @@ export default {
             this.$store.dispatch(
             'scenario/loadWorkshopScenario', scenarioId
             )
-        },
-        /* renderRadarChart(){
-          console.log("rendering radar chart")
-          console.log("abmStats for chart", this.abmStats)
-          /*render graph via chart.js
-          var ctx = document.getElementById('radarChart').getContext('2d');
-          if (this.radarChart) {
-            this.radarChart.destroy();
-          }
-
-          // create datasets
-          let datasets = []
-          for (const [focusArea, results] of Object.entries(this.abmStats)) {
-            // TODO: if in selectedFocusAreas (from store)
-
-            console.log(focusArea, results);
-
-            let dataset = {
-              data: Object.values(results["scaledResults"]),
-              borderColor: 'rgba(16,245,229,1)',
-              backgroundColor: 'rgba(0,0,0,0.75)',
-              borderWidth: 1,
-              fill: true,
-              label: "Focus Area: " + focusArea.toString(),
-              }
-            datasets.push(dataset)
-            }
-          let labels = Object.keys(this.abmStats["grasbrook"]["scaledResults"])
-
-          this.radarChart = new Chart(ctx, {
-            type: 'radar',
-            data: {
-              labels: labels,
-              datasets: datasets
-            },
-            options: {
-              legend: {
-                display:true,
-              }
-            }
-          });
-        } */
+        }
     },
   created() {
     this.$set(this.abmStats, 'grasbrook', {})
@@ -407,7 +361,7 @@ export default {
                      Click
                    </v-btn>
 
-                 <RadarChart></RadarChart>
+                 <DashboardCharts></DashboardCharts>
 
            </div><!--component_content end-->
         </div><!--division end-->
