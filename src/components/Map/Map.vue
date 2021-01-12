@@ -237,7 +237,7 @@ export default {
                 this.$modal.show(
                     Contextmenu,
                     {},
-                    {name: modal_id, draggable: true, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
+                    {name: modal_id, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
                 )
             } else {
                 this.$modal.hide(modal_id);

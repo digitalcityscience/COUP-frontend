@@ -28,6 +28,8 @@ export default {
             minTime: 0,
             maxTime: 0,
             currentTime:0,
+            windowWidth: window.innerWidth,
+            mobileTimePanel: false,
         }
     },
     mounted(){
@@ -78,7 +80,7 @@ export default {
                         spliceArr = [...new Set(value[filterKey]), ...spliceArr];
                     }
                 });
-
+                
                 let removeDuplicates = [...new Set(value.all)];
                 this.transCoords = removeDuplicates.filter(el => !spliceArr.includes(el));
                 this.activeAbmTimeCoords.push(this.transCoords.length);
@@ -183,7 +185,7 @@ export default {
              // do not filter timeCoords
              this.filterCoords = [...this.timeCoords]
            } else {
-
+               
                 Object.values(this.abmSimpleTimes).forEach(value =>{
                     let coords = [...new Set(value[this.filterOptions[this.filter]])];
                     this.filterCoords.push(coords.length);
@@ -253,12 +255,11 @@ export default {
         },
         currentTimeStamp(){
             this.currentTime = this.currentTimeStamp;
-            //console.log(this.currentTime);
         },
         selectedRange(){
             var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
             var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
-
+            
             this.heatMapRange.left = (leftVal * 100)/57600 + "%";
             this.heatMapRange.width = ((rightVal - leftVal) * 100)/57600 + "%";
             console.log(this.heatMapRange);
@@ -283,7 +284,7 @@ export default {
     <!--<div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">-->
         <div id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
-        <div class="time_panel">
+        <div class="time_panel" :class="{ show: mobileTimePanel }">
             <div class="time_graph">
                 <canvas id="timeChart" width="300" height="160"></canvas>
             </div>
@@ -312,9 +313,6 @@ export default {
                 </v-btn>
             </div>
             -->
-            <!-- Filter disabled for now, as we do currently have no transport mode data in the ABM results.
-                  However function can be reused later for different filter topics
-
             <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
               <v-tooltip right>
                 <template v-slot:activator="{ on, attrs }">
@@ -329,6 +327,9 @@ export default {
               </v-tooltip>
                 <div class="filterMenu" v-bind:class="{ visible: checkState }">
                     <div class="wrapper">
+                        <!--<div class="hint">
+                            <p>Select a dataset to compare</p>
+                        </div>-->
                         <v-select
                             :items="filterLabels"
                             label="Select"
@@ -341,7 +342,6 @@ export default {
                     </div>
                 </div>
             </div>
-           END OF FILTER BUTTON SECTION  -->
             <div class="btn_wrapper">
                   <v-tooltip right>
                     <template v-slot:activator="{ on, attrs }">
@@ -376,6 +376,11 @@ export default {
                 <span v-if="animationRunning">Pause Animation</span>
                 <span v-else>Play Animation</span>
               </v-tooltip>
+            </div>
+            <div class="btn_wrapper" :class="{ highlight: mobileTimePanel }">
+                <v-btn @click="mobileTimePanel = !mobileTimePanel">
+                    <v-icon>mdi-timetable</v-icon>
+                </v-btn>
             </div>
         </div>
     </div>
@@ -535,7 +540,7 @@ export default {
                     @include drop_shadow;
                 }
 
-                 &:last-child {
+                 &:nth-child(3) {
                         ::v-deep.v-btn {
                             opacity:1;
                             border:1px solid $darkred;
@@ -592,6 +597,85 @@ export default {
                     .indicators {
                         opacity:1;
                         transition:0.3s;
+                    }
+                }
+            }
+        }
+
+        @media(max-device-width:720px){
+            width:calc(100% - 20px);
+            left:10px;
+            max-width:100vw;
+            background:transparent;
+            z-index:10;
+
+            .time_panel {
+                background:rgba(0, 0, 0, 0.5);
+                backdrop-filter:blur(5px);
+                width:100%;
+                left:0;
+                padding:10px;
+                box-sizing:border-box;
+                transform:translateY(30vh);
+
+                .time_slider {
+                    width:90%;
+                }
+
+                &.show {
+                    transform:translateY(0);
+                }
+            }
+
+            .button_section {
+                position:fixed;
+                bottom:0;
+                left:0;
+                top:auto;
+                width:100%;
+                height:40px;
+                background:black;
+                display:flex;
+                flex-flow:row wrap;
+                justify-content:center;
+
+                .btn_wrapper {
+                    margin:0 10px;
+
+                    &:nth-child(1){
+                        order:1;
+                    }
+
+                    &:nth-child(3){
+                        order:2;
+
+                        button {
+                            border-radius:0px;
+                            border:1px solid black;
+                            background:#E65449;
+                        }
+                    }
+
+                    &:nth-child(2){
+                        order:3;
+                    }
+
+                    &:last-child{
+                        order:4;
+                        justify-self:flex-end;
+                        margin:0 5px 0 auto;
+
+                        .v-btn {
+                            border-radius:0px;
+                            border:none;
+                        }
+
+                        &.highlight {
+                            .v-btn {
+                                background:rgba(255,255,255,0.85);
+                                border:1px solid white;
+                            }
+                        }
                     }
                 }
             }
