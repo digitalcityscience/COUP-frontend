@@ -12,6 +12,8 @@ export default {
     components: {AbmScenario, SWScenario, MCScenario, NoiseScenario},
     data() {
         return {
+            windowWidth: window.innerWidth,
+            menuOpen: false,
         }
     },
     mounted(){
@@ -37,27 +39,48 @@ export default {
 </script>
 
 <template>
-    <div id="menu" :class="{ ui_hide: !showUi }">
-        <div class="header_scope">
-            <h3>Grasbrook CityScope</h3>
-            <p>Tool for Functional Planning</p>
-        </div>
-        <div class="component_switch">
-            <ul class="component_list">
-                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'AbmScenario' }" @click="activeComponent = 'AbmScenario'"><p>ABM</p></li>
-                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SWScenario' }" @click="activeComponent = 'SWScenario'"><p>Stormwater</p></li>
-                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MCScenario' }" @click="activeComponent = 'MCScenario'"><p>Microclimate</p></li>
-                <li class="component_link" v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }" @click="activeComponent = 'NoiseScenario'"><p>Noise</p></li>
-            </ul>
-        </div>
-        <div class="body_scope">
-            <div v-if="activeComponent === 'AbmScenario'"><AbmScenario /></div>
-            <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
-            <div v-if="activeComponent === 'MCScenario'"><MCScenario /></div>
-            <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario /></div>
-        </div>
-        <div class="footer_scope">
+    <div id="menu" :class="{ ui_hide: !showUi, menu_open: menuOpen }">
+        <div class="mobile_button" v-if="windowWidth <= 1023" @click="menuOpen = !menuOpen">
+            <template v-if="menuOpen">
+                <v-icon>mdi-close</v-icon>
+            </template>
+            <template v-else>
+                <v-icon>mdi-menu</v-icon>
+            </template>
 
+        </div>
+        <div class="menu_wrapper">
+            <div class="header_scope">
+                <h3>Grasbrook CityScope</h3>
+                <p>Tool for Functional Planning</p>
+            </div>
+            <div class="component_switch">
+                <template v-if="windowWidth >= 720">
+                    <ul class="component_list">
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'AbmScenario' }" @click="activeComponent = 'AbmScenario'"><p>ABM</p></li>
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SWScenario' }" @click="activeComponent = 'SWScenario'"><p>Stormwater</p></li>
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MCScenario' }" @click="activeComponent = 'MCScenario'"><p>Microclimate</p></li>
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }" @click="activeComponent = 'NoiseScenario'"><p>Noise</p></li>
+                    </ul>
+                </template>
+                <template v-else>
+                    <select class="mobile_select" v-model="activeComponent">
+                        <option value="AbmScenario">ABM</option>
+                        <option value="SWScenario">Stormwater</option>
+                        <option value="MCScenario">Microclimate</option>
+                        <option value="NoiseScenario">Noise</option>
+                    </select>
+                </template>
+            </div>
+            <div class="body_scope">
+                <div v-if="activeComponent === 'AbmScenario'"><AbmScenario /></div>
+                <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
+                <div v-if="activeComponent === 'MCScenario'"><MCScenario /></div>
+                <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario /></div>
+            </div>
+            <div class="footer_scope">
+
+            </div>
         </div>
     </div>
 </template>
@@ -68,10 +91,10 @@ export default {
     #menu {
         position:fixed;
         top:0;
-        left:0;
-        width:100vw;
+        left:100vw;
+        width:340px;
         height:100vh;
-        transform:translateX(100%);
+        transform:translateX(0);
         border-left:1px solid #888;
         font-family: 'Tajawal', sans-serif;
         z-index: 1000;
@@ -162,6 +185,100 @@ export default {
             max-width:340px;
             transform:translateX(0);
             background:rgba(0,0,0,0.8);
+
+            .menu_wrapper {
+                width:100%;
+                height:100vh;
+                margin:0 auto;
+            }
+        }
+
+        @media(max-device-width:1023px){
+            width:340px;
+            background:rgba(0,0,0,0.75);
+            backdrop-filter:blur(10px);
+
+            .menu_wrapper {
+                width:100%;
+                height:100vh;
+                margin:0 auto;
+                overflow:auto;
+
+                select {
+                    position:relative;
+                    width:calc(100% - 20px);
+                    margin:10px;
+                    height:50px;
+                    border:1px solid #888;
+                    text-align:left;
+                    padding:0px 10px;
+                    box-sizing: border-box;
+                    color:whitesmoke;
+
+                    option {
+                        color:#222;
+                    }
+                    
+                    &:after {
+                        content:'';
+                        width:100%;
+                        height:100%;
+                        position:absolute;
+                        top:0;
+                        left:0;
+                        z-index:-1;
+                        background:$greyblue;
+                        opacity:0.5;
+                    }
+                }
+            }
+
+            &.menu_open {
+                transform:translateX(-340px);
+                transition:0.3s;
+
+                .mobile_button {
+                    right:10px;
+                    top:10px;
+                    left:auto;
+                    background:transparent;
+                    border:1px solid #aaa;
+
+                    .v-icon {
+                        color:whitesmoke;
+                    }
+                }
+            }
+
+            .mobile_button {
+                width:40px;
+                height:40px;
+                position:absolute;
+                left:-40px;
+                top:20px;
+                background:rgba(255,255,255,0.95);
+                @include drop_shadow;
+
+                .v-icon {
+                    margin:10px auto;
+                    font-size:20px;
+                    color: black;
+                }
+            }
+
+            .body_scope {
+                
+            }
+        }
+
+        @media(max-device-width:720px) {
+            width:100vw;
+            padding:30px;
+            box-sizing:border-box;
+
+            &.menu_open {
+                transform:translateX(-100vw);
+            }
         }
     }
 </style>
