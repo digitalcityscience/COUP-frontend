@@ -20,6 +20,7 @@
     "@mdi/js": "^5.5.55",
     "acorn": "^8.0.1",
     "chart.js": "^2.9.3",
+    "chartjs-plugin-datalabels": "^0.7.0",
     "copy-webpack-plugin": "^6.3.1",
     "core-js": "^3.6.4",
     "fs": "0.0.1-security",
