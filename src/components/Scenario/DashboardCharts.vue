@@ -29,16 +29,16 @@ export default {
             amenityStats: {
               "units": ["complementary trips", "places/km²", "Simpson Index", "place types"],
               11: {
-                complementary: 75,
-                density: 12,
-                diversity: 99,
-                typesCount: 13
+                Complementarity: 75,
+                Density: 12,
+                Diversity: 99,
+                Types: 13
               },
               "grasbrook": {
-                complementary: 122,
-                density: 90,
-                diversity: 90,
-                typesCount: 32
+                Complementary: 122,
+                Density: 90,
+                Diversity: 90,
+                Types: 32
               }
             },
             abmStats: {
@@ -126,8 +126,9 @@ export default {
               "units": units
             },
               datalabels: {
-                color: "black",
-                anchor: "center"
+                color: "lightgrey",
+                anchor: "end",
+                align:"end"
               }
           }
           datasets.push(dataset)
