@@ -377,7 +377,7 @@ export default {
                 <span v-else>Play Animation</span>
               </v-tooltip>
             </div>
-            <div class="btn_wrapper" :class="{ highlight: mobileTimePanel }">
+            <div v-if="windowWidth < 720" class="btn_wrapper" :class="{ highlight: mobileTimePanel }">
                 <v-btn @click="mobileTimePanel = !mobileTimePanel">
                     <v-icon>mdi-timetable</v-icon>
                 </v-btn>
