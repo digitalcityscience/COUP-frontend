@@ -114,7 +114,11 @@ export default {
 
     commit('bridges', bridges)
     dispatch('updateBridgeLayer')
-    commit("abmStats", null) // reset abmStats
+
+    // reset abmStats
+    if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
+      commit("abmStats", {}) // reset abmStats
+    }
     dispatch('initialAbmComputing')
     //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
@@ -146,7 +150,7 @@ export default {
           }).then(source => {
           // add layer on top of the layer stack
           if (rootState.map?.getLayer("abmTrips")) {
-            rootState.map?.moveLayer(FocusAreasLayer.layer.id, "abmTrips")
+            rootState.map?.moveLayer(FocusAreasLayer.layer.id, "groundfloor")
           }
         })
       })
