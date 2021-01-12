@@ -252,6 +252,11 @@ function getTimeAgentIsAtPoint(agentName, relevantHour, pointCoords) {
  */
 function calculateShannonSummand(currentSum: number, currentIndividualCount: number, totalIndividualsCount: number) {
   let p = currentIndividualCount / totalIndividualsCount
+
+  if (p === 0) {
+    return currentSum
+  }
+
   return currentSum + (p * Math.log(p))   // Math.log(x) == ln(x)
 }
 
