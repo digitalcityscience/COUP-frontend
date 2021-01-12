@@ -102,6 +102,9 @@ export default {
         // create datasets
         let datasets = []
         for (const [focusArea, results] of Object.entries(this.amenityStats)) {
+          // TODO: if in selectedFocusAreas (from store)
+
+
           let dataset = {
             data: Object.values(results),
             label: "Focus Area: " + focusArea.toString(),
@@ -125,6 +128,9 @@ export default {
             datasets: datasets
           },
           options: {
+            legend: {
+              display: false
+            },
             scales: {
               xAxes: [{
                 stacked: true
@@ -172,7 +178,7 @@ export default {
           },
           options: {
             legend: {
-              position: 'top',
+              display: false
             },
             title: {
               display: false,
