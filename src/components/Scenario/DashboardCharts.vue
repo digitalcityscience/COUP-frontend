@@ -11,6 +11,8 @@ export default {
         return {
             radarChart: null,
             barChart: null,
+            radarChartReady: false,
+            barChartReady: false,
             chartColors: {
               "grasbrook": "lightgrey",
               1: "#e172d8",
@@ -26,7 +28,8 @@ export default {
               11: "#6a4fef",
               12: "#70b6c9"
             },
-            amenityStats: {
+/*
+          amenityStats: {
               "units": ["complementary trips", "places/km²", "Simpson Index", "place types"],
               11: {
                 Complementarity: 75,
@@ -76,19 +79,25 @@ export default {
                 }
               }
             }
+*/
         }
     },
     mounted(){
+      this.renderBarChart()
+      this.renderRadarChart()
     },
     updated(){
-        //this.renderTimeGraph();
     },
     created(){
-        document.onkeydown = this.onkeydown
     },
     components: {},
     methods:{
       renderBarChart() {
+        this.barChartReady = false
+        if (Object.keys(this.amenityStats).length === 0) {
+          // no stats, no chart
+          return
+        }
         console.log("rendering bar chart")
 
         /*render graph via chart.js*/
@@ -135,9 +144,6 @@ export default {
         }
         let labels = Object.keys(this.amenityStats["grasbrook"])
 
-        console.log("labels", labels)
-        console.log("datasets", datasets)
-
         this.barChart = new Chart(ctx, {
           plugins: [ChartDataLabels],
           type: 'horizontalBar',
@@ -165,15 +171,25 @@ export default {
                   //This will be the tooltip.body
                   const value = data.datasets[tooltipItem.datasetIndex].notes["originalValues"][tooltipItem.index]
                   const unit = units[tooltipItem.index]
-                   return value + " " + unit
+                   return value.toString() + " " + unit
                 }
               }
             }
           }
         })
+        this.barChartReady = true
+        this.updateAmenityStatsChart = false
       },
       /** radar chart for abmStats **/
       renderRadarChart(){
+        this.radarChartReady = false
+        console.log("this.abmStats")
+        console.log(this.abmStats)
+        if (Object.keys(this.abmStats).length === 0) {
+          // no stats, no chart
+          return
+        }
+
         /*render graph via chart.js*/
         var ctx = document.getElementById('radarChart').getContext('2d');
         if (this.radarChart) {
@@ -221,11 +237,11 @@ export default {
               offset: '60',
               formatter: function(value, context) {
                 let unitString = ''
+                let val = context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
                 if (context.hovered) {
                   unitString = ' ' + context.chart.data.datasets[context.datasetIndex].notes["units"][context.dataIndex]
                 }
-                return context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
-                  + unitString;
+                return val.toString() + unitString;
               },
               listeners: {
                 enter: function(context) {
@@ -290,6 +306,8 @@ export default {
             }
           }
         });
+        this.radarChartReady = true
+        this.updateRadarChart = false
       }
     },
       computed: {
@@ -298,23 +316,21 @@ export default {
           ['loader', 'scenario/loader'],
           ['updateRadarChart', 'scenario/updateRadarChart'],
           ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
-         // ['abmStats', 'scenario/abmStats']
-         // ['amenityStats', 'scenario/amenityStats']
+          ['abmStats', 'scenario/abmStats'],
+          ['amenityStats', 'scenario/amenityStats']
         ])
     },
     watch: {
       updateRadarChart() {
+        console.log("updating the chart")
         if (this.updateRadarChart) {
-          console.log("updating the chart")
           this.renderRadarChart()
-          this.updateRadarChart = !this.updateRadarChart
         }
       },
       updateAmenityStatsChart() {
+        console.log("updating the BAR chart")
         if (this.updateAmenityStatsChart) {
-          console.log("updating the BAR chart")
           this.renderBarChart()
-          this.updateAmenityStatsChart = !this.updateRadarChart
         }
       }
     }
@@ -324,11 +340,10 @@ export default {
 
 <template>
   <div class="charts">
-    <div v-show="this.amenityStats" class="bar_chart">
-      <h3>Amenity Index</h3>
+    <div v-show="this.amenityStats && this.barChartReady" class="bar_chart">
       <canvas id="barChart" width="500" height="300"></canvas>
     </div>
-    <div v-show="this.abmStats" class="radar_chart" style="margin-top: 20px;">
+    <div v-show="this.abmStats && this.radarChartReady" class="radar_chart" style="margin-top: 20px;">
       <h3>Activity Index</h3>
       <canvas id="radarChart" width="500" height="300"></canvas>
     </div>

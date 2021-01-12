@@ -1,16 +1,20 @@
 import * as turf from '@turf/turf'
 import store from '@/store'
 
-import GrasbrookArea from '@/assets/grasbrook_area.json'  // TODO: get from CityPyo
-import FocusAreas from '@/assets/focus_areas.json'  // TODO: get from CityPyo
-const grasbrookRegion = turf.featureCollection(GrasbrookArea["features"])
-
-
+/**
+ * Calculates AbmStats for a focusArea and commits them to store
+ * If no focusAreaId provided, stats are calculated for entire Grasbrook.
+ *
+ * Depends on abmResults in store (Differ depending on user input)
+ *
+ * @param focusAreaId
+ */
 export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
-  console.log("focusarea", focusAreaId)
-  //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
-  let focusAreas = turf.featureCollection(FocusAreas["features"])
+  if (!store.state.scenario.abmData) {
+    console.log("cannot calc abmStats without abmData. No abmData in store.")
+  }
 
+  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
 
   if (focusAreaId) {
     focusAreas.features = focusAreas.features.filter(feature => {
@@ -18,13 +22,19 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
     })
   }
 
-  let results = calculatePedestrianIndices(focusAreas)
-  let abmStats = store.state.scenario.abmStats || {
-                    "units": ["pedestrians/m²", "%","interactions/m²", "minutes", "meters"],
+  // union several features into 1 feature - makes computing a lot faster
+  if (focusAreas.features.length > 1) {
+    const unionFeature = turf.union(...focusAreas.features)
+    focusAreas.features = []
+    focusAreas.features.push(unionFeature)
   }
+
+  let results = calculatePedestrianIndices(focusAreas)
+  let abmStats = store.state.scenario.abmStats || {}
 
   const id = focusAreaId || "grasbrook"
   abmStats[id] = results
+  abmStats["units"] = ["pedestrians/m²", "%","interactions/m²", "minutes", "meters"]
 
   store.commit("scenario/abmStats", abmStats)
   console.log("commited abmStats to store")
@@ -38,10 +48,13 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
  * Compute stats based on pedestrian counts in region (hour for hour)
  * timePath object looks like this  TODO: example
  */
-function calculatePedestrianIndices(forRegion = grasbrookRegion) {
+function calculatePedestrianIndices(forRegion) {
   console.log("calculating pedestrian indices")
   let pedestrianCountsPerHour = {}
   let matchedPointsPerHour = {}  // collection of Points with active agents within the investigation region
+
+  console.log("store.state.scenario.abmTimePaths")
+  console.log(store.state.scenario.abmTimePaths)
 
   for (const [hour, currentTimePaths] of Object.entries(store.state.scenario.abmTimePaths)) {
     // create featureCollection from pathPoints
@@ -55,11 +68,18 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
     pedestrianCountsPerHour[hour] = currentPedCount
   }
 
+  console.log("pedestrianCountsPerHour")
+  console.log(pedestrianCountsPerHour)
+
   // calculate pedestrian density
   let pedestrianSum = (Object.values(pedestrianCountsPerHour).reduce((result: number, value: number) => {
     return result + value
   }, 0) as number)
-  let pedestrianDensity = Math.round(pedestrianSum / turf.area(forRegion))
+
+  console.log("pedestrianSum")
+  console.log(pedestrianSum)
+
+  let pedestrianDensity = Math.round((pedestrianSum / turf.area(forRegion)) * 1000) / 1000
 
   console.log("pedestrianDensity in people / m²", pedestrianDensity)
 
@@ -88,7 +108,7 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
       opportunitiesOfInteraction += opportunitiesOfInteractionAtPoint
     })
   }
-  opportunitiesOfInteraction = Math.round(opportunitiesOfInteraction / turf.area(forRegion))
+  opportunitiesOfInteraction = Math.round((opportunitiesOfInteraction / turf.area(forRegion)) * 1000) / 1000
   console.log("total opportunities of interaction in area", opportunitiesOfInteraction)
 
 
@@ -98,17 +118,17 @@ function calculatePedestrianIndices(forRegion = grasbrookRegion) {
   let averages = calculateTripAverages(forRegion)
 
   let results = {
-    "orginal" : {
-    "pedestrianDensity": pedestrianDensity.toString() + ' Pedestrians/m²',
-    "temporalEntropyPercent": temporalEntropyPercent.toString() + '%',
+    "original" : {
+    "pedestrianDensity": pedestrianDensity,
+    "temporalEntropyPercent": temporalEntropyPercent,
     "opportunitiesOfInteraction": opportunitiesOfInteraction,
-    "averageDuration": averages["duration"].toString() + ' minutes',
-    "averageLength": averages["length"].toString() + ' meters'
+    "averageDuration": averages["duration"],
+    "averageLength": averages["length"]
     },
     "scaledResults": {
       "Pedestrian Density": Math.min((pedestrianDensity / 0.3) * 100, 100), // 0.3 as max. reachable value for ped. density
       "Temporal Entropy": temporalEntropyPercent,  // already in percent no need for scaling
-      "Opportunities for Interaction": Math.min(opportunitiesOfInteraction * 1000, 100), // 20000 max. reachable value
+      "Opportunities for Interaction": Math.min((opportunitiesOfInteraction / 0.15) * 100, 100), // 0.3 interaction per m² max. reachable value
       "Trip Duration": Math.min((averages["duration"] / 60) * 100, 100),
       "Trip Length": Math.min((averages["length"] / 1500) * 100, 100)
     }

@@ -175,6 +175,7 @@ export default {
             }
         },
         onMapLoaded () {
+            this.$store.dispatch('getFocusAreaGeoJson')
             console.log("create design layers")
             //console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers').then(() => {
@@ -328,8 +329,8 @@ export default {
                 { clicked: true, hover: false }
               )
               // compute results.
-              // TODO calculateAbmStatsForFocusArea(selectedFocusArea)
               calculateAmenityStatsForFocusArea(selectedFocusArea)
+              calculateAbmStatsForFocusArea(selectedFocusArea)
             }
           }
         },

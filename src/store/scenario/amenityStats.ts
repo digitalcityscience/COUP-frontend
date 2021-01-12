@@ -1,14 +1,17 @@
 import store from "@/store";
 import * as turf from "@turf/turf";
-import FocusAreas from "@/assets/focus_areas.json";  // TODO: get from cityPYO / store
 import Amenities from "@/assets/amenities.json";  // TODO: get from cityPYO / store again
 
 
 export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
+  if (!store.state.scenario.amenitiesGeoJson) {
+    console.log("cannot calc amenity stats - no amenityGeoJson in store!")
+    return
+  }
+
   console.log("calc amenity stats")
-  console.log("focusarea", focusAreaId)
   //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
-  let focusAreas = turf.featureCollection(FocusAreas["features"])
+  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
 
   if (focusAreaId) {
     focusAreas.features = focusAreas.features.filter(feature => {
@@ -30,12 +33,12 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
     "Complementarity": complementarity,
     "typesCount": amenityTypesRegion
   }
-  let amenityStats = store.state.scenario.amenityStats || {
-    "units": ["complementary trips", "places/km²", "Simpson Index", "place types"],
-  }
+  let amenityStats = store.state.scenario.amenityStats || {}
 
   const id = focusAreaId || "grasbrook"
   amenityStats[id] = results
+  amenityStats["units"] = ["Simpson Index", "places/km²", "complementary trips", "place types"]
+
   store.commit("scenario/amenityStats", amenityStats)
   console.log("commited amenity stats to store", amenityStats)
   store.commit("scenario/updateAmenityStatsChart", true)
@@ -48,8 +51,7 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
  * @returns FeatureCollection<Point>
  */
 function getFeatureCollectionOfNonResidentialAmenities() {
-  //let amenities = store.state.scenario.amenitiesGeoJson
-  let amenities = Amenities // TODO from store
+  let amenities = store.state.scenario.amenitiesGeoJson
 
   // all amenities that are non-residential
   let amenitiesFeatures = turf.featureCollection(amenities["features"].filter(
@@ -67,9 +69,9 @@ function getFeatureCollectionOfNonResidentialAmenities() {
 function calculateComplementarity(amenitiesWithin: FeatureCollection<Point>) {
   const abmTrips = store.state.scenario.abmTrips
 
-  // TODO remove this ! only for dev
-  if (!abmTrips) {
-    return 75
+  if (amenitiesWithin.features.length === 0) {
+    // no amenities in the area
+    return 0
   }
 
   let complementaryAmenitiesCount = 0
@@ -90,7 +92,6 @@ function calculateComplementarity(amenitiesWithin: FeatureCollection<Point>) {
 
     // count times where the agent has an amenity as destination and also origin
     for (const trip of agentTrips) {
-      console.log("trip", trip)
       let destinationPoint = turf.point(trip["destination"])
       // if destination is direct vincinity to one of the amenities.
       let closestAmenityToDestination = turf.nearestPoint(destinationPoint, amenitiesWithin)

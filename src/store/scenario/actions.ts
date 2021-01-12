@@ -9,6 +9,9 @@ import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
 import { VCarouselReverseTransition } from 'vuetify/lib';
 
+import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
+import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
     // check if traffic counts already in store, otherwise load them from cityPyo
@@ -120,8 +123,13 @@ export default {
       commit("abmStats", {}) // reset abmStats
     }
     dispatch('initialAbmComputing')
+
     //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
+  },
+  calculateStats({state, commit, dispatch, rootState}) {
+    calculateAmenityStatsForFocusArea()
+    calculateAbmStatsForFocusArea()
   },
   // load layer source from cityPyo and add the layer to the map
   updateAmenitiesLayer({state, commit, dispatch, rootState}, workshopId) {
@@ -140,20 +148,22 @@ export default {
       })
   },
   addFocusAreasMapLayer({state, commit, dispatch, rootState}) {
-    const mapSource = FocusAreasLayer.mapSource
-
-    rootState.cityPyO.getLayer(mapSource.data.id)
+    const source = {
+      id: FocusAreasLayer.mapSource.data.id,
+      options: {
+        type: 'geojson',
+        data: rootState.focusAreasGeoJson
+      }
+    }
+    dispatch('addSourceToMap', source, {root: true})
       .then(source => {
-        dispatch('addSourceToMap', source, {root: true})
-          .then(source => {
-            dispatch('addLayerToMap', FocusAreasLayer.layer, {root: true})
-          }).then(source => {
-          // add layer on top of the layer stack
-          if (rootState.map?.getLayer("abmTrips")) {
-            rootState.map?.moveLayer(FocusAreasLayer.layer.id, "groundfloor")
-          }
-        })
-      })
+        dispatch('addLayerToMap', FocusAreasLayer.layer, {root: true})
+      }).then(source => {
+      // add layer on top of the layer stack
+      if (rootState.map?.getLayer("abmTrips")) {
+        rootState.map?.moveLayer(FocusAreasLayer.layer.id, "groundfloor")
+      }
+    })
   },
   // load layer source from cityPyo and add the layer to the map
   updateBridgeLayer({state, commit, dispatch, rootState}, payload) {
@@ -213,7 +223,10 @@ export default {
 
         commit("loaderTxt", "Serving Abm Data ... ");
         commit('abmData', result.options?.data);
-        dispatch("computeLoop", result.options?.data);
+        dispatch("computeLoop", result.options?.data)
+          .then(unused => {
+            dispatch('calculateStats')
+        })
       }
     )
   },

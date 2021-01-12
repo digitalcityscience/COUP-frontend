@@ -113,7 +113,20 @@ export default {
     } else {
       commit('cityPyO', new CityPyO(options.userdata))
     }
+  },
+  getFocusAreaGeoJson({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
+    state.cityPyO.getLayer("focusAreas", false).then(geojson => {
+        commit('focusAreasGeoJson', geojson)
+      }
+    )
+  },
+  getGrasbrookGeoJson({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
+    state.cityPyO.getLayer("grasbrookArea", false).then(geojson => {
+        commit('grasbrookGeoJson', geojson)
+      }
+    )
   }
+
 
   /***** DO WE STILL NEED THIS?
    /**
