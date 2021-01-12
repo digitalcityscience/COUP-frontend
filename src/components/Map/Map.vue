@@ -21,7 +21,6 @@ export default {
             targetFound: false,
             featureFound: false,
             hoveredFocusArea: null,
-            selectedFocusAreas: []
         }
     },
     computed: {
@@ -37,7 +36,8 @@ export default {
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
             ['showLegend', 'showLegend' ],
-            ['loader', 'scenario/loader' ]
+            ['loader', 'scenario/loader' ],
+            ['selectedFocusAreas', 'scenario/selectedFocusAreas' ]
         ]),
         heatMapData(){
             return this.$store.state.scenario.heatMapData;

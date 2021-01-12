@@ -88,10 +88,6 @@ export default {
     },
     components: {},
     methods:{
-
-      // TODO : create labels using this library
-      //  https://chartjs-plugin-datalabels.netlify.app/guide/labels.html#dataset-overrides
-
       renderBarChart() {
         console.log("rendering bar chart")
 
@@ -110,6 +106,10 @@ export default {
         for (const [key, results] of Object.entries(this.amenityStats)) {
           if (key === "units") {
             // ignore units
+            continue
+          }
+          if (this.selectedFocusAreas.indexOf(parseInt(key)) === -1 && key !== "grasbrook") {
+            // ignore not selected areas
             continue
           }
           const focusArea = key
@@ -189,6 +189,10 @@ export default {
         for (const [key, results] of Object.entries(this.abmStats)) {
           if (key === "units") {
             // ignore units
+            continue
+          }
+          if (this.selectedFocusAreas.indexOf(parseInt(key)) === -1 && key !== "grasbrook") {
+            // ignore not selected areas
             continue
           }
 
@@ -289,11 +293,13 @@ export default {
       }
     },
       computed: {
+        ...mapState('scenario', ['selectedFocusAreas']), // getter only
         ...generateStoreGetterSetter([
           ['loader', 'scenario/loader'],
           ['updateRadarChart', 'scenario/updateRadarChart'],
           ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
          // ['abmStats', 'scenario/abmStats']
+         // ['amenityStats', 'scenario/amenityStats']
         ])
     },
     watch: {
