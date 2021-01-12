@@ -25,16 +25,15 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
   let complementarity = calculateComplementarity(amenitiesWithin)
 
   let results = {
-    "diversity": diversity,
-    "density": density,
-    "typesCount": amenityTypesRegion,
-    "complementary": complementarity
+    "Diversity": diversity,
+    "Density": density,
+    "Complementarity": complementarity,
+    "typesCount": amenityTypesRegion
   }
   let amenityStats = store.state.scenario.amenityStats || {}
 
   const id = focusAreaId || "grasbrook"
   amenityStats[id] = results
-
   store.commit("scenario/amenityStats", amenityStats)
   console.log("commited amenity stats to store", amenityStats)
   store.commit("scenario/updateAmenityStatsChart", true)

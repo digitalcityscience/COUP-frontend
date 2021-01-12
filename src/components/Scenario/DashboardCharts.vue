@@ -1,6 +1,8 @@
 <script>
 import { mapState } from 'vuex'
 import Chart from 'chart.js'
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+Chart.plugins.unregister(ChartDataLabels);
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
@@ -26,26 +28,27 @@ export default {
             },
             amenityStats: {
               11: {
-              complementary: 75,
-              density: 190.60700164317015,
-              diversity: 99.88310929281122,
-              typesCount: 13
+                complementary: 75,
+                density: 12,
+                diversity: 99,
+                typesCount: 13
               },
               "grasbrook": {
-              complementary: 122,
-              density: 12.60700164317015,
-              diversity: 90,
-              typesCount: 32
+                complementary: 122,
+                density: 90,
+                diversity: 90,
+                typesCount: 32
               }
             },
             abmStats: {
               "grasbrook": {
+                units: ["test", "test", "test", "test", "test","test"],
                 original: {
-                  pedestrianDensity: 0.024848683742117815,
+                  pedestrianDensity: 0.024,
                   temporalEntropyPercent: 78,
-                  opportunitiesOfInteraction: 0.000397721407243644,
-                  averageDuration: 35.77064220183487,
-                  averageLength: 1070.9633027522937
+                  opportunitiesOfInteraction: 0.00039,
+                  averageDuration: 35,
+                  averageLength: 1070
                 },
                 scaledResults: {
                   "Pedestrian Density": 8.282894580705939,
@@ -56,12 +59,13 @@ export default {
                 }
               },
               11: {
+                units: ["test", "test", "test", "test", "test","test"],
                 original: {
-                  pedestrianDensity: 0.044848683742117815,
+                  pedestrianDensity: 0.044,
                   temporalEntropyPercent: 55,
-                  opportunitiesOfInteraction: 0.010397721407243644,
-                  averageDuration: 65.77064220183487,
-                  averageLength: 200.9633027522937
+                  opportunitiesOfInteraction: 0.010,
+                  averageDuration: 65,
+                  averageLength: 200
                 },
                 scaledResults: {
                   "Pedestrian Density": 32.282894580705939,
@@ -99,12 +103,13 @@ export default {
 
         var chartColors = this.chartColors;
 
-        // create datasets
+        var units = ["test", "test", "test", "test", "test","test"]
+
+
+          // create datasets
         let datasets = []
         for (const [focusArea, results] of Object.entries(this.amenityStats)) {
           // TODO: if in selectedFocusAreas (from store)
-
-
           let dataset = {
             data: Object.values(results),
             label: "Focus Area: " + focusArea.toString(),
@@ -112,7 +117,37 @@ export default {
             borderColor: chartColors[focusArea],
             hoverBackgroundColor: chartColors[focusArea],
             hoverBorderColor: chartColors[focusArea],
-            notes: Object.values(results)
+            notes: {
+              "originalValues": Object.values(results),
+              "units": units
+            },
+              datalabels: {
+              color: "black",
+              anchor: "center",
+              formatter: function(value, context) {
+                let unitString = ''
+                if (context.hovered) {
+                  unitString = ' ' + context.chart.data.datasets[context.datasetIndex].notes["units"][context.dataIndex]
+                }
+                return context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
+                  + unitString;
+              },
+              listeners: {
+                enter: function(context) {
+                  // Receives `enter` events for any labels of any dataset. Indices of the
+                  // clicked label are: `context.datasetIndex` and `context.dataIndex`.
+                  // For example, we can modify keep track of the hovered state and
+                  // return `true` to update the label and re-render the chart.
+                  context.hovered = true;
+                  return true;
+                },
+                leave: function(context) {
+                  // Receives `leave` events for any labels of any dataset.
+                  context.hovered = false;
+                  return true;
+                }
+              }
+            }
           }
           datasets.push(dataset)
         }
@@ -122,6 +157,7 @@ export default {
         console.log("datasets", datasets)
 
         this.barChart = new Chart(ctx, {
+          plugins: [ChartDataLabels],
           type: 'horizontalBar',
           data: {
             labels: labels,
@@ -133,10 +169,10 @@ export default {
             },
             scales: {
               xAxes: [{
-                stacked: true
+                stacked: false
               }],
               yAxes: [{
-                stacked: true
+                stacked: false
               }]
             }
           }
@@ -158,19 +194,59 @@ export default {
           // TODO: if in selectedFocusAreas (from store)
           console.log(focusArea, results);
 
+          let displayLabels = 'auto'
+          if (Object.keys(this.abmStats).length < 2) {
+            displayLabels = focusArea === "grasbrook" ? 'auto' : true  // show stats for focusArea
+          }
+
           let dataset = {
             data: Object.values(results["scaledResults"]),
             label: "Focus Area: " + focusArea.toString(),
             backgroundColor: color(chartColors[focusArea]).alpha(0.2),
+            hoverBackgroundColor: color(chartColors[focusArea]).alpha(0.2),
             borderColor: chartColors[focusArea],
-            pointBackgroundColor: chartColors[focusArea],
-            notes: Object.values(results["original"])
+            pointBackgroundColor: color(chartColors[focusArea]).alpha(0.2),
+            notes: {
+              "originalValues": Object.values(results["original"]),
+              "units": results["units"]
+            },
+            datalabels: {
+              display: displayLabels,
+              color: chartColors[focusArea],
+              anchor: "end",
+              align: 'start',
+              offset: '60',
+              formatter: function(value, context) {
+                let unitString = ''
+                if (context.hovered) {
+                  unitString = ' ' + context.chart.data.datasets[context.datasetIndex].notes["units"][context.dataIndex]
+                }
+                return context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
+                  + unitString;
+              },
+              listeners: {
+                enter: function(context) {
+                  // Receives `enter` events for any labels of any dataset. Indices of the
+                  // clicked label are: `context.datasetIndex` and `context.dataIndex`.
+                  // For example, we can modify keep track of the hovered state and
+                  // return `true` to update the label and re-render the chart.
+                  context.hovered = true;
+                  return true;
+                },
+                leave: function(context) {
+                  // Receives `leave` events for any labels of any dataset.
+                  context.hovered = false;
+                  return true;
+                }
+              }
+            }
           }
           datasets.push(dataset)
         }
         let labels = Object.keys(this.abmStats["grasbrook"]["scaledResults"])
 
         this.radarChart = new Chart(ctx, {
+          plugins: [ChartDataLabels],
           type: 'radar',
           data: {
             labels: labels,
@@ -204,9 +280,11 @@ export default {
               },
               // setting the
               custom: function (tooltip) {
-                // show the original value as tittle
-                // original value is return from label callback above
-                tooltip.title = tooltip.body[0].lines[0]
+                if (tooltip.body) {
+                  tooltip.title = tooltip.body[0].lines[0]
+                } else {
+                  tooltip.title = ""
+                }
               }
             }
           }
