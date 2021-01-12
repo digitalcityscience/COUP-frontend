@@ -121,6 +121,7 @@ export default {
     // reset abmStats
     if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
       commit("abmStats", {}) // reset abmStats
+      commit("amenityStats", {}) // reset amenityStats
     }
     dispatch('initialAbmComputing')
 

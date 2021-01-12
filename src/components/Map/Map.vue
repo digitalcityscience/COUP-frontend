@@ -37,7 +37,9 @@ export default {
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
             ['showLegend', 'showLegend' ],
             ['loader', 'scenario/loader' ],
-            ['selectedFocusAreas', 'scenario/selectedFocusAreas' ]
+            ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
+            ['updateRadarChart', 'scenario/updateRadarChart'],
+            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart']
         ]),
         heatMapData(){
             return this.$store.state.scenario.heatMapData;
@@ -318,11 +320,11 @@ export default {
                 { source: 'focusAreas', id: selectedFocusArea },
                 { clicked: false, hover: false }
               )
+              // update charts
+              this.updateRadarChart = true
+              this.updateAmenityStatsChart = true
             } else {
               // add to selected areas
-              //this.$store.commit("scenario/loader", true)
-              this.loader = true
-              this.$store.commit("scenario/loaderTxt", "Calculating ABM stats")
               this.selectedFocusAreas.push(selectedFocusArea)
               this.map.setFeatureState(
                 { source: 'focusAreas', id: selectedFocusArea },
