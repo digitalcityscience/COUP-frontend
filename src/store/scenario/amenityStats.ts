@@ -30,7 +30,9 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
     "Complementarity": complementarity,
     "typesCount": amenityTypesRegion
   }
-  let amenityStats = store.state.scenario.amenityStats || {}
+  let amenityStats = store.state.scenario.amenityStats || {
+    "units": ["complementary trips", "places/km²", "Simpson Index", "place types"],
+  }
 
   const id = focusAreaId || "grasbrook"
   amenityStats[id] = results
@@ -69,7 +71,6 @@ function calculateComplementarity(amenitiesWithin: FeatureCollection<Point>) {
   if (!abmTrips) {
     return 75
   }
-
 
   let complementaryAmenitiesCount = 0
 

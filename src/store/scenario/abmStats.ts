@@ -19,7 +19,9 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
   }
 
   let results = calculatePedestrianIndices(focusAreas)
-  let abmStats = store.state.scenario.abmStats || {}
+  let abmStats = store.state.scenario.abmStats || {
+                    "units": ["pedestrians/m²", "%","interactions/m²", "minutes", "meters"],
+  }
 
   const id = focusAreaId || "grasbrook"
   abmStats[id] = results

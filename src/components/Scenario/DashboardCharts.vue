@@ -27,6 +27,7 @@ export default {
               12: "#70b6c9"
             },
             amenityStats: {
+              "units": ["complementary trips", "places/km²", "Simpson Index", "place types"],
               11: {
                 complementary: 75,
                 density: 12,
@@ -41,8 +42,8 @@ export default {
               }
             },
             abmStats: {
+              "units": ["pedestrians/m²", "%","interactions/m²", "minutes", "meters"],
               "grasbrook": {
-                units: ["test", "test", "test", "test", "test","test"],
                 original: {
                   pedestrianDensity: 0.024,
                   temporalEntropyPercent: 78,
@@ -59,7 +60,6 @@ export default {
                 }
               },
               11: {
-                units: ["test", "test", "test", "test", "test","test"],
                 original: {
                   pedestrianDensity: 0.044,
                   temporalEntropyPercent: 55,
@@ -103,12 +103,16 @@ export default {
 
         var chartColors = this.chartColors;
 
-        var units = ["test", "test", "test", "test", "test","test"]
-
-
           // create datasets
         let datasets = []
-        for (const [focusArea, results] of Object.entries(this.amenityStats)) {
+        let units = this.amenityStats["units"]
+
+        for (const [key, results] of Object.entries(this.amenityStats)) {
+          if (key === "units") {
+            // ignore units
+            continue
+          }
+          const focusArea = key
           // TODO: if in selectedFocusAreas (from store)
           let dataset = {
             data: Object.values(results),
@@ -122,32 +126,9 @@ export default {
               "units": units
             },
               datalabels: {
-              color: "black",
-              anchor: "center",
-              formatter: function(value, context) {
-                let unitString = ''
-                if (context.hovered) {
-                  unitString = ' ' + context.chart.data.datasets[context.datasetIndex].notes["units"][context.dataIndex]
-                }
-                return context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
-                  + unitString;
-              },
-              listeners: {
-                enter: function(context) {
-                  // Receives `enter` events for any labels of any dataset. Indices of the
-                  // clicked label are: `context.datasetIndex` and `context.dataIndex`.
-                  // For example, we can modify keep track of the hovered state and
-                  // return `true` to update the label and re-render the chart.
-                  context.hovered = true;
-                  return true;
-                },
-                leave: function(context) {
-                  // Receives `leave` events for any labels of any dataset.
-                  context.hovered = false;
-                  return true;
-                }
+                color: "black",
+                anchor: "center"
               }
-            }
           }
           datasets.push(dataset)
         }
@@ -174,11 +155,23 @@ export default {
               yAxes: [{
                 stacked: false
               }]
+            },
+            tooltips: {
+              enabled: true,
+              bodyFontStyle: 'bold',
+              callbacks: {
+                label: function (tooltipItem, data) {
+                  //This will be the tooltip.body
+                  const value = data.datasets[tooltipItem.datasetIndex].notes["originalValues"][tooltipItem.index]
+                  const unit = units[tooltipItem.index]
+                   return value + " " + unit
+                }
+              }
             }
           }
         })
       },
-
+      /** radar chart for abmStats **/
       renderRadarChart(){
         /*render graph via chart.js*/
         var ctx = document.getElementById('radarChart').getContext('2d');
@@ -190,10 +183,15 @@ export default {
 
         // create datasets
         let datasets = []
-        for (const [focusArea, results] of Object.entries(this.abmStats)) {
-          // TODO: if in selectedFocusAreas (from store)
-          console.log(focusArea, results);
+        let units = this.abmStats["units"]
 
+        for (const [key, results] of Object.entries(this.abmStats)) {
+          if (key === "units") {
+            // ignore units
+            continue
+          }
+
+          const focusArea = key
           let displayLabels = 'auto'
           if (Object.keys(this.abmStats).length < 2) {
             displayLabels = focusArea === "grasbrook" ? 'auto' : true  // show stats for focusArea
@@ -208,7 +206,7 @@ export default {
             pointBackgroundColor: color(chartColors[focusArea]).alpha(0.2),
             notes: {
               "originalValues": Object.values(results["original"]),
-              "units": results["units"]
+              "units": units
             },
             datalabels: {
               display: displayLabels,
@@ -272,18 +270,16 @@ export default {
             tooltips: {
               enabled: true,
               bodyFontStyle: 'bold',
+              title: "",
               callbacks: {
+                title: function(tooltipItem, data) {
+                  return data.labels[tooltipItem[0].index]
+                },
                 label: function (tooltipItem, data) {
                   //This will be the tooltip.body
-                  return data.datasets[tooltipItem.datasetIndex].notes[tooltipItem.index];
-                }
-              },
-              // setting the
-              custom: function (tooltip) {
-                if (tooltip.body) {
-                  tooltip.title = tooltip.body[0].lines[0]
-                } else {
-                  tooltip.title = ""
+                  const value =  data.datasets[tooltipItem.datasetIndex].notes["originalValues"][tooltipItem.index]
+                  const unit = data.datasets[tooltipItem.datasetIndex].notes["units"][tooltipItem.index]
+                  return value + " " + unit;
                 }
               }
             }
