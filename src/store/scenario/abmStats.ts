@@ -36,7 +36,6 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
   store.commit("scenario/abmStats", abmStats)
   console.log("commited abmStats to store")
   store.commit("scenario/updateAbmStatsChart", true)
-  store.commit("scenario/loader", false)
 }
 
 
@@ -69,11 +68,8 @@ function calculatePedestrianIndices(forRegion) {
     return result + value
   }, 0) as number)
 
-  console.log("pedestrianSum")
-  console.log(pedestrianSum)
-
   let pedestrianDensity = Math.round((pedestrianSum / turf.area(forRegion)) * 1000) / 1000
-
+  console.log("pedestrianSum", pedestrianSum)
   console.log("pedestrianDensity in people / m²", pedestrianDensity)
 
   /*
@@ -103,7 +99,6 @@ function calculatePedestrianIndices(forRegion) {
   }
   opportunitiesOfInteraction = Math.round((opportunitiesOfInteraction / turf.area(forRegion)) * 1000) / 1000
   console.log("total opportunities of interaction in area", opportunitiesOfInteraction)
-
 
   /*
    * Calculate trips averages (average duration and length)
@@ -138,6 +133,7 @@ function calculatePedestrianIndices(forRegion) {
 function createPathPointCollection(currentTimePaths) {
   // create an array of Point objects from all points in the current hour of timePaths
   let pathPoints = Object.keys(currentTimePaths["values"]).map(coordinateString => {
+    // keys of currentTimePaths["values"] are stringified coords like "10.1223,53.223"
     let coords = coordinateString.split(',').map(x => {
       return parseFloat(x)
     })
@@ -244,11 +240,11 @@ function getTimeAgentIsAtPoint(agentName, relevantHour, pointCoords) {
  * calculates a summand of the Shannon formula.
  */
 function calculateShannonSummand(currentSum: number, currentIndividualCount: number, totalIndividualsCount: number) {
-  let p = currentIndividualCount / totalIndividualsCount
-
-  if (p === 0) {
-    return currentSum
+  if (currentIndividualCount === 0) {
+    return currentSum // + 0
   }
+
+  let p = currentIndividualCount / totalIndividualsCount
 
   return currentSum + (p * Math.log(p))   // Math.log(x) == ln(x)
 }
