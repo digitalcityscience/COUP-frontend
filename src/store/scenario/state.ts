@@ -47,6 +47,8 @@ export default {
       public_transport: true
     }
   },
+  loop:false,
+  setLoop:false,
   currentTimeStamp: 0,
   animationRunning: false,
   animationSpeed: 7,

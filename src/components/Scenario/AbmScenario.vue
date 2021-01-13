@@ -165,9 +165,15 @@ export default {
         )
       },
       changeHeatMapData() {
+        if(this.adjustRange[0] > 8 || this.adjustRange[1] < 23){
+            this.$store.commit("scenario/loop", true);
+        } else {
+            this.$store.commit("scenario/loop", false);
+        };
+
         this.$store.commit("scenario/selectedRange", this.adjustRange);
         this.$store.commit("scenario/heatMapType", this.heatMapType);
-        this.$store.dispatch("scenario/updateLayers", "heatMap")
+        this.$store.dispatch("scenario/updateLayers", "heatMap");
       },
       setHeatMapTimes(x, y) {
         this.adjustRange = [x, y];
@@ -461,7 +467,7 @@ export default {
 
         <div class="division" data-title='Aggregation Layer' data-pic='mdi-gauge'>
            <div v-if="activeDivision === 'Aggregation Layer'" class="component_content">
-            <h2>Capacity Use Map</h2>
+            <h2>Aggregation Layer Settings</h2>
                <v-range-slider
                     v-model="adjustRange"
                     :min="8"
@@ -501,7 +507,7 @@ export default {
                    <v-btn @click="setHeatMapTimes(17,20)"><v-icon>mdi-weather-sunset-down</v-icon></v-btn>
                </div>
                <p>{{datamsg}}</p>
-               <v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>
+               <!--<v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>-->
 
                <div v-if=(heatMap) class="additional">
                    <div class="additional_options">

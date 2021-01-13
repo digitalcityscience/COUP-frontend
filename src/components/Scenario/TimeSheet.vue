@@ -28,6 +28,7 @@ export default {
             minTime: 0,
             maxTime: 0,
             currentTime:0,
+            loopSetter:false,
             windowWidth: window.innerWidth,
             mobileTimePanel: false,
         }
@@ -195,6 +196,11 @@ export default {
            }
            this.renderTimeGraph();
         },
+        setLoop(){
+            this.loopSetter = !this.loopSetter;
+            console.log("i am doing this shit:", this.loopSetter);
+            this.$store.commit("scenario/setLoop", this.loopSetter);
+        },
     },
       computed: {
         ...mapState([
@@ -242,6 +248,9 @@ export default {
         },
         showUi(){
             return this.$store.state.scenario.showUi;
+        },
+        loop(){
+            return this.$store.state.scenario.loop;
         }
     },
     watch: {
@@ -376,6 +385,10 @@ export default {
                 <span v-if="animationRunning">Pause Animation</span>
                 <span v-else>Play Animation</span>
               </v-tooltip>
+
+              <div v-if="loop" class="looper" @click="setLoop" :class="{highlight: loopSetter}">
+                  <v-icon>mdi-backup-restore</v-icon>
+              </div>
             </div>
             <div v-if="windowWidth <= 720" class="btn_wrapper" :class="{ highlight: mobileTimePanel }">
                 <v-btn @click="mobileTimePanel = !mobileTimePanel">
@@ -527,6 +540,35 @@ export default {
 
             .btn_wrapper {
                 position:relative;
+
+                .looper {
+                    position:absolute;
+                    top:0;
+                    right:-35px;
+                    width:30px;
+                    height:30px;
+                    border-radius:3px;
+                    background:whitesmoke;
+                    @include drop_shadow;
+
+                    .v-icon {
+                        color:#222;
+                        width:20px;
+                        height:20px;
+                        margin:5px;
+                    }
+
+                    &:hover {
+                        cursor:pointer,
+                    }
+
+                    &.highlight {
+                        background:$orange;
+                        filter:invert(1);
+                        border:1px solid black;
+                    }
+                }
+
                 ::v-deep.v-btn {
                     position:relative;
                     padding: 0;

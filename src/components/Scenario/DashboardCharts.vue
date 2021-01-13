@@ -108,10 +108,16 @@ export default {
             },
             scales: {
               xAxes: [{
-                stacked: false
+                stacked: false,
+                gridLines: {
+                            color: "rgba(49,48,73,0.35)",
+                        }
               }],
               yAxes: [{
-                stacked: false
+                stacked: false,
+                gridLines: {
+                            color: "rgba(49,48,73,0.35)",
+                        }
               }]
             },
             tooltips: {
@@ -220,7 +226,7 @@ export default {
           type: 'radar',
           data: {
             labels: labels,
-            datasets: datasets
+            datasets: datasets,
           },
           options: {
             legend: {
@@ -232,7 +238,8 @@ export default {
             scale: {
               gridLines: {
                 display: true,
-                circular: true
+                circular: true,
+                color:'#444',
               },
               ticks: {
                 display: false
@@ -291,9 +298,11 @@ export default {
 
 <template>
   <div class="charts">
-    <div v-show="this.amenityStats && this.barChartReady" class="bar_chart">
-      <canvas id="barChart" width="500" height="400"></canvas>
-    </div>
+      <div v-show="this.amenityStats && this.barChartReady" class="bar_chart">
+        <h3>Statistics</h3>
+        <canvas id="barChart" width="500" height="400"></canvas>
+      </div>
+      
     <div v-show="this.abmStats && this.radarChartReady" class="radar_chart" style="margin-top: 20px;">
       <h3>Activity Index</h3>
       <canvas id="radarChart" width="500" height="600"></canvas>
@@ -305,4 +314,35 @@ export default {
 <style scoped lang="scss">
     @import "../../style.main.scss";
 
+    .charts {
+
+      .bar_chart, .radar_chart {
+        position:relative;
+        margin:5px auto;
+        padding:5px;
+        box-sizing:border-box;
+        @include drop_shadow;
+
+        h3 {
+          font-size:90%;
+          color:#ccc;
+          font-weight:300;
+          text-align:left;
+          margin-left:5px;
+        }
+
+        &:after {
+          content:'';
+          position:absolute;
+          top:0;
+          left:0;
+          width:100%;
+          height:100%;
+          background:$reversed;
+          opacity:0.05;
+        }
+      }
+
+      }
+    
 </style>
