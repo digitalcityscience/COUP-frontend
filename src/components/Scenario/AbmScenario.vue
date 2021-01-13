@@ -13,10 +13,8 @@ import {
     filterOptions,
     workshopScenarioNames
 } from '@/store/abm.ts'
-
-import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
-import Chart from "chart.js";
 import DashboardCharts from "./DashboardCharts";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
     name: 'AbmScenario',
@@ -52,12 +50,14 @@ export default {
         }
     },
     computed: {
-        ...mapState(['selectedFeatures']),
+        ...mapState(['map']),// getter only
+        ...mapState(['selectedFeatures']),// getter only
         ...mapState('scenario', ['resultLoading']), // getter only
         ...mapState('scenario', ['moduleSettings']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
             ['resultOutdated', 'scenario/resultOutdated'],
+            ['focusAreasShown', 'focusAreasShown'],
             ['loader', 'scenario/loader'],
             ['updateRadarChart', 'scenario/updateRadarChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
@@ -76,6 +76,9 @@ export default {
         ]),
         abmStats(){
           return this.$store.state.scenario.abmStats;
+        },
+        amenityStats(){
+          return this.$store.state.scenario.amenityStats;
         },
         abmData(){
             return this.$store.state.scenario.abmData;
@@ -122,12 +125,14 @@ export default {
         },
         activeDivision() {
           if (this.activeDivision === 'Dashboard') {
-            //this.loader = true
             // load map layer with focus areas
-            this.$store.dispatch("scenario/addFocusAreasMapLayer")
-            // calculate stats if not provided yet
-            if (!this.$store.state.scenario.abmStats["grasbrook"]) {
-              // calculateAbmStatsForFocusArea()
+            this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'visible');
+            this.focusAreasShown = true
+          } else {
+            if (this.map.getLayer(FocusAreasLayer.mapSource.data.id)) {
+              // remove map layer with focus areas
+              this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+              this.focusAreasShown = false
             }
           }
         }
@@ -146,58 +151,51 @@ export default {
         this.activeDivision = divisions[0].getAttribute('data-title');
     },
     methods: {
-      showChart() {
-        this.updateRadarChart = true
-        this.updateAmenityStatsChart = true
+      areResultsOutdated() {
+        // TODO for filters as well , not only for settings
+        this.resultOutdated = JSON.stringify(this.currentlyShownScenarioSettings) !== JSON.stringify(this.moduleSettings)
       },
-        areResultsOutdated() {
-          // TODO for filters as well , not only for settings
-          this.resultOutdated = JSON.stringify(this.currentlyShownScenarioSettings) !== JSON.stringify(this.moduleSettings)
-        },
-        confirmSettings () {
-          // update currentlyShowScenarioSettigns
-          this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
-          this.changesMade = false
-          this.resultOutdated = false
-          this.$store.dispatch(
-                'scenario/updateAbmDesignScenario'
-            )
-        },
-        changeHeatMapData(){
-            this.$store.commit("scenario/selectedRange", this.adjustRange);
-            this.$store.commit("scenario/heatMapType", this.heatMapType);
-            this.$store.dispatch("scenario/updateLayers", "heatMap")
-        },
-        setHeatMapTimes(x,y){
-            this.adjustRange = [x,y];
-            this.changeHeatMapData();
-        },
-        heatMapActive(){
-            this.$store.commit("scenario/heatMap", !this.heatMap);
-        },
-        updateFilter(){
-            this.$store.commit("scenario/loader", true);
-            this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
-            this.$store.commit("scenario/filterSettings", {...this.filterSettings});
+      confirmSettings() {
+        // update currentlyShowScenarioSettigns
+        this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
+        this.changesMade = false
+        this.resultOutdated = false
+        this.$store.dispatch(
+          'scenario/updateAbmDesignScenario'
+        )
+      },
+      changeHeatMapData() {
+        this.$store.commit("scenario/selectedRange", this.adjustRange);
+        this.$store.commit("scenario/heatMapType", this.heatMapType);
+        this.$store.dispatch("scenario/updateLayers", "heatMap")
+      },
+      setHeatMapTimes(x, y) {
+        this.adjustRange = [x, y];
+        this.changeHeatMapData();
+      },
+      heatMapActive() {
+        this.$store.commit("scenario/heatMap", !this.heatMap);
+      },
+      updateFilter() {
+        this.$store.commit("scenario/loader", true);
+        this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
+        this.$store.commit("scenario/filterSettings", {...this.filterSettings});
 
-            for(var key in this.filterSettings){
-                if(!this.filterSettings[key]) {
-                    this.$store.commit("scenario/filterActive", true);
-                    return;
-                } else {
-                    this.$store.commit("scenario/filterActive", false);
-                }
-            }
-        },
-        loadWorkshopScenario(scenarioId) {
-            this.$store.dispatch(
-            'scenario/loadWorkshopScenario', scenarioId
-            )
+        for (var key in this.filterSettings) {
+          if (!this.filterSettings[key]) {
+            this.$store.commit("scenario/filterActive", true);
+            return;
+          } else {
+            this.$store.commit("scenario/filterActive", false);
+          }
         }
-    },
-  created() {
-    this.$set(this.abmStats, 'grasbrook', {})
-  }
+      },
+      loadWorkshopScenario(scenarioId) {
+        this.$store.dispatch(
+          'scenario/loadWorkshopScenario', scenarioId
+        )
+      }
+    }
 }
 </script>
 
@@ -206,8 +204,7 @@ export default {
         <div class="component_divisions">
             <ul>
                 <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-                <!-- <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', abmData == 'undefined' || abmData == null ? 'hidden' : '']">
-                --><li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '']">
+                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', abmData == 'undefined' || abmData == null ? 'hidden' : '']">
                     <div class="component_link" @click="activeDivision = division.title">
                       <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">
@@ -357,12 +354,7 @@ export default {
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Dashboard'" class="component_content">
                <h2>ABM Dashboard</h2>
-                   <v-btn @click="showChart()" class="confirm_btn">
-                     Click
-                   </v-btn>
-
                  <DashboardCharts></DashboardCharts>
-
            </div><!--component_content end-->
         </div><!--division end-->
 

@@ -63,6 +63,7 @@ export default {
   showUi: true,
   modalIndex: 0,
   allFeaturesHighlighted: false,
-  amenitiesGeoJson: null
+  amenitiesGeoJson: null,
+  selectedFocusAreas: []
 }
 

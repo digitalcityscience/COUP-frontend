@@ -11,6 +11,8 @@ export default {
         return {
             radarChart: null,
             barChart: null,
+            radarChartReady: false,
+            barChartReady: false,
             chartColors: {
               "grasbrook": "lightgrey",
               1: "#e172d8",
@@ -26,73 +28,24 @@ export default {
               11: "#6a4fef",
               12: "#70b6c9"
             },
-            amenityStats: {
-              11: {
-                complementary: 75,
-                density: 12,
-                diversity: 99,
-                typesCount: 13
-              },
-              "grasbrook": {
-                complementary: 122,
-                density: 90,
-                diversity: 90,
-                typesCount: 32
-              }
-            },
-            abmStats: {
-              "grasbrook": {
-                units: ["test", "test", "test", "test", "test","test"],
-                original: {
-                  pedestrianDensity: 0.024,
-                  temporalEntropyPercent: 78,
-                  opportunitiesOfInteraction: 0.00039,
-                  averageDuration: 35,
-                  averageLength: 1070
-                },
-                scaledResults: {
-                  "Pedestrian Density": 8.282894580705939,
-                  "Temporal Entropy": 55,
-                  "Opportunities for Interaction": 0.397721407243644,
-                  "Trip Duration": 59.61773700305811,
-                  "Trip Length": 71.39755351681958
-                }
-              },
-              11: {
-                units: ["test", "test", "test", "test", "test","test"],
-                original: {
-                  pedestrianDensity: 0.044,
-                  temporalEntropyPercent: 55,
-                  opportunitiesOfInteraction: 0.010,
-                  averageDuration: 65,
-                  averageLength: 200
-                },
-                scaledResults: {
-                  "Pedestrian Density": 32.282894580705939,
-                  "Temporal Entropy": 55,
-                  "Opportunities for Interaction": 0.597721407243644,
-                  "Trip Duration": 29.61773700305811,
-                  "Trip Length": 21.39755351681958
-                }
-              }
-            }
         }
     },
     mounted(){
+      this.renderBarChart()
+      this.renderRadarChart()
     },
     updated(){
-        //this.renderTimeGraph();
     },
     created(){
-        document.onkeydown = this.onkeydown
     },
     components: {},
     methods:{
-
-      // TODO : create labels using this library
-      //  https://chartjs-plugin-datalabels.netlify.app/guide/labels.html#dataset-overrides
-
       renderBarChart() {
+        this.barChartReady = false
+        if (Object.keys(this.amenityStats).length === 0) {
+          // no stats, no chart
+          return
+        }
         console.log("rendering bar chart")
 
         /*render graph via chart.js*/
@@ -103,12 +56,21 @@ export default {
 
         var chartColors = this.chartColors;
 
-        var units = ["test", "test", "test", "test", "test","test"]
-
-
           // create datasets
         let datasets = []
-        for (const [focusArea, results] of Object.entries(this.amenityStats)) {
+        let units = this.amenityStats["units"]
+
+        for (const [key, results] of Object.entries(this.amenityStats)) {
+          if (key === "units") {
+            // ignore units
+            continue
+          }
+          if (this.selectedFocusAreas.indexOf(parseInt(key)) === -1 && key !== "grasbrook") {
+            // ignore not selected areas
+            continue
+          }
+
+          const focusArea = key
           // TODO: if in selectedFocusAreas (from store)
           let dataset = {
             data: Object.values(results),
@@ -117,44 +79,21 @@ export default {
             borderColor: chartColors[focusArea],
             hoverBackgroundColor: chartColors[focusArea],
             hoverBorderColor: chartColors[focusArea],
+            //barThickness: "flex",
+            maxBarThickness: 20,
             notes: {
               "originalValues": Object.values(results),
               "units": units
             },
               datalabels: {
-              color: "black",
-              anchor: "center",
-              formatter: function(value, context) {
-                let unitString = ''
-                if (context.hovered) {
-                  unitString = ' ' + context.chart.data.datasets[context.datasetIndex].notes["units"][context.dataIndex]
-                }
-                return context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
-                  + unitString;
-              },
-              listeners: {
-                enter: function(context) {
-                  // Receives `enter` events for any labels of any dataset. Indices of the
-                  // clicked label are: `context.datasetIndex` and `context.dataIndex`.
-                  // For example, we can modify keep track of the hovered state and
-                  // return `true` to update the label and re-render the chart.
-                  context.hovered = true;
-                  return true;
-                },
-                leave: function(context) {
-                  // Receives `leave` events for any labels of any dataset.
-                  context.hovered = false;
-                  return true;
-                }
+                color: "lightgrey",
+                anchor: "end",
+                align:"end"
               }
-            }
           }
           datasets.push(dataset)
         }
         let labels = Object.keys(this.amenityStats["grasbrook"])
-
-        console.log("labels", labels)
-        console.log("datasets", datasets)
 
         this.barChart = new Chart(ctx, {
           plugins: [ChartDataLabels],
@@ -174,12 +113,34 @@ export default {
               yAxes: [{
                 stacked: false
               }]
+            },
+            tooltips: {
+              enabled: true,
+              bodyFontStyle: 'bold',
+              callbacks: {
+                label: function (tooltipItem, data) {
+                  //This will be the tooltip.body
+                  const value = data.datasets[tooltipItem.datasetIndex].notes["originalValues"][tooltipItem.index]
+                  const unit = units[tooltipItem.index]
+                   return value.toString() + " " + unit
+                }
+              }
             }
           }
         })
+        this.barChartReady = true
+        this.updateAmenityStatsChart = false
       },
-
+      /** radar chart for abmStats **/
       renderRadarChart(){
+        this.radarChartReady = false
+        console.log("this.abmStats")
+        console.log(this.abmStats)
+        if (Object.keys(this.abmStats).length === 0) {
+          // no stats, no chart
+          return
+        }
+
         /*render graph via chart.js*/
         var ctx = document.getElementById('radarChart').getContext('2d');
         if (this.radarChart) {
@@ -190,10 +151,19 @@ export default {
 
         // create datasets
         let datasets = []
-        for (const [focusArea, results] of Object.entries(this.abmStats)) {
-          // TODO: if in selectedFocusAreas (from store)
-          console.log(focusArea, results);
+        let units = this.abmStats["units"]
 
+        for (const [key, results] of Object.entries(this.abmStats)) {
+          if (key === "units") {
+            // ignore units
+            continue
+          }
+          if (this.selectedFocusAreas.indexOf(parseInt(key)) === -1 && key !== "grasbrook") {
+            // ignore not selected areas
+            continue
+          }
+
+          const focusArea = key
           let displayLabels = 'auto'
           if (Object.keys(this.abmStats).length < 2) {
             displayLabels = focusArea === "grasbrook" ? 'auto' : true  // show stats for focusArea
@@ -208,7 +178,7 @@ export default {
             pointBackgroundColor: color(chartColors[focusArea]).alpha(0.2),
             notes: {
               "originalValues": Object.values(results["original"]),
-              "units": results["units"]
+              "units": units
             },
             datalabels: {
               display: displayLabels,
@@ -218,11 +188,11 @@ export default {
               offset: '60',
               formatter: function(value, context) {
                 let unitString = ''
+                let val = context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
                 if (context.hovered) {
                   unitString = ' ' + context.chart.data.datasets[context.datasetIndex].notes["units"][context.dataIndex]
                 }
-                return context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
-                  + unitString;
+                return val.toString() + unitString;
               },
               listeners: {
                 enter: function(context) {
@@ -272,46 +242,46 @@ export default {
             tooltips: {
               enabled: true,
               bodyFontStyle: 'bold',
+              title: "",
               callbacks: {
+                title: function(tooltipItem, data) {
+                  return data.labels[tooltipItem[0].index]
+                },
                 label: function (tooltipItem, data) {
                   //This will be the tooltip.body
-                  return data.datasets[tooltipItem.datasetIndex].notes[tooltipItem.index];
-                }
-              },
-              // setting the
-              custom: function (tooltip) {
-                if (tooltip.body) {
-                  tooltip.title = tooltip.body[0].lines[0]
-                } else {
-                  tooltip.title = ""
+                  const value =  data.datasets[tooltipItem.datasetIndex].notes["originalValues"][tooltipItem.index]
+                  const unit = data.datasets[tooltipItem.datasetIndex].notes["units"][tooltipItem.index]
+                  return value + " " + unit;
                 }
               }
             }
           }
         });
+        this.radarChartReady = true
+        this.updateRadarChart = false
       }
     },
       computed: {
+        ...mapState('scenario', ['selectedFocusAreas']), // getter only
         ...generateStoreGetterSetter([
           ['loader', 'scenario/loader'],
           ['updateRadarChart', 'scenario/updateRadarChart'],
           ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
-         // ['abmStats', 'scenario/abmStats']
+          ['abmStats', 'scenario/abmStats'],
+          ['amenityStats', 'scenario/amenityStats']
         ])
     },
     watch: {
       updateRadarChart() {
+        console.log("updating the chart")
         if (this.updateRadarChart) {
-          console.log("updating the chart")
           this.renderRadarChart()
-          this.updateRadarChart = !this.updateRadarChart
         }
       },
       updateAmenityStatsChart() {
+        console.log("updating the BAR chart")
         if (this.updateAmenityStatsChart) {
-          console.log("updating the BAR chart")
           this.renderBarChart()
-          this.updateAmenityStatsChart = !this.updateRadarChart
         }
       }
     }
@@ -321,13 +291,12 @@ export default {
 
 <template>
   <div class="charts">
-    <div v-show="this.amenityStats" class="bar_chart">
-      <h3>Amenity Index</h3>
-      <canvas id="barChart" width="500" height="300"></canvas>
+    <div v-show="this.amenityStats && this.barChartReady" class="bar_chart">
+      <canvas id="barChart" width="500" height="400"></canvas>
     </div>
-    <div v-show="this.abmStats" class="radar_chart" style="margin-top: 20px;">
+    <div v-show="this.abmStats && this.radarChartReady" class="radar_chart" style="margin-top: 20px;">
       <h3>Activity Index</h3>
-      <canvas id="radarChart" width="500" height="300"></canvas>
+      <canvas id="radarChart" width="500" height="600"></canvas>
     </div>
   </div>
 
