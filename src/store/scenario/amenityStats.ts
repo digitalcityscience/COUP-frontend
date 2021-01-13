@@ -1,6 +1,6 @@
 import store from "@/store";
 import * as turf from "@turf/turf";
-import Amenities from "@/assets/amenities.json";  // TODO: get from cityPYO / store again
+import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
 
 
 export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
@@ -17,7 +17,11 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
     focusAreas.features = focusAreas.features.filter(feature => {
       return feature.id == focusAreaId
     })
+  } else {
+    // take the entire grasbrook
+    focusAreas.features = GrasbrookGeoJson["features"]
   }
+
 
   let amenitiesFeatures = getFeatureCollectionOfNonResidentialAmenities()
   let amenitiesWithin = turf.pointsWithinPolygon(amenitiesFeatures, focusAreas); // amenities within focus area

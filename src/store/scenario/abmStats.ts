@@ -1,5 +1,6 @@
 import * as turf from '@turf/turf'
 import store from '@/store'
+import GrasbrookGeoJson from '@/assets/grasbrookArea.json'
 
 /**
  * Calculates AbmStats for a focusArea and commits them to store
@@ -20,13 +21,9 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
     focusAreas.features = focusAreas.features.filter(feature => {
       return feature.id == focusAreaId
     })
-  }
-
-  // union several features into 1 feature - makes computing a lot faster
-  if (focusAreas.features.length > 1) {
-    const unionFeature = turf.union(...focusAreas.features)
-    focusAreas.features = []
-    focusAreas.features.push(unionFeature)
+  } else {
+    // take the entire grasbrook
+    focusAreas.features = GrasbrookGeoJson["features"]
   }
 
   let results = calculatePedestrianIndices(focusAreas)
@@ -46,15 +43,11 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
 /*
  * Filter timePaths for all path-points within the region
  * Compute stats based on pedestrian counts in region (hour for hour)
- * timePath object looks like this  TODO: example
  */
 function calculatePedestrianIndices(forRegion) {
   console.log("calculating pedestrian indices")
   let pedestrianCountsPerHour = {}
   let matchedPointsPerHour = {}  // collection of Points with active agents within the investigation region
-
-  console.log("store.state.scenario.abmTimePaths")
-  console.log(store.state.scenario.abmTimePaths)
 
   for (const [hour, currentTimePaths] of Object.entries(store.state.scenario.abmTimePaths)) {
     // create featureCollection from pathPoints
