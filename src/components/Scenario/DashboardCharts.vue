@@ -190,8 +190,8 @@ export default {
               display: displayLabels,
               color: chartColors[focusArea],
               anchor: "end",
-              align: 'start',
-              offset: '60',
+              align: 'end',
+              offset: '35',
               formatter: function(value, context) {
                 let unitString = ''
                 let val = context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
@@ -236,6 +236,9 @@ export default {
               display: false,
             },
             scale: {
+              pointLabels: {
+                fontStyle: "bolder",
+              },
               gridLines: {
                 display: true,
                 circular: true,
@@ -302,7 +305,7 @@ export default {
         <h3>Statistics</h3>
         <canvas id="barChart" width="500" height="400"></canvas>
       </div>
-      
+
     <div v-show="this.abmStats && this.radarChartReady" class="radar_chart" style="margin-top: 20px;">
       <h3>Activity Index</h3>
       <canvas id="radarChart" width="500" height="600"></canvas>
@@ -331,7 +334,8 @@ export default {
           margin-left:5px;
         }
 
-        &:after {
+        /* content overlay destroys interaction with chart canvas (hover, tooltips, ..)
+          &:after {
           content:'';
           position:absolute;
           top:0;
@@ -340,9 +344,8 @@ export default {
           height:100%;
           background:$reversed;
           opacity:0.05;
-        }
+        } */
       }
+    }
 
-      }
-    
 </style>
