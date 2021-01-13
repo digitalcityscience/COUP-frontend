@@ -17,7 +17,7 @@ export default {
   abmWeightCount:null,
   abmStats: {},
   amenityStats: {},
-  updateRadarChart: false,
+  updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
   filterActive: false,
   filterSettings: null,

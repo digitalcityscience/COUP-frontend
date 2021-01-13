@@ -260,23 +260,23 @@ export default {
           }
         });
         this.radarChartReady = true
-        this.updateRadarChart = false
+        this.updateAbmStatsChart = false
       }
     },
       computed: {
         ...mapState('scenario', ['selectedFocusAreas']), // getter only
         ...generateStoreGetterSetter([
           ['loader', 'scenario/loader'],
-          ['updateRadarChart', 'scenario/updateRadarChart'],
+          ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
           ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
           ['abmStats', 'scenario/abmStats'],
           ['amenityStats', 'scenario/amenityStats']
         ])
     },
     watch: {
-      updateRadarChart() {
+      updateAbmStatsChart() {
         console.log("updating the chart")
-        if (this.updateRadarChart) {
+        if (this.updateAbmStatsChart) {
           this.renderRadarChart()
         }
       },

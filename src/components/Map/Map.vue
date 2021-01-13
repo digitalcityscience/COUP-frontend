@@ -36,7 +36,7 @@ export default {
             ['showLegend', 'showLegend' ],
             ['loader', 'scenario/loader' ],
             ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
-            ['updateRadarChart', 'scenario/updateRadarChart'],
+            ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart']
         ]),
         heatMapData(){
@@ -319,7 +319,7 @@ export default {
               { clicked: false, hover: false }
             )
             // update charts
-            this.updateRadarChart = true
+            this.updateAbmStatsChart = true
             this.updateAmenityStatsChart = true
           } else {
             // add to selected areas

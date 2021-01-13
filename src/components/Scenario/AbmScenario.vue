@@ -58,7 +58,7 @@ export default {
             ['resultOutdated', 'scenario/resultOutdated'],
             ['focusAreasShown', 'focusAreasShown'],
             ['loader', 'scenario/loader'],
-            ['updateRadarChart', 'scenario/updateRadarChart'],
+            ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
             ['currentlyShownScenarioSettings', 'scenario/currentlyShownScenarioSettings'],
             ['bridge_hafencity', 'scenario/moduleSettings/' + moduleSettingNames.bridge_hafencity],

@@ -35,7 +35,7 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
 
   store.commit("scenario/abmStats", abmStats)
   console.log("commited abmStats to store")
-  store.commit("scenario/updateRadarChart", true)
+  store.commit("scenario/updateAbmStatsChart", true)
   store.commit("scenario/loader", false)
 }
 
