@@ -97,6 +97,7 @@ export default {
         transform:translateX(0);
         border-left:1px solid #888;
         font-family: 'Tajawal', sans-serif;
+        backdrop-filter:blur(5px) saturate(140%); 
         z-index: 1000;
 
          &.ui_hide {

@@ -81,10 +81,21 @@ export async function buildAggregationLayer(data: DataSet<any>, type): Promise<D
 
 // animate deck trips layer
 export function animate(layer: DeckLayer<any>, start: number = null, end: number = null, time: number = null) {
+
   // stop animation, if trips layer no longer on map
   if (!store.state.scenario.bridges) {
     console.log("stopped animation, because no scenario is selected")
     return
+  }
+
+  
+  const loop = store.state.scenario.loop;
+  const setLoop = store.state.scenario.setLoop;
+  const range = store.state.scenario.selectedRange;
+
+  if(loop && setLoop){
+    start = (range[0] - 8) * 3600;
+    end = (range[1] - 8) * 3600;
   }
 
   if (!start) {
@@ -93,8 +104,13 @@ export function animate(layer: DeckLayer<any>, start: number = null, end: number
   if (!end) {
     end = getLayerEndTime(layer)
   }
+
   if (!time) {
     time = start
+  }
+
+  if(time <= start){
+    time = start;
   }
 
   // if loop - start over
@@ -117,6 +133,7 @@ export function animate(layer: DeckLayer<any>, start: number = null, end: number
   // update current time on layer to move the dot
   (layer as DeckLayer<any>).setProps({currentTime: time})
 
+  
   // as long as endTime of trips layer is not reached - call next frame iteration
   if (time <= end && animationRunning) {
     window.requestAnimationFrame(() => {
