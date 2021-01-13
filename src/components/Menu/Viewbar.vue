@@ -2,6 +2,7 @@
 import { mapState } from 'vuex'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import UseTypesLegend from "@/components/Menu/UseTypesLegend.vue";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
     name: 'Viewbar',
@@ -17,6 +18,7 @@ export default {
                 slider: false,
             },
             visibleLayers: {
+                focusAreas: false,
                 abm: true,
                 heat: true,
                 noise: true,
@@ -46,7 +48,8 @@ export default {
         ]),
       ...generateStoreGetterSetter([
         ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
-        ['showLegend', 'showLegend' ]
+        ['showLegend', 'showLegend' ],
+        ['focusAreasShown', 'focusAreasShown' ]
       ]),
       workshop(){
           return this.$store.state.workshop;
@@ -78,6 +81,9 @@ export default {
         noiseMap(){},
         stormWater(){},
         microClimate(){},
+        focusAreasShown(newVal, oldVal){
+          this.visibleLayers.focusAreas = newVal
+        },
     },
     methods:{
         toggleUi(){
@@ -107,7 +113,7 @@ export default {
           )
         },
         highlightAllFeatures(){
-            
+
             this.$store.commit("scenario/loader", true);
             console.log(this.loader)
 
@@ -143,7 +149,7 @@ export default {
                     })
             }
 
-            
+
             this.$store.commit("scenario/loader", false);
             console.log(this.loader)
         },
@@ -192,6 +198,14 @@ export default {
                     this.map.setLayoutProperty("noise", 'visibility', 'visible');
                 } else {
                     this.map.setLayoutProperty("noise", 'visibility', 'none');
+                }
+            }
+            if(this.layerIds.indexOf("focusAreas") > -1){
+              console.log("visible layers", this.visibleLayers)
+                if(this.visibleLayers.focusAreas){
+                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'visible');
+                } else {
+                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
                 }
             }
         },
@@ -254,7 +268,7 @@ export default {
         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #ab0124;">mdi-city</v-icon> <div class="infobox"><p>Commercial</p></div></v-btn>
         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Special Use</p></div></v-btn>
          <v-btn v-if="!workshop" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
-           <template v-slot:activator="{ on, attrs }">   
+           <template v-slot:activator="{ on, attrs }">
             <span @click="checkHighlights('buildings')">
              <v-icon
                v-bind="attrs"
@@ -296,7 +310,7 @@ export default {
          </div>
          </v-btn>
          <v-btn v-if="!workshop" v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
-             
+
            <template v-slot:activator="{ on, attrs }">
                <span  @click="checkHighlights('layers')">
              <v-icon
@@ -308,6 +322,18 @@ export default {
            <span>Layer Visibility</span>
          </v-tooltip>
          <div v-if="visibility.layers" class="view_popup">
+             <div class="layers">
+                 <h3>Focus Areas</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.focusAreas"
+                    label="Focus Areas Layer"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="false"
+                 ></v-checkbox>
+             </div>
              <div class="layers">
                  <h3>ABM Layers</h3>
                  <v-checkbox

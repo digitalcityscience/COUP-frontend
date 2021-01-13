@@ -28,58 +28,6 @@ export default {
               11: "#6a4fef",
               12: "#70b6c9"
             },
-/*
-          amenityStats: {
-              "units": ["complementary trips", "places/km²", "Simpson Index", "place types"],
-              11: {
-                Complementarity: 75,
-                Density: 12,
-                Diversity: 99,
-                Types: 13
-              },
-              "grasbrook": {
-                Complementary: 122,
-                Density: 90,
-                Diversity: 90,
-                Types: 32
-              }
-            },
-            abmStats: {
-              "units": ["pedestrians/m²", "%","interactions/m²", "minutes", "meters"],
-              "grasbrook": {
-                original: {
-                  pedestrianDensity: 0.024,
-                  temporalEntropyPercent: 78,
-                  opportunitiesOfInteraction: 0.00039,
-                  averageDuration: 35,
-                  averageLength: 1070
-                },
-                scaledResults: {
-                  "Pedestrian Density": 8.282894580705939,
-                  "Temporal Entropy": 55,
-                  "Opportunities for Interaction": 0.397721407243644,
-                  "Trip Duration": 59.61773700305811,
-                  "Trip Length": 71.39755351681958
-                }
-              },
-              11: {
-                original: {
-                  pedestrianDensity: 0.044,
-                  temporalEntropyPercent: 55,
-                  opportunitiesOfInteraction: 0.010,
-                  averageDuration: 65,
-                  averageLength: 200
-                },
-                scaledResults: {
-                  "Pedestrian Density": 32.282894580705939,
-                  "Temporal Entropy": 55,
-                  "Opportunities for Interaction": 0.597721407243644,
-                  "Trip Duration": 29.61773700305811,
-                  "Trip Length": 21.39755351681958
-                }
-              }
-            }
-*/
         }
     },
     mounted(){
@@ -121,6 +69,7 @@ export default {
             // ignore not selected areas
             continue
           }
+
           const focusArea = key
           // TODO: if in selectedFocusAreas (from store)
           let dataset = {
@@ -130,6 +79,8 @@ export default {
             borderColor: chartColors[focusArea],
             hoverBackgroundColor: chartColors[focusArea],
             hoverBorderColor: chartColors[focusArea],
+            //barThickness: "flex",
+            maxBarThickness: 20,
             notes: {
               "originalValues": Object.values(results),
               "units": units
@@ -341,11 +292,11 @@ export default {
 <template>
   <div class="charts">
     <div v-show="this.amenityStats && this.barChartReady" class="bar_chart">
-      <canvas id="barChart" width="500" height="300"></canvas>
+      <canvas id="barChart" width="500" height="400"></canvas>
     </div>
     <div v-show="this.abmStats && this.radarChartReady" class="radar_chart" style="margin-top: 20px;">
       <h3>Activity Index</h3>
-      <canvas id="radarChart" width="500" height="300"></canvas>
+      <canvas id="radarChart" width="500" height="600"></canvas>
     </div>
   </div>
 

@@ -50,12 +50,14 @@ export default {
         }
     },
     computed: {
-        ...mapState(['selectedFeatures']),
+        ...mapState(['map']),// getter only
+        ...mapState(['selectedFeatures']),// getter only
         ...mapState('scenario', ['resultLoading']), // getter only
         ...mapState('scenario', ['moduleSettings']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
             ['resultOutdated', 'scenario/resultOutdated'],
+            ['focusAreasShown', 'focusAreasShown'],
             ['loader', 'scenario/loader'],
             ['updateRadarChart', 'scenario/updateRadarChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
@@ -124,10 +126,14 @@ export default {
         activeDivision() {
           if (this.activeDivision === 'Dashboard') {
             // load map layer with focus areas
-            this.$store.dispatch("scenario/addFocusAreasMapLayer")
+            this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'visible');
+            this.focusAreasShown = true
           } else {
-            // remove map layer with focus areas
-            this.$store.dispatch("removeSourceFromMap", FocusAreasLayer.mapSource.data.id)
+            if (this.map.getLayer(FocusAreasLayer.mapSource.data.id)) {
+              // remove map layer with focus areas
+              this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+              this.focusAreasShown = false
+            }
           }
         }
     },

@@ -148,24 +148,6 @@ export default {
           )
       })
   },
-  addFocusAreasMapLayer({state, commit, dispatch, rootState}) {
-    const source = {
-      id: FocusAreasLayer.mapSource.data.id,
-      options: {
-        type: 'geojson',
-        data: rootState.focusAreasGeoJson
-      }
-    }
-    dispatch('addSourceToMap', source, {root: true})
-      .then(source => {
-        dispatch('addLayerToMap', FocusAreasLayer.layer, {root: true})
-      }).then(source => {
-      // add layer on top of the layer stack
-      if (rootState.map?.getLayer("abmTrips")) {
-        rootState.map?.moveLayer(FocusAreasLayer.layer.id, "groundfloor")
-      }
-    })
-  },
   // load layer source from cityPyo and add the layer to the map
   updateBridgeLayer({state, commit, dispatch, rootState}, payload) {
     // delete any bridge layer that is still on the map, before adding a new one

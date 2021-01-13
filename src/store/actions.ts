@@ -3,6 +3,7 @@ import CityPyO from '@/store/cityPyO'
 import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
 import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
@@ -114,9 +115,18 @@ export default {
       commit('cityPyO', new CityPyO(options.userdata))
     }
   },
-  getFocusAreaGeoJson({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
-    state.cityPyO.getLayer("focusAreas", false).then(geojson => {
-        commit('focusAreasGeoJson', geojson)
+  addFocusAreasMapLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
+    state.cityPyO.getLayer("focusAreas").then(source => {
+        commit('focusAreasGeoJson', source.options.data)
+        dispatch('addSourceToMap', source, {root: true})
+          .then(source => {
+            dispatch('addLayerToMap', FocusAreasLayer.layer, {root: true})
+          }).then(source => {
+          // add layer on top of the layer stack
+          if (state.map?.getLayer("abmTrips")) {
+            state.map?.moveLayer(FocusAreasLayer.layer.id, "groundfloor")
+          }
+        })
       }
     )
   },

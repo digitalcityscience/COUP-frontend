@@ -181,12 +181,13 @@ export default {
             }
         },
         onMapLoaded () {
-            this.$store.dispatch('getFocusAreaGeoJson')
+            this.$store.dispatch('addFocusAreasMapLayer')
             console.log("create design layers")
             //console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers').then(() => {
                 this.$store.dispatch('orderDesignLayers').then(() => {
-                    if(this.workshop){
+                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+                  if(this.workshop){
                         this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
                     }
                 });

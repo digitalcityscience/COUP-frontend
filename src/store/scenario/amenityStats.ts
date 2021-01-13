@@ -22,7 +22,6 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
     focusAreas.features = GrasbrookGeoJson["features"]
   }
 
-
   let amenitiesFeatures = getFeatureCollectionOfNonResidentialAmenities()
   let amenitiesWithin = turf.pointsWithinPolygon(amenitiesFeatures, focusAreas); // amenities within focus area
 
