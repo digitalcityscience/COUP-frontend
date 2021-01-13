@@ -10,6 +10,7 @@ import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import store from "@/store";
 import Vue from 'vue';
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
     name: 'Map',
@@ -102,9 +103,6 @@ export default {
         // focus areas layer
         this.map.on('mousemove', 'focusAreas', this.onFocusAreaHover)
         this.map.on('mouseleave', 'focusAreas', this.onFocusAreaLeave)
-        this.map.on('click', 'focusAreas', this.onFocusAreaClick)
-
-        //console.log(this.$store.state.map);
     },
     methods: {
         mousePos(evt){
@@ -168,7 +166,13 @@ export default {
                         this.targetFound = true;
 
                     } else {
-                        this.targetFound = false;
+                      this.targetFound = false;  // do not open modal
+                      features.forEach(feature => {
+                          if (feature.layer.id === FocusAreasLayer.mapSource.data.id) {
+                            console.log("focus area selected!", feature.id)
+                            this.onFocusAreaClick(feature.id)
+                          }
+                        })
                     }
                 }
             } else {
@@ -309,32 +313,31 @@ export default {
           }
           this.hoveredFocusArea = null
         },
-        onFocusAreaClick (evt) {
-          if (evt.features.length > 0) {
-            const selectedFocusArea = evt.features[0].id
-            const idx = this.selectedFocusAreas.indexOf(selectedFocusArea)
-            if (idx > -1) {
-              // if area already selected -> deselect focus area
-              this.selectedFocusAreas.splice(idx, 1);
-              this.map.setFeatureState(
-                { source: 'focusAreas', id: selectedFocusArea },
-                { clicked: false, hover: false }
-              )
-              // update charts
-              this.updateRadarChart = true
-              this.updateAmenityStatsChart = true
-            } else {
-              // add to selected areas
-              this.selectedFocusAreas.push(selectedFocusArea)
-              this.map.setFeatureState(
-                { source: 'focusAreas', id: selectedFocusArea },
-                { clicked: true, hover: false }
-              )
-              // compute results.
-              calculateAmenityStatsForFocusArea(selectedFocusArea)
-              calculateAbmStatsForFocusArea(selectedFocusArea)
-            }
+        onFocusAreaClick (selectedFocusArea) {
+          console.log("click focus area")
+          const idx = this.selectedFocusAreas.indexOf(selectedFocusArea)
+          if (idx > -1) {
+            // if area already selected -> deselect focus area
+            this.selectedFocusAreas.splice(idx, 1);
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: selectedFocusArea },
+              { clicked: false, hover: false }
+            )
+            // update charts
+            this.updateRadarChart = true
+            this.updateAmenityStatsChart = true
+          } else {
+            // add to selected areas
+            this.selectedFocusAreas.push(selectedFocusArea)
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: selectedFocusArea },
+              { clicked: true, hover: false }
+            )
+            // compute results.
+            calculateAmenityStatsForFocusArea(selectedFocusArea)
+            calculateAbmStatsForFocusArea(selectedFocusArea)
           }
+        }
         },
     }
 }
