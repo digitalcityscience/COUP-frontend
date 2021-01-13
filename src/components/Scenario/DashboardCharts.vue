@@ -42,6 +42,12 @@ export default {
     methods:{
       renderBarChart() {
         this.barChartReady = false
+
+        // destroy the old chart
+        if (this.barChart) {
+          this.barChart.destroy();
+        }
+
         if (Object.keys(this.amenityStats).length === 0) {
           // no stats, no chart
           return
@@ -50,10 +56,6 @@ export default {
 
         /*render graph via chart.js*/
         var ctx = document.getElementById('barChart').getContext('2d');
-        if (this.barChart) {
-          this.barChart.destroy();
-        }
-
         var chartColors = this.chartColors;
 
           // create datasets
@@ -69,9 +71,8 @@ export default {
             // ignore not selected areas
             continue
           }
-
           const focusArea = key
-          // TODO: if in selectedFocusAreas (from store)
+
           let dataset = {
             data: Object.values(results),
             label: "Focus Area: " + focusArea.toString(),
@@ -79,7 +80,6 @@ export default {
             borderColor: chartColors[focusArea],
             hoverBackgroundColor: chartColors[focusArea],
             hoverBorderColor: chartColors[focusArea],
-            //barThickness: "flex",
             maxBarThickness: 20,
             notes: {
               "originalValues": Object.values(results),
@@ -140,8 +140,12 @@ export default {
       /** radar chart for abmStats **/
       renderRadarChart(){
         this.radarChartReady = false
-        console.log("this.abmStats")
-        console.log(this.abmStats)
+
+        // destroy the old chart
+        if (this.radarChart) {
+          this.radarChart.destroy();
+        }
+
         if (Object.keys(this.abmStats).length === 0) {
           // no stats, no chart
           return
@@ -149,9 +153,6 @@ export default {
 
         /*render graph via chart.js*/
         var ctx = document.getElementById('radarChart').getContext('2d');
-        if (this.radarChart) {
-          this.radarChart.destroy();
-        }
         var color = Chart.helpers.color;
         var chartColors = this.chartColors;
 
@@ -172,7 +173,7 @@ export default {
           const focusArea = key
           let displayLabels = 'auto'
           if (Object.keys(this.abmStats).length < 2) {
-            displayLabels = focusArea === "grasbrook" ? 'auto' : true  // show stats for focusArea
+            displayLabels = focusArea === "grasbrook" ? 'auto' : true  // prioritize stats for focusArea over grasbrook
           }
 
           let dataset = {
@@ -196,6 +197,7 @@ export default {
                 let unitString = ''
                 let val = context.chart.data.datasets[context.datasetIndex].notes["originalValues"][context.dataIndex]
                 if (context.hovered) {
+                  // Adds a unit to the value , if hovered
                   unitString = ' ' + context.chart.data.datasets[context.datasetIndex].notes["units"][context.dataIndex]
                 }
                 return val.toString() + unitString;
@@ -268,23 +270,23 @@ export default {
           }
         });
         this.radarChartReady = true
-        this.updateRadarChart = false
+        this.updateAbmStatsChart = false
       }
     },
       computed: {
         ...mapState('scenario', ['selectedFocusAreas']), // getter only
         ...generateStoreGetterSetter([
           ['loader', 'scenario/loader'],
-          ['updateRadarChart', 'scenario/updateRadarChart'],
+          ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
           ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
           ['abmStats', 'scenario/abmStats'],
           ['amenityStats', 'scenario/amenityStats']
         ])
     },
     watch: {
-      updateRadarChart() {
+      updateAbmStatsChart() {
         console.log("updating the chart")
-        if (this.updateRadarChart) {
+        if (this.updateAbmStatsChart) {
           this.renderRadarChart()
         }
       },

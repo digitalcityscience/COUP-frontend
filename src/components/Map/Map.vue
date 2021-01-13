@@ -1,14 +1,11 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-import { abmTripsLayerName, buildAggregationLayer } from '@/store/deck-layers'
 import amenities from '@/config/amenities.json'
 import { alkisTranslations } from '@/store/abm'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
-import store from "@/store";
-import Vue from 'vue';
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
 
@@ -39,7 +36,7 @@ export default {
             ['showLegend', 'showLegend' ],
             ['loader', 'scenario/loader' ],
             ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
-            ['updateRadarChart', 'scenario/updateRadarChart'],
+            ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart']
         ]),
         heatMapData(){
@@ -58,9 +55,6 @@ export default {
             return this.$store.state.selectedFeatures;
         }
     },watch: {
-        loader() {
-          console.log("loader changed")
-        },
         heatMapData(){
             this.updateHeatMap();
         },
@@ -325,7 +319,7 @@ export default {
               { clicked: false, hover: false }
             )
             // update charts
-            this.updateRadarChart = true
+            this.updateAbmStatsChart = true
             this.updateAmenityStatsChart = true
           } else {
             // add to selected areas

@@ -130,13 +130,6 @@ export default {
       }
     )
   },
-  getGrasbrookGeoJson({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
-    state.cityPyO.getLayer("grasbrookArea", false).then(geojson => {
-        commit('grasbrookGeoJson', geojson)
-      }
-    )
-  }
-
 
   /***** DO WE STILL NEED THIS?
    /**

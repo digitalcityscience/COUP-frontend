@@ -32,20 +32,19 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
 
   let results = {
     "Diversity": diversity,
+    "Amenity Types": amenityTypesRegion,
     "Density": density,
-    "Complementarity": complementarity,
-    "typesCount": amenityTypesRegion
+    "Complementarity": complementarity
   }
   let amenityStats = store.state.scenario.amenityStats || {}
 
   const id = focusAreaId || "grasbrook"
   amenityStats[id] = results
-  amenityStats["units"] = ["Simpson Index", "places/km²", "complementary trips", "place types"]
+  amenityStats["units"] = ["Simpson Index", "unique place types", "places/km²", "complementary trips"]
 
   store.commit("scenario/amenityStats", amenityStats)
   console.log("commited amenity stats to store", amenityStats)
   store.commit("scenario/updateAmenityStatsChart", true)
-  store.commit("scenario/loader", false)
 }
 
 /**
@@ -99,10 +98,18 @@ function calculateComplementarity(amenitiesWithin: FeatureCollection<Point>) {
       // if destination is direct vincinity to one of the amenities.
       let closestAmenityToDestination = turf.nearestPoint(destinationPoint, amenitiesWithin)
       if (turf.distance(destinationPoint, closestAmenityToDestination) < 50) {
-        // check if this amenity is also origin of a trip of the agent
-        let originPoint = turf.point(trip["origin"])
-        if (turf.distance(originPoint, closestAmenityToDestination) < 50) {
-          complementaryAmenitiesCount += 1
+        // now check if this amenity is also origin of another trip of the agent
+
+        // get the origin points of the other trips of the agent
+        let originPoints = agentTrips.filter(filterTrip => {
+            return (filterTrip["origin"].toString() !== trip["origin"].toString())
+          }).map(mapTrip => {return turf.point(mapTrip["origin"])})
+
+        for (const originPoint of originPoints) {
+          if (turf.distance(originPoint, closestAmenityToDestination) < 50) {
+            complementaryAmenitiesCount += 1
+            break;
+          }
         }
       }
     }
@@ -131,26 +138,29 @@ export function calculateDensityOfAmenities(amenitiesWithin, forRegion) {
 */
 export function calculateAmenityDiversity(grasbrookAmenities, amenitiesWithin) {
 
+  if (amenitiesWithin.features.length === 0) {
+    // no amenities , no diversity
+    return 0
+  }
+
   /*calculating diversity with simpson index*/
-
-  // TODO calculate for region only instead?? Simpson value in the end is highler if none of the species is there?
-
-
+  let amenityCountInRegion = amenitiesWithin.features.length
   let amenityTypeCounts = {}
-  let amenityTypesGrasbrook = getAmenityTypes(grasbrookAmenities)
+  let possibleTypes = getAmenityTypes(grasbrookAmenities)
 
 
-  for (let amenityType of amenityTypesGrasbrook) {
-    let filteredAmenities = amenitiesWithin.features.filter(
+  for (let amenityType of possibleTypes) {
+    let amenitiesWithCurrentType = amenitiesWithin.features.filter(
       feature => (feature["properties"]["GFK"] === amenityType)
     )
-    amenityTypeCounts[amenityType] = filteredAmenities.length
+    if (amenitiesWithCurrentType.length > 0) {
+      amenityTypeCounts[amenityType] = amenitiesWithCurrentType.length
+    }
   }
 
   // simpson: 1- SUM[(count/totalCount)²]
-  let simpson = 1 - (Object.values(amenityTypeCounts).reduce((result: number, value: number) => {
-    //return result + Math.pow((value / amenityTypesGrasbrook.length), 2)
-    return result + (value * (value - 1)) / (amenityTypesGrasbrook.length * (amenityTypesGrasbrook.length -1))
+  let simpson = 1 - (Object.values(amenityTypeCounts).reduce((result: number, typeCount: number) => {
+    return result + (typeCount * (typeCount - 1)) / (amenityCountInRegion * (amenityCountInRegion - 1))
   }, 0) as number)
 
   console.log("SIMPSON", simpson)
