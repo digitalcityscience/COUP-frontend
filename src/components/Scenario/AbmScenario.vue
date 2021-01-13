@@ -46,7 +46,6 @@ export default {
             pedestrianModel: true,
             btnlabel: 'Generate Aggregation Layer',
             reloadHeatMapLayer: false,
-            radarChart: null
         }
     },
     computed: {

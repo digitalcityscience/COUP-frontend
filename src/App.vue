@@ -6,10 +6,6 @@ import Menu from "./components/Menu/Menu.vue";
 import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
 import Loader from "./components/Loader/Loader.vue";
-import { mapGetters } from 'vuex';
-
-// TODO: just for debugging
-import { filterAbmDataByRegion } from './store/scenario/abmStats';
 
 export default {
     name: 'App',
