@@ -40,7 +40,6 @@ export default {
     },
     created () {
         this.$store.dispatch('connect')
-        filterAbmDataByRegion()
     }
 }
 </script>
