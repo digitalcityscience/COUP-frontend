@@ -275,4 +275,3 @@ function calculateTripAverages(forRegion  = grasbrookRegion) {
 
   return {"duration": Math.round(averageDuration), "length": Math.round(averageLengthMeters)}
 }
-

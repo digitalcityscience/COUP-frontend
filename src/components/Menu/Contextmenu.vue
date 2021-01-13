@@ -64,7 +64,7 @@ export default {
 
         //this.checkPositions();
     },
-    mounted(){ 
+    mounted(){
         let selector = this.$el;
         this.isMe = selector.closest(".vm--modal");
         this.myFeatures = this.features;
@@ -73,7 +73,7 @@ export default {
             this.createBuildingMarks();
             this.sleep(300).then(() => { this.createLineOnCanvas(); });
         }
-        
+
         this.active = true;
 
         if(window.innerWidth >= 1024){
@@ -120,7 +120,6 @@ export default {
             this.$store.commit('scenario/modalIndex', this.indexVal);
         },
         createLineOnCanvas(){
-            console.log(this.isMe.style.cssText);
             //this.buildingConnection = this.map.project(this.Coords);
             this.buildingConnection = {
                     x: this.Coords[0],
@@ -128,7 +127,6 @@ export default {
             }
             this.boxConnection.x = parseInt(this.isMe.style.left, 10) + this.isMe.getBoundingClientRect().width/2;
             this.boxConnection.y = parseInt(this.isMe.style.top, 10) + this.isMe.getBoundingClientRect().height/2;
-            console.log(this.isMe.innerWidth);
             const boxContainer = document.getElementById("line_canvas");
             var canvas = document.createElement('canvas');
 
@@ -142,13 +140,13 @@ export default {
 
             context.canvas.width  = window.innerWidth;
             context.canvas.height = window.innerHeight;
-            context.beginPath(); 
+            context.beginPath();
             context.lineWidth="1";
             context.strokeStyle="#FEE351";
             context.moveTo(Math.round(this.boxConnection.x), Math.round(this.boxConnection.y));
             context.lineTo(Math.round(this.buildingConnection.x), Math.round(this.buildingConnection.y));
             context.stroke();
-            
+
         },
         createBuildingMarks(){
             const boxContainer = document.getElementById("line_canvas");
@@ -164,7 +162,7 @@ export default {
             var context = canvas.getContext('2d');
             context.canvas.width  = window.innerWidth;
             context.canvas.height = window.innerHeight;
-            context.beginPath(); 
+            context.beginPath();
             context.lineWidth="2";
             context.strokeStyle="#FEE351";
             context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
@@ -189,7 +187,7 @@ export default {
                 context.canvas.width  = window.innerWidth;
                 context.canvas.height = window.innerHeight;
                 context.clearRect(0, 0, canvas.width, canvas.height);
-                context.beginPath(); 
+                context.beginPath();
                 context.lineWidth="2";
                 context.strokeStyle="#FEE351";
                 context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
@@ -227,7 +225,7 @@ export default {
                     var allLines = [];
                     for (var i = 0; i < coordinates.length; i++) {
                         var ii = i + 1;
-                    
+
                     if(ii >= coordinates.length){
                             ii = 0;
                         }
@@ -249,11 +247,11 @@ export default {
                     const canvas = document.getElementById(this.objId);
                     var context = canvas.getContext('2d');
                     context.clearRect(0, 0, canvas.width, canvas.height);
-                    context.beginPath(); 
+                    context.beginPath();
                     context.lineWidth="1";
                     context.strokeStyle="#FEE351";
                     //context.moveTo(this.boxConnection.x, this.boxConnection.y);
-                    
+
                     this.checkMatchingLines();
                     context.moveTo(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y);
                     //context.lineTo(Math.round(this.buildingConnection.x), Math.round(this.buildingConnection.y));
@@ -316,7 +314,7 @@ export default {
                         }
                     ]
                 };
-                
+
 
                 if(this.lineIntersection(this.horizontalLine[0].x,this.horizontalLine[0].y,this.horizontalLine[1].x,this.horizontalLine[1].y,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y)){
                     this.matchingLine = {
@@ -552,5 +550,5 @@ export default {
             backdrop-filter:blur(10px) saturate(180%);
         }
     }
-    
+
 </style>
