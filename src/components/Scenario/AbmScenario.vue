@@ -13,12 +13,14 @@ import {
     filterOptions,
     workshopScenarioNames
 } from '@/store/abm.ts'
-import TimeSheet from "@/components/Scenario/TimeSheet.vue";
-//import { filter } from 'vue/types/umd';
+import DashboardCharts from "./DashboardCharts";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
     name: 'AbmScenario',
-    components: {},
+    components: {
+      DashboardCharts: DashboardCharts
+    },
     data () {
         return {
             activeDivision:null,
@@ -43,16 +45,21 @@ export default {
             heatMapType:'default',
             pedestrianModel: true,
             btnlabel: 'Generate Aggregation Layer',
-            reloadHeatMapLayer: false
+            reloadHeatMapLayer: false,
         }
     },
     computed: {
-        ...mapState(['selectedFeatures']),
+        ...mapState(['map']),// getter only
+        ...mapState(['selectedFeatures']),// getter only
         ...mapState('scenario', ['resultLoading']), // getter only
         ...mapState('scenario', ['moduleSettings']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
         ...generateStoreGetterSetter([
             ['resultOutdated', 'scenario/resultOutdated'],
+            ['focusAreasShown', 'focusAreasShown'],
+            ['loader', 'scenario/loader'],
+            ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
+            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
             ['currentlyShownScenarioSettings', 'scenario/currentlyShownScenarioSettings'],
             ['bridge_hafencity', 'scenario/moduleSettings/' + moduleSettingNames.bridge_hafencity],
             ['bridge_veddel', 'scenario/moduleSettings/' + moduleSettingNames.bridge_veddel],
@@ -66,8 +73,11 @@ export default {
             ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
             ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
         ]),
-        loader(){
-            return this.$store.state.scenario.loader;
+        abmStats(){
+          return this.$store.state.scenario.abmStats;
+        },
+        amenityStats(){
+          return this.$store.state.scenario.amenityStats;
         },
         abmData(){
             return this.$store.state.scenario.abmData;
@@ -92,12 +102,6 @@ export default {
         }
     },
     watch: {
-        moduleSettings: {
-          handler: function () {
-            this.areResultsOutdated()
-          },
-          deep:true
-        },
         resultsOutdated(newVal, oldVal) {
           console.log("changes made")
           console.log(newVal, oldVal)
@@ -113,6 +117,19 @@ export default {
             } else if (!this.heatMap) {
                 this.btnlabel = "Show Aggregation Layer"
             }
+        },
+        activeDivision() {
+          if (this.activeDivision === 'Dashboard') {
+            // load map layer with focus areas
+            this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'visible');
+            this.focusAreasShown = true
+          } else {
+            if (this.map.getLayer(FocusAreasLayer.mapSource.data.id)) {
+              // remove map layer with focus areas
+              this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+              this.focusAreasShown = false
+            }
+          }
         }
     },
     mounted: function() {
@@ -129,50 +146,46 @@ export default {
         this.activeDivision = divisions[0].getAttribute('data-title');
     },
     methods: {
-        areResultsOutdated() {
-          // TODO for filters as well , not only for settings
-          this.resultOutdated = JSON.stringify(this.currentlyShownScenarioSettings) !== JSON.stringify(this.moduleSettings)
-        },
-        confirmSettings () {
-          // update currentlyShowScenarioSettigns
-          this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
-          this.changesMade = false
-          this.resultOutdated = false
-          this.$store.dispatch(
-                'scenario/updateAbmDesignScenario'
-            )
-        },
-        changeHeatMapData(){
-            this.$store.commit("scenario/selectedRange", this.adjustRange);
-            this.$store.commit("scenario/heatMapType", this.heatMapType);
-            this.$store.dispatch("scenario/updateLayers", "heatMap")
-        },
-        setHeatMapTimes(x,y){
-            this.adjustRange = [x,y];
-            this.changeHeatMapData();
-        },
-        heatMapActive(){
-            this.$store.commit("scenario/heatMap", !this.heatMap);
-        },
-        updateFilter(){
-            this.$store.commit("scenario/loader", true);
-            this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
-            this.$store.commit("scenario/filterSettings", {...this.filterSettings});
-            
-            for(var key in this.filterSettings){
-                if(!this.filterSettings[key]) {
-                    this.$store.commit("scenario/filterActive", true);
-                    return;
-                } else {
-                    this.$store.commit("scenario/filterActive", false);
-                }
-            }
-        },
-        loadWorkshopScenario(scenarioId) {
-            this.$store.dispatch(
-            'scenario/loadWorkshopScenario', scenarioId
-            )
+      confirmSettings() {
+        // update currentlyShowScenarioSettigns
+        this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
+        this.changesMade = false
+        this.resultOutdated = false
+        this.$store.dispatch(
+          'scenario/updateAbmDesignScenario'
+        )
+      },
+      changeHeatMapData() {
+        this.$store.commit("scenario/selectedRange", this.adjustRange);
+        this.$store.commit("scenario/heatMapType", this.heatMapType);
+        this.$store.dispatch("scenario/updateLayers", "heatMap")
+      },
+      setHeatMapTimes(x, y) {
+        this.adjustRange = [x, y];
+        this.changeHeatMapData();
+      },
+      heatMapActive() {
+        this.$store.commit("scenario/heatMap", !this.heatMap);
+      },
+      updateFilter() {
+        this.$store.commit("scenario/loader", true);
+        this.$store.dispatch('scenario/filterAbmCore', this.filterSettings);
+        this.$store.commit("scenario/filterSettings", {...this.filterSettings});
+
+        for (var key in this.filterSettings) {
+          if (!this.filterSettings[key]) {
+            this.$store.commit("scenario/filterActive", true);
+            return;
+          } else {
+            this.$store.commit("scenario/filterActive", false);
+          }
         }
+      },
+      loadWorkshopScenario(scenarioId) {
+        this.$store.dispatch(
+          'scenario/loadWorkshopScenario', scenarioId
+        )
+      }
     }
 }
 </script>
@@ -234,7 +247,7 @@ export default {
                           />
                         </v-radio-group>
                      </div>
-                    <div class="scenario_box" :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'highlight' : 'na'">  
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                             MAIN STREET ORIENTATION
                         </header>
@@ -255,7 +268,7 @@ export default {
                             />
                         </v-radio-group>
                     </div>
-                    <div class="scenario_box" :class="currentlyShownScenarioSettings.blocks != blocks ? 'highlight' : 'na'">  
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.blocks != blocks ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                           CITY BLOCK STRUCTURE
                         </header>
@@ -332,11 +345,7 @@ export default {
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Dashboard'" class="component_content">
                <h2>ABM Dashboard</h2>
-                <ul>
-                    <li>Number Of Agents active: </li>
-                    <li>Average length of track: </li>
-                    <li>Stuff like this: </li>
-                </ul>
+                 <DashboardCharts></DashboardCharts>
            </div><!--component_content end-->
         </div><!--division end-->
 

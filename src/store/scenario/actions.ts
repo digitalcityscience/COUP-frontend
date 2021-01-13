@@ -8,6 +8,9 @@ import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
 import { VCarouselReverseTransition } from 'vuetify/lib';
 
+import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
+import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
     // check if traffic counts already in store, otherwise load them from cityPyo
@@ -113,9 +116,20 @@ export default {
 
     commit('bridges', bridges)
     dispatch('updateBridgeLayer')
+
+    // reset abmStats
+    if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
+      commit("abmStats", {}) // reset abmStats
+      commit("amenityStats", {}) // reset amenityStats
+    }
     dispatch('initialAbmComputing')
+
     //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
+  },
+  calculateStats({state, commit, dispatch, rootState}) {
+    calculateAmenityStatsForFocusArea()
+    calculateAbmStatsForFocusArea()
   },
   // load layer source from cityPyo and add the layer to the map
   updateAmenitiesLayer({state, commit, dispatch, rootState}, workshopId) {
@@ -125,6 +139,7 @@ export default {
     rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
       source => {
         console.log("got amenities", source)
+        commit('amenitiesGeoJson', source.options.data)
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
@@ -176,7 +191,7 @@ export default {
     let scenarioName = workshopScenario || abmTripsLayerName
 
     //LOAD DATA FROM CITYPYO
-    
+
     commit("loaderTxt", "Getting ABM Simulation Data from CityPyO ... ");
     rootState.cityPyO.getAbmResultLayer(scenarioName, state).then(
       result => {
@@ -187,27 +202,45 @@ export default {
           return
         }
 
-        
+
         commit("loaderTxt", "Serving Abm Data ... ");
         commit('abmData', result.options?.data);
-        dispatch("computeLoop", result.options?.data);
+        dispatch("computeLoop", result.options?.data)
+          .then(unused => {
+            dispatch('calculateStats')
+        })
       }
     )
   },
   //compute ABM Data Set
   computeLoop({state, commit, dispatch, rootState}, abmCore){
 
+    var agentIndexes = {};
     var abmFilterData = {};
     var timePaths = [];
     var simpleTimeData = {};
+    var trips = []
 
     console.log(abmCore);
     //go through each agent inside the abm set (agent, index, array)
-    
+
     commit("loaderTxt", "Clustering ABM Data for functional purposes ... ");
     abmCore.forEach((who,index,array) => {
       let agent_id = who.agent.id;
-      // #1 Clustering Agent Sets for faster Filtering in Frontend
+
+      // #0 create a simple lookup with all agent id's and their index in the abmCore
+      agentIndexes[agent_id] = index
+
+      // #1 create a bin with data on trips each agent makes (origin, destination, pathIndexes, duration, length)
+      if (who.trips) {
+        for (let trip of who.trips) {
+            // trip has following information {"agent", "origin", "destination", "length", "duration", "pathIndexes" }
+           trip["agent"] = agent_id
+           trips.push(trip)
+        }
+      }
+
+      // #2 Clustering Agent Sets for faster Filtering in Frontend
       // ---------------- FILTER SET -----------------------------
       for (const [key, value] of Object.entries(who.agent)) {
         if(`${key}` !== 'id' && `${key}` !== 'source'){
@@ -220,10 +253,10 @@ export default {
 
       // ---------------- FILTER SET END--------------------------
 
-      // #2 Clustering TIME DATA for Aggregation Layer
+      // #3 Clustering TIME DATA for Aggregation Layer
       // ---------------- TIME DATA ------------------------------
 
-      
+
       commit("loaderTxt", "Analyzing Time Data ... ");
       who.timestamps.forEach((v,i,a) => {
         /*round timestamps to full hours*/
@@ -234,16 +267,16 @@ export default {
         timePaths[h].values = timePaths[h].values || {};
         timePaths[h].stamps = timePaths[h].stamps + 1 || 1;
         let coords = who.path[i].toString();
-        
+
         timePaths[h].values[coords] = timePaths[h].values[coords] || [];
         //timePaths[h].values[coords].agents = timePaths[h].values[coords].agents || [agent_id];
         if (!timePaths[h].values[coords].includes(agent_id)) timePaths[h].values[coords].push(agent_id);
         //timePaths[h].values[coords].weight = timePaths[h].values[coords].agents.length;
-        
+
         /*simpleTimeData[v] = simpleTimeData[v] || [];
         simpleTimeData[v].push(agent_id);*/
 
-        
+
         commit("loaderTxt", "Creating Simple Time Data Arrays ... ");
         simpleTimeData[Math.floor(v/300)*300] = simpleTimeData[Math.floor(v/300)*300] || {};
         simpleTimeData[Math.floor(v/300)*300]["all"] = simpleTimeData[Math.floor(v/300)*300]["all"] || [];
@@ -255,24 +288,27 @@ export default {
         simpleTimeData[Math.floor(v/300)*300][who.agent.agent_age].push(agent_id);
         simpleTimeData[Math.floor(v/300)*300][who.agent.resident_or_visitor].push(agent_id);
 
-        
+
         commit("loaderTxt", "Creating Busy Agents ... ");
         if(i == 0){
           timePaths[h].busyAgents.push(agent_id);
         }
       });
-      
+
       // ---------------- TIME DATA END---------------------------
 
     }); //END OF COMPUTING LOOP
 
     //functions working on whole data set
-    
+
     //Commit computed results to the store
+    commit('agentIndexes', agentIndexes);
     commit('clusteredAbmData', abmFilterData);
     commit('abmTimePaths', timePaths);
     commit('activeTimePaths', timePaths);
-    
+    commit('abmTrips', trips);
+
+    console.log("trips", trips)
     console.log(timePaths);
 
     commit('abmSimpleTimes', simpleTimeData);
@@ -309,7 +345,7 @@ export default {
         animate(deckLayer, null, null, currentTimeStamp)
       }
     );
-    
+
     //preparing Data for HeatMap Layer
     Object.entries(heatLayerData).forEach(([key, value]) => {
       Object.entries(heatLayerData[key].values).forEach(([subKey, subValue]) => {
@@ -350,11 +386,11 @@ export default {
           if (rootState.map?.getLayer(abmTripsLayerName)) {
             rootState.map?.removeLayer(abmTripsLayerName)
           }
-  
+
           // check if scenario is still valid - user input might have changed while loading trips layer
           rootState.map?.addLayer(deckLayer);
           rootState.map?.moveLayer(abmTripsLayerName, "groundfloor");  // add layer on top of the groundfloor layer
-  
+
           console.log("new trips layer loaded");
           commit('addLayerId', abmTripsLayerName, {root: true});
           if(state.animationRunning){
@@ -369,7 +405,7 @@ export default {
 
         if(key >= range[0] && key <= range[1]){
           Object.entries(heatLayerData[key].values).forEach(([subKey, subValue]) => {
-            
+
             heatLayerData[key].values[subKey].forEach((v,i,a) => {
               if(!heatLayerData[key].busyAgents.includes(v)){
                 heatLayerData[key].values[subKey].splice(i, 1);
@@ -384,20 +420,20 @@ export default {
           });
         }
       });
-  
+
       buildAggregationLayer(heatLayerFormed, type).then(
         deckLayer => {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
             rootState.map?.removeLayer(abmAggregationLayerName)
           }
-  
+
           console.log("new aggregation layer loaded");
           rootState.map?.addLayer(deckLayer)
           commit('addLayerId', abmAggregationLayerName, {root: true})
           if (rootState.map?.getLayer("groundfloor")) {
             rootState.map?.moveLayer("abmHeat", "groundfloor")
           }
-  
+
         });
     }
   },
@@ -406,7 +442,7 @@ export default {
       const timePaths = state.abmTimePaths;
       const filterSet = {...state.clusteredAbmData};
       const spliceArr = [];
-  
+
       Object.entries(filterSettings).forEach(([key, value]) => {
         if(value === true){
           delete filterSet[key];
@@ -416,7 +452,7 @@ export default {
           });
         }
       });
-  
+
       const filteredTimePaths = JSON.parse(JSON.stringify(timePaths));
       console.log(filteredTimePaths);
       const filteredAbm = abmData.filter(v => !spliceArr.includes(v.agent.id));

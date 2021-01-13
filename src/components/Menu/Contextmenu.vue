@@ -25,6 +25,7 @@ export default {
             matchingPoint:{},
             matchingLine:{},
             buildingLine:{},
+            windowWidth: window.innerWidth,
         }
     },
     computed: {
@@ -63,21 +64,26 @@ export default {
 
         //this.checkPositions();
     },
-    mounted(){ 
+    mounted(){
         let selector = this.$el;
         this.isMe = selector.closest(".vm--modal");
         this.myFeatures = this.features;
         this.selectedModal();
-        this.createBuildingMarks();
-        this.sleep(300).then(() => { this.createLineOnCanvas(); });
-        
+        if(window.innerWidth >= 1024){
+            this.createBuildingMarks();
+            this.sleep(300).then(() => { this.createLineOnCanvas(); });
+        }
+
         this.active = true;
-        this.map.on('drag', this.updateBuildingMarks);
-        this.map.on('zoom', this.updateBuildingMarks);
-        this.map.on('rotate', this.updateBuildingMarks);
-        this.map.on('drag', this.checkPositions);
-        this.map.on('zoom', this.checkPositions);
-        this.map.on('rotate', this.checkPositions);
+
+        if(window.innerWidth >= 1024){
+            this.map.on('drag', this.updateBuildingMarks);
+            this.map.on('zoom', this.updateBuildingMarks);
+            this.map.on('rotate', this.updateBuildingMarks);
+            this.map.on('drag', this.checkPositions);
+            this.map.on('zoom', this.checkPositions);
+            this.map.on('rotate', this.checkPositions);
+        }
         window.addEventListener('mouseup', this.stopDrag);
        /* ctxMenu.style.top = this.clickPosition[0] + 10 + "px";
         ctxMenu.style.left = this.clickPosition[1] + 10 + "px";*/
@@ -114,7 +120,6 @@ export default {
             this.$store.commit('scenario/modalIndex', this.indexVal);
         },
         createLineOnCanvas(){
-            console.log(this.isMe.style.cssText);
             //this.buildingConnection = this.map.project(this.Coords);
             this.buildingConnection = {
                     x: this.Coords[0],
@@ -122,7 +127,6 @@ export default {
             }
             this.boxConnection.x = parseInt(this.isMe.style.left, 10) + this.isMe.getBoundingClientRect().width/2;
             this.boxConnection.y = parseInt(this.isMe.style.top, 10) + this.isMe.getBoundingClientRect().height/2;
-            console.log(this.isMe.innerWidth);
             const boxContainer = document.getElementById("line_canvas");
             var canvas = document.createElement('canvas');
 
@@ -136,13 +140,13 @@ export default {
 
             context.canvas.width  = window.innerWidth;
             context.canvas.height = window.innerHeight;
-            context.beginPath(); 
+            context.beginPath();
             context.lineWidth="1";
             context.strokeStyle="#FEE351";
             context.moveTo(Math.round(this.boxConnection.x), Math.round(this.boxConnection.y));
             context.lineTo(Math.round(this.buildingConnection.x), Math.round(this.buildingConnection.y));
             context.stroke();
-            
+
         },
         createBuildingMarks(){
             const boxContainer = document.getElementById("line_canvas");
@@ -158,7 +162,7 @@ export default {
             var context = canvas.getContext('2d');
             context.canvas.width  = window.innerWidth;
             context.canvas.height = window.innerHeight;
-            context.beginPath(); 
+            context.beginPath();
             context.lineWidth="2";
             context.strokeStyle="#FEE351";
             context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
@@ -183,7 +187,7 @@ export default {
                 context.canvas.width  = window.innerWidth;
                 context.canvas.height = window.innerHeight;
                 context.clearRect(0, 0, canvas.width, canvas.height);
-                context.beginPath(); 
+                context.beginPath();
                 context.lineWidth="2";
                 context.strokeStyle="#FEE351";
                 context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
@@ -205,59 +209,61 @@ export default {
             return [(minX + maxX) / 2, (minY + maxY) / 2];
         },
         checkPositions(){
-            if(this.active){
-                this.boxConnection.x = this.isMe.getBoundingClientRect().left + this.isMe.getBoundingClientRect().width/2;
-                this.boxConnection.y = this.isMe.getBoundingClientRect().top + this.isMe.getBoundingClientRect().height/2;
+            if(window.innerWidth >= 1024) {
+                if(this.active){
+                    this.boxConnection.x = this.isMe.getBoundingClientRect().left + this.isMe.getBoundingClientRect().width/2;
+                    this.boxConnection.y = this.isMe.getBoundingClientRect().top + this.isMe.getBoundingClientRect().height/2;
 
-                //this.buildingConnection = this.map.project(this.Coords);
-                this.buildingConnection = {
-                    x: this.Coords[0],
-                    y: this.Coords[1],
-                }
-
-                var coordinates = this.Coordinates;
-                coordinates = coordinates.map(x => this.map.project(x));
-                var allLines = [];
-                for (var i = 0; i < coordinates.length; i++) {
-                    var ii = i + 1;
-                   
-                   if(ii >= coordinates.length){
-                        ii = 0;
+                    //this.buildingConnection = this.map.project(this.Coords);
+                    this.buildingConnection = {
+                        x: this.Coords[0],
+                        y: this.Coords[1],
                     }
 
-                    //Math.round(coordinates[i].x), Math.round(coordinates[i].y);
-                    var check = this.lineIntersection(coordinates[i].x, coordinates[i].y, coordinates[ii].x, coordinates[ii].y, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y);
-                    console.log(check, this.Coordinates);
-                    if(check){
-                        this.buildingLine = {
-                            x1: coordinates[i].x,
-                            y1: coordinates[i].y,
-                            x2: coordinates[ii].x,
-                            y2: coordinates[ii].y
+                    var coordinates = this.Coordinates;
+                    coordinates = coordinates.map(x => this.map.project(x));
+                    var allLines = [];
+                    for (var i = 0; i < coordinates.length; i++) {
+                        var ii = i + 1;
+
+                    if(ii >= coordinates.length){
+                            ii = 0;
+                        }
+
+                        //Math.round(coordinates[i].x), Math.round(coordinates[i].y);
+                        var check = this.lineIntersection(coordinates[i].x, coordinates[i].y, coordinates[ii].x, coordinates[ii].y, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y);
+                        console.log(check, this.Coordinates);
+                        if(check){
+                            this.buildingLine = {
+                                x1: coordinates[i].x,
+                                y1: coordinates[i].y,
+                                x2: coordinates[ii].x,
+                                y2: coordinates[ii].y
+                            }
                         }
                     }
+
+                    console.log(this.buildingLine);
+                    const canvas = document.getElementById(this.objId);
+                    var context = canvas.getContext('2d');
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.beginPath();
+                    context.lineWidth="1";
+                    context.strokeStyle="#FEE351";
+                    //context.moveTo(this.boxConnection.x, this.boxConnection.y);
+
+                    this.checkMatchingLines();
+                    context.moveTo(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y);
+                    //context.lineTo(Math.round(this.buildingConnection.x), Math.round(this.buildingConnection.y));
+                    context.lineTo(this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y);
+                    context.stroke();
+
+                    var pointSize = 3;
+                    context.fillStyle = "#FEE351";
+                    context.beginPath();
+                    context.arc(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y, pointSize, 0, Math.PI * 2, true); // Draw a point using the arc function of the canvas with a point structure.
+                    context.fill();
                 }
-
-                console.log(this.buildingLine);
-                const canvas = document.getElementById(this.objId);
-                var context = canvas.getContext('2d');
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                context.beginPath(); 
-                context.lineWidth="1";
-                context.strokeStyle="#FEE351";
-                //context.moveTo(this.boxConnection.x, this.boxConnection.y);
-                
-                this.checkMatchingLines();
-                context.moveTo(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y);
-                //context.lineTo(Math.round(this.buildingConnection.x), Math.round(this.buildingConnection.y));
-                context.lineTo(this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y);
-                context.stroke();
-
-                var pointSize = 3;
-                context.fillStyle = "#FEE351";
-                context.beginPath();
-                context.arc(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y, pointSize, 0, Math.PI * 2, true); // Draw a point using the arc function of the canvas with a point structure.
-                context.fill();
             }
         },
         checkMatchingLines(){
@@ -308,7 +314,7 @@ export default {
                         }
                     ]
                 };
-                
+
 
                 if(this.lineIntersection(this.horizontalLine[0].x,this.horizontalLine[0].y,this.horizontalLine[1].x,this.horizontalLine[1].y,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y)){
                     this.matchingLine = {
@@ -381,7 +387,7 @@ export default {
             this.dragging = false;
         },
         doDrag(event) {
-            if (this.dragging) {
+            if (this.dragging && window.innerWidth >= 1024) {
                 this.checkPositions();
             }
         }
@@ -530,6 +536,19 @@ export default {
             border:1px solid $orange;
             background:rgba(0,0,0,0.95);
         }
+
+        @media(max-device-width:1023px){
+            position:fixed;
+            width:80%;
+            max-width:400px;
+            min-height:50vh;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            border:none;
+            background:rgba(0,0,0,0.85);
+            backdrop-filter:blur(10px) saturate(180%);
+        }
     }
-    
+
 </style>

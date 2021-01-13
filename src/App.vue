@@ -6,7 +6,6 @@ import Menu from "./components/Menu/Menu.vue";
 import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
 import Loader from "./components/Loader/Loader.vue";
-import { mapGetters } from 'vuex';
 
 export default {
     name: 'App',
@@ -38,8 +37,6 @@ export default {
     },
     mounted(){
         this.$store.dispatch('checkoutWorkshop');
-        this.$on('showLoader', this.displayLoader(true));
-        this.$on('hideLoader', this.displayLoader(false));
     },
     created () {
         this.$store.dispatch('connect')
@@ -95,6 +92,6 @@ export default {
         pointer-events:none;
     }
 
-    
+
 </style>
 

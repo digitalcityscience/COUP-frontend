@@ -1,11 +1,13 @@
 <script lang="ts">
 import mapboxgl from 'mapbox-gl'
 import { mapState, mapActions, mapGetters, mapMutations } from 'vuex'
-import { abmTripsLayerName, buildAggregationLayer } from '@/store/deck-layers'
 import amenities from '@/config/amenities.json'
 import { alkisTranslations } from '@/store/abm'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
+import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
+import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
     name: 'Map',
@@ -14,8 +16,9 @@ export default {
         return {
             lastClicked: [],
             featuresObject: {},
-            targetFound: false, 
+            targetFound: false,
             featureFound: false,
+            hoveredFocusArea: null,
         }
     },
     computed: {
@@ -30,7 +33,11 @@ export default {
         ]),
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
-            ['showLegend', 'showLegend' ]
+            ['showLegend', 'showLegend' ],
+            ['loader', 'scenario/loader' ],
+            ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
+            ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
+            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart']
         ]),
         heatMapData(){
             return this.$store.state.scenario.heatMapData;
@@ -78,13 +85,18 @@ export default {
             closeOnClick: false
         })
 
+        // general map interaction
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
         this.map.on('contextmenu', this.onMapContextMenu)
+
+        // amenties layer
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
         this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
 
-        //console.log(this.$store.state.map);
+        // focus areas layer
+        this.map.on('mousemove', 'focusAreas', this.onFocusAreaHover)
+        this.map.on('mouseleave', 'focusAreas', this.onFocusAreaLeave)
     },
     methods: {
         mousePos(evt){
@@ -92,17 +104,19 @@ export default {
                 this.lastClicked[0] = ((evt.clientX * 100)/window.innerWidth)/100;
                 this.lastClicked[1] = ((evt.clientY * 100)/window.innerHeight)/100;
                 this.$store.commit('scenario/lastClick', this.lastClicked);
-                
+
                 if(this.targetFound){this.openContextMenu();}
         },
         onMapClicked (evt) {
+          console.log("click!")
+          console.log(evt)
             if(!this.workshop){
                 this.targetFound = false;
                 const bbox = [
                     [evt.point.x - 10, evt.point.y - 10],
                     [evt.point.x + 10, evt.point.y + 10]
                 ]
-                
+
                 const features = this.map.queryRenderedFeatures(bbox, {
                     layers: this.layerIds,
                 });
@@ -115,12 +129,12 @@ export default {
                         singleOutTarget.push(feature);
                     }
                 });
-                
+
                 this.$store.commit('selectedFeatures', singleOutTarget);
 
                 if(singleOutTarget === undefined || singleOutTarget.length == 0){
                     console.log("no feature selected");
-                    this.targetFound = false; 
+                    this.targetFound = false;
                 } else {
                     const building = singleOutTarget[0].properties.area_planning_type;
                     if(building == "building"){
@@ -143,10 +157,16 @@ export default {
                             }
                         });
                         //newFeature.properties.selected = "active";
-                        this.targetFound = true; 
-                        
+                        this.targetFound = true;
+
                     } else {
-                        this.targetFound = false;
+                      this.targetFound = false;  // do not open modal
+                      features.forEach(feature => {
+                          if (feature.layer.id === FocusAreasLayer.mapSource.data.id) {
+                            console.log("focus area selected!", feature.id)
+                            this.onFocusAreaClick(feature.id)
+                          }
+                        })
                     }
                 }
             } else {
@@ -155,11 +175,13 @@ export default {
             }
         },
         onMapLoaded () {
+            this.$store.dispatch('addFocusAreasMapLayer')
             console.log("create design layers")
             //console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers').then(() => {
                 this.$store.dispatch('orderDesignLayers').then(() => {
-                    if(this.workshop){
+                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+                  if(this.workshop){
                         this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
                     }
                 });
@@ -172,7 +194,7 @@ export default {
                     [evt.point.x - 10, evt.point.y - 10],
                     [evt.point.x + 10, evt.point.y + 10]
                 ]
-                
+
                 const features = this.map.queryRenderedFeatures(bbox, {
                     layers: this.layerIds,
                 });
@@ -185,19 +207,19 @@ export default {
                         singleOutTarget.push(feature);
                     }
                 });
-                
+
                 this.$store.commit('selectedFeatures', singleOutTarget);
 
                 if(singleOutTarget === undefined || singleOutTarget.length == 0){
                     console.log("no feature selected");
-                    this.targetFound = false; 
+                    this.targetFound = false;
                 } else {
                     const building = singleOutTarget[0].properties.area_planning_type;
                     if(building == "building"){
                         const newFeature = this.selectedFeatures;
                         newFeature.forEach(feature => {
                             if(feature.properties.selected != 'active'){
-                               
+
                             } else {
                                 if(this.allFeaturesHighlighted){
                                     feature.properties.selected = "inactive";
@@ -210,8 +232,8 @@ export default {
                         const targetId = newFeature[0].properties.building_id;
                         this.$modal.hide(targetId);
                         //newFeature.properties.selected = "active";
-                        this.targetFound = true; 
-                        
+                        this.targetFound = true;
+
                     } else {
                         this.targetFound = false;
                     }
@@ -226,7 +248,7 @@ export default {
                 this.$modal.show(
                     Contextmenu,
                     {},
-                    {name: modal_id, draggable: true, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
+                    {name: modal_id, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
                 )
             } else {
                 this.$modal.hide(modal_id);
@@ -260,7 +282,58 @@ export default {
             console.log('leaving layer')
             this.map.getCanvas().style.cursor = ''
             this.popup.remove()
+        },
+        onFocusAreaHover (evt) {
+          if (evt.features.length > 0) {
+            if (this.hoveredFocusArea) {
+              this.map.setFeatureState(
+                { source: 'focusAreas', id: this.hoveredFocusArea },
+                { hover: false }
+              )
+            }
+            this.hoveredFocusArea = evt.features[0].id
+
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: this.hoveredFocusArea },
+              { hover: true }
+            )
+          }
+        },
+        onFocusAreaLeave (evt) {
+          if (this.hoveredFocusArea) {
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: this.hoveredFocusArea },
+              { hover: false }
+            )
+          }
+          this.hoveredFocusArea = null
+        },
+        onFocusAreaClick (selectedFocusArea) {
+          console.log("click focus area")
+          const idx = this.selectedFocusAreas.indexOf(selectedFocusArea)
+          if (idx > -1) {
+            // if area already selected -> deselect focus area
+            this.selectedFocusAreas.splice(idx, 1);
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: selectedFocusArea },
+              { clicked: false, hover: false }
+            )
+            // update charts
+            this.updateAbmStatsChart = true
+            this.updateAmenityStatsChart = true
+          } else {
+            // add to selected areas
+            this.selectedFocusAreas.push(selectedFocusArea)
+            this.map.setFeatureState(
+              { source: 'focusAreas', id: selectedFocusArea },
+              { clicked: true, hover: false }
+            )
+            // compute results.
+            calculateAmenityStatsForFocusArea(selectedFocusArea)
+            calculateAbmStatsForFocusArea(selectedFocusArea)
+          }
         }
+        },
     }
 }
 </script>

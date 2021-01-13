@@ -4,8 +4,10 @@ export default {
   bridges: [bridges.bridge_hafencity],
   resultLoading: false,
   loader: true,
-  loaderTxt: 'data is loading ... ', 
+  loaderTxt: 'data is loading ... ',
   abmData: null,
+  abmTrips: null,
+  agentIndexes: null,
   clusteredAbmData: null,
   activeAbmSet: null,
   abmObject:{},
@@ -13,6 +15,10 @@ export default {
   activeTimePaths:null,
   abmSimpleTimes:null,
   abmWeightCount:null,
+  abmStats: {},
+  amenityStats: {},
+  updateAbmStatsChart: false,
+  updateAmenityStatsChart: false,
   filterActive: false,
   filterSettings: null,
   noiseResults: [],
@@ -57,5 +63,7 @@ export default {
   showUi: true,
   modalIndex: 0,
   allFeaturesHighlighted: false,
+  amenitiesGeoJson: null,
+  selectedFocusAreas: []
 }
 
