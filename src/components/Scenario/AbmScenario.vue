@@ -102,10 +102,6 @@ export default {
         }
     },
     watch: {
-        loader() {
-          console.log("loader changed in abmScenario.vue")
-        },
-
         resultsOutdated(newVal, oldVal) {
           console.log("changes made")
           console.log(newVal, oldVal)
@@ -150,10 +146,6 @@ export default {
         this.activeDivision = divisions[0].getAttribute('data-title');
     },
     methods: {
-      areResultsOutdated() {
-        // TODO for filters as well , not only for settings
-        this.resultOutdated = JSON.stringify(this.currentlyShownScenarioSettings) !== JSON.stringify(this.moduleSettings)
-      },
       confirmSettings() {
         // update currentlyShowScenarioSettigns
         this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
