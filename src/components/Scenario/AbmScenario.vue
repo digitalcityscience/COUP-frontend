@@ -13,10 +13,8 @@ import {
     filterOptions,
     workshopScenarioNames
 } from '@/store/abm.ts'
-
-import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
-import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import DashboardCharts from "./DashboardCharts";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
     name: 'AbmScenario',
@@ -125,9 +123,11 @@ export default {
         },
         activeDivision() {
           if (this.activeDivision === 'Dashboard') {
-            //this.loader = true
             // load map layer with focus areas
             this.$store.dispatch("scenario/addFocusAreasMapLayer")
+          } else {
+            // remove map layer with focus areas
+            this.$store.dispatch("removeSourceFromMap", FocusAreasLayer.mapSource.data.id)
           }
         }
     },
