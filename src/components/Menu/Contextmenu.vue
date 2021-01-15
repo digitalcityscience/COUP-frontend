@@ -4,6 +4,7 @@ import * as turf from '@turf/turf'
 import store from "@/store";
 import Trips from "@/assets/trips.json"
 import Amenities from "@/assets/amenities.json"
+import SelectedFeaturesLayer from "@/config/selectedFeatures.json"
 import {alkisTranslations} from "@/store/abm";
 
 
@@ -45,6 +46,9 @@ export default {
         clickPosition(){
             return this.$store.state.scenario.lastClick;
         },
+        modalInfo() {
+          return this.$store.state.modalInfo;
+        },
         features(){
             return this.$store.state.selectedFeatures;
         },
@@ -58,39 +62,8 @@ export default {
     beforeMount(){
 
         console.log("before mount")
-        console.log(this.features[0])
-
-        this.objType = this.features[0]["objectType"];
-        this.objId = this.features[0]["objectId"]
-        this.Coordinates = this.features[0].geometry.coordinates
-
-        if (this.objType === "building") {
-          this.objGFA = Math.round(this.features[0].properties.floor_area);
-          this.Coordinates = this.Coordinates[0]; // [0] as it's a polygon
-        }
-
-        if (this.objType === "amenity") {
-          this.amenityCtxInfo = {
-             "New amenity ?": this.features[0].properties["Pre-exist"] ? "No" : "Yes",
-             "Use Type": this.features[0].properties["useType"],
-             "GFK":  this.features[0].properties.GFK
-          }
-        }
-
-        //this.Coords = this.features[0].geometry.coordinates[0][0];
-        this.objectData = this.features.filter((feature,i,a) => {
-            return a.indexOf(feature.layer.id) === i;
-        });
-
-        this.objectData = this.features.reduce((acc, current) => {
-            const duplicateLayer = acc.find(feature => feature.layer.id === current.layer.id);
-            if (!duplicateLayer) {
-                return acc.concat([current]);
-            } else {
-                return acc;
-            }
-        }, []);
-
+        console.log("highlight")
+        this.highlight()
         //this.checkPositions();
     },
     mounted(){
@@ -101,7 +74,7 @@ export default {
 
         if(this.myFeatures[0].properties["objectType"] === "building" && window.innerWidth >= 1024){
             // only for buildings
-            this.createBuildingMarks();
+            this.highlightSelectedFeatures();
             this.sleep(300).then(() => { this.createLineOnCanvas(); });
         }
 
@@ -134,12 +107,12 @@ export default {
         });
       }
 
-        const canvas = document.getElementById(this.objId);
-        const building_canvas = document.getElementById(this.objId + '-building');
-        var context = canvas.getContext('2d');
+        // const canvas = document.getElementById(this.objId);
+       // todo const building_canvas = document.getElementById(this.objId + '-building');
+        // not used ? var context = canvas.getContext('2d');
         //context.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.remove();
-        building_canvas.remove();
+        //canvas.remove();
+        // todo building_canvas.remove();
         this.active = false;
     },
     methods:{
@@ -147,6 +120,7 @@ export default {
           console.log("take info from hereß?")
           console.log(event)
         },
+        /** todo raus hier*/
         updateTrips(objectData, originOrDestination) {
           console.log("objectData")
           console.log(objectData)
@@ -259,19 +233,6 @@ export default {
                 "circle-color":  "purple"
               }
             });
-
-
-
-          // look for origins / destinations in buffer?
-          // then pointsWITHIN
-
-
-
-          // TODO buffer polygon. get amenities inside buffer. filter for matching use-types
-          // if no amenities, extend buffer? or
-
-
-
         },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -343,6 +304,22 @@ export default {
             console.log(coordinates);
             this.Coords = this.buildingCenter(coordinates);
             console.log(this.Coords);
+
+        },
+        highlight() {
+          let featureData = turf.featureCollection(this.features.map(feature => {
+            console.log(feature.geometry.type)
+            if (feature.geometry.type === "Point") {
+              let buffer = turf.buffer(turf.point(feature), 0.005)
+              feature.geometry = buffer.geometry
+            }
+            return feature
+          }))
+
+          console.log("geojson?")
+          console.log(JSON.parse(JSON.stringify(featureData)))
+
+          this.$store.dispatch("addSelectedFeaturesLayer", featureData.features)
         },
         updateBuildingMarks(){
           if (!(this.objType === "building")) {
@@ -573,26 +550,23 @@ export default {
 <template>
     <div class="ctx_menu" @click="selectedModal()"  @mousedown="startDrag" @mousemove="doDrag" v-bind:style="{ zIndex: indexVal }">
         <div class="wrapper">
-            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ objType }} - {{ objId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
-          <div v-if="objType === 'building'">
-            <div class="general"><p>GFA: {{ objGFA }}m²</p></div>
-              <div class="head_scope" v-for="building in objectData" :key="building.layer.id">
-                  <div class="head_bar"><h3>{{ building.layer.id }}</h3></div>
-                  <div v-if="building.properties.number_of_stories">
-                      <p><strong>total floorarea</strong> {{ objGFA * building.properties.number_of_stories }}m²</p>
-                      <p><strong>stories</strong> {{ building.properties.number_of_stories }}</p>
-                  </div>
-                  <p><strong>use case</strong> {{ building.properties.land_use_detailed_type }}</p>
+            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ modalInfo.objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
+            <div class="general" v-for="item in modalInfo.generalContent"><p>
+                <div v-for="(value, key) in item">
+                  <p>{{ key }} : {{ value }}</p>
+                </div>
               </div>
-          </div>
-          <!-- amenities -->
-          <div v-if="objType === 'amenity'">
-            <div class="head_scope">
-              <div class="head_bar"><h3>Amenity Properties</h3></div>
-                  <div v-for="(value, index) in amenityCtxInfo">
-                      <p><strong>{{ index }}</strong> {{value}} </p>
-                  </div>
             </div>
+            <div class="head_scope" v-for="(content, name) in modalInfo.detailContent">
+                <div class="head_bar"><h3>{{ name }}</h3></div>
+                    <div v-for="ctx in content">
+                      <div v-for="(value, key) in ctx">
+                        <p><strong>{{ key }}</strong> {{value}} </p>
+                      </div>
+                    </div>
+            </div>
+          <!-- amenities -->
+          <div v-if="modalInfo.objectType === 'amenity'">
             <div class="body_scope"></div>
             <div class="od-menu">
               <v-checkbox

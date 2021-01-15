@@ -18,7 +18,9 @@ const initialState: StoreState = {
     currentTime: 0,
     workshop: false,
     focusAreasGeoJson: null,
-    focusAreasShown: false
+    focusAreasShown: false,
+    openModals: [],
+    modalInfo: {}
 }
 
 export default initialState;

@@ -1,0 +1,25 @@
+{
+  "layer": {
+  "id": "selectedFeatures",
+  "type": "line",
+  "source": "selectedFeatures",
+  "paint": {
+    "line-color": "#FEE351",
+    "line-width": 3
+  },
+  "layout": {
+    "line-join": "miter",
+    "line-cap": "square"
+    }
+  },
+  "mapSource": {
+    "id": "selectedFeatures",
+    "options": {
+      "type": "geojson",
+      "data": {
+        "type": "FeatureCollection",
+        "features": []
+      }
+    }
+  }
+}

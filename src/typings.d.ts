@@ -76,7 +76,9 @@ declare global {
         mapStyle: string,
         workshop: Boolean,
         focusAreasGeoJson: GenericObject | null,
-        focusAreasShown: boolean
+        focusAreasShown: boolean,
+        openModals: string[]
+        modalInfo: GenericObject
       }
 
       interface View {
