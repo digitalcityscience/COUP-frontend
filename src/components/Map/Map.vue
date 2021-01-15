@@ -8,6 +8,7 @@ import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
+import Amenities from "@/config/amenities.json";
 
 export default {
     name: 'Map',
@@ -17,8 +18,9 @@ export default {
             lastClicked: [],
             featuresObject: {},
             targetFound: false,
-            featureFound: false,
+            showModal: false, // TODO rename in showModal
             hoveredFocusArea: null,
+            modalId: null
         }
     },
     computed: {
@@ -37,7 +39,8 @@ export default {
             ['loader', 'scenario/loader' ],
             ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
             ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
-            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart']
+            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
+            ['selectedFeatures', 'selectedFeatures']
         ]),
         abmTrips(){
             return this.$store.state.scenario.abmTrips;
@@ -53,9 +56,6 @@ export default {
         },
         workshop(){
             return this.$store.state.workshop;
-        },
-        selectedFeatures(){
-            return this.$store.state.selectedFeatures;
         }
     },watch: {
         heatMapData(){
@@ -113,69 +113,93 @@ export default {
         onMapClicked (evt) {
           console.log("click!")
           console.log(evt)
-            if(!this.workshop){
-                this.targetFound = false;
-                const bbox = [
-                    [evt.point.x - 10, evt.point.y - 10],
-                    [evt.point.x + 10, evt.point.y + 10]
-                ]
 
-                const features = this.map.queryRenderedFeatures(bbox, {
-                    layers: this.layerIds,
-                });
+          if (this.workshop) {
+            console.log("Feature not available in workshop mode");
+            this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
+            return
+          }
 
-                const singleOutTarget = [];
-                features.forEach((feature,i,a) => {
-                    const initialFeature = a[0].properties.building_id;
-                    let specialFeature = feature.properties.building_id;
-                    if(specialFeature == initialFeature) {
-                        singleOutTarget.push(feature);
-                    }
-                });
+          this.targetFound = false;
+          const bbox = [
+              [evt.point.x - 10, evt.point.y - 10],
+              [evt.point.x + 10, evt.point.y + 10]
+          ]
 
-                this.$store.commit('selectedFeatures', singleOutTarget);
+          const features = this.map.queryRenderedFeatures(bbox, {
+              layers: this.layerIds,
+          });
+          this.actionForClick(features)
+        },
+        actionForClick(features) {
+          const initialFeature = features[0]
+          const initialLayerId = initialFeature.layer.id
 
-                if(singleOutTarget === undefined || singleOutTarget.length == 0){
-                    console.log("no feature selected");
-                    this.targetFound = false;
-                } else {
-                    const building = singleOutTarget[0].properties.area_planning_type;
-                    if(building == "building"){
-                        const newFeature = this.selectedFeatures;
-                        newFeature.forEach(feature => {
-                            if(feature.properties.selected != 'active'){
-                                feature.properties.selected = "active";
-                                this.featureFound = true;
-                                this.$store.dispatch('editFeatureProps', feature);
-                            } else {
-                                if(!this.allFeaturesHighlighted){
-                                    feature.properties.selected = "inactive";
-                                    this.featureFound = false;
-                                    this.$store.dispatch('editFeatureProps', feature);
-                                } else {
-                                    feature.properties.selected = "active";
-                                    this.featureFound = true;
-                                    this.$store.dispatch('editFeatureProps', feature);
-                                }
-                            }
-                        });
-                        //newFeature.properties.selected = "active";
-                        this.targetFound = true;
+          /* choose what to do, depending on layer selected */
+          switch (initialLayerId) {
+            // for click on building
+            case "upperfloor":
+            case "groundfloor":
+            case "rooftops":
+              // set all components of selected building as selectedFeatures
+              this.selectedFeatures = []
+              const cityScopeId = initialFeature.properties.city_scope_id
+              this.modalId = cityScopeId
 
-                    } else {
-                      this.targetFound = false;  // do not open modal
-                      features.forEach(feature => {
-                          if (feature.layer.id === FocusAreasLayer.mapSource.data.id) {
-                            console.log("focus area selected!", feature.id)
-                            this.onFocusAreaClick(feature.id)
-                          }
-                        })
-                    }
+              // find targeted building by id
+              features.forEach((feature,i,a) => {
+                if(feature.properties.city_scope_id == cityScopeId) {
+                  this.selectedFeatures.push(feature);
                 }
-            } else {
-                console.log("Feature not available in workshop mode");
-                this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
-            }
+              });
+
+              // set display properties for selected features
+              this.selectedFeatures.forEach(feature => {
+                if(feature.properties.selected != 'active'){
+                  feature.properties.selected = "active";
+                  this.showModal = true;
+                  this.$store.dispatch('editFeatureProps', feature);
+                } else {
+                  if(!this.allFeaturesHighlighted){
+                    feature.properties.selected = "inactive";
+                    this.showModal = false;
+                    this.$store.dispatch('editFeatureProps', feature);
+                  } else {
+                    feature.properties.selected = "active";
+                    this.showModal = true;
+                    this.$store.dispatch('editFeatureProps', feature);
+                  }
+                }
+              });
+              this.targetFound = true; // TODO , what is this good for??
+              break;
+
+            // for click on an amenity
+            case Amenities.layer.id:
+              // open modal with info on amenity
+              console.log("amenity")
+              console.log(initialFeature)
+              this.modalId = "amenity"  // TODO set modal id
+              this.targetFound = true;
+              break;
+
+            // for click on focus Areas
+            case FocusAreasLayer.layer.id:
+              this.targetFound = false;  // do not open modal  // TODO what does target found do?
+              this.onFocusAreaClick(initialFeature.id)
+              break;
+            // do nothing for this layer, but try to find action for the next layer in the stack
+            default:
+              console.log("Click on Layer ", initialLayerId)
+              console.log("no action defined for click on this layer")
+              features.shift(); // remove initial feature
+              if (features.length > 0) {
+                // try to find an action for next feature
+                console.log("try next layer")
+                this.actionForClick(features)
+              }
+              break;
+          }
         },
         onMapLoaded () {
             this.$store.dispatch('addFocusAreasMapLayer')
@@ -190,6 +214,8 @@ export default {
                 });
             })
         },
+        /** TODO: refactor this **/
+        // if all features are highlighted, remove highlight from building that has been right-clicked
         onMapContextMenu (evt) {
             if(this.allFeaturesHighlighted){
                 this.targetFound = false;
@@ -226,7 +252,7 @@ export default {
                             } else {
                                 if(this.allFeaturesHighlighted){
                                     feature.properties.selected = "inactive";
-                                    this.featureFound = false;
+                                    this.showModal = false;
                                     this.$store.dispatch('editFeatureProps', feature);
                                 }
                             }
@@ -246,16 +272,15 @@ export default {
         openContextMenu(features){
             this.featuresObject = {click: this.lastClicked};
             console.log(this.selectedFeatures);
-            let modal_id = this.selectedFeatures[0].properties.building_id;
             console.log("selected Features", this.selectedFeatures)
-            if(this.featureFound){
+            if(this.showModal){
                 this.$modal.show(
                     Contextmenu,
                     {},
-                    {name: modal_id, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
+                    {name: this.modal_id, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
                 )
             } else {
-                this.$modal.hide(modal_id);
+                this.$modal.hide(this.modal_id);
             }
         },
         updateHeatMap(){
