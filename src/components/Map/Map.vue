@@ -9,6 +9,9 @@ import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import Amenities from "@/config/amenities.json";
+import AmenitiesGeoJson from "@/assets/amenities.json";  // TODO remove import
+import * as turf from '@turf/turf' // TODO remove import
+
 
 export default {
     name: 'Map',
@@ -93,7 +96,7 @@ export default {
         this.map.on('click', this.onMapClicked)
         this.map.on('contextmenu', this.onMapContextMenu)
 
-        // amenties layer
+        // amenities layer
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
         this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
 
@@ -132,6 +135,8 @@ export default {
           this.actionForClick(features)
         },
         actionForClick(features) {
+          console.log("click features")
+          console.log(features)
           const initialFeature = features[0]
           const initialLayerId = initialFeature.layer.id
 
@@ -149,29 +154,14 @@ export default {
               // find targeted building by id
               features.forEach((feature,i,a) => {
                 if(feature.properties.city_scope_id == cityScopeId) {
+                  feature["objectType"] = "building"
+                  feature["objectId"] = cityScopeId
                   this.selectedFeatures.push(feature);
                 }
               });
+              this.updateSelectedFeatureProps()
 
-              // set display properties for selected features
-              this.selectedFeatures.forEach(feature => {
-                if(feature.properties.selected != 'active'){
-                  feature.properties.selected = "active";
-                  this.showModal = true;
-                  this.$store.dispatch('editFeatureProps', feature);
-                } else {
-                  if(!this.allFeaturesHighlighted){
-                    feature.properties.selected = "inactive";
-                    this.showModal = false;
-                    this.$store.dispatch('editFeatureProps', feature);
-                  } else {
-                    feature.properties.selected = "active";
-                    this.showModal = true;
-                    this.$store.dispatch('editFeatureProps', feature);
-                  }
-                }
-              });
-              this.targetFound = true; // TODO , what is this good for??
+              this.targetFound = true;
               break;
 
             // for click on an amenity
@@ -179,13 +169,21 @@ export default {
               // open modal with info on amenity
               console.log("amenity")
               console.log(initialFeature)
-              this.modalId = "amenity"  // TODO set modal id
+              console.log("coordinates")
+              console.log(initialFeature["geometry"]["coordinates"])
+
+              this.modalId = "amenity" + Math.random().toString()  // amenities have no id...
+              initialFeature["objectType"] = "amenity"
+              const alkisId = initialFeature.properties.GFK
+              initialFeature.properties["useType"] = alkisTranslations[alkisId] || alkisId
+              this.selectedFeatures = [initialFeature]
+
+              this.updateSelectedFeatureProps()
               this.targetFound = true;
               break;
-
             // for click on focus Areas
             case FocusAreasLayer.layer.id:
-              this.targetFound = false;  // do not open modal  // TODO what does target found do?
+              this.targetFound = false;  // do not open modal
               this.onFocusAreaClick(initialFeature.id)
               break;
             // do nothing for this layer, but try to find action for the next layer in the stack
@@ -201,6 +199,26 @@ export default {
               break;
           }
         },
+        updateSelectedFeatureProps() {
+          // set display properties for selected features
+          this.selectedFeatures.forEach(feature => {
+            if(feature.properties.selected != 'active'){
+              feature.properties.selected = "active";
+              this.showModal = true;
+              this.$store.dispatch('editFeatureProps', feature);
+            } else {
+              if(!this.allFeaturesHighlighted){
+                feature.properties.selected = "inactive";
+                this.showModal = false;
+                this.$store.dispatch('editFeatureProps', feature);
+              } else {
+                feature.properties.selected = "active";
+                this.showModal = true;
+                this.$store.dispatch('editFeatureProps', feature);
+              }
+            }
+          });
+          },
         onMapLoaded () {
             this.$store.dispatch('addFocusAreasMapLayer')
             console.log("create design layers")
@@ -213,6 +231,26 @@ export default {
                     }
                 });
             })
+
+          // TODO for faster dev only
+          const amenities = turf.featureCollection(AmenitiesGeoJson["features"])
+          this.map.addLayer({
+            'id': 'abmAmenities',
+            'type': 'circle',
+            'source': {
+              'type': 'geojson',
+              'data': {
+                'type': 'FeatureCollection',
+                'features': amenities.features
+              }
+            },
+            'layout': {},
+            'paint': {
+              "circle-opacity": 1,
+              "circle-color":  "yellow"
+            }
+          });
+          this.$store.commit('addLayerId', "abmAmenities")
         },
         /** TODO: refactor this **/
         // if all features are highlighted, remove highlight from building that has been right-clicked
@@ -270,13 +308,13 @@ export default {
             }
         },
         openContextMenu(features){
-            this.featuresObject = {click: this.lastClicked};
+            // this.featuresObject = {click: this.lastClicked};  // TODO remove if not needed
             console.log(this.selectedFeatures);
             console.log("selected Features", this.selectedFeatures)
             if(this.showModal){
                 this.$modal.show(
                     Contextmenu,
-                    {},
+                    {"test": "testValue"},  // TODO context info here?
                     {name: this.modal_id, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
                 )
             } else {

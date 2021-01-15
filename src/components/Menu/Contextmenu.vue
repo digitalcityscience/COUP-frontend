@@ -4,6 +4,7 @@ import * as turf from '@turf/turf'
 import store from "@/store";
 import Trips from "@/assets/trips.json"
 import Amenities from "@/assets/amenities.json"
+import {alkisTranslations} from "@/store/abm";
 
 
 export default {
@@ -14,6 +15,7 @@ export default {
             objType:'',
             objId:'',
             objGFA:'',
+            amenityCtxInfo: {},
             active: false,
             objectData:[],
             indexVal:0,
@@ -54,10 +56,27 @@ export default {
         }
     },
     beforeMount(){
-        this.objType = this.features[0].properties.area_planning_type;
-        this.objId = this.features[0].properties.building_id;
-        this.objGFA = Math.round(this.features[0].properties.floor_area);
-        this.Coordinates = this.features[0].geometry.coordinates[0];
+
+        console.log("before mount")
+        console.log(this.features[0])
+
+        this.objType = this.features[0]["objectType"];
+        this.objId = this.features[0]["objectId"]
+        this.Coordinates = this.features[0].geometry.coordinates
+
+        if (this.objType === "building") {
+          this.objGFA = Math.round(this.features[0].properties.floor_area);
+          this.Coordinates = this.Coordinates[0]; // [0] as it's a polygon
+        }
+
+        if (this.objType === "amenity") {
+          this.amenityCtxInfo = {
+             "New amenity ?": this.features[0].properties["Pre-exist"] ? "No" : "Yes",
+             "Use Type": this.features[0].properties["useType"],
+             "GFK":  this.features[0].properties.GFK
+          }
+        }
+
         //this.Coords = this.features[0].geometry.coordinates[0][0];
         this.objectData = this.features.filter((feature,i,a) => {
             return a.indexOf(feature.layer.id) === i;
@@ -79,10 +98,15 @@ export default {
         this.isMe = selector.closest(".vm--modal");
         this.myFeatures = this.features;
         this.selectedModal();
-        if(window.innerWidth >= 1024){
+
+        if(this.myFeatures[0].properties["objectType"] === "building" && window.innerWidth >= 1024){
+            // only for buildings
             this.createBuildingMarks();
             this.sleep(300).then(() => { this.createLineOnCanvas(); });
         }
+
+        console.log("this is me")
+        console.log(this.isMe)
 
         this.active = true;
 
@@ -119,21 +143,17 @@ export default {
         this.active = false;
     },
     methods:{
+        beforeOpen (event) {
+          console.log("take info from hereß?")
+          console.log(event)
+        },
         updateTrips(objectData, originOrDestination) {
           console.log("objectData")
           console.log(objectData)
           console.log("originOrDestination")
           console.log(originOrDestination)
 
-          let groundFloorData = objectData.filter(buildingInLayer => {
-            return buildingInLayer.layer.id === "groundfloor";
-          })[0]
-
-          let buildingPolygon = turf.buffer(turf.polygon(groundFloorData.geometry.coordinates), 0.015)
-
-          //let amenities = turf.featureCollection(this.$store.state.scenario.amenitiesGeoJson["features"])
-          let amenities = turf.featureCollection(Amenities["features"])
-          let amenitiesWithin = turf.pointsWithinPolygon(amenities, buildingPolygon)
+          const amenityPoint = this.Coordinates
 
           //let odPoints = turf.featureCollection(this.$store.state.scenario.abmTrips.map((trip) => {
           let trips = JSON.parse(JSON.stringify(Trips))
@@ -150,16 +170,13 @@ export default {
 
           let filteredOdPoints = []
           turf.featureEach(odPoints, function(odPoint) {
-            turf.featureEach(amenitiesWithin, function(amenity) {
-              if (turf.distance(odPoint, amenity) < 0.01) {
-                // use nearest point! (when using amenity as base)
-                filteredOdPoints.push(odPoint)
-              }
-            })
+            if (turf.distance(amenityPoint, odPoint) < 0.01) {
+              // use nearest point! (when using amenity as base)
+              filteredOdPoints.push(odPoint)
+            }
           })
 
           console.log("od count for bld", filteredOdPoints.length)
-          console.log("amentiesWithin", amenitiesWithin)
 
           this.map.addLayer({
               'id': 'myBuilding' + Math.random().toString(),
@@ -296,6 +313,10 @@ export default {
 
         },
         createBuildingMarks(){
+            if (!(this.objType === "building")) {
+              // TODO refactor drawing of building marks by making it a layer with lat/long coords of building buffer
+              return
+            }
             const boxContainer = document.getElementById("line_canvas");
             var canvas = document.createElement('canvas');
             var coordinates = this.Coordinates;
@@ -324,6 +345,10 @@ export default {
             console.log(this.Coords);
         },
         updateBuildingMarks(){
+          if (!(this.objType === "building")) {
+            // TODO refactor drawing of building marks by making it a layer with lat/long coords of building buffer
+            return
+          }
             if(this.active){
                 var coordinates = this.Coordinates;
                 coordinates = coordinates.map(x => this.map.project(x));
@@ -356,6 +381,10 @@ export default {
             return [(minX + maxX) / 2, (minY + maxY) / 2];
         },
         checkPositions(){
+          if (!(this.objType === "building")) {
+            // TODO refactor drawing of building marks by making it a layer with lat/long coords of building buffer
+            return
+          }
             if(window.innerWidth >= 1024) {
                 if(this.active){
                     this.boxConnection.x = this.isMe.getBoundingClientRect().left + this.isMe.getBoundingClientRect().width/2;
@@ -558,16 +587,14 @@ export default {
           </div>
           <!-- amenities -->
           <div v-if="objType === 'amenity'">
-            <div class="head_bar"><h3>{{ building.layer.id }}</h3></div>
-                <div v-if="building.properties.number_of_stories">
-                    <p><strong>total floorarea</strong> {{ objGFA * building.properties.number_of_stories }}m²</p>
-                    <p><strong>stories</strong> {{ building.properties.number_of_stories }}</p>
-                </div>
-                <p><strong>use case</strong> {{ building.properties.land_use_detailed_type }}</p>
-
+            <div class="head_scope">
+              <div class="head_bar"><h3>Amenity Properties</h3></div>
+                  <div v-for="(value, index) in amenityCtxInfo">
+                      <p><strong>{{ index }}</strong> {{value}} </p>
+                  </div>
+            </div>
             <div class="body_scope"></div>
             <div class="od-menu">
-            <!-- TODO v-if <div v-if="this.abmTrips" class="od-menu"> -->
               <v-checkbox
                 v-model="this.asOrigin"
                 label="Origin of"
