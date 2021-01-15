@@ -1,5 +1,10 @@
 <script>
 import { mapState } from 'vuex'
+import * as turf from '@turf/turf'
+import store from "@/store";
+import Trips from "@/assets/trips.json"
+import Amenities from "@/assets/amenities.json"
+
 
 export default {
     name: 'Contextmenu',
@@ -26,6 +31,8 @@ export default {
             matchingLine:{},
             buildingLine:{},
             windowWidth: window.innerWidth,
+            asOrigin:false,
+            asDestination:false
         }
     },
     computed: {
@@ -41,6 +48,9 @@ export default {
         },
         modalIndex(){
             return this.$store.state.scenario.modalIndex;
+        },
+        abmTrips(){
+            return this.$store.state.scenario.abmTrips;
         }
     },
     beforeMount(){
@@ -109,6 +119,143 @@ export default {
         this.active = false;
     },
     methods:{
+        updateTrips(objectData, originOrDestination) {
+          console.log("objectData")
+          console.log(objectData)
+          console.log("originOrDestination")
+          console.log(originOrDestination)
+
+          let groundFloorData = objectData.filter(buildingInLayer => {
+            return buildingInLayer.layer.id === "groundfloor";
+          })[0]
+
+          let buildingPolygon = turf.buffer(turf.polygon(groundFloorData.geometry.coordinates), 0.015)
+
+          //let amenities = turf.featureCollection(this.$store.state.scenario.amenitiesGeoJson["features"])
+          let amenities = turf.featureCollection(Amenities["features"])
+          let amenitiesWithin = turf.pointsWithinPolygon(amenities, buildingPolygon)
+
+          //let odPoints = turf.featureCollection(this.$store.state.scenario.abmTrips.map((trip) => {
+          let trips = JSON.parse(JSON.stringify(Trips))
+          let destinations = turf.featureCollection(trips.map((trip) => {
+            return turf.point(trip["destination"], {"trip": trip})
+          }))
+          let origins = turf.featureCollection(trips.map((trip) => {
+              return turf.point(trip["origin"], {"trip": trip})
+          }))
+
+          console.log("origins", origins)
+
+          let odPoints = originOrDestination === "origin" ? origins : destinations
+
+          let filteredOdPoints = []
+          turf.featureEach(odPoints, function(odPoint) {
+            turf.featureEach(amenitiesWithin, function(amenity) {
+              if (turf.distance(odPoint, amenity) < 0.01) {
+                // use nearest point! (when using amenity as base)
+                filteredOdPoints.push(odPoint)
+              }
+            })
+          })
+
+          console.log("od count for bld", filteredOdPoints.length)
+          console.log("amentiesWithin", amenitiesWithin)
+
+          this.map.addLayer({
+              'id': 'myBuilding' + Math.random().toString(),
+              'type': 'fill',
+              'source': {
+                'type': 'geojson',
+                'data': buildingPolygon
+              },
+              'layout': {},
+              'paint': {
+                'fill-color': 'red',
+                'fill-opacity': 0.3
+              }
+            });
+
+          this.map.addLayer({
+              'id': 'origins' + Math.random().toString(),
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': origins.features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "blue"
+              }
+            });
+
+          this.map.addLayer({
+              'id': 'abmAmenities',
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': amenities.features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "yellow"
+              }
+            });
+
+            this.map.addLayer({
+              'id': 'destinations' + Math.random().toString(),
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': destinations.features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "pink"
+              }
+            });
+
+            this.map.addLayer({
+              'id': 'filterdodPoints' + Math.random().toString(),
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': turf.featureCollection(filteredOdPoints).features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "purple"
+              }
+            });
+
+
+
+          // look for origins / destinations in buffer?
+          // then pointsWITHIN
+
+
+
+          // TODO buffer polygon. get amenities inside buffer. filter for matching use-types
+          // if no amenities, extend buffer? or
+
+
+
+        },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
@@ -232,7 +379,6 @@ export default {
 
                         //Math.round(coordinates[i].x), Math.round(coordinates[i].y);
                         var check = this.lineIntersection(coordinates[i].x, coordinates[i].y, coordinates[ii].x, coordinates[ii].y, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y);
-                        console.log(check, this.Coordinates);
                         if(check){
                             this.buildingLine = {
                                 x1: coordinates[i].x,
@@ -399,16 +545,45 @@ export default {
     <div class="ctx_menu" @click="selectedModal()"  @mousedown="startDrag" @mousemove="doDrag" v-bind:style="{ zIndex: indexVal }">
         <div class="wrapper">
             <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ objType }} - {{ objId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
+          <div v-if="objType === 'building'">
             <div class="general"><p>GFA: {{ objGFA }}m²</p></div>
-            <div class="head_scope" v-for="building in objectData" :key="building.layer.id">
-                <div class="head_bar"><h3>{{ building.layer.id }}</h3></div>
+              <div class="head_scope" v-for="building in objectData" :key="building.layer.id">
+                  <div class="head_bar"><h3>{{ building.layer.id }}</h3></div>
+                  <div v-if="building.properties.number_of_stories">
+                      <p><strong>total floorarea</strong> {{ objGFA * building.properties.number_of_stories }}m²</p>
+                      <p><strong>stories</strong> {{ building.properties.number_of_stories }}</p>
+                  </div>
+                  <p><strong>use case</strong> {{ building.properties.land_use_detailed_type }}</p>
+              </div>
+          </div>
+          <!-- amenities -->
+          <div v-if="objType === 'amenity'">
+            <div class="head_bar"><h3>{{ building.layer.id }}</h3></div>
                 <div v-if="building.properties.number_of_stories">
                     <p><strong>total floorarea</strong> {{ objGFA * building.properties.number_of_stories }}m²</p>
                     <p><strong>stories</strong> {{ building.properties.number_of_stories }}</p>
                 </div>
                 <p><strong>use case</strong> {{ building.properties.land_use_detailed_type }}</p>
-            </div>
+
             <div class="body_scope"></div>
+            <div class="od-menu">
+            <!-- TODO v-if <div v-if="this.abmTrips" class="od-menu"> -->
+              <v-checkbox
+                v-model="this.asOrigin"
+                label="Origin of"
+                @change="updateTrips(objectData, 'origin')"
+                dark
+                hide-details
+              ></v-checkbox>
+              <v-checkbox
+                v-model="this.asDestination"
+                label="Destination of"
+                @change="updateTrips(objectData, 'destination')"
+                dark
+                hide-details
+              ></v-checkbox>
+            </div>
+          </div>
         </div>
         <!--<svg class="connection"><line :x1="Math.round(buildingConnection.x)" :y1="Math.round(buildingConnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
     </div>

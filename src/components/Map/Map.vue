@@ -39,6 +39,9 @@ export default {
             ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart']
         ]),
+        abmTrips(){
+            return this.$store.state.scenario.abmTrips;
+        },
         heatMapData(){
             return this.$store.state.scenario.heatMapData;
         },
@@ -244,6 +247,7 @@ export default {
             this.featuresObject = {click: this.lastClicked};
             console.log(this.selectedFeatures);
             let modal_id = this.selectedFeatures[0].properties.building_id;
+            console.log("selected Features", this.selectedFeatures)
             if(this.featureFound){
                 this.$modal.show(
                     Contextmenu,
