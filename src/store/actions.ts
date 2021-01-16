@@ -4,7 +4,7 @@ import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
 import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
 import FocusAreasLayer from "@/config/focusAreas.json";
-import SelectedFeatures from "@/config/selectedFeatures.json";
+import CircledFeatures from "@/config/circledFeatures.json";
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
@@ -131,20 +131,19 @@ export default {
       }
     )
   },
-  addSelectedFeaturesLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>, featureArray) {
+  addCircledFeaturesLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>, featureArray) {
       console.log("add layer for features")
-      let source = SelectedFeatures.mapSource
+      let source = CircledFeatures.mapSource
       source.options.data.features = featureArray
       dispatch('addSourceToMap', source, {root: true})
         .then(source => {
-          dispatch('addLayerToMap', SelectedFeatures.layer, {root: true})
+          dispatch('addLayerToMap', CircledFeatures.layer, {root: true})
         }).then(source => {
         // add layer on top of the layer stack
         if (state.map?.getLayer("groundfloor")) {
-          state.map?.moveLayer(SelectedFeatures.layer.id, "groundfloor")
+          state.map?.moveLayer(CircledFeatures.layer.id, "groundfloor")
         }
       })
-    console.log("added")
   },
 
   /***** DO WE STILL NEED THIS?

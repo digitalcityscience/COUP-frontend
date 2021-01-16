@@ -4,7 +4,6 @@ import * as turf from '@turf/turf'
 import store from "@/store";
 import Trips from "@/assets/trips.json"
 import Amenities from "@/assets/amenities.json"
-import SelectedFeaturesLayer from "@/config/selectedFeatures.json"
 import {alkisTranslations} from "@/store/abm";
 
 
@@ -13,6 +12,7 @@ export default {
     components: {},
     data() {
         return {
+            objInfo: null,
             objType:'',
             objId:'',
             objGFA:'',
@@ -60,10 +60,10 @@ export default {
         }
     },
     beforeMount(){
-
+        this.objInfo = JSON.parse(JSON.stringify(this.modalInfo))
         console.log("before mount")
         console.log("highlight")
-        this.highlight()
+        //this.highlight()
         //this.checkPositions();
     },
     mounted(){
@@ -319,7 +319,7 @@ export default {
           console.log("geojson?")
           console.log(JSON.parse(JSON.stringify(featureData)))
 
-          this.$store.dispatch("addSelectedFeaturesLayer", featureData.features)
+          this.$store.dispatch("addCircledFeaturesLayer", featureData.features)
         },
         updateBuildingMarks(){
           if (!(this.objType === "building")) {
@@ -550,14 +550,14 @@ export default {
 <template>
     <div class="ctx_menu" @click="selectedModal()"  @mousedown="startDrag" @mousemove="doDrag" v-bind:style="{ zIndex: indexVal }">
         <div class="wrapper">
-            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ modalInfo.objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
-            <div class="general" v-for="item in modalInfo.generalContent"><p>
+            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ objInfo.objectType }} - {{ objInfo.objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
+            <div class="general" v-for="item in objInfo.generalContent"><p>
                 <div v-for="(value, key) in item">
                   <p>{{ key }} : {{ value }}</p>
                 </div>
               </div>
             </div>
-            <div class="head_scope" v-for="(content, name) in modalInfo.detailContent">
+            <div class="head_scope" v-for="(content, name) in objInfo.detailContent">
                 <div class="head_bar"><h3>{{ name }}</h3></div>
                     <div v-for="ctx in content">
                       <div v-for="(value, key) in ctx">
@@ -566,7 +566,7 @@ export default {
                     </div>
             </div>
           <!-- amenities -->
-          <div v-if="modalInfo.objectType === 'amenity'">
+          <div v-if="objInfo.objectType === 'amenity'">
             <div class="body_scope"></div>
             <div class="od-menu">
               <v-checkbox

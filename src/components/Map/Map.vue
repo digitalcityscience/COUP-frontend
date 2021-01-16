@@ -10,7 +10,8 @@ import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import Amenities from "@/config/amenities.json";
 import AmenitiesGeoJson from "@/assets/amenities.json";  // TODO remove import
-import * as turf from '@turf/turf' // TODO remove import
+import * as turf from '@turf/turf'
+import {functionalThemeClasses} from "vuetify/src/mixins/themeable/index"; // TODO remove import
 
 
 export default {
@@ -22,7 +23,8 @@ export default {
             featuresObject: {},
             targetFound: false,
             showModal: false, // TODO rename in showModal
-            hoveredFocusArea: null
+            hoveredFocusArea: null,
+            circledFeatures: []
         }
     },
     computed: {
@@ -33,7 +35,7 @@ export default {
             'map',
             'layers',
             'layerIds',
-            'selectedFeatures'  // TODO: get rid off selectedFeatures
+            'selectedFeatures'
         ]),
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
@@ -238,7 +240,7 @@ export default {
           }
         },
         handleFeatureHighlighting(clickedFeatures) {
-        // set display properties for selected features
+        // set display properties for selected features to change volume colors
           clickedFeatures.forEach(feature => {
             if(feature.properties.selected != 'active'){
               feature.properties.selected = "active";
@@ -256,6 +258,33 @@ export default {
               }
             }
           });
+          this.handleFeatureCircling(clickedFeatures)
+        },
+        /** circles or uncircles clickedFeatures */
+        handleFeatureCircling(clickedFeatures) {
+          let buffer = null
+          clickedFeatures.every(feature => {
+            if (feature.layer.id === "groundfloor") {
+              console.log("groundfloor found", feature)
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
+              // if a ground floor found: jump out - user click on building. any amenity will be accidentally in region
+              return false;
+            }
+            if (feature.layer.id === Amenities.layer.id) {
+              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.01)
+            }
+            return true;
+          })
+
+          // remove if clicked feature already circled
+          if (this.circledFeatures.indexOf(buffer) > -1) {
+            this.circledFeatures.splice(this.circledFeatures.indexOf(buffer), 1);
+          } else {
+            // else..circle now
+            this.circledFeatures.push(buffer)
+          }
+          // update circled features
+          this.$store.dispatch("addCircledFeaturesLayer", this.circledFeatures)
         },
         onMapLoaded () {
             this.$store.dispatch('addFocusAreasMapLayer')
