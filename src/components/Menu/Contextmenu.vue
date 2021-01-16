@@ -12,30 +12,18 @@ export default {
     components: {},
     data() {
         return {
+            lineCanvasId: null,
             objInfo: null,
-            objType:'',
-            objId:'',
-            objGFA:'',
-            amenityCtxInfo: {},
             active: false,
-            objectData:[],
             indexVal:0,
             myFeatures:[],
-            Coords:[],
             Coordinates:[],
-            isMe:'',
-            anchorConnnection:{},
-            boxConnection:{},
-            line:'',
+            modalDiv:'',
             dragging: false,
-            horizontalLine:{},
-            verticalLine:{},
-            matchingPoint:{},
-            matchingLine:{},
-            buildingLine:{},
             windowWidth: window.innerWidth,
-            asOrigin:false,
-            asDestination:false
+            asOrigin:false, // todo move
+            asDestination:false, // todo move
+            objectData:[],  // todo remove
         }
     },
     computed: {
@@ -43,9 +31,6 @@ export default {
         'allFeaturesHighlighted',
         'map',
         ]),
-        clickPosition(){
-            return this.$store.state.scenario.lastClick;
-        },
         modalInfo() {
           return this.$store.state.modalInfo;
         },
@@ -63,12 +48,10 @@ export default {
         // create a copy of current modalInfo
         // we don't want the content of each modal to update when new modals are created
         this.objInfo = JSON.parse(JSON.stringify(this.modalInfo))
-        //this.circleObject()
-        //this.checkPositions();
     },
     mounted(){
         let selector = this.$el;
-        this.isMe = selector.closest(".vm--modal");
+        this.modalDiv = selector.closest(".vm--modal");
         this.myFeatures = this.features;
         this.selectedModal();
 
@@ -76,42 +59,28 @@ export default {
             this.sleep(300).then(() => { this.createLineOnCanvas(); });
         }
 
-        console.log("this is my div")
-        console.log(this.isMe)
-
         this.active = true;
 
         if(window.innerWidth >= 1024){
-            /*this.map.on('drag', this.updateBuildingMarks);
-            this.map.on('zoom', this.updateBuildingMarks);
-            this.map.on('rotate', this.updateBuildingMarks);
-            */
-            this.map.on('drag', this.checkPositions);
-            this.map.on('zoom', this.checkPositions);
-            this.map.on('rotate', this.checkPositions);
+            this.map.on('drag', this.createLineOnCanvas);
+            this.map.on('zoom', this.createLineOnCanvas);
+            this.map.on('rotate', this.createLineOnCanvas);
         }
         window.addEventListener('mouseup', this.stopDrag);
-       /* ctxMenu.style.top = this.clickPosition[0] + 10 + "px";
-        ctxMenu.style.left = this.clickPosition[1] + 10 + "px";*/
     },
     updated(){
-        //this.checkPositions();
     },
     beforeDestroy() {
       if (!this.allFeaturesHighlighted) {
+        // TODO!!! fix this! use selectedFeatures. filter for objectId
         const newFeature = this.myFeatures;
         newFeature.forEach(feature => {
             feature.properties.selected = "inactive";
             this.$store.dispatch('editFeatureProps', feature)
         });
       }
-
-        // const canvas = document.getElementById(this.objId);
-       // todo const building_canvas = document.getElementById(this.objId + '-building');
-        // not used ? var context = canvas.getContext('2d');
-        //context.clearRect(0, 0, canvas.width, canvas.height);
-        //canvas.remove();
-        // todo building_canvas.remove();
+        const canvas = document.getElementById(this.lineCanvasId);
+        canvas.remove();
         this.active = false;
     },
     methods:{
@@ -248,69 +217,45 @@ export default {
         },
          /** creates a line on canvas connecting the modal box to it's object as anchor */
         createLineOnCanvas(){
-            const line_canvas_id = "line_" + this.objInfo["objectId"];
-            const boxContainer = document.getElementById("line_canvas");
-             if (document.getElementById(line_canvas_id)) {
-              // remove existing line container
-              boxContainer.removeChild(document.getElementById(line_canvas_id))
-            }
+           if(window.innerWidth >= 1024) {
+             if (this.active) {
+               this.lineCanvasId = "line_" + this.objInfo["objectId"];
+               const boxContainer = document.getElementById("line_canvas");
+               if (document.getElementById(this.lineCanvasId)) {
+                 // remove existing line container
+                 boxContainer.removeChild(document.getElementById(this.lineCanvasId))
+               }
 
-            // create canvas
-            let canvas = document.createElement('canvas');
-            canvas.id = line_canvas_id
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            canvas.style.position = "absolute";
-            boxContainer.appendChild(canvas);
-            var context = canvas.getContext('2d');
+               // create canvas
+               let canvas = document.createElement('canvas');
+               canvas.id = this.lineCanvasId
+               canvas.width = window.innerWidth;
+               canvas.height = window.innerHeight;
+               canvas.style.position = "absolute";
+               boxContainer.appendChild(canvas);
+               var context = canvas.getContext('2d');
 
-            const projectedObjectCoords = this.getProjectedObjectCoords()
-            this.anchorConnnection = {
-              x: projectedObjectCoords.x,
-              y: projectedObjectCoords.y,
-            }
+               const projectedObjectCoords = this.getProjectedObjectCoords()
+               const anchorConnnection = {
+                 x: projectedObjectCoords.x,
+                 y: projectedObjectCoords.y,
+               }
 
-            this.boxConnection.x = parseInt(this.isMe.style.left, 10) + this.isMe.getBoundingClientRect().width/2;
-            this.boxConnection.y = parseInt(this.isMe.style.top, 10) + this.isMe.getBoundingClientRect().height/2;
+               const boxConnection = {}
+               boxConnection.x = parseInt(this.modalDiv.style.left, 10) + this.modalDiv.getBoundingClientRect().width / 2;
+               boxConnection.y = parseInt(this.modalDiv.style.top, 10) + this.modalDiv.getBoundingClientRect().height / 2;
 
-            context.canvas.width  = window.innerWidth;
-            context.canvas.height = window.innerHeight;
-            context.beginPath();
-            context.lineWidth="1";
-            context.strokeStyle="#FEE351";
-            context.moveTo(Math.round(this.boxConnection.x), Math.round(this.boxConnection.y));
-            context.lineTo(Math.round(this.anchorConnnection.x), Math.round(this.anchorConnnection.y));
-            context.stroke();
+               context.canvas.width = window.innerWidth;
+               context.canvas.height = window.innerHeight;
+               context.beginPath();
+               context.lineWidth = "1";
+               context.strokeStyle = "#FEE351";
+               context.moveTo(Math.round(boxConnection.x), Math.round(boxConnection.y));
+               context.lineTo(Math.round(anchorConnnection.x), Math.round(anchorConnnection.y));
+               context.stroke();
+             }
+           }
         },
-        /** to be removed
-        createBuildingMarks(){
-            const boxContainer = document.getElementById("line_canvas");
-            var canvas = document.createElement('canvas');
-            var coordinates = this.Coordinates;
-            coordinates = coordinates.map(x => this.map.project(x));
-            canvas.id = this.objId + "-building";
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            canvas.style.position = "absolute";
-
-            boxContainer.appendChild(canvas);
-            var context = canvas.getContext('2d');
-            context.canvas.width  = window.innerWidth;
-            context.canvas.height = window.innerHeight;
-            context.beginPath();
-            context.lineWidth="2";
-            context.strokeStyle="#FEE351";
-            context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
-            var i;
-            for (i = 1; i < coordinates.length; i++) {
-                context.lineTo(Math.round(coordinates[i].x), Math.round(coordinates[i].y));
-            }
-
-            context.stroke();
-            console.log(coordinates);
-            this.Coords = this.buildingCenter(coordinates);
-            console.log(this.Coords);
-        }, */
         /** creates a line around the object to highlight it */
         circleObject() {
           let featureData = turf.featureCollection(this.features.map(feature => {
@@ -324,231 +269,6 @@ export default {
 
           this.$store.dispatch("addCircledFeaturesLayer", featureData.features)
         },
-        updateLineToMovement() {
-          if (window.innerWidth >= 1024) {
-            if (this.active) {
-
-              this.boxConnection.x = this.isMe.getBoundingClientRect().left + this.isMe.getBoundingClientRect().width / 2;
-              this.boxConnection.y = this.isMe.getBoundingClientRect().top + this.isMe.getBoundingClientRect().height / 2;
-
-              //this.anchorConnnection = this.map.project(this.Coords);
-              this.anchorConnnection = {
-                x: this.Coords[0],
-                y: this.Coords[1],
-              }
-            }
-          }
-        },
-      /** to be removed
-        updateBuildingMarks(){
-          if(this.active){
-              var coordinates = this.getProjectedObjectCoords()
-
-              const canvas = document.getElementById(this.objId + "-building");
-              var context = canvas.getContext('2d');
-              context.canvas.width  = window.innerWidth;
-              context.canvas.height = window.innerHeight;
-              context.clearRect(0, 0, canvas.width, canvas.height);
-              context.beginPath();
-              context.lineWidth="2";
-              context.strokeStyle="#FEE351";
-              context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
-              for (var i = 1; i < coordinates.length; i++) {
-                  context.lineTo(Math.round(coordinates[i].x), Math.round(coordinates[i].y));
-              }
-
-              context.stroke();
-          }
-        }, */
-
-        /** to be removed
-        buildingCenter(arr){
-            var minX, maxX, minY, maxY;
-            for (var i = 0; i < arr.length; i++){
-                minX = (arr[i].x < minX || minX == null) ? arr[i].x : minX;
-                maxX = (arr[i].x > maxX || maxX == null) ? arr[i].x : maxX;
-                minY = (arr[i].y < minY || minY == null) ? arr[i].y : minY;
-                maxY = (arr[i].y > maxY || maxY == null) ? arr[i].y : maxY;
-            }
-            return [(minX + maxX) / 2, (minY + maxY) / 2];
-        }, */
-        checkPositions(){
-            if(window.innerWidth >= 1024) {
-                if(this.active){
-
-                   this.createLineOnCanvas()
-
-                    return
-
-                    this.boxConnection.x = this.isMe.getBoundingClientRect().left + this.isMe.getBoundingClientRect().width/2;
-                    this.boxConnection.y = this.isMe.getBoundingClientRect().top + this.isMe.getBoundingClientRect().height/2;
-
-                    const projectedObjectCoords = this.getProjectedObjectCoords()
-                    this.anchorConnnection = {
-                      x: projectedObjectCoords.x,
-                      y: projectedObjectCoords.y,
-                    }
-
-                    var coordinates = this.Coordinates;
-                    coordinates = coordinates.map(x => this.map.project(x));
-                    var allLines = [];
-                    for (var i = 0; i < coordinates.length; i++) {
-                        var ii = i + 1;
-
-                    if(ii >= coordinates.length){
-                            ii = 0;
-                        }
-
-                        //Math.round(coordinates[i].x), Math.round(coordinates[i].y);
-                        var check = this.lineIntersection(coordinates[i].x, coordinates[i].y, coordinates[ii].x, coordinates[ii].y, this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y);
-                        if(check){
-                            this.buildingLine = {
-                                x1: coordinates[i].x,
-                                y1: coordinates[i].y,
-                                x2: coordinates[ii].x,
-                                y2: coordinates[ii].y
-                            }
-                        }
-                    }
-
-                    // is this making the yellow outline around the modal??
-                    console.log(this.buildingLine);
-                    const canvas = document.getElementById(this.objInfo["objectId"]);
-                    var context = canvas.getContext('2d');
-                    context.clearRect(0, 0, canvas.width, canvas.height);
-                    context.beginPath();
-                    context.lineWidth="1";
-                    context.strokeStyle="#FEE351";
-                    //context.moveTo(this.boxConnection.x, this.boxConnection.y);
-
-                    this.checkMatchingLines();
-                    context.moveTo(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y).y);
-                    //context.lineTo(Math.round(this.anchorConnnection.x), Math.round(this.anchorConnnection.y));
-                    context.lineTo(this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y).x, this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y).y);
-                    context.stroke();
-
-                    var pointSize = 3;
-                    context.fillStyle = "#FEE351";
-                    context.beginPath();
-                    context.arc(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y).y, pointSize, 0, Math.PI * 2, true); // Draw a point using the arc function of the canvas with a point structure.
-                    context.fill();
-                }
-            }
-        },
-        checkMatchingLines(){
-            if(this.boxConnection.x < this.anchorConnnection.x){
-                    this.verticalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().top,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().bottom
-                        }
-                    ]
-                } else {
-                    this.verticalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().top,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().bottom
-                        }
-                    ]
-                }
-
-                if(this.boxConnection.y > this.anchorConnnection.y){
-                    this.horizontalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().top,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().top
-                        }
-                    ]
-                } else {
-                    this.horizontalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().bottom,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().bottom,
-                        }
-                    ]
-                };
-
-
-                if(this.lineIntersection(this.horizontalLine[0].x,this.horizontalLine[0].y,this.horizontalLine[1].x,this.horizontalLine[1].y,this.boxConnection.x, this.boxConnection.y, this.anchorConnnection.x, this.anchorConnnection.y)){
-                    this.matchingLine = {
-                        x1: this.horizontalLine[0].x,
-                        y1: this.horizontalLine[0].y,
-                        x2: this.horizontalLine[1].x,
-                        y2: this.horizontalLine[1].y,
-                    }
-                } else {
-                    this.matchingLine = {
-                        x1: this.verticalLine[0].x,
-                        y1: this.verticalLine[0].y,
-                        x2: this.verticalLine[1].x,
-                        y2: this.verticalLine[1].y,
-                    }
-                }
-
-                /*this.verticalLine.forEach(point => {
-                    this.horizontalLine.forEach(ppoint => {
-                        if(JSON.stringify(point) === JSON.stringify(ppoint)){
-                            this.matchingPoint = point;
-                        }
-                    })
-                })
-
-                console.log(this.matchingPoint);*/
-
-                /*if(Math.abs((this.anchorConnnection.x - this.matchingPoint.x)/(this.anchorConnnection.y - this.matchingPoint.y)) < Math.abs((this.anchorConnnection.x - this.boxConnection.x)/(this.anchorConnnection.y - this.boxConnection.y))){
-                    this.matchingLine = {
-                        x1: this.verticalLine[0].x,
-                        y1: this.verticalLine[0].y,
-                        x2: this.verticalLine[1].x,
-                        y2: this.verticalLine[1].y,
-                    }
-                    console.log("VERTICAL");
-                } else {
-                     this.matchingLine = {
-                        x1: this.horizontalLine[0].x,
-                        y1: this.horizontalLine[0].y,
-                        x2: this.horizontalLine[1].x,
-                        y2: this.horizontalLine[1].y,
-                    }
-                    console.log("HORIZONTAL");
-                }
-
-                console.log("M: ", Math.abs((this.anchorConnnection.x - this.matchingPoint.x)/(this.anchorConnnection.y - this.matchingPoint.y)), Math.abs((this.anchorConnnection.x - this.boxConnection.x)/(this.anchorConnnection.y - this.boxConnection.y)))
-                console.log("P:", this.matchingPoint, "L:", this.matchingLine);*/
-        },
-        lineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
-            if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
-                return false
-            }
-            var denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
-            if (denominator === 0) {
-                return false
-            }
-            let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
-            let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
-            if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
-                return false
-            }
-            let x = x1 + ua * (x2 - x1)
-            let y = y1 + ua * (y2 - y1)
-            return {x, y}
-        },
         startDrag() {
             this.dragging = true;
         },
@@ -557,7 +277,7 @@ export default {
         },
         doDrag(event) {
             if (this.dragging && window.innerWidth >= 1024) {
-                this.checkPositions();
+                this.createLineOnCanvas();
             }
         }
     }
