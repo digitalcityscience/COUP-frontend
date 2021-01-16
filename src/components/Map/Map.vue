@@ -141,8 +141,6 @@ export default {
           const initialFeature = clickedFeatures[0]
           const initialLayerId = initialFeature.layer.id
 
-          // create new modal for clickedFeatures
-          /* gather information for modal, depending on layer selected */
           switch (initialLayerId) {
             // for click on building part
             case "rooftops":
@@ -156,13 +154,10 @@ export default {
               // focus area clicked. do not open modals, calculate stats
               this.onFocusAreaClick(initialFeature.id)
               break;
-            // do nothing for this layer, but try to find action for the next layer in the stack
             default:
-              console.log("Click on Layer ", initialLayerId)
-              console.log("no action defined for click on this layer")
+              // do nothing for this layer, but try to find action for the next layer in the stack
               clickedFeatures.shift(); // remove initial feature
               if (clickedFeatures.length > 0) {
-                // try to find an action for next feature
                 this.actionForClick(clickedFeatures)
               }
               break;
@@ -170,7 +165,7 @@ export default {
         },
         /* opens or closes modal */
         handleModal(clickedFeatures) {
-          const cityScopeId = clickedFeatures[0].properties["city_scope_id"] || "amenities"  //TODO!!
+          const cityScopeId = clickedFeatures[0].properties["city_scope_id"] || "amenities"  //TODO add id's to amenities file
 
           // close open modal for clickedFeatures
           if (this.openModals.indexOf(cityScopeId) !== -1) {
@@ -182,8 +177,8 @@ export default {
             return
           }
 
-          // new object selected, highlight and create modal
-          this.gatherModalInfo(clickedFeatures, cityScopeId)
+          // new object selected, circleObject and create modal
+          this.gatherModalInfo(clickedFeatures, cityScopeId) // TODO bring all the modal shit to contextemnu.vue
           this.handleFeatureHighlighting(clickedFeatures)
           this.createModal(cityScopeId)
         },
@@ -196,12 +191,13 @@ export default {
             "detailContent" : {} // header : [{ propTitle: propValue}]}
           }
 
-          // find targeted building by id
+          // add modal info, depending on feature type
           clickedFeatures.forEach((feature,i,a) => {
             const layerId = feature.layer.id
             switch (layerId) {
               case "groundfloor":
                 this.modalInfo["objectType"] = "building"
+                this.modalInfo["coords"] = turf.centroid(turf.polygon(feature.geometry.coordinates)).geometry.coordinates
                 this.addBuildingFloorInfo(feature, cityScopeId)
                 // add also roof type here when available
                 break;
@@ -218,6 +214,7 @@ export default {
                 break;
               case Amenities.layer.id:
                 this.modalInfo["objectType"] = "amenity"
+                this.modalInfo["coords"] =feature.geometry.coordinates
                 this.modalInfo["detailContent"]["Amenity"] = {}
                 const alkisId = feature.properties.GFK
                 feature.properties["useType"] = alkisTranslations[alkisId] || alkisId
@@ -320,7 +317,7 @@ export default {
           this.$store.commit('addLayerId', "abmAmenities")
         },
         /** TODO: refactor this **/
-        // if all features are highlighted, remove highlight from building that has been right-clicked
+        // if all features are highlighted, remove circleObject from building that has been right-clicked
         onMapContextMenu (evt) {
             if(this.allFeaturesHighlighted){
                 this.targetFound = false;
