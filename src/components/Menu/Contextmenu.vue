@@ -34,7 +34,7 @@ export default {
         modalInfo() {
           return this.$store.state.modalInfo;
         },
-        features(){
+        selectedFeatures(){
             return this.$store.state.selectedFeatures;
         },
         modalIndex(){
@@ -52,7 +52,7 @@ export default {
     mounted(){
         let selector = this.$el;
         this.modalDiv = selector.closest(".vm--modal");
-        this.myFeatures = this.features;
+        this.myFeatures = this.selectedFeatures;
         this.selectedModal();
 
         if(window.innerWidth >= 1024){
@@ -71,17 +71,23 @@ export default {
     updated(){
     },
     beforeDestroy() {
+      // remove highlighting of selected selectedFeatures
       if (!this.allFeaturesHighlighted) {
-        // TODO!!! fix this! use selectedFeatures. filter for objectId
-        const newFeature = this.myFeatures;
-        newFeature.forEach(feature => {
-            feature.properties.selected = "inactive";
-            this.$store.dispatch('editFeatureProps', feature)
+        this.selectedFeatures.forEach(feature => {
+            if (feature.properties["city_scope_id"] === this.objInfo["objectId"]) {
+              feature.properties.selected = "inactive";
+              this.$store.dispatch('editFeatureProps', feature)
+            }
         });
       }
-        const canvas = document.getElementById(this.lineCanvasId);
-        canvas.remove();
-        this.active = false;
+
+      // remove line on canvas connecting modal to selected feature
+      const canvas = document.getElementById(this.lineCanvasId);
+      canvas.remove();
+      this.active = false;
+
+      // todo remove building outline?
+
     },
     methods:{
         beforeOpen (event) {
@@ -97,7 +103,6 @@ export default {
           console.log(objectData)
           console.log("originOrDestination")
           console.log(originOrDestination)
-
           const amenityPoint = this.Coordinates
 
           //let odPoints = turf.featureCollection(this.$store.state.scenario.abmTrips.map((trip) => {
@@ -258,7 +263,7 @@ export default {
         },
         /** creates a line around the object to highlight it */
         circleObject() {
-          let featureData = turf.featureCollection(this.features.map(feature => {
+          let featureData = turf.featureCollection(this.selectedFeatures.map(feature => {
             console.log(feature.geometry.type)
             if (feature.geometry.type === "Point") {
               let buffer = turf.buffer(turf.point(feature), 0.005)

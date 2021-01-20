@@ -66,6 +66,7 @@ declare global {
         activeMenuComponent: string,
         layerIds: string[],
         allFeaturesHighlighted: boolean,
+        highlightedFeatures: string[],
         showLegend: boolean,
         selectedFeatures: any[],
         selectedMultiFeatures: any[],

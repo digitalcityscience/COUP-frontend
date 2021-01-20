@@ -24,7 +24,8 @@ export default {
             targetFound: false,
             showModal: false, // TODO rename in showModal
             hoveredFocusArea: null,
-            circledFeatures: []
+            circledFeatures: [],
+            modalLayers: ["groundfloor", "upperfloor", "rooftops", "amenities"]
         }
     },
     computed: {
@@ -39,6 +40,7 @@ export default {
         ]),
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
+            ['highlightedFeatures', 'highlightedFeatures'],
             ['showLegend', 'showLegend' ],
             ['loader', 'scenario/loader' ],
             ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
@@ -141,41 +143,27 @@ export default {
           const initialFeature = clickedFeatures[0]
           const initialLayerId = initialFeature.layer.id
 
-          switch (initialLayerId) {
-            // for click on building part
-            case "rooftops":
-            case "upperfloor":
-            case "groundfloor":
-            case  Amenities.layer.id:
-              this.handleModal(clickedFeatures)
-              break;
-            // for click on focus Areas
-            case FocusAreasLayer.layer.id:
-              // focus area clicked. do not open modals, calculate stats
-              this.onFocusAreaClick(initialFeature.id)
-              break;
-            default:
-              // do nothing for this layer, but try to find action for the next layer in the stack
-              clickedFeatures.shift(); // remove initial feature
-              if (clickedFeatures.length > 0) {
-                this.actionForClick(clickedFeatures)
-              }
-              break;
+          // calculate stats for focus area
+          if (initialLayerId === FocusAreasLayer.layer.id) {
+            this.onFocusAreaClick(initialFeature.id)
+            return
+          }
+
+          // open/close a modal
+          if (this.modalLayers.indexOf(initialLayerId) > -1) {
+            this.handleModal(clickedFeatures)
+            return
+          }
+
+          // do nothing for this layer, but try to find action for the next layer in the stack
+          clickedFeatures.shift(); // remove initial feature
+          if (clickedFeatures.length > 0) {
+            this.actionForClick(clickedFeatures)
           }
         },
         /* opens or closes modal */
         handleModal(clickedFeatures) {
           const cityScopeId = clickedFeatures[0].properties["city_scope_id"] || "amenities"  //TODO add id's to amenities file
-
-          // close open modal for clickedFeatures
-          if (this.openModals.indexOf(cityScopeId) !== -1) {
-            // features are already selected.
-            // set as inactive, close modal and return
-            this.handleFeatureHighlighting(clickedFeatures)
-            this.openModals.splice(this.openModals.indexOf(cityScopeId), 1);  // remove from open modals
-            this.$modal.hide(this.modal_id);
-            return
-          }
 
           // new object selected, circleObject and create modal
           this.gatherModalInfo(clickedFeatures, cityScopeId) // TODO bring all the modal shit to contextemnu.vue
@@ -223,7 +211,6 @@ export default {
                   {"Use Type": feature.properties["useType"]},
                   {"GFK": feature.properties.GFK}
                 ]
-                this.selectedFeatures.push(feature)
                 break;
             }
           })
@@ -237,7 +224,32 @@ export default {
           }
         },
         handleFeatureHighlighting(clickedFeatures) {
-        // set display properties for selected features to change volume colors
+          // add or remove base circling
+          this.handleFeatureCircling(clickedFeatures)
+
+          clickedFeatures.forEach(feature => {
+            // irrelevant layer, no need for highlighting
+            if (this.modalLayers.indexOf(feature.layer.id) === -1) {
+              return
+            }
+
+            // set display properties for selected features to change volume colors
+            const alreadyHighlighted = (this.highlightedFeatures.indexOf(feature) > -1)
+            feature.properties.selected = alreadyHighlighted ? "inactive" : "active";
+            this.showModal = !alreadyHighlighted;
+            this.$store.dispatch('editFeatureProps', feature);
+
+            // add or remove from highlightedFeatures
+            if (alreadyHighlighted) {
+              // remove feature from highlighted features
+              this.highlightedFeatures.splice(this.highlightedFeatures.indexOf(feature), 1);
+            } else {
+              // add to highlighted features
+              this.highlightedFeatures.push(feature)
+            }
+          });
+
+          /* set display properties for selected features to change volume colors
           clickedFeatures.forEach(feature => {
             if(feature.properties.selected != 'active'){
               feature.properties.selected = "active";
@@ -255,7 +267,7 @@ export default {
               }
             }
           });
-          this.handleFeatureCircling(clickedFeatures)
+          */
         },
         /** circles or uncircles clickedFeatures */
         handleFeatureCircling(clickedFeatures) {

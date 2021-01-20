@@ -8,6 +8,7 @@ const initialState: StoreState = {
     activeMenuComponent: "AbmScenario",
     layerIds: [],
     allFeaturesHighlighted: false,
+    highlightedFeatures: [],
     showLegend: false,
     selectedFeatures: [],
     selectedMultiFeatures: [],
