@@ -1,4 +1,5 @@
 <script>
+import Login from './components/Login/Login.vue';
 import Map from './components/Map/Map.vue';
 import GFI from './components/GFI/GFI.vue';
 import Scenario from "@/components/Scenario/AbmScenario";
@@ -10,6 +11,7 @@ import Loader from "./components/Loader/Loader.vue";
 export default {
     name: 'App',
     components: {
+        Login,
         Map,
         GFI,
         Scenario,
@@ -36,16 +38,20 @@ export default {
         },
     },
     mounted(){
-        this.$store.dispatch('checkoutWorkshop');
+        this.$store.dispatch('checkoutPublicAccess');
     },
     created () {
-        this.$store.dispatch('connect')
+        // automatically connect for public access
+        if (this.workshop) {
+          this.$store.dispatch('connect')
+        }
     }
 }
 </script>
 
 <template>
     <v-app>
+        <Login />
         <Map />
         <GFI />
         <Menu />
