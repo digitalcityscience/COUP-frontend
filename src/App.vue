@@ -1,5 +1,4 @@
 <script>
-import Login from './components/Login/Login.vue';
 import Map from './components/Map/Map.vue';
 import GFI from './components/GFI/GFI.vue';
 import Scenario from "@/components/Scenario/AbmScenario";
@@ -11,7 +10,6 @@ import Loader from "./components/Loader/Loader.vue";
 export default {
     name: 'App',
     components: {
-        Login,
         Map,
         GFI,
         Scenario,
@@ -23,6 +21,9 @@ export default {
     computed: {
         workshop(){
             return this.$store.state.workshop;
+        },
+        authenticated(){
+            return this.$store.state.isUserAuthenticated;
         },
         loader(){
             return this.$store.state.loader;
@@ -50,16 +51,15 @@ export default {
 </script>
 
 <template>
-    <v-app>
-        <Login />
-        <Map />
-        <GFI />
-        <Menu />
-        <TimeSheet />
-        <Viewbar />
-        <Loader />
-        <div id="line_canvas"></div>
-    </v-app>
+  <v-app>
+    <Map />
+    <GFI />
+    <Menu />
+    <TimeSheet />
+    <Viewbar />
+    <Loader />
+    <div id="line_canvas"></div>
+  </v-app>
 </template>
 
 <style lang="scss">
