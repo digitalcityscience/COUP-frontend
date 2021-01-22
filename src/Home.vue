@@ -43,9 +43,6 @@ export default {
       }
       this.authenticated =  await this.$store.dispatch('connect', userdata)
       this.showError = !this.authenticated
-      /*if (this.authenticated) {
-        this.$router.push("/");
-      }*/
     },
   },
 };
@@ -71,7 +68,6 @@ export default {
               <v-btn href="/public">Public Version</v-btn>
             </div>
           </form>
-
         </div>
       </div>
     <template v-if="workshop || authenticated">
