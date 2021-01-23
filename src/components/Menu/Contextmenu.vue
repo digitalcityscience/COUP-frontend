@@ -1,8 +1,6 @@
 <script>
 import { mapState } from 'vuex'
 import * as turf from '@turf/turf'
-import Trips from "@/assets/trips.json"
-import Amenities from "@/assets/amenities.json"
 import {alkisTranslations} from "@/store/abm";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 
