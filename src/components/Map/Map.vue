@@ -92,7 +92,6 @@ export default {
         // general map interaction
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
-        this.map.on('contextmenu', this.onMapContextMenu)
 
         // amenities layer
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
@@ -201,61 +200,6 @@ export default {
             }
           });
           this.$store.commit('addLayerId', "abmAmenities")
-        },
-        /** TODO: refactor this **/
-        // if all features are highlighted, remove circleObject from building that has been right-clicked
-        onMapContextMenu (evt) {
-            if(this.allFeaturesHighlighted){
-                this.targetFound = false;
-                const bbox = [
-                    [evt.point.x - 10, evt.point.y - 10],
-                    [evt.point.x + 10, evt.point.y + 10]
-                ]
-
-                const features = this.map.queryRenderedFeatures(bbox, {
-                    layers: this.layerIds,
-                });
-
-                const singleOutTarget = [];
-                features.forEach((feature,i,a) => {
-                    const initialFeature = a[0].properties.building_id;
-                    let specialFeature = feature.properties.building_id;
-                    if(specialFeature == initialFeature) {
-                        singleOutTarget.push(feature);
-                    }
-                });
-
-                this.$store.commit('selectedFeatures', singleOutTarget);
-
-                if(singleOutTarget === undefined || singleOutTarget.length == 0){
-                    console.log("no feature selected");
-                    this.targetFound = false;
-                } else {
-                    const building = singleOutTarget[0].properties.area_planning_type;
-                    if(building == "building"){
-                        const newFeature = this.selectedFeatures;
-                        newFeature.forEach(feature => {
-                            if(feature.properties.selected != 'active'){
-
-                            } else {
-                                if(this.allFeaturesHighlighted){
-                                    feature.properties.selected = "inactive";
-                                    this.showModal = false;
-                                    this.$store.dispatch('editFeatureProps', feature);
-                                }
-                            }
-                        });
-
-                        const targetId = newFeature[0].properties.building_id;
-                        this.$modal.hide(targetId);
-                        //newFeature.properties.selected = "active";
-                        this.targetFound = true;
-
-                    } else {
-                        this.targetFound = false;
-                    }
-                }
-            }
         },
         createModal(){
           this.openModalsIds.push(this.selectedObjectId)
