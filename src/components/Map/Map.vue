@@ -24,7 +24,6 @@ export default {
             targetFound: false,
             showModal: false, // TODO rename in showModal
             hoveredFocusArea: null,
-            circledFeatures: [],
             modalLayers: ["groundfloor", "upperfloor", "rooftops", "amenities"]
         }
     },
@@ -41,12 +40,13 @@ export default {
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
             ['highlightedFeatures', 'highlightedFeatures'],
+            ['selectedObjectId', 'selectedObjectId'],
             ['showLegend', 'showLegend' ],
             ['loader', 'scenario/loader' ],
             ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
             ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
-            ['openModals', 'openModals'],
+            ['openModalIds', 'openModals'],
             ['modalInfo', 'modalInfo']
         ]),
         abmTrips(){
@@ -151,7 +151,7 @@ export default {
 
           // open/close a modal
           if (this.modalLayers.indexOf(initialLayerId) > -1) {
-            this.handleModal(clickedFeatures)
+            this.handleModal(initialFeature)
             return
           }
 
@@ -162,139 +162,21 @@ export default {
           }
         },
         /* opens or closes modal */
-        handleModal(clickedFeatures) {
-          const cityScopeId = clickedFeatures[0].properties["city_scope_id"] || "amenities"  //TODO add id's to amenities file
+        handleModal(initialFeature) {
+          this.selectedObjectId = initialFeature.properties["city_scope_id"] || "amenity"  // TODO make id for ameniteis
 
-          // new object selected, circleObject and create modal
-          this.gatherModalInfo(clickedFeatures, cityScopeId) // TODO bring all the modal shit to contextemnu.vue
-          this.handleFeatureHighlighting(clickedFeatures)
-          this.createModal(cityScopeId)
-        },
-        gatherModalInfo(clickedFeatures, cityScopeId) {
-          // set all components of selected building as selectedFeatures
-          this.modalInfo = {
-            "objectType": "",
-            "objectId": cityScopeId,
-            "generalContent" : [], // [{ propTitle: propValue}, ..]}
-            "detailContent" : {} // header : [{ propTitle: propValue}]}
+          if (this.openModalIds.indexOf(this.selectedObjectId) !== -1) {
+            // close modal if already open
+            console.log("closing modal ", this.selectedObjectId)
+            this.$modal.hide(this.selectedObjectId);
+
+            return
           }
 
-          // add modal info, depending on feature type
-          clickedFeatures.forEach((feature,i,a) => {
-            const layerId = feature.layer.id
-            switch (layerId) {
-              case "groundfloor":
-                this.modalInfo["objectType"] = "building"
-                this.modalInfo["coords"] = turf.centroid(turf.polygon(feature.geometry.coordinates)).geometry.coordinates
-                this.addBuildingFloorInfo(feature, cityScopeId)
-                // add also roof type here when available
-                break;
-              case "rooftop":
-                this.modalInfo["objectType"] = "building"
-                this.addBuildingFloorInfo(feature, cityScopeId)
-                break;
-              case "upperfloor":
-                this.modalInfo["objectType"] = "building"
-                this.addBuildingFloorInfo(feature, cityScopeId)
-                this.modalInfo["generalContent"].push(
-                  {"building height": feature.properties["building_height"].toString() + "m"}
-                )
-                break;
-              case Amenities.layer.id:
-                this.modalInfo["objectType"] = "amenity"
-                this.modalInfo["coords"] =feature.geometry.coordinates
-                this.modalInfo["detailContent"]["Amenity"] = {}
-                const alkisId = feature.properties.GFK
-                feature.properties["useType"] = alkisTranslations[alkisId] || alkisId
-                this.modalInfo["detailContent"]["Amenity"] = [
-                  {"New amenity ?": feature.properties["Pre-exist"] ? "No" : "Yes"},
-                  {"Use Type": feature.properties["useType"]},
-                  {"GFK": feature.properties.GFK}
-                ]
-                break;
-            }
-          })
+          // create new modal
+          this.createModal()
         },
-        addBuildingFloorInfo(feature, cityScopeId) {
-          if(feature.properties.city_scope_id == cityScopeId) {
-            this.modalInfo["detailContent"][feature.layer.id] = [
-              {"use case": feature.properties.land_use_detailed_type},
-              {"floor area": Math.round(feature.properties["floor_area"]).toString() + "m²"}
-            ]
-          }
-        },
-        handleFeatureHighlighting(clickedFeatures) {
-          // add or remove base circling
-          this.handleFeatureCircling(clickedFeatures)
 
-          clickedFeatures.forEach(feature => {
-            // irrelevant layer, no need for highlighting
-            if (this.modalLayers.indexOf(feature.layer.id) === -1) {
-              return
-            }
-
-            // set display properties for selected features to change volume colors
-            const alreadyHighlighted = (this.highlightedFeatures.indexOf(feature) > -1)
-            feature.properties.selected = alreadyHighlighted ? "inactive" : "active";
-            this.showModal = !alreadyHighlighted;
-            this.$store.dispatch('editFeatureProps', feature);
-
-            // add or remove from highlightedFeatures
-            if (alreadyHighlighted) {
-              // remove feature from highlighted features
-              this.highlightedFeatures.splice(this.highlightedFeatures.indexOf(feature), 1);
-            } else {
-              // add to highlighted features
-              this.highlightedFeatures.push(feature)
-            }
-          });
-
-          /* set display properties for selected features to change volume colors
-          clickedFeatures.forEach(feature => {
-            if(feature.properties.selected != 'active'){
-              feature.properties.selected = "active";
-              this.showModal = true;
-              this.$store.dispatch('editFeatureProps', feature);
-            } else {
-              if(!this.allFeaturesHighlighted){
-                feature.properties.selected = "inactive";
-                this.showModal = false;
-                this.$store.dispatch('editFeatureProps', feature);
-              } else {
-                feature.properties.selected = "active";
-                this.showModal = true;
-                this.$store.dispatch('editFeatureProps', feature);
-              }
-            }
-          });
-          */
-        },
-        /** circles or uncircles clickedFeatures */
-        handleFeatureCircling(clickedFeatures) {
-          let buffer = null
-          clickedFeatures.every(feature => {
-            if (feature.layer.id === "groundfloor") {
-              console.log("groundfloor found", feature)
-              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
-              // if a ground floor found: jump out - user click on building. any amenity will be accidentally in region
-              return false;
-            }
-            if (feature.layer.id === Amenities.layer.id) {
-              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.01)
-            }
-            return true;
-          })
-
-          // remove if clicked feature already circled
-          if (this.circledFeatures.indexOf(buffer) > -1) {
-            this.circledFeatures.splice(this.circledFeatures.indexOf(buffer), 1);
-          } else {
-            // else..circle now
-            this.circledFeatures.push(buffer)
-          }
-          // update circled features
-          this.$store.dispatch("addCircledFeaturesLayer", this.circledFeatures)
-        },
         onMapLoaded () {
             this.$store.dispatch('addFocusAreasMapLayer')
             console.log("create design layers")
@@ -383,12 +265,12 @@ export default {
                 }
             }
         },
-        createModal(cityScopeId){
-          this.openModals.push(cityScopeId)
+        createModal(){
+          this.openModalIds.push(this.selectedObjectId)
           this.$modal.show(
               Contextmenu,
              {},
-             {name: cityScopeId, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
+             {name: this.selectedObjectId, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
           )
         },
         updateHeatMap(){

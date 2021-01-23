@@ -5,6 +5,7 @@ import store from "@/store";
 import Trips from "@/assets/trips.json"
 import Amenities from "@/assets/amenities.json"
 import {alkisTranslations} from "@/store/abm";
+import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 
 export default {
@@ -13,7 +14,6 @@ export default {
     data() {
         return {
             lineCanvasId: null,
-            objInfo: null,
             active: false,
             indexVal:0,
             myFeatures:[],
@@ -24,6 +24,9 @@ export default {
             asOrigin:false, // todo move
             asDestination:false, // todo move
             objectData:[],  // todo remove
+            objectFeatures: [],
+            objectId: null,
+            modalInfo: {},
         }
     },
     computed: {
@@ -31,8 +34,12 @@ export default {
         'allFeaturesHighlighted',
         'map',
         ]),
-        modalInfo() {
-          return this.$store.state.modalInfo;
+      ...generateStoreGetterSetter([
+        ['openModals', 'openModals'],
+      ]),
+
+        selectedObjectId() {
+          return this.$store.state.selectedObjectId;
         },
         selectedFeatures(){
             return this.$store.state.selectedFeatures;
@@ -45,9 +52,18 @@ export default {
         }
     },
     beforeMount(){
-        // create a copy of current modalInfo
-        // we don't want the content of each modal to update when new modals are created
-        this.objInfo = JSON.parse(JSON.stringify(this.modalInfo))
+      if (!this.selectedObjectId) {
+        console.log("no selectedObjectId given for contextmenu / modal")
+        console.log("this should not happen")
+        return
+      }
+
+      // new object selected, circleObject and create modal
+      this.objectId = this.selectedObjectId.toString()  // disconnect from store
+      this.createObjectFeatures()
+      this.gatherModalInfo()
+      this.toggleFeatureCircling()
+      this.toggleFeatureHighlighting()
     },
     mounted(){
         let selector = this.$el;
@@ -71,33 +87,118 @@ export default {
     updated(){
     },
     beforeDestroy() {
-      // remove highlighting of selected selectedFeatures
+      this.toggleFeatureCircling()
+
       if (!this.allFeaturesHighlighted) {
-        this.selectedFeatures.forEach(feature => {
-            if (feature.properties["city_scope_id"] === this.objInfo["objectId"]) {
-              feature.properties.selected = "inactive";
-              this.$store.dispatch('editFeatureProps', feature)
-            }
-        });
+        this.toggleFeatureHighlighting()
       }
 
       // remove line on canvas connecting modal to selected feature
       const canvas = document.getElementById(this.lineCanvasId);
       canvas.remove();
       this.active = false;
-
-      // todo remove building outline?
-
+      this.openModals.splice(this.openModals.indexOf(this.selectedObjectId), 1);
     },
     methods:{
-        beforeOpen (event) {
-          console.log("take info from hereß?")
-          console.log(event)
+        createObjectFeatures() {
+          const renderedFeatures = this.map.queryRenderedFeatures()
+          this.objectFeatures = renderedFeatures.filter(feat => {
+            return feat.properties["city_scope_id"] === this.objectId
+          })
+        },
+        gatherModalInfo() {
+          // set all components of selected building as selectedFeatures
+          this.modalInfo = {
+            "objectType": "",
+            "objectId": this.objectId,  // todo still needed??
+            "generalContent" : [], // [{ propTitle: propValue}, ..]}
+            "detailContent" : {} // header : [{ propTitle: propValue}]}
+          }
+
+          // add modal info, depending on feature type
+          this.objectFeatures.forEach((feature,i,a) => {
+            const layerId = feature.layer.id
+            switch (layerId) {
+              case "groundfloor":
+                this.modalInfo["objectType"] = "building"
+                this.modalInfo["coords"] = turf.centroid(turf.polygon(feature.geometry.coordinates)).geometry.coordinates
+                this.addBuildingFloorInfo(feature)
+                // add also roof type here when available
+                break;
+              case "rooftop":
+                this.modalInfo["objectType"] = "building"
+                this.addBuildingFloorInfo(feature)
+                break;
+              case "upperfloor":
+                this.modalInfo["objectType"] = "building"
+                this.addBuildingFloorInfo(feature)
+                this.modalInfo["generalContent"].push(
+                  {"building height": feature.properties["building_height"].toString() + "m"}
+                )
+                break;
+              case Amenities.layer.id:
+                this.modalInfo["objectType"] = "amenity"
+                this.modalInfo["coords"] =feature.geometry.coordinates
+                this.modalInfo["detailContent"]["Amenity"] = {}
+                const alkisId = feature.properties.GFK
+                feature.properties["useType"] = alkisTranslations[alkisId] || alkisId
+                this.modalInfo["detailContent"]["Amenity"] = [
+                  {"New amenity ?": feature.properties["Pre-exist"] ? "No" : "Yes"},
+                  {"Use Type": feature.properties["useType"]},
+                  {"GFK": feature.properties.GFK}
+                ]
+                break;
+            }
+          })
+        },
+        addBuildingFloorInfo(feature) {
+          this.modalInfo["detailContent"][feature.layer.id] = [
+              {"use case": feature.properties.land_use_detailed_type},
+              {"floor area": Math.round(feature.properties["floor_area"]).toString() + "m²"}
+            ]
+        },
+        toggleFeatureHighlighting() {
+          if (this.allFeaturesHighlighted) {
+            // do not change highlighting
+            return
+          }
+          // update properties for all objectFeatures
+          this.objectFeatures.forEach(feature => {
+            // set display properties for selected features to change volume colors
+            const alreadyHighlighted = (feature.properties.selected === "active")
+            feature.properties.selected = alreadyHighlighted ? "inactive" : "active";
+            this.$store.dispatch('editFeatureProps', feature);
+          })
+        },
+        /** circles or uncircles clickedFeatures */
+        toggleFeatureCircling() {
+          let buffer = null
+
+          // find geometry to create circle around the object
+          this.objectFeatures.every(feature => {
+            if (feature.layer.id === "groundfloor") {
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
+              // if a ground floor found: jump out - it is the perfect geometry for circling a building
+              return false;
+            }
+            if (feature.layer.id === "upperfloor") {
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
+              // if a upper floor found: take as fallback geometry for circling.
+              return true;
+            }
+            if (feature.layer.id === Amenities.layer.id) {
+              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.01)
+            }
+              return true;
+          })
+          // update circled features
+          buffer.properties["objectId"] = this.objectId
+          this.$store.dispatch("updateCircledFeaturesLayer", buffer)
         },
         getProjectedObjectCoords() {
-          return this.map.project(this.objInfo["coords"])
+          return this.map.project(this.modalInfo["coords"])
         },
-        /** todo raus hier*/
+          /** todo raus hier*/
         updateTrips(objectData, originOrDestination) {
           console.log("objectData")
           console.log(objectData)
@@ -224,7 +325,7 @@ export default {
         createLineOnCanvas(){
            if(window.innerWidth >= 1024) {
              if (this.active) {
-               this.lineCanvasId = "line_" + this.objInfo["objectId"];
+               this.lineCanvasId = "line_" + this.modalInfo["objectId"];
                const boxContainer = document.getElementById("line_canvas");
                if (document.getElementById(this.lineCanvasId)) {
                  // remove existing line container
@@ -261,19 +362,6 @@ export default {
              }
            }
         },
-        /** creates a line around the object to highlight it */
-        circleObject() {
-          let featureData = turf.featureCollection(this.selectedFeatures.map(feature => {
-            console.log(feature.geometry.type)
-            if (feature.geometry.type === "Point") {
-              let buffer = turf.buffer(turf.point(feature), 0.005)
-              feature.geometry = buffer.geometry
-            }
-            return feature
-          }))
-
-          this.$store.dispatch("addCircledFeaturesLayer", featureData.features)
-        },
         startDrag() {
             this.dragging = true;
         },
@@ -292,14 +380,14 @@ export default {
 <template>
     <div class="ctx_menu" @click="selectedModal()"  @mousedown="startDrag" @mousemove="doDrag" v-bind:style="{ zIndex: indexVal }">
         <div class="wrapper">
-            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ objInfo.objectType }} - {{ objInfo.objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
-            <div class="general" v-for="item in objInfo.generalContent"><p>
+            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ modalInfo.objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
+            <div class="general" v-for="item in modalInfo.generalContent"><p>
                 <div v-for="(value, key) in item">
                   <p>{{ key }} : {{ value }}</p>
                 </div>
               </div>
             </div>
-            <div class="head_scope" v-for="(content, name) in objInfo.detailContent">
+            <div class="head_scope" v-for="(content, name) in modalInfo.detailContent">
                 <div class="head_bar"><h3>{{ name }}</h3></div>
                     <div v-for="ctx in content">
                       <div v-for="(value, key) in ctx">
@@ -308,7 +396,7 @@ export default {
                     </div>
             </div>
           <!-- amenities -->
-          <div v-if="objInfo.objectType === 'amenity'">
+          <div v-if="modalInfo.objectType === 'amenity'">
             <div class="body_scope"></div>
             <div class="od-menu">
               <v-checkbox

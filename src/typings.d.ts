@@ -66,7 +66,7 @@ declare global {
         activeMenuComponent: string,
         layerIds: string[],
         allFeaturesHighlighted: boolean,
-        highlightedFeatures: string[],
+        highlightedFeatures: GenericObject,
         showLegend: boolean,
         selectedFeatures: any[],
         selectedMultiFeatures: any[],
@@ -80,6 +80,8 @@ declare global {
         focusAreasShown: boolean,
         openModals: string[]
         modalInfo: GenericObject
+        selectedObjectId: string | null
+        featureCircles: any[]
       }
 
       interface View {
