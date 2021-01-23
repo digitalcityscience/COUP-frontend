@@ -67,7 +67,6 @@ declare global {
         layerIds: string[],
         allFeaturesHighlighted: boolean,
         showLegend: boolean,
-        selectedMultiFeatures: any[],
         currentTime: number,
         view: View,
         accessToken: string,
