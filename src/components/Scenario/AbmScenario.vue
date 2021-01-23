@@ -50,7 +50,6 @@ export default {
     },
     computed: {
         ...mapState(['map']),// getter only
-        ...mapState(['selectedFeatures']),// getter only
         ...mapState('scenario', ['resultLoading']), // getter only
         ...mapState('scenario', ['moduleSettings']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]

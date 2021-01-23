@@ -31,7 +31,6 @@ export default {
             'map',
             'layers',
             'layerIds',
-            'selectedFeatures'
         ]),
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],

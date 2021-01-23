@@ -1,8 +1,8 @@
 {
   "layer": {
-  "id": "selectedFeatures",
+  "id": "featureCircles",
   "type": "line",
-  "source": "selectedFeatures",
+  "source": "featureCircles",
   "paint": {
     "line-color": "#FEE351",
     "line-width": 3
@@ -13,7 +13,7 @@
     }
   },
   "mapSource": {
-    "id": "selectedFeatures",
+    "id": "featureCircles",
     "options": {
       "type": "geojson",
       "data": {

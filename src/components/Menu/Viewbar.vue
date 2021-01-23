@@ -42,7 +42,6 @@ export default {
             'map',
             'activeMenuComponent',
             'layers',
-            'selectedFeatures',
             'selectedMultiFeatures',
         ]),
       ...generateStoreGetterSetter([
