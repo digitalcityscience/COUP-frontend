@@ -17,7 +17,6 @@ export default {
     data() {
         return {
             lastClicked: [],
-            targetFound: false,
             hoveredFocusArea: null,
             modalLayers: ["groundfloor", "upperfloor", "rooftops", "amenities"]
         }
@@ -116,7 +115,6 @@ export default {
             return
           }
 
-          this.targetFound = false;
           const bbox = [
               [evt.point.x - 10, evt.point.y - 10],
               [evt.point.x + 10, evt.point.y + 10]
