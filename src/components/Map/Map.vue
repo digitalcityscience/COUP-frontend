@@ -18,7 +18,6 @@ export default {
         return {
             lastClicked: [],
             targetFound: false,
-            showModal: false, // TODO remove
             hoveredFocusArea: null,
             modalLayers: ["groundfloor", "upperfloor", "rooftops", "amenities"]
         }
