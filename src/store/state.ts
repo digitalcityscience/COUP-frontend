@@ -20,8 +20,7 @@ const initialState: StoreState = {
     workshop: false,
     focusAreasGeoJson: null,
     focusAreasShown: false,
-    openModals: [],  // TODO remove
-    modalInfo: {},  // todo remove
+    openModalsIds: [],
     selectedObjectId: null,
     featureCircles: [] // circles around features for feature highlighting
 }

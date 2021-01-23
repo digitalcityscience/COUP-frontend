@@ -1,7 +1,6 @@
 <script>
 import { mapState } from 'vuex'
 import * as turf from '@turf/turf'
-import store from "@/store";
 import Trips from "@/assets/trips.json"
 import Amenities from "@/assets/amenities.json"
 import {alkisTranslations} from "@/store/abm";
@@ -16,17 +15,16 @@ export default {
             lineCanvasId: null,
             active: false,
             indexVal:0,
-            myFeatures:[],
-            Coordinates:[],
             modalDiv:'',
             dragging: false,
             windowWidth: window.innerWidth,
-            asOrigin:false, // todo move
-            asDestination:false, // todo move
-            objectData:[],  // todo remove
             objectFeatures: [],
             objectId: null,
             modalInfo: {},
+
+
+            asOrigin:false, // todo move
+            asDestination:false, // todo move
         }
     },
     computed: {
@@ -35,14 +33,11 @@ export default {
         'map',
         ]),
       ...generateStoreGetterSetter([
-        ['openModals', 'openModals'],
+        ['openModalsIds', 'openModalsIds'],
       ]),
-
+        // city_scope_id of the clicked object (set in Map.vue, onMapClick)
         selectedObjectId() {
           return this.$store.state.selectedObjectId;
-        },
-        selectedFeatures(){
-            return this.$store.state.selectedFeatures;
         },
         modalIndex(){
             return this.$store.state.scenario.modalIndex;
@@ -53,8 +48,7 @@ export default {
     },
     beforeMount(){
       if (!this.selectedObjectId) {
-        console.log("no selectedObjectId given for contextmenu / modal")
-        console.log("this should not happen")
+        console.log("Tried to open modal, but no selectedObjectId given")
         return
       }
 
@@ -68,7 +62,6 @@ export default {
     mounted(){
         let selector = this.$el;
         this.modalDiv = selector.closest(".vm--modal");
-        this.myFeatures = this.selectedFeatures;
         this.selectedModal();
 
         if(window.innerWidth >= 1024){
@@ -97,7 +90,8 @@ export default {
       const canvas = document.getElementById(this.lineCanvasId);
       canvas.remove();
       this.active = false;
-      this.openModals.splice(this.openModals.indexOf(this.selectedObjectId), 1);
+
+      this.openModalsIds.splice(this.openModalsIds.indexOf(this.selectedObjectId), 1);
     },
     methods:{
         createObjectFeatures() {
@@ -107,15 +101,13 @@ export default {
           })
         },
         gatherModalInfo() {
-          // set all components of selected building as selectedFeatures
           this.modalInfo = {
             "objectType": "",
-            "objectId": this.objectId,  // todo still needed??
             "generalContent" : [], // [{ propTitle: propValue}, ..]}
             "detailContent" : {} // header : [{ propTitle: propValue}]}
           }
 
-          // add modal info, depending on feature type
+          // iterate over objects features and add modal info, depending on feature layer or type
           this.objectFeatures.forEach((feature,i,a) => {
             const layerId = feature.layer.id
             switch (layerId) {
@@ -123,14 +115,12 @@ export default {
                 this.modalInfo["objectType"] = "building"
                 this.modalInfo["coords"] = turf.centroid(turf.polygon(feature.geometry.coordinates)).geometry.coordinates
                 this.addBuildingFloorInfo(feature)
-                // add also roof type here when available
                 break;
               case "rooftop":
-                this.modalInfo["objectType"] = "building"
+                // add also roof type here when available
                 this.addBuildingFloorInfo(feature)
                 break;
               case "upperfloor":
-                this.modalInfo["objectType"] = "building"
                 this.addBuildingFloorInfo(feature)
                 this.modalInfo["generalContent"].push(
                   {"building height": feature.properties["building_height"].toString() + "m"}
@@ -204,7 +194,7 @@ export default {
           console.log(objectData)
           console.log("originOrDestination")
           console.log(originOrDestination)
-          const amenityPoint = this.Coordinates
+          const amenityPoint = this.modalInfo["coords"]
 
           //let odPoints = turf.featureCollection(this.$store.state.scenario.abmTrips.map((trip) => {
           let trips = JSON.parse(JSON.stringify(Trips))
@@ -319,13 +309,13 @@ export default {
             let selector = this.$el;
             let targetModal = selector.closest(".vm--container");
             targetModal.style.zIndex = this.indexVal;
-            this.$store.commit('scenario/modalIndex', this.indexVal);
+            this.$store.commit('scenario/modalIndex', this.indexVal);  // todo do not put this in scenario
         },
          /** creates a line on canvas connecting the modal box to it's object as anchor */
         createLineOnCanvas(){
            if(window.innerWidth >= 1024) {
              if (this.active) {
-               this.lineCanvasId = "line_" + this.modalInfo["objectId"];
+               this.lineCanvasId = "line_" + this.objectId;
                const boxContainer = document.getElementById("line_canvas");
                if (document.getElementById(this.lineCanvasId)) {
                  // remove existing line container
@@ -402,14 +392,14 @@ export default {
               <v-checkbox
                 v-model="this.asOrigin"
                 label="Origin of"
-                @change="updateTrips(objectData, 'origin')"
+                @change="updateTrips(objectFeatures, 'origin')"
                 dark
                 hide-details
               ></v-checkbox>
               <v-checkbox
                 v-model="this.asDestination"
                 label="Destination of"
-                @change="updateTrips(objectData, 'destination')"
+                @change="updateTrips(objectFeatures, 'destination')"
                 dark
                 hide-details
               ></v-checkbox>

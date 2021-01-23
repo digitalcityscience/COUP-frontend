@@ -46,8 +46,7 @@ export default {
             ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
             ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
-            ['openModalIds', 'openModals'],
-            ['modalInfo', 'modalInfo']
+            ['openModalsIds', 'openModalsIds'],
         ]),
         abmTrips(){
             return this.$store.state.scenario.abmTrips;
@@ -165,7 +164,7 @@ export default {
         handleModal(initialFeature) {
           this.selectedObjectId = initialFeature.properties["city_scope_id"] || "amenity"  // TODO make id for ameniteis
 
-          if (this.openModalIds.indexOf(this.selectedObjectId) !== -1) {
+          if (this.openModalsIds.indexOf(this.selectedObjectId) !== -1) {
             // close modal if already open
             console.log("closing modal ", this.selectedObjectId)
             this.$modal.hide(this.selectedObjectId);
@@ -266,7 +265,7 @@ export default {
             }
         },
         createModal(){
-          this.openModalIds.push(this.selectedObjectId)
+          this.openModalsIds.push(this.selectedObjectId)
           this.$modal.show(
               Contextmenu,
              {},

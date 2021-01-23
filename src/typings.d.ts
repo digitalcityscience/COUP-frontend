@@ -78,8 +78,7 @@ declare global {
         workshop: Boolean,
         focusAreasGeoJson: GenericObject | null,
         focusAreasShown: boolean,
-        openModals: string[]
-        modalInfo: GenericObject
+        openModalsIds: string[]
         selectedObjectId: string | null
         featureCircles: any[]
       }
