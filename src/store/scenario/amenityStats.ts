@@ -2,27 +2,11 @@ import store from "@/store";
 import * as turf from "@turf/turf";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
 
-
-function saveFile(filename, obj) {
-  const data = JSON.stringify(obj)
-  const blob = new Blob([data], {type: 'text/plain'})
-  const e = document.createEvent('MouseEvents'),
-    a = document.createElement('a');
-  a.download = filename + ".json";
-  a.href = window.URL.createObjectURL(blob);
-  a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
-  e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-  a.dispatchEvent(e);
-}
-
 export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
   if (!store.state.scenario.amenitiesGeoJson) {
     console.log("cannot calc amenity stats - no amenityGeoJson in store!")
     return
   }
-
-  //saveFile("amenities", store.state.scenario.amenitiesGeoJson)
-  //saveFile("trips", store.state.scenario.abmTrips)
 
   console.log("calc amenity stats")
   //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
