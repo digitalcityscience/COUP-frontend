@@ -5,7 +5,6 @@ import {Layer} from 'mapbox-gl'
 import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import CircledFeatures from "@/config/circledFeatures.json";
-import {circle} from "@turf/turf";
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
