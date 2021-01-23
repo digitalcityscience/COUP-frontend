@@ -106,9 +106,6 @@ export default {
                 this.lastClicked[0] = ((evt.clientX * 100)/window.innerWidth)/100;
                 this.lastClicked[1] = ((evt.clientY * 100)/window.innerHeight)/100;
                 this.$store.commit('scenario/lastClick', this.lastClicked);
-
-                console.log("i hope this wasnt a mistake")
-                // if(this.targetFound){this.createModal();}
         },
         onMapClicked (evt) {
           console.log("click!")
