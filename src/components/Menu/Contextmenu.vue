@@ -34,13 +34,11 @@ export default {
         ]),
       ...generateStoreGetterSetter([
         ['openModalsIds', 'openModalsIds'],
+        ['modalIndex', 'modalIndex'],
       ]),
         // city_scope_id of the clicked object (set in Map.vue, onMapClick)
         selectedObjectId() {
           return this.$store.state.selectedObjectId;
-        },
-        modalIndex(){
-            return this.$store.state.scenario.modalIndex;
         },
         abmTrips(){
             return this.$store.state.scenario.abmTrips;
@@ -305,11 +303,10 @@ export default {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
         selectedModal(){
-            this.indexVal = this.modalIndex + 1;
+            this.modalIndex += 1;
             let selector = this.$el;
             let targetModal = selector.closest(".vm--container");
-            targetModal.style.zIndex = this.indexVal;
-            this.$store.commit('scenario/modalIndex', this.indexVal);  // todo do not put this in scenario
+            targetModal.style.zIndex = this.modalIndex;
         },
          /** creates a line on canvas connecting the modal box to it's object as anchor */
         createLineOnCanvas(){

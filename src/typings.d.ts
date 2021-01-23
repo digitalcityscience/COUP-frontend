@@ -66,9 +66,7 @@ declare global {
         activeMenuComponent: string,
         layerIds: string[],
         allFeaturesHighlighted: boolean,
-        highlightedFeatures: GenericObject,
         showLegend: boolean,
-        selectedFeatures: any[],
         selectedMultiFeatures: any[],
         currentTime: number,
         view: View,
@@ -78,7 +76,8 @@ declare global {
         workshop: Boolean,
         focusAreasGeoJson: GenericObject | null,
         focusAreasShown: boolean,
-        openModalsIds: string[]
+        openModalsIds: string[],
+        modalIndex: number,
         selectedObjectId: string | null
         featureCircles: any[]
       }

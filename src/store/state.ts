@@ -8,9 +8,7 @@ const initialState: StoreState = {
     activeMenuComponent: "AbmScenario",
     layerIds: [],
     allFeaturesHighlighted: false,
-    highlightedFeatures: {},
     showLegend: false,
-    selectedFeatures: [], // TODO remove
     selectedMultiFeatures: [], // TODO remove
     view: Config['view'] || Defaults.view,
     mapStyle: Config['mapStyle'] || Defaults.mapStyle,
@@ -21,6 +19,7 @@ const initialState: StoreState = {
     focusAreasGeoJson: null,
     focusAreasShown: false,
     openModalsIds: [],
+    modalIndex: 0,
     selectedObjectId: null,
     featureCircles: [] // circles around features for feature highlighting
 }

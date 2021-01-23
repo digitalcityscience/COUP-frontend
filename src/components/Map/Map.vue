@@ -8,10 +8,7 @@ import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
-import Amenities from "@/config/amenities.json";
-import AmenitiesGeoJson from "@/assets/amenities.json";  // TODO remove import
 import * as turf from '@turf/turf'
-import {functionalThemeClasses} from "vuetify/src/mixins/themeable/index"; // TODO remove import
 
 
 export default {
@@ -20,9 +17,8 @@ export default {
     data() {
         return {
             lastClicked: [],
-            featuresObject: {},
             targetFound: false,
-            showModal: false, // TODO rename in showModal
+            showModal: false, // TODO remove
             hoveredFocusArea: null,
             modalLayers: ["groundfloor", "upperfloor", "rooftops", "amenities"]
         }
@@ -39,7 +35,6 @@ export default {
         ]),
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
-            ['highlightedFeatures', 'highlightedFeatures'],
             ['selectedObjectId', 'selectedObjectId'],
             ['showLegend', 'showLegend' ],
             ['loader', 'scenario/loader' ],
@@ -165,7 +160,6 @@ export default {
           this.selectedObjectId = initialFeature.properties["city_scope_id"] || "amenity"  // TODO make id for ameniteis
 
           if (this.openModalsIds.indexOf(this.selectedObjectId) !== -1) {
-            // close modal if already open
             console.log("closing modal ", this.selectedObjectId)
             this.$modal.hide(this.selectedObjectId);
 
@@ -175,7 +169,6 @@ export default {
           // create new modal
           this.createModal()
         },
-
         onMapLoaded () {
             this.$store.dispatch('addFocusAreasMapLayer')
             console.log("create design layers")
