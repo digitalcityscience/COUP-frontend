@@ -3,7 +3,7 @@ import { mapState } from 'vuex'
 import * as turf from '@turf/turf'
 import {alkisTranslations} from "@/store/abm";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
-
+import Amenities from '@/config/amenities.json'
 
 export default {
     name: 'Contextmenu',
