@@ -173,6 +173,26 @@ export default {
                     }
                 });
             })
+
+          // TODO for faster dev only
+          const amenities = turf.featureCollection(AmenitiesGeoJson["features"])
+          this.map.addLayer({
+            'id': 'abmAmenities',
+            'type': 'circle',
+            'source': {
+              'type': 'geojson',
+              'data': {
+                'type': 'FeatureCollection',
+                'features': amenities.features
+              }
+            },
+            'layout': {},
+            'paint': {
+              "circle-opacity": 1,
+              "circle-color":  "yellow"
+            }
+          });
+          this.$store.commit('addLayerId', "abmAmenities")
         },
         createModal(){
           this.openModalsIds.push(this.selectedObjectId)

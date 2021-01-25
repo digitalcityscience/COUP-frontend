@@ -18,7 +18,11 @@ export default {
             windowWidth: window.innerWidth,
             objectFeatures: [],
             objectId: null,
-            modalInfo: {}
+            modalInfo: {},
+
+
+            asOrigin:false, // todo move
+            asDestination:false, // todo move
         }
     },
     computed: {
@@ -33,6 +37,9 @@ export default {
         // city_scope_id of the clicked object (set in Map.vue, onMapClick)
         selectedObjectId() {
           return this.$store.state.selectedObjectId;
+        },
+        abmTrips(){
+            return this.$store.state.scenario.abmTrips;
         }
     },
     beforeMount(){
@@ -177,6 +184,119 @@ export default {
         getProjectedObjectCoords() {
           return this.map.project(this.modalInfo["coords"])
         },
+          /** todo raus hier*/
+        updateTrips(objectData, originOrDestination) {
+          console.log("objectData")
+          console.log(objectData)
+          console.log("originOrDestination")
+          console.log(originOrDestination)
+          const amenityPoint = this.modalInfo["coords"]
+
+          //let odPoints = turf.featureCollection(this.$store.state.scenario.abmTrips.map((trip) => {
+          let trips = JSON.parse(JSON.stringify(Trips))
+          let destinations = turf.featureCollection(trips.map((trip) => {
+            return turf.point(trip["destination"], {"trip": trip})
+          }))
+          let origins = turf.featureCollection(trips.map((trip) => {
+              return turf.point(trip["origin"], {"trip": trip})
+          }))
+
+          console.log("origins", origins)
+
+          let odPoints = originOrDestination === "origin" ? origins : destinations
+
+          let filteredOdPoints = []
+          turf.featureEach(odPoints, function(odPoint) {
+            if (turf.distance(amenityPoint, odPoint) < 0.01) {
+              // use nearest point! (when using amenity as base)
+              filteredOdPoints.push(odPoint)
+            }
+          })
+
+          console.log("od count for bld", filteredOdPoints.length)
+
+          this.map.addLayer({
+              'id': 'myBuilding' + Math.random().toString(),
+              'type': 'fill',
+              'source': {
+                'type': 'geojson',
+                'data': buildingPolygon
+              },
+              'layout': {},
+              'paint': {
+                'fill-color': 'red',
+                'fill-opacity': 0.3
+              }
+            });
+
+          this.map.addLayer({
+              'id': 'origins' + Math.random().toString(),
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': origins.features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "blue"
+              }
+            });
+
+          this.map.addLayer({
+              'id': 'abmAmenities',
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': amenities.features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "yellow"
+              }
+            });
+
+            this.map.addLayer({
+              'id': 'destinations' + Math.random().toString(),
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': destinations.features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "pink"
+              }
+            });
+
+            this.map.addLayer({
+              'id': 'filterdodPoints' + Math.random().toString(),
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': turf.featureCollection(filteredOdPoints).features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "purple"
+              }
+            });
+        },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
@@ -260,6 +380,26 @@ export default {
                       </div>
                     </div>
             </div>
+          <!-- amenities -->
+          <div v-if="modalInfo.objectType === 'amenity'">
+            <div class="body_scope"></div>
+            <div class="od-menu">
+              <v-checkbox
+                v-model="this.asOrigin"
+                label="Origin of"
+                @change="updateTrips(objectFeatures, 'origin')"
+                dark
+                hide-details
+              ></v-checkbox>
+              <v-checkbox
+                v-model="this.asDestination"
+                label="Destination of"
+                @change="updateTrips(objectFeatures, 'destination')"
+                dark
+                hide-details
+              ></v-checkbox>
+            </div>
+          </div>
         </div>
         <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
     </div>
