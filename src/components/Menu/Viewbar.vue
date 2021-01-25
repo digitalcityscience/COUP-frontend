@@ -42,8 +42,6 @@ export default {
             'map',
             'activeMenuComponent',
             'layers',
-            'layerIds',
-            'selectedFeatures',
             'selectedMultiFeatures',
         ]),
       ...generateStoreGetterSetter([
@@ -51,6 +49,10 @@ export default {
         ['showLegend', 'showLegend' ],
         ['focusAreasShown', 'focusAreasShown' ]
       ]),
+      layerIds() {
+          return this.$store.state.layerIds
+      },
+
       workshop(){
           return this.$store.state.workshop;
       },
@@ -254,7 +256,7 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-         <!--<v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ highlight: showLegend }"><v-tooltip right>
+         <!--<v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ circleObject: showLegend }"><v-tooltip right>
              <template v-slot:activator="{ on, attrs }">
                <v-icon
                  v-bind="attrs"

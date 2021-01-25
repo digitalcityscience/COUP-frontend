@@ -2,7 +2,6 @@ import store from "@/store";
 import * as turf from "@turf/turf";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
 
-
 export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
   if (!store.state.scenario.amenitiesGeoJson) {
     console.log("cannot calc amenity stats - no amenityGeoJson in store!")

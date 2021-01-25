@@ -9,8 +9,6 @@ const initialState: StoreState = {
     layerIds: [],
     allFeaturesHighlighted: false,
     showLegend: false,
-    selectedFeatures: [],
-    selectedMultiFeatures: [],
     view: Config['view'] || Defaults.view,
     mapStyle: Config['mapStyle'] || Defaults.mapStyle,
     accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
@@ -18,7 +16,11 @@ const initialState: StoreState = {
     currentTime: 0,
     workshop: false,
     focusAreasGeoJson: null,
-    focusAreasShown: false
+    focusAreasShown: false,
+    openModalsIds: [],
+    modalIndex: 0,
+    selectedObjectId: null,
+    featureCircles: [] // circles around features for feature highlighting
 }
 
 export default initialState;

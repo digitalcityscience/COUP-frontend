@@ -90,6 +90,10 @@ function calculatePedestrianIndices(forRegion) {
   * calculate opportunities of interaction
   * The number of times that multiple agents are in the same place at the same time
  */
+
+  // TODO agent paths at hour, intersections? -> in area? or min-distance?
+  // oder wir createn artificial way points in area? mit timetamps??
+
   let opportunitiesOfInteraction = 0
   for (const [hour, points] of Object.entries(matchedPointsPerHour)) {
     turf.featureEach(points, function (point, pointIdx) {
@@ -259,7 +263,7 @@ function calculateShannonSummand(currentSum: number, currentIndividualCount: num
  *
  * @returns {"duration": number, "length": number}
  */
-function calculateTripAverages(forRegion  = grasbrookRegion) {
+function calculateTripAverages(forRegion) {
   // array of all trips [{"agent", "origin", "destination", "length", "duration", "pathIndexes" }]
   let allTrips = store.state.scenario.abmTrips
 
@@ -267,6 +271,10 @@ function calculateTripAverages(forRegion  = grasbrookRegion) {
   let tripsInRegion = allTrips.filter(trip => {
     return turf.pointsWithinPolygon(turf.points([trip.origin, trip.destination]), forRegion).features.length
   })
+
+  if (tripsInRegion.length === 0) {
+    return {"duration": 0, "length": 0}
+  }
 
   let averageDurationSec = tripsInRegion.reduce((acc, trip) => acc + trip["duration"], 0) / tripsInRegion.length
   let averageLengthMeters = tripsInRegion.reduce((acc, trip) => acc + trip["length"], 0) / tripsInRegion.length

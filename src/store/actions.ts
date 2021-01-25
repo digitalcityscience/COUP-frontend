@@ -4,6 +4,7 @@ import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
 import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
 import FocusAreasLayer from "@/config/focusAreas.json";
+import CircledFeatures from "@/config/circledFeatures.json";
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
@@ -129,6 +130,43 @@ export default {
         })
       }
     )
+  },
+  updateCircledFeaturesLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>, featureBuffer) {
+
+    let featureCircles = state.featureCircles
+
+    console.log("buffer", featureBuffer)
+    let bufferIndex = null
+    featureCircles.some((circle, index) => {
+      if (circle.properties["objectId"] === featureBuffer.properties["objectId"]) {
+        bufferIndex = index
+        return true
+      }
+    })
+
+    console.log("buffer index", bufferIndex)
+
+     // add or remove current featureBuffer from featureCircles
+     if (bufferIndex === null) {
+       featureCircles.push(featureBuffer)
+     } else {
+       featureCircles.splice(bufferIndex, 1);
+     }
+
+     // update layer on map
+      let source = CircledFeatures.mapSource
+      source.options.data.features = featureCircles
+      dispatch('addSourceToMap', source, {root: true})
+        .then(source => {
+          dispatch('addLayerToMap', CircledFeatures.layer, {root: true})
+        }).then(source => {
+        // add layer on top of the layer stack
+        if (state.map?.getLayer("groundfloor")) {
+          state.map?.moveLayer(CircledFeatures.layer.id, "groundfloor")
+        }
+      })
+
+      commit('featureCircles', featureCircles)
   },
 
   /***** DO WE STILL NEED THIS?

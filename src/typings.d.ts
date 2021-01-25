@@ -67,8 +67,6 @@ declare global {
         layerIds: string[],
         allFeaturesHighlighted: boolean,
         showLegend: boolean,
-        selectedFeatures: any[],
-        selectedMultiFeatures: any[],
         currentTime: number,
         view: View,
         accessToken: string,
@@ -76,7 +74,11 @@ declare global {
         mapStyle: string,
         workshop: Boolean,
         focusAreasGeoJson: GenericObject | null,
-        focusAreasShown: boolean
+        focusAreasShown: boolean,
+        openModalsIds: string[],
+        modalIndex: number,
+        selectedObjectId: string | null
+        featureCircles: any[]
       }
 
       interface View {
