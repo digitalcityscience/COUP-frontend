@@ -5,6 +5,8 @@ import {alkisTranslations} from "@/store/abm";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Amenities from '@/config/amenities.json'
 
+import Trips from '@/assets/trips.json'
+
 export default {
     name: 'Contextmenu',
     components: {},
@@ -93,6 +95,9 @@ export default {
         createObjectFeatures() {
           const renderedFeatures = this.map.queryRenderedFeatures()
           this.objectFeatures = renderedFeatures.filter(feat => {
+            if (feat.layer.id === Amenities.layer.id) {
+              return (feat.properties.id).toString() === this.objectId
+            }
             return feat.properties["city_scope_id"] === this.objectId
           })
         },
@@ -160,6 +165,8 @@ export default {
         toggleFeatureCircling() {
           let buffer = null
 
+          console.log("features", this.objectFeatures)
+
           // find geometry to create circle around the object
           this.objectFeatures.every(feature => {
             if (feature.layer.id === "groundfloor") {
@@ -202,9 +209,12 @@ export default {
           }))
 
           console.log("origins", origins)
+          console.log("destinations", destinations)
 
-          let odPoints = originOrDestination === "origin" ? origins : destinations
 
+          let odPoints = (originOrDestination === "origin") ? origins : destinations
+
+          // filter odPoints for those that are adjacent to the amenity
           let filteredOdPoints = []
           turf.featureEach(odPoints, function(odPoint) {
             if (turf.distance(amenityPoint, odPoint) < 0.01) {
@@ -212,22 +222,34 @@ export default {
               filteredOdPoints.push(odPoint)
             }
           })
+            console.log("dest or origin", originOrDestination)
+            console.log("od count for bld", filteredOdPoints.length)
+            console.log("filtered od", filteredOdPoints)
 
-          console.log("od count for bld", filteredOdPoints.length)
+          let arcLayerData = []  // TODO allow for origin && destination
 
-          this.map.addLayer({
-              'id': 'myBuilding' + Math.random().toString(),
-              'type': 'fill',
-              'source': {
-                'type': 'geojson',
-                'data': buildingPolygon
-              },
-              'layout': {},
-              'paint': {
-                'fill-color': 'red',
-                'fill-opacity': 0.3
-              }
-            });
+            filteredOdPoints.forEach(pt => {
+              console.log("pt", pt)
+
+              const from = originOrDestination === "origin" ? amenityPoint : pt.properties.trip.origin
+              const to = originOrDestination === "origin" ? pt.properties.trip.destination : amenityPoint
+              const color = originOrDestination === "origin" ? [254, 227, 81] : [152, 136, 48]
+
+              arcLayerData.push({
+                "color": color,
+                "source": from,
+                "target": to
+              })
+            })
+
+            console.log("arcLayerData", arcLayerData)
+            this.$store.dispatch('scenario/addArcLayer', arcLayerData);
+
+
+
+
+
+
 
           this.map.addLayer({
               'id': 'origins' + Math.random().toString(),
@@ -246,7 +268,7 @@ export default {
               }
             });
 
-          this.map.addLayer({
+          /*this.map.addLayer({
               'id': 'abmAmenities',
               'type': 'circle',
               'source': {
@@ -261,7 +283,7 @@ export default {
                 "circle-opacity": 1,
                 "circle-color":  "yellow"
               }
-            });
+            });*/
 
             this.map.addLayer({
               'id': 'destinations' + Math.random().toString(),

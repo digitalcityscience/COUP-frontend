@@ -2,7 +2,7 @@ import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
-import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
+import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
@@ -436,6 +436,21 @@ export default {
 
         });
     }
+  },
+  addArcLayer({state, commit, dispatch, rootState}, arcLayerData) {
+    buildArcLayer(arcLayerData).then(
+      deckLayer => {
+        if (rootState.map?.getLayer(abmArcLayerName)) {
+          rootState.map?.removeLayer(abmArcLayerName)
+        }
+
+        console.log("new arc layer loaded");
+        rootState.map?.addLayer(deckLayer)
+        commit('addLayerId', abmArcLayerName, {root: true});
+       /* if (rootState.map?.getLayer("groundfloor")) {
+          rootState.map?.moveLayer(abmArcLayerName, "groundfloor")
+        }*/
+      });
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
       const abmData = state.abmData;

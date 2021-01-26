@@ -1,15 +1,16 @@
-import {Layer as MapboxLayer} from 'mapbox-gl'
 import {MapboxLayer as DeckLayer} from "@deck.gl/mapbox";
 import {HeatmapLayer} from '@deck.gl/aggregation-layers';
+import {ArcLayer} from "@deck.gl/layers";
 import {TripsLayer} from "@deck.gl/geo-layers";
 import GL from '@luma.gl/constants';
 import store from "../store/index"
 // @ts-ignore
-import { DataSet } from "@deck.gl/core/lib/layer";
+import {DataSet} from "@deck.gl/core/lib/layer";
 
 
 export const abmTripsLayerName = "abmTrips"
 export const abmAggregationLayerName = "abmHeat"
+export const abmArcLayerName = "abmArcs"
 
 export async function buildTripsLayer(data: DataSet<any>, currentTimeStamp: number): Promise<DeckLayer<any>> {
 
@@ -56,6 +57,23 @@ export async function buildTripsLayer(data: DataSet<any>, currentTimeStamp: numb
     return tripsLayer;
 }
 
+export async function buildArcLayer(arcLayerData) {
+
+  return new DeckLayer({
+    id: abmArcLayerName,
+    type: ArcLayer,
+    data: arcLayerData,
+    pickable: true,
+    getWidth: 4,
+
+    getSourcePosition: d => d.source,
+    getTargetPosition: d => d.target,
+    getSourceColor: d=> d.color,
+    getTargetColor: d=> d.color,
+  })
+}
+
+
 export async function buildAggregationLayer(data: DataSet<any>, type): Promise<DeckLayer<any>> {
 
   const aggregationLayer = new DeckLayer({
@@ -88,7 +106,7 @@ export function animate(layer: DeckLayer<any>, start: number = null, end: number
     return
   }
 
-  
+
   const loop = store.state.scenario.loop;
   const setLoop = store.state.scenario.setLoop;
   const range = store.state.scenario.selectedRange;
@@ -133,7 +151,7 @@ export function animate(layer: DeckLayer<any>, start: number = null, end: number
   // update current time on layer to move the dot
   (layer as DeckLayer<any>).setProps({currentTime: time})
 
-  
+
   // as long as endTime of trips layer is not reached - call next frame iteration
   if (time <= end && animationRunning) {
     window.requestAnimationFrame(() => {

@@ -10,6 +10,8 @@ import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import * as turf from '@turf/turf'
 
+import AmenitiesGeoJson from '@/assets/amenities.json'
+
 
 export default {
     name: 'Map',
@@ -18,7 +20,7 @@ export default {
         return {
             lastClicked: [],
             hoveredFocusArea: null,
-            modalLayers: ["groundfloor", "upperfloor", "rooftops", "amenities"]
+            modalLayers: ["groundfloor", "upperfloor", "rooftops", "abmAmenities"],
         }
     },
     computed: {
@@ -121,13 +123,16 @@ export default {
           ]
 
           const features = this.map.queryRenderedFeatures(bbox, {
-              layers: this.layerIds,
+              layers: this.layerIds.filter(layerId => {return this.map.getLayer(layerId)})
           });
           this.actionForClick(features)
         },
         actionForClick(clickedFeatures) {
           const initialFeature = clickedFeatures[0]
           const initialLayerId = initialFeature.layer.id
+
+
+          console.log(initialLayerId, initialFeature)
 
           // calculate stats for focus area
           if (initialLayerId === FocusAreasLayer.layer.id) {
@@ -147,9 +152,19 @@ export default {
             this.actionForClick(clickedFeatures)
           }
         },
+        // TODO: add city_scope_id to amenities, or at least make sure they ALL have ids
+      setObjectId(feature) {
+          this.selectedObjectId = feature.properties["city_scope_id"]
+          if (!this.selectedObjectId && feature.layer.id === "abmAmenities") {
+            this.selectedObjectId = (feature.properties.id).toString()
+          }
+        },
         /* opens or closes modal */
         handleModal(initialFeature) {
-          this.selectedObjectId = initialFeature.properties["city_scope_id"] || "amenity"  // TODO make id for ameniteis
+          this.setObjectId(initialFeature)
+
+          console.log(this.selectedObjectId, "selected object id")
+          console.log(initialFeature)
 
           if (this.openModalsIds.indexOf(this.selectedObjectId) !== -1) {
             console.log("closing modal ", this.selectedObjectId)
