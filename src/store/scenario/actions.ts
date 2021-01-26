@@ -447,9 +447,7 @@ export default {
         console.log("new arc layer loaded");
         rootState.map?.addLayer(deckLayer)
         commit('addLayerId', abmArcLayerName, {root: true});
-       /* if (rootState.map?.getLayer("groundfloor")) {
-          rootState.map?.moveLayer(abmArcLayerName, "groundfloor")
-        }*/
+        rootState.map?.flyTo({"zoom": 15, "pitch": 45, "speed": 0.2})
       });
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
