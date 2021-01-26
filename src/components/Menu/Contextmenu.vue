@@ -4,9 +4,10 @@ import * as turf from '@turf/turf'
 import {alkisTranslations} from "@/store/abm";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Amenities from '@/config/amenities.json'
-import AmenitiesGeoJson from '@/assets/amenities.json'
+import {getOdArcData} from '@/store/scenario/odArcs.ts'
 
 import Trips from '@/assets/trips.json'
+import {abmArcLayerName} from "@/store/deck-layers";
 
 export default {
     name: 'Contextmenu',
@@ -58,6 +59,31 @@ export default {
       this.toggleFeatureCircling()
       this.toggleFeatureHighlighting()
     },
+    watch: {
+      asOrigin(newVal, oldVal) {
+        console.log("as origin", newVal, oldVal)
+
+
+        if (newVal && this.asDestination) {
+          this.asDestination = false;
+        }
+        if (newVal) {
+          this.updateTrips(this.objectFeatures, true)
+        } else {
+          this.map?.removeLayer(abmArcLayerName);
+        }
+      },
+      asDestination(newVal, oldVal) {
+        if (newVal && this.asOrigin) {
+          this.asOrigin = false;
+        }
+        if (newVal) {
+          this.updateTrips(this.objectFeatures, false)
+        } else {
+          this.map?.removeLayer(abmArcLayerName);
+        }
+      }
+    },
     mounted(){
         let selector = this.$el;
         this.modalDiv = selector.closest(".vm--modal");
@@ -84,6 +110,11 @@ export default {
       if (!this.allFeaturesHighlighted) {
         this.toggleFeatureHighlighting()
       }
+
+      if (this.map?.getLayer(abmArcLayerName)) {
+        this.map?.removeLayer(abmArcLayerName)
+      }
+
 
       // remove line on canvas connecting modal to selected feature
       const canvas = document.getElementById(this.lineCanvasId);
@@ -190,168 +221,13 @@ export default {
           return this.map.project(this.modalInfo["coords"])
         },
 
-        findAdjacentAmenities(objectData) {
-          let groundFloorData = objectData.filter(buildingInLayer => {
-            return buildingInLayer.layer.id === "groundfloor";
-          })[0]
 
-          if (!groundFloorData) {
-            return []
-          }
-
-          let buildingPolygon = turf.buffer(turf.polygon(groundFloorData.geometry.coordinates), 0.015)
-          let amenities = turf.featureCollection(AmenitiesGeoJson["features"])
-
-          return turf.pointsWithinPolygon(amenities, buildingPolygon)
-        },
 
           /** todo raus hier*/
-        updateTrips(objectData, originOrDestination) {
-          console.log("objectData")
-          console.log(objectData)
-          console.log("originOrDestination")
-          console.log(originOrDestination)
-
-          let amenityPoints = []
-          if (this.modalInfo.objectType === 'amenity') {  // todo adjust after having amenity ids in ABM results
-            amenityPoints = turf.featureCollection([turf.point(this.modalInfo["coords"])])
-          }
-          else {
-            amenityPoints = this.findAdjacentAmenities(objectData)
-          }
-
-          console.log("amenity points", amenityPoints)
-
-          //let odPoints = turf.featureCollection(this.$store.state.scenario.abmTrips.map((trip) => {
-          let trips = JSON.parse(JSON.stringify(Trips))
-          let destinations = turf.featureCollection(trips.map((trip) => {
-            return turf.point(trip["destination"], {"trip": trip})
-          }))
-          let origins = turf.featureCollection(trips.map((trip) => {
-              return turf.point(trip["origin"], {"trip": trip})
-          }))
-
-          console.log("origins", origins)
-          console.log("destinations", destinations)
-
-          let odPoints = (originOrDestination === "origin") ? origins : destinations
-
-
-          let arcLayerData = []  // TODO allow for origin && destination
-
-          turf.featureEach(amenityPoints, function(amenityPoint) {
-            // filter odPoints for those that are adjacent to the amenity
-            let filteredOdPoints = []
-            turf.featureEach(odPoints, function(odPoint) {
-              if (turf.distance(amenityPoint, odPoint) < 0.01) {
-                // use nearest point! (when using amenity as base)
-                filteredOdPoints.push(odPoint)
-              }
-            })
-              console.log("dest or origin", originOrDestination)
-              console.log("od count for bld", filteredOdPoints.length)
-              console.log("filtered od", filteredOdPoints)
-
-
-              filteredOdPoints.forEach(pt => {
-                const from = originOrDestination === "origin" ? amenityPoint.geometry.coordinates : pt.properties.trip.origin
-                const to = originOrDestination === "origin" ? pt.properties.trip.destination : amenityPoint.geometry.coordinates
-
-                // todo , update input dataset to have proper amenity ids, also in origin/destinations
-                const width = filteredOdPoints.filter(point => {
-                  const counterPoint = originOrDestination === "origin" ? to : from
-                  const pointCoords = originOrDestination === "origin" ? point.properties.trip.destination : point.properties.trip.origin
-
-                  return ((counterPoint[0] === pointCoords[0])
-                  && (counterPoint[1] === pointCoords[1]))
-                }).length + 1
-
-                arcLayerData.push({
-                  "color": [254, 227, 81],
-                  "source": from,
-                  "target": to,
-                  "width": width
-                })
-              })
-
-            /*this.map.addLayer({
-              'id': 'filterdodPoints' + Math.random().toString(),
-              'type': 'circle',
-              'source': {
-                'type': 'geojson',
-                'data': {
-                  'type': 'FeatureCollection',
-                  'features': turf.featureCollection(filteredOdPoints).features
-                }
-              },
-              'layout': {},
-              'paint': {
-                "circle-opacity": 1,
-                "circle-color":  "purple"
-              }
-            }); */
-            })
+        updateTrips(objectData, asOrigin) {
+            const arcLayerData = getOdArcData(objectData, this.modalInfo, asOrigin)
             console.log("arcLayerData", arcLayerData)
             this.$store.dispatch('scenario/addArcLayer', arcLayerData);
-
-
-
-
-
-
-
-          this.map.addLayer({
-              'id': 'origins' + Math.random().toString(),
-              'type': 'circle',
-              'source': {
-                'type': 'geojson',
-                'data': {
-                  'type': 'FeatureCollection',
-                  'features': origins.features
-                }
-              },
-              'layout': {},
-              'paint': {
-                "circle-opacity": 1,
-                "circle-color":  "blue"
-              }
-            });
-
-          /*this.map.addLayer({
-              'id': 'abmAmenities',
-              'type': 'circle',
-              'source': {
-                'type': 'geojson',
-                'data': {
-                  'type': 'FeatureCollection',
-                  'features': amenities.features
-                }
-              },
-              'layout': {},
-              'paint': {
-                "circle-opacity": 1,
-                "circle-color":  "yellow"
-              }
-            });*/
-
-            this.map.addLayer({
-              'id': 'destinations' + Math.random().toString(),
-              'type': 'circle',
-              'source': {
-                'type': 'geojson',
-                'data': {
-                  'type': 'FeatureCollection',
-                  'features': destinations.features
-                }
-              },
-              'layout': {},
-              'paint': {
-                "circle-opacity": 1,
-                "circle-color":  "pink"
-              }
-            });
-
-
         },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -439,17 +315,15 @@ export default {
           <!-- Origin // Destination checkboxes -->
             <div class="body_scope"></div>
             <div class="od-menu">
-              <v-checkbox
-                v-model="this.asOrigin"
+            <v-checkbox
+                v-model="asOrigin"
                 label="Origin of"
-                @change="updateTrips(objectFeatures, 'origin')"
                 dark
                 hide-details
               ></v-checkbox>
               <v-checkbox
-                v-model="this.asDestination"
+                v-model="asDestination"
                 label="Destination of"
-                @change="updateTrips(objectFeatures, 'destination')"
                 dark
                 hide-details
               ></v-checkbox>
