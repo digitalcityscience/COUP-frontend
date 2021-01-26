@@ -152,16 +152,15 @@ export default {
             this.actionForClick(clickedFeatures)
           }
         },
-        // TODO: add city_scope_id to amenities, or at least make sure they ALL have ids
-      setObjectId(feature) {
+/*   todo delete   setObjectId(feature) {
           this.selectedObjectId = feature.properties["city_scope_id"]
           if (!this.selectedObjectId && feature.layer.id === "abmAmenities") {
             this.selectedObjectId = (feature.properties.id).toString()
           }
-        },
+        },*/
         /* opens or closes modal */
         handleModal(initialFeature) {
-          this.setObjectId(initialFeature)
+          this.selectedObjectId = initialFeature.properties["city_scope_id"]
 
           console.log(this.selectedObjectId, "selected object id")
           console.log(initialFeature)

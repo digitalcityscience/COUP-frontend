@@ -96,9 +96,6 @@ export default {
         createObjectFeatures() {
           const renderedFeatures = this.map.queryRenderedFeatures()
           this.objectFeatures = renderedFeatures.filter(feat => {
-            if (feat.layer.id === Amenities.layer.id) {
-              return (feat.properties.id).toString() === this.objectId
-            }
             return feat.properties["city_scope_id"] === this.objectId
           })
         },
@@ -216,8 +213,8 @@ export default {
           console.log(originOrDestination)
 
           let amenityPoints = []
-          if (this.modalInfo.objectType === 'amenity') {  // todo adjust after giving proper ids to amenities
-            amenityPoints = turf.featureCollection([this.modalInfo["coords"]])
+          if (this.modalInfo.objectType === 'amenity') {  // todo adjust after having amenity ids in ABM results
+            amenityPoints = turf.featureCollection([turf.point(this.modalInfo["coords"])])
           }
           else {
             amenityPoints = this.findAdjacentAmenities(objectData)
