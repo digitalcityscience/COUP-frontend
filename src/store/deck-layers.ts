@@ -64,7 +64,8 @@ export async function buildArcLayer(arcLayerData) {
     type: ArcLayer,
     data: arcLayerData,
     pickable: true,
-    getWidth: 4,
+
+    getWidth: d => d.width,
 
     getSourcePosition: d => d.source,
     getTargetPosition: d => d.target,

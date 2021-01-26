@@ -4,6 +4,7 @@ import * as turf from '@turf/turf'
 import {alkisTranslations} from "@/store/abm";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import Amenities from '@/config/amenities.json'
+import AmenitiesGeoJson from '@/assets/amenities.json'
 
 import Trips from '@/assets/trips.json'
 
@@ -191,13 +192,38 @@ export default {
         getProjectedObjectCoords() {
           return this.map.project(this.modalInfo["coords"])
         },
+
+        findAdjacentAmenities(objectData) {
+          let groundFloorData = objectData.filter(buildingInLayer => {
+            return buildingInLayer.layer.id === "groundfloor";
+          })[0]
+
+          if (!groundFloorData) {
+            return []
+          }
+
+          let buildingPolygon = turf.buffer(turf.polygon(groundFloorData.geometry.coordinates), 0.015)
+          let amenities = turf.featureCollection(AmenitiesGeoJson["features"])
+
+          return turf.pointsWithinPolygon(amenities, buildingPolygon)
+        },
+
           /** todo raus hier*/
         updateTrips(objectData, originOrDestination) {
           console.log("objectData")
           console.log(objectData)
           console.log("originOrDestination")
           console.log(originOrDestination)
-          const amenityPoint = this.modalInfo["coords"]
+
+          let amenityPoints = []
+          if (this.modalInfo.objectType === 'amenity') {  // todo adjust after giving proper ids to amenities
+            amenityPoints = turf.featureCollection([this.modalInfo["coords"]])
+          }
+          else {
+            amenityPoints = this.findAdjacentAmenities(objectData)
+          }
+
+          console.log("amenity points", amenityPoints)
 
           //let odPoints = turf.featureCollection(this.$store.state.scenario.abmTrips.map((trip) => {
           let trips = JSON.parse(JSON.stringify(Trips))
@@ -211,37 +237,63 @@ export default {
           console.log("origins", origins)
           console.log("destinations", destinations)
 
-
           let odPoints = (originOrDestination === "origin") ? origins : destinations
 
-          // filter odPoints for those that are adjacent to the amenity
-          let filteredOdPoints = []
-          turf.featureEach(odPoints, function(odPoint) {
-            if (turf.distance(amenityPoint, odPoint) < 0.01) {
-              // use nearest point! (when using amenity as base)
-              filteredOdPoints.push(odPoint)
-            }
-          })
-            console.log("dest or origin", originOrDestination)
-            console.log("od count for bld", filteredOdPoints.length)
-            console.log("filtered od", filteredOdPoints)
 
           let arcLayerData = []  // TODO allow for origin && destination
 
-            filteredOdPoints.forEach(pt => {
-              console.log("pt", pt)
-
-              const from = originOrDestination === "origin" ? amenityPoint : pt.properties.trip.origin
-              const to = originOrDestination === "origin" ? pt.properties.trip.destination : amenityPoint
-              const color = originOrDestination === "origin" ? [254, 227, 81] : [152, 136, 48]
-
-              arcLayerData.push({
-                "color": color,
-                "source": from,
-                "target": to
-              })
+          turf.featureEach(amenityPoints, function(amenityPoint) {
+            // filter odPoints for those that are adjacent to the amenity
+            let filteredOdPoints = []
+            turf.featureEach(odPoints, function(odPoint) {
+              if (turf.distance(amenityPoint, odPoint) < 0.01) {
+                // use nearest point! (when using amenity as base)
+                filteredOdPoints.push(odPoint)
+              }
             })
+              console.log("dest or origin", originOrDestination)
+              console.log("od count for bld", filteredOdPoints.length)
+              console.log("filtered od", filteredOdPoints)
 
+
+              filteredOdPoints.forEach(pt => {
+                const from = originOrDestination === "origin" ? amenityPoint.geometry.coordinates : pt.properties.trip.origin
+                const to = originOrDestination === "origin" ? pt.properties.trip.destination : amenityPoint.geometry.coordinates
+
+                // todo , update input dataset to have proper amenity ids, also in origin/destinations
+                const width = filteredOdPoints.filter(point => {
+                  const counterPoint = originOrDestination === "origin" ? to : from
+                  const pointCoords = originOrDestination === "origin" ? point.properties.trip.destination : point.properties.trip.origin
+
+                  return ((counterPoint[0] === pointCoords[0])
+                  && (counterPoint[1] === pointCoords[1]))
+                }).length + 1
+
+                arcLayerData.push({
+                  "color": [254, 227, 81],
+                  "source": from,
+                  "target": to,
+                  "width": width
+                })
+              })
+
+            /*this.map.addLayer({
+              'id': 'filterdodPoints' + Math.random().toString(),
+              'type': 'circle',
+              'source': {
+                'type': 'geojson',
+                'data': {
+                  'type': 'FeatureCollection',
+                  'features': turf.featureCollection(filteredOdPoints).features
+                }
+              },
+              'layout': {},
+              'paint': {
+                "circle-opacity": 1,
+                "circle-color":  "purple"
+              }
+            }); */
+            })
             console.log("arcLayerData", arcLayerData)
             this.$store.dispatch('scenario/addArcLayer', arcLayerData);
 
@@ -302,22 +354,7 @@ export default {
               }
             });
 
-            this.map.addLayer({
-              'id': 'filterdodPoints' + Math.random().toString(),
-              'type': 'circle',
-              'source': {
-                'type': 'geojson',
-                'data': {
-                  'type': 'FeatureCollection',
-                  'features': turf.featureCollection(filteredOdPoints).features
-                }
-              },
-              'layout': {},
-              'paint': {
-                "circle-opacity": 1,
-                "circle-color":  "purple"
-              }
-            });
+
         },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -387,7 +424,7 @@ export default {
 <template>
     <div class="ctx_menu" @click="selectedModal()"  @mousedown="startDrag" @mousemove="doDrag" v-bind:style="{ zIndex: indexVal }">
         <div class="wrapper">
-            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ modalInfo.objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
+            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
             <div class="general" v-for="item in modalInfo.generalContent"><p>
                 <div v-for="(value, key) in item">
                   <p>{{ key }} : {{ value }}</p>
@@ -402,8 +439,7 @@ export default {
                       </div>
                     </div>
             </div>
-          <!-- amenities -->
-          <div v-if="modalInfo.objectType === 'amenity'">
+          <!-- Origin // Destination checkboxes -->
             <div class="body_scope"></div>
             <div class="od-menu">
               <v-checkbox
@@ -421,7 +457,6 @@ export default {
                 hide-details
               ></v-checkbox>
             </div>
-          </div>
         </div>
         <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
     </div>
