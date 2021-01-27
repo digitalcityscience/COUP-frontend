@@ -23,10 +23,11 @@ export default {
             objectFeatures: [],
             objectId: null,
             modalInfo: {},
-
-
-            asOrigin:false, // todo move
-            asDestination:false, // todo move
+            arcLayerData: {},
+            asOrigin:false,
+            asDestination:false,
+            minOdTrips: 1,
+            noTripsWarning: false
         }
     },
     computed: {
@@ -61,14 +62,14 @@ export default {
     },
     watch: {
       asOrigin(newVal, oldVal) {
-        console.log("as origin", newVal, oldVal)
-
-
         if (newVal && this.asDestination) {
           this.asDestination = false;
         }
         if (newVal) {
-          this.updateTrips(this.objectFeatures, true)
+          // get new data and add new layer to map
+          this.getArcLayerData(this.objectFeatures, true).then(() => {
+            this.updateOdTripsLayer()
+          })
         } else {
           this.map?.removeLayer(abmArcLayerName);
         }
@@ -78,11 +79,18 @@ export default {
           this.asOrigin = false;
         }
         if (newVal) {
-          this.updateTrips(this.objectFeatures, false)
+          // get new data and add new layer to map
+          this.getArcLayerData(this.objectFeatures, false).then(() => {
+            this.updateOdTripsLayer()
+          })
         } else {
           this.map?.removeLayer(abmArcLayerName);
         }
-      }
+      },
+      /** filter arcLayerData with new minOdTrips value and renew layer */
+      minOdTrips() {
+        this.updateOdTripsLayer()
+      },
     },
     mounted(){
         let selector = this.$el;
@@ -220,14 +228,42 @@ export default {
         getProjectedObjectCoords() {
           return this.map.project(this.modalInfo["coords"])
         },
+        async getArcLayerData(objectData, asOrigin) {
+          this.arcLayerData = await getOdArcData(objectData, this.modalInfo, asOrigin)
+        },
+        filterArcLayerData() {
+          if (this.minOdTrips === 1 || this.arcLayerData.length === 0) {
+            // no need to filter
+            return this.arcLayerData
+          }
 
+          // filter for trips that with min. amount of similar trips
+          return this.arcLayerData.filter(datapoint => {
+            /* datapoint schema
+             "color": [254, 227, 81],
+             "source": number[],
+             "target": number[],
+             "width": number  // number of trips with same origin / destination
+             */
+            return datapoint.width >= this.minOdTrips
+          })
+        },
+        updateOdTripsLayer() {
+          // filter data first
+          const data = this.filterArcLayerData()
 
+          if (data.length === 0) {
+            // empty dataset (after filtering) , remove layer
+            if (this.map?.getLayer(abmArcLayerName)) {
+              this.map?.removeLayer(abmArcLayerName);
+            }
+            this.noTripsWarning = true // show warning for empty datasets
+            return
+          }
 
-          /** todo raus hier*/
-        updateTrips(objectData, asOrigin) {
-            const arcLayerData = getOdArcData(objectData, this.modalInfo, asOrigin)
-            console.log("arcLayerData", arcLayerData)
-            this.$store.dispatch('scenario/addArcLayer', arcLayerData);
+          this.$store.dispatch('scenario/addArcLayer', data);
+          this.noTripsWarning = false
+          console.log("new arc layer with # trips = ", data.length)
         },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -327,6 +363,23 @@ export default {
                 dark
                 hide-details
               ></v-checkbox>
+              <v-slider style="margin-top: 15px;"
+                @dragstart="_ => null"
+                @dragend="_ => null"
+                @mousedown.native.stop="_ => null"
+                @mousemove.native.stop="_ => null"
+                v-model="minOdTrips"
+                step=1
+                thumb-label="always"
+                label="Min. Trips"
+                thumb-size="25"
+                tick-size="50"
+                min="1"
+                max=20
+                dark
+                flat
+              ></v-slider>
+              <div v-if="noTripsWarning" class="warn">No trips to show</div>
             </div>
         </div>
         <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
@@ -348,6 +401,15 @@ export default {
         box-sizing: border-box;
         @include drop_shadow;
 
+        p {
+          color:whitesmoke;
+          font-size:100%;
+          strong {
+            font-size:80%;
+            color:#ddd;
+          }
+        }
+
         .ctx_bar {
             position:relative;
             display:flex;
@@ -361,15 +423,6 @@ export default {
                 opacity:1;
                 filter:invert(1);
                 flex:0 0 35px;
-            }
-
-            p {
-                color:whitesmoke;
-                font-size:100%;
-                strong {
-                    font-size:80%;
-                    color:#ddd;
-                }
             }
 
             .close_btn {
@@ -450,6 +503,11 @@ export default {
                 }
             }
         }
+
+       .warn {
+         color: darkred;
+         margin-top: 10px;
+       }
 
         &:hover {
             border:1px solid $orange;

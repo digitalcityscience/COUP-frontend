@@ -3,7 +3,7 @@ import * as turf from "@turf/turf";
 import Trips from "@/assets/trips.json";
 import AmenitiesGeoJson from "@/assets/amenities.json";
 
-export function getOdArcData(objectData, modalInfo, asOrigin: boolean) {
+export async function getOdArcData(objectData, modalInfo, asOrigin: boolean) {
   let amenityPoints = getAmenityPoints(objectData, modalInfo)
   let odPointCollection = getOdPointCollection(asOrigin)
   let arcLayerData = []
