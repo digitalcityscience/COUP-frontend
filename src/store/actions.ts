@@ -50,7 +50,9 @@ export default {
     // put groundfloor on top of spaces
     state.map?.moveLayer('spaces', 'groundfloor')
     // and upperfloor on top of groundfloor
-    state.map?.moveLayer('upperfloor')
+    state.map?.moveLayer('groundfloor', 'upperfloor')
+    // and rooftops on top
+    state.map?.moveLayer('rooftops')
   },
   addSourceToMap({state, commit, dispatch}: ActionContext<StoreState, StoreState>, source) {
     if (state.map?.getSource(source.id)) {
