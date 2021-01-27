@@ -8,7 +8,7 @@ import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
-import * as turf from '@turf/turf'
+
 
 
 export default {
@@ -18,7 +18,7 @@ export default {
         return {
             lastClicked: [],
             hoveredFocusArea: null,
-            modalLayers: ["groundfloor", "upperfloor", "rooftops", "amenities"]
+            modalLayers: ["groundfloor", "upperfloor", "rooftops", "abmAmenities"],
         }
     },
     computed: {
@@ -121,13 +121,16 @@ export default {
           ]
 
           const features = this.map.queryRenderedFeatures(bbox, {
-              layers: this.layerIds,
+              layers: this.layerIds.filter(layerId => {return this.map.getLayer(layerId)})
           });
           this.actionForClick(features)
         },
         actionForClick(clickedFeatures) {
           const initialFeature = clickedFeatures[0]
           const initialLayerId = initialFeature.layer.id
+
+
+          console.log(initialLayerId, initialFeature)
 
           // calculate stats for focus area
           if (initialLayerId === FocusAreasLayer.layer.id) {
@@ -149,7 +152,10 @@ export default {
         },
         /* opens or closes modal */
         handleModal(initialFeature) {
-          this.selectedObjectId = initialFeature.properties["city_scope_id"] || "amenity"  // TODO make id for ameniteis
+          this.selectedObjectId = initialFeature.properties["city_scope_id"]
+
+          console.log(this.selectedObjectId, "selected object id")
+          console.log(initialFeature)
 
           if (this.openModalsIds.indexOf(this.selectedObjectId) !== -1) {
             console.log("closing modal ", this.selectedObjectId)

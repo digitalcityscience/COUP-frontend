@@ -3,7 +3,9 @@ import { mapState } from 'vuex'
 import * as turf from '@turf/turf'
 import {alkisTranslations} from "@/store/abm";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
-import Amenities from '@/config/amenities.json'
+import AmenitiesLayerDefinition from '@/config/amenities.json'
+import {getOdArcData} from '@/store/scenario/odArcs.ts'
+import {abmArcLayerName} from "@/store/deck-layers";
 
 export default {
     name: 'Contextmenu',
@@ -18,7 +20,12 @@ export default {
             windowWidth: window.innerWidth,
             objectFeatures: [],
             objectId: null,
-            modalInfo: {}
+            modalInfo: {},
+            arcLayerData: {},
+            asOrigin:false,
+            asDestination:false,
+            minOdTrips: 1,
+            noTripsWarning: false
         }
     },
     computed: {
@@ -33,6 +40,9 @@ export default {
         // city_scope_id of the clicked object (set in Map.vue, onMapClick)
         selectedObjectId() {
           return this.$store.state.selectedObjectId;
+        },
+        abmTrips(){
+            return this.$store.state.scenario.abmTrips;
         }
     },
     beforeMount(){
@@ -47,6 +57,38 @@ export default {
       this.gatherModalInfo()
       this.toggleFeatureCircling()
       this.toggleFeatureHighlighting()
+    },
+    watch: {
+      asOrigin(newVal, oldVal) {
+        if (newVal && this.asDestination) {
+          this.asDestination = false;
+        }
+        if (newVal) {
+          // get new data and add new layer to map
+          this.getArcLayerData(this.objectFeatures, true).then(() => {
+            this.updateOdTripsLayer()
+          })
+        } else {
+          this.map?.removeLayer(abmArcLayerName);
+        }
+      },
+      asDestination(newVal, oldVal) {
+        if (newVal && this.asOrigin) {
+          this.asOrigin = false;
+        }
+        if (newVal) {
+          // get new data and add new layer to map
+          this.getArcLayerData(this.objectFeatures, false).then(() => {
+            this.updateOdTripsLayer()
+          })
+        } else {
+          this.map?.removeLayer(abmArcLayerName);
+        }
+      },
+      /** filter arcLayerData with new minOdTrips value and renew layer */
+      minOdTrips() {
+        this.updateOdTripsLayer()
+      },
     },
     mounted(){
         let selector = this.$el;
@@ -74,6 +116,11 @@ export default {
       if (!this.allFeaturesHighlighted) {
         this.toggleFeatureHighlighting()
       }
+
+      if (this.map?.getLayer(abmArcLayerName)) {
+        this.map?.removeLayer(abmArcLayerName)
+      }
+
 
       // remove line on canvas connecting modal to selected feature
       const canvas = document.getElementById(this.lineCanvasId);
@@ -115,7 +162,7 @@ export default {
                   {"building height": feature.properties["building_height"].toString() + "m"}
                 )
                 break;
-              case Amenities.layer.id:
+              case AmenitiesLayerDefinition.layer.id:
                 this.modalInfo["objectType"] = "amenity"
                 this.modalInfo["coords"] =feature.geometry.coordinates
                 this.modalInfo["detailContent"]["Amenity"] = {}
@@ -153,20 +200,22 @@ export default {
         toggleFeatureCircling() {
           let buffer = null
 
+          console.log("features", this.objectFeatures)
+
           // find geometry to create circle around the object
           this.objectFeatures.every(feature => {
             if (feature.layer.id === "groundfloor") {
-              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.015)
               // if a ground floor found: jump out - it is the perfect geometry for circling a building
               return false;
             }
             if (feature.layer.id === "upperfloor") {
-              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.015)
               // if a upper floor found: take as fallback geometry for circling.
               return true;
             }
-            if (feature.layer.id === Amenities.layer.id) {
-              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.01)
+            if (feature.layer.id === AmenitiesLayerDefinition.layer.id) {
+              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.015)
             }
               return true;
           })
@@ -176,6 +225,43 @@ export default {
         },
         getProjectedObjectCoords() {
           return this.map.project(this.modalInfo["coords"])
+        },
+        async getArcLayerData(objectData, asOrigin) {
+          this.arcLayerData = await getOdArcData(objectData, this.modalInfo, asOrigin)
+        },
+        filterArcLayerData() {
+          if (this.minOdTrips === 1 || this.arcLayerData.length === 0) {
+            // no need to filter
+            return this.arcLayerData
+          }
+
+          // filter for trips that with min. amount of similar trips
+          return this.arcLayerData.filter(datapoint => {
+            /* datapoint schema
+             "color": [254, 227, 81],
+             "source": number[],
+             "target": number[],
+             "width": number  // number of trips with same origin / destination
+             */
+            return datapoint.width >= this.minOdTrips
+          })
+        },
+        updateOdTripsLayer() {
+          // filter data first
+          const data = this.filterArcLayerData()
+
+          if (data.length === 0) {
+            // empty dataset (after filtering) , remove layer
+            if (this.map?.getLayer(abmArcLayerName)) {
+              this.map?.removeLayer(abmArcLayerName);
+            }
+            this.noTripsWarning = true // show warning for empty datasets
+            return
+          }
+
+          this.$store.dispatch('scenario/addArcLayer', data);
+          this.noTripsWarning = false
+          console.log("new arc layer with # trips = ", data.length)
         },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -245,7 +331,7 @@ export default {
 <template>
     <div class="ctx_menu" @click="selectedModal()"  @mousedown="startDrag" @mousemove="doDrag" v-bind:style="{ zIndex: indexVal }">
         <div class="wrapper">
-            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ modalInfo.objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
+            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
             <div class="general" v-for="item in modalInfo.generalContent"><p>
                 <div v-for="(value, key) in item">
                   <p>{{ key }} : {{ value }}</p>
@@ -259,6 +345,39 @@ export default {
                         <p><strong>{{ key }}</strong> {{value}} </p>
                       </div>
                     </div>
+            </div>
+          <!-- Origin // Destination checkboxes -->
+            <div class="body_scope"></div>
+            <div v-if="abmTrips" class="od-menu">
+            <v-checkbox
+                v-model="asOrigin"
+                label="Origin of"
+                dark
+                hide-details
+              ></v-checkbox>
+              <v-checkbox
+                v-model="asDestination"
+                label="Destination of"
+                dark
+                hide-details
+              ></v-checkbox>
+              <v-slider style="margin-top: 15px;"
+                @dragstart="_ => null"
+                @dragend="_ => null"
+                @mousedown.native.stop="_ => null"
+                @mousemove.native.stop="_ => null"
+                v-model="minOdTrips"
+                step=1
+                thumb-label="always"
+                label="Min. Trips"
+                thumb-size="25"
+                tick-size="50"
+                min="1"
+                max=20
+                dark
+                flat
+              ></v-slider>
+              <div v-if="noTripsWarning" class="warn">No trips to show</div>
             </div>
         </div>
         <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
@@ -280,6 +399,15 @@ export default {
         box-sizing: border-box;
         @include drop_shadow;
 
+        p {
+          color:whitesmoke;
+          font-size:100%;
+          strong {
+            font-size:80%;
+            color:#ddd;
+          }
+        }
+
         .ctx_bar {
             position:relative;
             display:flex;
@@ -293,15 +421,6 @@ export default {
                 opacity:1;
                 filter:invert(1);
                 flex:0 0 35px;
-            }
-
-            p {
-                color:whitesmoke;
-                font-size:100%;
-                strong {
-                    font-size:80%;
-                    color:#ddd;
-                }
             }
 
             .close_btn {
@@ -382,6 +501,11 @@ export default {
                 }
             }
         }
+
+       .warn {
+         color: darkred;
+         margin-top: 10px;
+       }
 
         &:hover {
             border:1px solid $orange;
