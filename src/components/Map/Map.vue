@@ -8,9 +8,7 @@ import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
-import * as turf from '@turf/turf'
 
-import AmenitiesGeoJson from '@/assets/amenities.json'
 
 
 export default {
@@ -152,12 +150,6 @@ export default {
             this.actionForClick(clickedFeatures)
           }
         },
-/*   todo delete   setObjectId(feature) {
-          this.selectedObjectId = feature.properties["city_scope_id"]
-          if (!this.selectedObjectId && feature.layer.id === "abmAmenities") {
-            this.selectedObjectId = (feature.properties.id).toString()
-          }
-        },*/
         /* opens or closes modal */
         handleModal(initialFeature) {
           this.selectedObjectId = initialFeature.properties["city_scope_id"]
@@ -187,26 +179,6 @@ export default {
                     }
                 });
             })
-
-          // TODO for faster dev only
-          const amenities = turf.featureCollection(AmenitiesGeoJson["features"])
-          this.map.addLayer({
-            'id': 'abmAmenities',
-            'type': 'circle',
-            'source': {
-              'type': 'geojson',
-              'data': {
-                'type': 'FeatureCollection',
-                'features': amenities.features
-              }
-            },
-            'layout': {},
-            'paint': {
-              "circle-opacity": 1,
-              "circle-color":  "yellow"
-            }
-          });
-          this.$store.commit('addLayerId', "abmAmenities")
         },
         createModal(){
           this.openModalsIds.push(this.selectedObjectId)

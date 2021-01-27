@@ -1,7 +1,5 @@
 import store from "@/store";
 import * as turf from "@turf/turf";
-import Trips from "@/assets/trips.json";
-import AmenitiesGeoJson from "@/assets/amenities.json";
 
 export async function getOdArcData(objectData, modalInfo, asOrigin: boolean) {
   let amenityPoints = getAmenityPoints(objectData, modalInfo)
@@ -24,10 +22,10 @@ export async function getOdArcData(objectData, modalInfo, asOrigin: boolean) {
   return arcLayerData
 }
 
-function getAmenityPoints(objectData, modalInfo): turf.FeatureCollection {
+function getAmenityPoints(objectData, modalInfo): turf.FeatureCollection<turf.Point> {
   if (modalInfo.objectType === 'amenity') {  // todo adjust after having amenity ids in ABM results
     // clicked on simple amenity. Use this as point
-    return (turf.featureCollection([turf.point(modalInfo["coords"])])) as turf.FeatureCollection
+    return (turf.featureCollection([turf.point(modalInfo["coords"])]))
   } else {
     // clicked on a building, find adjacent amenities
     return findAdjacentAmenities(objectData)
@@ -36,8 +34,8 @@ function getAmenityPoints(objectData, modalInfo): turf.FeatureCollection {
 
 
 /** creates a point feature collection of all trips origins or destinations */
-function getOdPointCollection(useOrigins: boolean): turf.FeatureCollection {
-  let trips = JSON.parse(JSON.stringify(Trips)) // todo from store
+function getOdPointCollection(useOrigins: boolean): turf.FeatureCollection<turf.Point> {
+  let trips = JSON.parse(JSON.stringify(store.state.scenario.abmTrips))
 
   return turf.featureCollection(trips.map((trip) => {
     if (useOrigins) {
@@ -49,7 +47,7 @@ function getOdPointCollection(useOrigins: boolean): turf.FeatureCollection {
 }
 
 /** finds amenities located within a buffer of a building outline */
-export function findAdjacentAmenities(objectData): turf.FeatureCollection {
+export function findAdjacentAmenities(objectData): turf.FeatureCollection<turf.Point> {
     let groundFloorData = objectData.filter(buildingInLayer => {
       return buildingInLayer.layer.id === "groundfloor";
     })[0]
@@ -59,7 +57,7 @@ export function findAdjacentAmenities(objectData): turf.FeatureCollection {
     }
 
     let buildingPolygon = turf.buffer(turf.polygon(groundFloorData.geometry.coordinates), 0.015)
-    let amenities = turf.featureCollection((AmenitiesGeoJson["features"]))
+    let amenities = turf.featureCollection((store.state.scenario.amenitiesGeoJson["features"])) as turf.FeatureCollection<turf.Point>
 
     return turf.pointsWithinPolygon(amenities, buildingPolygon)
   }

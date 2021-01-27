@@ -3,10 +3,8 @@ import { mapState } from 'vuex'
 import * as turf from '@turf/turf'
 import {alkisTranslations} from "@/store/abm";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
-import Amenities from '@/config/amenities.json'
+import AmenitiesLayerDefinition from '@/config/amenities.json'
 import {getOdArcData} from '@/store/scenario/odArcs.ts'
-
-import Trips from '@/assets/trips.json'
 import {abmArcLayerName} from "@/store/deck-layers";
 
 export default {
@@ -164,7 +162,7 @@ export default {
                   {"building height": feature.properties["building_height"].toString() + "m"}
                 )
                 break;
-              case Amenities.layer.id:
+              case AmenitiesLayerDefinition.layer.id:
                 this.modalInfo["objectType"] = "amenity"
                 this.modalInfo["coords"] =feature.geometry.coordinates
                 this.modalInfo["detailContent"]["Amenity"] = {}
@@ -207,17 +205,17 @@ export default {
           // find geometry to create circle around the object
           this.objectFeatures.every(feature => {
             if (feature.layer.id === "groundfloor") {
-              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.015)
               // if a ground floor found: jump out - it is the perfect geometry for circling a building
               return false;
             }
             if (feature.layer.id === "upperfloor") {
-              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.01)
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.015)
               // if a upper floor found: take as fallback geometry for circling.
               return true;
             }
-            if (feature.layer.id === Amenities.layer.id) {
-              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.01)
+            if (feature.layer.id === AmenitiesLayerDefinition.layer.id) {
+              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.015)
             }
               return true;
           })
@@ -350,7 +348,7 @@ export default {
             </div>
           <!-- Origin // Destination checkboxes -->
             <div class="body_scope"></div>
-            <div class="od-menu">
+            <div v-if="abmTrips" class="od-menu">
             <v-checkbox
                 v-model="asOrigin"
                 label="Origin of"
