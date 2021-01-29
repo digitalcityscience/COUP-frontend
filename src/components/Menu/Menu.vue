@@ -4,12 +4,13 @@ import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import SWScenario from "@/components/Scenario/SWScenario.vue";
 import MCScenario from "@/components/Scenario/MCScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
+import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
 import TimeSheet from "@/components/Scenario/TimeSheet";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
     name: 'Menu',
-    components: {AbmScenario, SWScenario, MCScenario, NoiseScenario},
+    components: {AbmScenario, SWScenario, MCScenario, NoiseScenario, MultiLayerAnalysis},
     data() {
         return {
             windowWidth: window.innerWidth,
@@ -61,6 +62,7 @@ export default {
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SWScenario' }" @click="activeComponent = 'SWScenario'"><p>Stormwater</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MCScenario' }" @click="activeComponent = 'MCScenario'"><p>Microclimate</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }" @click="activeComponent = 'NoiseScenario'"><p>Noise</p></li>
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MultiLayerAnalysis' }" @click="activeComponent = 'MultiLayerAnalysis'"><p>MultiLayerAnalysis</p></li>
                     </ul>
                 </template>
                 <template v-else>
@@ -69,6 +71,7 @@ export default {
                         <option value="SWScenario">Stormwater</option>
                         <option value="MCScenario">Microclimate</option>
                         <option value="NoiseScenario">Noise</option>
+                        <option value="MultiLayerAnalysis">MultiLayerAnalysis</option>
                     </select>
                 </template>
             </div>
@@ -77,6 +80,7 @@ export default {
                 <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
                 <div v-if="activeComponent === 'MCScenario'"><MCScenario /></div>
                 <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario /></div>
+                <div v-if="activeComponent === 'MultiLayerAnalysis'"><MultiLayerAnalysis /></div>
             </div>
             <div class="footer_scope">
 
@@ -97,7 +101,7 @@ export default {
         transform:translateX(0);
         border-left:1px solid #888;
         font-family: 'Tajawal', sans-serif;
-        backdrop-filter:blur(5px) saturate(140%); 
+        backdrop-filter:blur(5px) saturate(140%);
         z-index: 1000;
 
          &.ui_hide {
@@ -219,7 +223,7 @@ export default {
                     option {
                         color:#222;
                     }
-                    
+
                     &:after {
                         content:'';
                         width:100%;
@@ -268,7 +272,7 @@ export default {
             }
 
             .body_scope {
-                
+
             }
         }
 
