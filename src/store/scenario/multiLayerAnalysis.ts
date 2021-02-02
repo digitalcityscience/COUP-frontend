@@ -56,6 +56,8 @@ export function showMultiLayerAnalysis(layer_1, layer_2) {
 
   console.log(combinedLayers)
 
+  return combinedLayers;
+
   /*saveFile("combinedLayers",
     {
       "type": "FeatureCollection",

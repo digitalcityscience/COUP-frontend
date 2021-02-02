@@ -23,7 +23,7 @@ export default {
             showSubSelection_2: false,
             subSelectionLayer_1: null,
             subSelectionLayer_2: null,
-            emptySubSelectionWarning: false,
+            emptyDataWarning: false,
             resultOutdated: false,
             availableResultLayers: [
               // TODO adjust ranges for amenity stats!
@@ -62,7 +62,7 @@ export default {
             "layerConstraints": this.sliderValues_1,
           }
           this.subSelectionLayer_1 = filterAndScaleLayerData(request)
-          this.emptySubSelectionWarning = this.subSelectionLayer_1.features.length === 0;
+          this.emptyDataWarning = this.subSelectionLayer_1.features.length === 0;
           if (this.showSubSelection_1) {
             this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_1.features)
           }
@@ -77,7 +77,7 @@ export default {
             "layerConstraints": this.sliderValues_2,
           }
           this.subSelectionLayer_2 = filterAndScaleLayerData(request)
-          this.emptySubSelectionWarning = this.subSelectionLayer_2.features.length === 0;
+          this.emptyDataWarning = this.subSelectionLayer_2.features.length === 0;
           if (this.showSubSelection_2) {
             this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_2.features)
           }
@@ -180,8 +180,12 @@ export default {
             )
         },
         visualizeSelection () {
-          showMultiLayerAnalysis(this.subSelectionLayer_1, this.subSelectionLayer_2)
           this.resultOutdated = false
+          const combinedLayers = showMultiLayerAnalysis(this.subSelectionLayer_1, this.subSelectionLayer_2)
+          if (combinedLayers.length === 0) {
+            this.emptyDataWarning = true
+          }
+
         },
       inputChanged() {
           console.log("result outdated")
@@ -327,12 +331,12 @@ export default {
        Hide Noise Result
       </v-btn>-->
       <p v-if="showError" class="warning">Invalid selection</p>
-      <p v-if="emptySubSelectionWarning" class="warning">A subselection is empty</p>
+      <p v-if="emptyDataWarning" class="warning">No data to show!</p>
       <v-btn
         @click="visualizeSelection"
         class="confirm_btn"
         :class="{ changesMade : resultOutdated }"
-        :disabled="emptySubSelectionWarning || showError"
+        :disabled="emptyDataWarning || showError"
       >
        Visualize Selection
       </v-btn>
