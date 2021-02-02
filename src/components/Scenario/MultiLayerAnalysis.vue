@@ -3,6 +3,7 @@
 import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
+import {showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
 
 export default {
     name: 'MultiLayerAnalysis',
@@ -14,8 +15,8 @@ export default {
             showError: false,
             selectValue_1: null,
             selectValue_2: null,
-            slider1: [1, 10],
-            slider2: [1,5],
+            sliderValues_1: [],
+            sliderValues_2: [],
             availableResultLayers: [
               // TODO adjust ranges for amenity stats!
               {"label": 'Noise Levels', "unit": "dB", "range": [45,85], "step": 1},
@@ -31,6 +32,7 @@ export default {
             ],
             select_Options_1: [],
             select_Options_2: [],
+            resultLookups: {}
         }
     },
   computed: {
@@ -49,7 +51,7 @@ export default {
           if(this.selectValue_1.label === this.selectValue_2.label){
               this.showError = true
           } else {
-            this.slider1 = this.selectValue_1.range
+            this.sliderValues_1 = this.selectValue_1.range
           }
         }
       },
@@ -59,7 +61,7 @@ export default {
           if(this.selectValue_1.label === this.selectValue_2.label){
             this.showError = true
           } else {
-            this.slider2 = this.selectValue_2.range
+            this.sliderValues_2 = this.selectValue_2.range
           }
         }
       },
@@ -69,9 +71,16 @@ export default {
     },
     beforeMount() {
       this.select_Options_1 = this.availableResultLayers
-      this.select_Options_2 = this.availableResultLayers
       this.selectValue_1 = this.availableResultLayers[0]
+      this.sliderValues_1 = this.selectValue_1.range
+
+      this.select_Options_2 = this.availableResultLayers
       this.selectValue_2 = this.availableResultLayers[1]
+      this.sliderValues_2 = this.selectValue_2.range
+
+      // todo create results
+      // todo create resultLookups with results from store.
+
     },
     mounted:
         function() {
@@ -94,18 +103,18 @@ export default {
                 'scenario/updateNoiseScenario'
             )
         },
-        showResultsToggle () {
-            this.showNoise = !this.showNoise
+        visualizeSelection () {
+         const request = {
+           "layer_1_Name" : this.selectValue_1.label,
+           "layer_1_Range" : this.selectValue_1.range,
+           "layer_1_Constraints" : this.sliderValues_1,
+           "layer_2_Name" : this.selectValue_2.label,
+           "layer_2_Range" : this.selectValue_2.range,
+           "layer_2_Constraints" : this.sliderValues_2,
+           "logicOperator" : "and"
+         }
 
-            if (this.showNoise) {
-                // load the noise map
-                this.loadNoiseMap()
-                this.$store.commit("scenario/noiseMap", true);
-            } else {
-                // hide the noise map
-                /* old this.$store.dispatch('scenario/hideNoiseMap')*/
-                this.$store.commit("scenario/noiseMap", false);
-            }
+          showMultiLayerAnalysis(request)
         }
     }
 }
@@ -186,7 +195,7 @@ export default {
                 @dragend="_ => null"
                 @mousedown.native.stop="_ => null"
                 @mousemove.native.stop="_ => null"
-                v-model="slider1"
+                v-model="sliderValues_1"
                 :step="selectValue_1.step"
                 thumb-label="always"
                 label=""
@@ -204,7 +213,7 @@ export default {
                 @dragend="_ => null"
                 @mousedown.native.stop="_ => null"
                 @mousemove.native.stop="_ => null"
-                v-model="slider2"
+                v-model="sliderValues_2"
                 :step="selectValue_2.step"
                 thumb-label="always"
                 label=""
@@ -221,7 +230,7 @@ export default {
       <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
        Hide Noise Result
       </v-btn>-->
-      <v-btn @click="showResultsToggle" class="confirm_btn">
+      <v-btn @click="visualizeSelection" class="confirm_btn">
        Visualize Selection
       </v-btn>
       <v-overlay :value="resultLoading">

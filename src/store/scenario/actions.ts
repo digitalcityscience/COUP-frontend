@@ -10,6 +10,7 @@ import { VCarouselReverseTransition } from 'vuetify/lib';
 
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -24,6 +25,7 @@ export default {
     if (state.noiseResults.length > 0) {
       const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
       const geoJsonData = noiseResult['geojson_result']
+      commit('currentNoiseGeoJson', geoJsonData)
       dispatch('addNoiseMapLayer', geoJsonData)
         .then(
           dispatch('addTrafficCountLayer')
@@ -180,6 +182,20 @@ export default {
                 })
             })
         }
+  },
+  addMultiLayerAnalysisLayer({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = MultiLayerAnalysisConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', MultiLayerAnalysisConfig.layer, {root: true})
+      }).then(source => {
+      // add layer on top of the layer stack
+      if (state.map?.getLayer("groundfloor")) {
+        state.map?.moveLayer(MultiLayerAnalysisConfig.layer.id, "groundfloor")
+      }
+    })
   },
   //LOADING INITIAL ABM DATA
   initialAbmComputing({state, commit, dispatch, rootState}, workshopScenario){
