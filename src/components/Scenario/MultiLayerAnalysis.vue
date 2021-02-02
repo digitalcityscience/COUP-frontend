@@ -24,6 +24,7 @@ export default {
             subSelectionLayer_1: null,
             subSelectionLayer_2: null,
             emptySubSelectionWarning: false,
+            resultOutdated: false,
             availableResultLayers: [
               // TODO adjust ranges for amenity stats!
               {"label": 'Noise Levels', "value": "Noise Levels", "unit": "dB", "range": [45,85], "step": 5},
@@ -180,7 +181,12 @@ export default {
         },
         visualizeSelection () {
           showMultiLayerAnalysis(this.subSelectionLayer_1, this.subSelectionLayer_2)
-        }
+          this.resultOutdated = false
+        },
+      setResultOutdated() {
+          console.log("result outdated")
+          this.resultOutdated = true;
+      }
     }
 }
 
@@ -221,6 +227,7 @@ export default {
               <v-select
                 :items="select_Options_1"
                 v-model="selectValue_1"
+                @change="setResultOutdated()"
                 item-text="label"
                 item-value="label"
                 :hint="`${selectValue_1.unit}`"
@@ -240,6 +247,7 @@ export default {
               <v-select
                 :items="select_Options_2"
                 v-model="selectValue_2"
+                @change="setResultOutdated()"
                 item-text="label"
                 item-value="label"
                 :hint="`${selectValue_2.unit}`"
@@ -260,6 +268,7 @@ export default {
                 @dragend="_ => null"
                 @mousedown.native.stop="_ => null"
                 @mousemove.native.stop="_ => null"
+                @change="setResultOutdated()"
                 v-model="sliderValues_1"
                 :step="selectValue_1.step"
                 :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
@@ -280,6 +289,7 @@ export default {
                 @dragend="_ => null"
                 @mousedown.native.stop="_ => null"
                 @mousemove.native.stop="_ => null"
+                @change="setResultOutdated()"
                 v-model="sliderValues_2"
                 :step="selectValue_2.step"
                 :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
@@ -319,6 +329,7 @@ export default {
       <v-btn
         @click="visualizeSelection"
         class="confirm_btn"
+        :class="{ changesMade : resultOutdated }"
         :disabled="emptySubSelectionWarning"
       >
        Visualize Selection

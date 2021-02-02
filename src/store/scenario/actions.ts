@@ -213,6 +213,9 @@ export default {
       if (state.map?.getLayer("groundfloor")) {
         state.map?.moveLayer(SubSelectionLayerConfig.layer.id, "groundfloor")
       }
+      if (state.map?.getLayer(SubSelectionLayerConfig.layer.id)) {
+        state.map?.moveLayer(SubSelectionLayerConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
+      }
     })
   },
   //LOADING INITIAL ABM DATA
