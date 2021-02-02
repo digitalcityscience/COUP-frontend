@@ -4,6 +4,8 @@ import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
 import {filterAndScaleLayerData, showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
+import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
+
 
 export default {
     name: 'MultiLayerAnalysis',
@@ -24,7 +26,7 @@ export default {
             emptySubSelectionWarning: false,
             availableResultLayers: [
               // TODO adjust ranges for amenity stats!
-              {"label": 'Noise Levels', "value": "Noise Levels", "unit": "dB", "range": [45,85], "step": 1},
+              {"label": 'Noise Levels', "value": "Noise Levels", "unit": "dB", "range": [45,85], "step": 5},
               {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
               {"label": 'Complementarity', "value": "Complementarity", "unit": "complementary trips count", "range": [0,100], "step": 1},
               {"label": 'Density', "value": "Density", "unit": "places/km²", "range": [0,100], "step": 1},
@@ -59,9 +61,9 @@ export default {
             "layerConstraints": this.sliderValues_1,
           }
           this.subSelectionLayer_1 = filterAndScaleLayerData(request)
-          this.emptySubSelectionWarning = false
-          if (this.subSelectionLayer_1.features.length === 0) {
-            this.emptySubSelectionWarning = true
+          this.emptySubSelectionWarning = this.subSelectionLayer_1.features.length === 0;
+          if (this.showSubSelection_1) {
+            this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_1.features)
           }
         }
       },
@@ -74,15 +76,16 @@ export default {
             "layerConstraints": this.sliderValues_2,
           }
           this.subSelectionLayer_2 = filterAndScaleLayerData(request)
-          this.emptySubSelectionWarning = false
-          if (this.subSelectionLayer_2.features.length === 0) {
-            this.emptySubSelectionWarning = true
+          this.emptySubSelectionWarning = this.subSelectionLayer_2.features.length === 0;
+          if (this.showSubSelection_2) {
+            this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_2.features)
           }
         }
       },
       selectValue_1: {
         deep: true,
         handler() {
+          this.showSubSelection_1 = false
           if (this.selectValue_1.label === this.selectValue_2.label) {
             this.showError = true
           } else {
@@ -99,6 +102,7 @@ export default {
       selectValue_2: {
         deep: true,
         handler() {
+          this.showSubSelection_2 = false
           if (this.selectValue_1.label === this.selectValue_2.label) {
             this.showError = true
           } else {
@@ -114,18 +118,29 @@ export default {
       },
       showSubSelection_1(newVal, old) {
         if (newVal) {
-
-          console.log(this.subSelectionLayer_1.features.length)
-          console.log(this.subSelectionLayer_1)
-          // todo: add to map!
+          if (this.showSubSelection_2) {
+            this.showSubSelection_2 = false
+          }
+          this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_1.features)
+        } else {
+          // hide subSelectionLayer, if subSelection is not to be shown
+          if (!this.showSubSelection_2) {
+            this.$store.state.map?.setLayoutProperty(SubSelectionLayerConfig.layer.id, 'visibility', 'none');
+          }
         }
       },
       showSubSelection_2(newVal, old) {
         if (newVal) {
-
-          console.log(this.subSelectionLayer_2.features.length)
-          console.log(this.subSelectionLayer_2)
-          // todo: add to map!
+          if (this.showSubSelection_1) {
+            this.showSubSelection_1 = false
+          }
+          this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_2.features)
+        } else {
+          console.log("hiding?")
+          // hide subSelectionLayer, if subSelection is not to be shown
+          if (!this.showSubSelection_1) {
+            this.$store.state.map?.setLayoutProperty(SubSelectionLayerConfig.layer.id, 'visibility', 'none');
+          }
         }
       }
     },
