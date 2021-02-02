@@ -183,9 +183,10 @@ export default {
           showMultiLayerAnalysis(this.subSelectionLayer_1, this.subSelectionLayer_2)
           this.resultOutdated = false
         },
-      setResultOutdated() {
+      inputChanged() {
           console.log("result outdated")
           this.resultOutdated = true;
+          this.showError = false;
       }
     }
 }
@@ -227,7 +228,7 @@ export default {
               <v-select
                 :items="select_Options_1"
                 v-model="selectValue_1"
-                @change="setResultOutdated()"
+                @change="inputChanged()"
                 item-text="label"
                 item-value="label"
                 :hint="`${selectValue_1.unit}`"
@@ -247,7 +248,7 @@ export default {
               <v-select
                 :items="select_Options_2"
                 v-model="selectValue_2"
-                @change="setResultOutdated()"
+                @change="inputChanged()"
                 item-text="label"
                 item-value="label"
                 :hint="`${selectValue_2.unit}`"
@@ -268,7 +269,7 @@ export default {
                 @dragend="_ => null"
                 @mousedown.native.stop="_ => null"
                 @mousemove.native.stop="_ => null"
-                @change="setResultOutdated()"
+                @change="inputChanged()"
                 v-model="sliderValues_1"
                 :step="selectValue_1.step"
                 :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
@@ -289,7 +290,7 @@ export default {
                 @dragend="_ => null"
                 @mousedown.native.stop="_ => null"
                 @mousemove.native.stop="_ => null"
-                @change="setResultOutdated()"
+                @change="inputChanged()"
                 v-model="sliderValues_2"
                 :step="selectValue_2.step"
                 :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
@@ -325,12 +326,13 @@ export default {
       <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
        Hide Noise Result
       </v-btn>-->
-      <p v-if="emptySubSelectionWarning" class="emptyWarning">A subselection is empty</p>
+      <p v-if="showError" class="warning">Invalid selection</p>
+      <p v-if="emptySubSelectionWarning" class="warning">A subselection is empty</p>
       <v-btn
         @click="visualizeSelection"
         class="confirm_btn"
         :class="{ changesMade : resultOutdated }"
-        :disabled="emptySubSelectionWarning"
+        :disabled="emptySubSelectionWarning || showError"
       >
        Visualize Selection
       </v-btn>
@@ -347,7 +349,7 @@ export default {
 
 <style scoped lang="scss">
     @import "../../style.main.scss";
-    p.emptyWarning {
+    p.warning {
       color: darkred;
     }
 </style>
