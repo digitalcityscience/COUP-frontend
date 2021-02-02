@@ -30,7 +30,7 @@ export default {
               {"label": 'Noise Levels', "value": "Noise Levels", "unit": "dB", "range": [45,85], "step": 5},
               {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
               {"label": 'Complementarity', "value": "Complementarity", "unit": "complementary trips count", "range": [0,100], "step": 1},
-              {"label": 'Density', "value": "Density", "unit": "places/km²", "range": [0,100], "step": 1},
+              {"label": 'Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
               {"label": 'Diversity', "value": "Diversity", "unit": "Simpson Index", "range": [0,100], "step": 1},
               {"label": 'Opportunities for Interaction', "value": "opportunitiesOfInteraction", "unit": "interactions/m²", "range": [0,0.15], "step": 0.01},
               {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
