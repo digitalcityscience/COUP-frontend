@@ -3,7 +3,7 @@
 import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
-import {showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
+import {filterAndScaleLayerData, showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
 
 export default {
     name: 'MultiLayerAnalysis',
@@ -17,6 +17,11 @@ export default {
             selectValue_2: null,
             sliderValues_1: [],
             sliderValues_2: [],
+            showSubSelection_1: false,
+            showSubSelection_2: false,
+            subSelectionLayer_1: null,
+            subSelectionLayer_2: null,
+            emptySubSelectionWarning: false,
             availableResultLayers: [
               // TODO adjust ranges for amenity stats!
               {"label": 'Noise Levels', "value": "Noise Levels", "unit": "dB", "range": [45,85], "step": 1},
@@ -45,28 +50,83 @@ export default {
     ])
     },
     watch: {
-      selectValue_1:{
+      sliderValues_1: {
         deep: true,
-        handler(){
-          if(this.selectValue_1.label === this.selectValue_2.label){
-              this.showError = true
-          } else {
-            this.sliderValues_1 = this.selectValue_1.range
+        handler() {
+          const request = {
+            "layerName": this.selectValue_1.value,
+            "layerRange": this.selectValue_1.range,
+            "layerConstraints": this.sliderValues_1,
+          }
+          this.subSelectionLayer_1 = filterAndScaleLayerData(request)
+          this.emptySubSelectionWarning = false
+          if (this.subSelectionLayer_1.features.length === 0) {
+            this.emptySubSelectionWarning = true
           }
         }
       },
-      selectValue_2:{
+      sliderValues_2: {
         deep: true,
-        handler(){
-          if(this.selectValue_1.label === this.selectValue_2.label){
+        handler() {
+          const request = {
+            "layerName": this.selectValue_2.value,
+            "layerRange": this.selectValue_2.range,
+            "layerConstraints": this.sliderValues_2,
+          }
+          this.subSelectionLayer_2 = filterAndScaleLayerData(request)
+          this.emptySubSelectionWarning = false
+          if (this.subSelectionLayer_2.features.length === 0) {
+            this.emptySubSelectionWarning = true
+          }
+        }
+      },
+      selectValue_1: {
+        deep: true,
+        handler() {
+          if (this.selectValue_1.label === this.selectValue_2.label) {
+            this.showError = true
+          } else {
+            this.sliderValues_1 = this.selectValue_1.range
+            const request = {
+              "layerName": this.selectValue_1.value,
+              "layerRange": this.selectValue_1.range,
+              "layerConstraints": this.sliderValues_1,
+            }
+            this.subSelectionLayer_1 = filterAndScaleLayerData(request)
+          }
+        }
+      },
+      selectValue_2: {
+        deep: true,
+        handler() {
+          if (this.selectValue_1.label === this.selectValue_2.label) {
             this.showError = true
           } else {
             this.sliderValues_2 = this.selectValue_2.range
+            const request = {
+              "layerName": this.selectValue_2.value,
+              "layerRange": this.selectValue_2.range,
+              "layerConstraints": this.sliderValues_2,
+            }
+            this.subSelectionLayer_2 = filterAndScaleLayerData(request)
           }
         }
       },
-      traffic_percent(newVal, old) {
-        this.loadNoiseMap()
+      showSubSelection_1(newVal, old) {
+        if (newVal) {
+
+          console.log(this.subSelectionLayer_1.features.length)
+          console.log(this.subSelectionLayer_1)
+          // todo: add to map!
+        }
+      },
+      showSubSelection_2(newVal, old) {
+        if (newVal) {
+
+          console.log(this.subSelectionLayer_2.features.length)
+          console.log(this.subSelectionLayer_2)
+          // todo: add to map!
+        }
       }
     },
     beforeMount() {
@@ -197,6 +257,8 @@ export default {
                 @mousemove.native.stop="_ => null"
                 v-model="sliderValues_1"
                 :step="selectValue_1.step"
+                :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
+                persistent-hint
                 thumb-label="always"
                 label=""
                 thumb-size="1"
@@ -215,6 +277,8 @@ export default {
                 @mousemove.native.stop="_ => null"
                 v-model="sliderValues_2"
                 :step="selectValue_2.step"
+                :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
+                persistent-hint
                 thumb-label="always"
                 label=""
                 thumb-size="1"
@@ -226,11 +290,32 @@ export default {
               ></v-range-slider>
             </v-col>
           </v-row>
+          <v-row align="center">
+            <v-col>
+              <v-checkbox
+                v-model="showSubSelection_1"
+                dark
+                label="Show subselection">
+              </v-checkbox>
+            </v-col>
+            <v-col>
+              <v-checkbox
+                v-model="showSubSelection_2"
+                dark
+                label="Show subselection">
+              </v-checkbox>
+            </v-col>
+          </v-row>
         </v-container>
       <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
        Hide Noise Result
       </v-btn>-->
-      <v-btn @click="visualizeSelection" class="confirm_btn">
+      <p v-if="emptySubSelectionWarning" class="emptyWarning">A subselection is empty</p>
+      <v-btn
+        @click="visualizeSelection"
+        class="confirm_btn"
+        :disabled="emptySubSelectionWarning"
+      >
        Visualize Selection
       </v-btn>
       <v-overlay :value="resultLoading">
@@ -246,4 +331,7 @@ export default {
 
 <style scoped lang="scss">
     @import "../../style.main.scss";
+    p.emptyWarning {
+      color: darkred;
+    }
 </style>

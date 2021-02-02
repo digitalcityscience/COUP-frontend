@@ -21,34 +21,47 @@ import FocusAreas from '@/assets/focusAreas.json'
 
 /**
 
+ /**  calculate mean values and combine results
+ *          -> mean scaled values ((65dB noise in range of 45-85 -> 66% ) + scaledPedestrianDensity) /2
+ *          ---> see if scaled values need to be inversed. the higher the better?
+ *          apply color range to  mean values
+ */
+export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
+  let layerData = createLayerData(request.layerName)
+  let constraints = request.layerConstraints
+  let range = request.layerRange
 
+  layerData.features = layerData.features.filter(feature => {
+      return constraints[0] <= feature.properties.value
+        && feature.properties.value <= constraints[1]
+    }
+  )
+
+  turf.featureEach(layerData, function(feature) {
+    const value = feature.properties.value
+    feature.properties["scaledValue"] = ((value - range[0]) / (range[1] - range[0])) * 100
+  })
+
+  return layerData
+}
 
 /**
  *
- * @param request: MultiLayerAnalysisRequest
+ * @param layer_1
+ * @param layer_2
  */
-export function showMultiLayerAnalysis(request: MultiLayerAnalysisRequest) {
-  // get layer data
-  let layer_1 = createLayerData(request.layer_1_Name)
-  let layer_2 = createLayerData(request.layer_2_Name)
-
-  // filter and scale layer data
-  filterAndScaleLayerData(layer_1, request.layer_1_Range, request.layer_1_Constraints);
-  filterAndScaleLayerData(layer_2, request.layer_2_Range, request.layer_2_Constraints);
-
-  // combine layers
-  let combinedLayers = combineLayers(layer_1, layer_2, request.layer_1_Name, request.layer_2_Name)
+export function showMultiLayerAnalysis(layer_1, layer_2) {
+  let combinedLayers = combineLayers(layer_1, layer_2)
   store.dispatch("scenario/addMultiLayerAnalysisLayer", combinedLayers)
 
   console.log(combinedLayers)
 
-
-  saveFile("combinedLayers",
+  /*saveFile("combinedLayers",
     {
       "type": "FeatureCollection",
       "features": combinedLayers
     }
-    )
+    )*/
 }
 
 
@@ -64,19 +77,18 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
     return
   }
 
+  /** get layer data from noise layer*/
   // format noise data and return as featureCollection
   if (layerName === 'Noise Levels') {
-    baseDataSet = baseDataSet[0]["geojson_result"]
+    baseDataSet = baseDataSet[0]["geojson_result"]  // todo remove this, when getting noise from store.
     baseDataSet["features"].forEach(feature => {
-    // todo use this , when using noise from store . baseDataSet["features"].forEach(feature => {
       feature.properties["value"] = noiseLookup[feature.properties["idiso"]]
+      feature.properties["layerName"] = layerName
     })
     return turf.featureCollection(baseDataSet["features"])
   }
 
-
-  console.log("baseData", baseDataSet)
-
+  /** get layer data from abmStats or amenityStats*/
   // create featureCollection with focusAreas polygons and selected value
   let layerData = turf.featureCollection([])
   for (const [focusAreaId, values] of Object.entries(baseDataSet)) {
@@ -84,16 +96,12 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
       console.log("skipping this")
       continue
     }
-
-
-    let feature = getPolygonForFocusArea(focusAreaId)
+    let feature = getGeoFeatureForFocusArea(focusAreaId)
     // TODO refactor structure of abm results
-    if (baseDataSet === abmStats) {
-      feature.properties = {"value": values["original"][layerName]}
-    } else {
-      feature.properties = {"value": values[layerName]}
-    }
-
+    feature.properties = (baseDataSet === abmStats) ?
+      {"value": values["original"][layerName]}
+      : {"value": values[layerName]};
+    feature.properties["layerName"] = layerName
     layerData.features.push(feature)
   }
   console.log("layer data",  layerData)
@@ -102,52 +110,8 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
 }
 
 
-/**  calculate mean values and combine results
-*          -> mean scaled values ((65dB noise in range of 45-85 -> 66% ) + scaledPedestrianDensity) /2
-*          ---> see if scaled values need to be inversed. the higher the better?
-*          apply color range to  mean values
-*/
-function filterAndScaleLayerData(layerData: turf.FeatureCollection<turf.Polygon|turf.MultiPolygon>, range, constraints) {
-  layerData.features = layerData.features.filter(feature => {
-      return constraints[0] <= feature.properties.value
-        && feature.properties.value <= constraints[1]
-    }
-  )
 
-  turf.featureEach(layerData, function(feature) {
-    const value = feature.properties.value
-    feature.properties["scaledValue"] = ((value - range[0]) / (range[1] - range[0])) * 100
-  })
-}
-
-function saveFile(filename, obj) {
-  const data = JSON.stringify(obj)
-  const blob = new Blob([data], {type: 'text/plain'})
-  const e = document.createEvent('MouseEvents'),
-    a = document.createElement('a');
-  a.download = filename + ".json";
-  a.href = window.URL.createObjectURL(blob);
-  a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
-  e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-  a.dispatchEvent(e);
-}
-
-function flattenFeatureCollection(featureCollection) {
-  let flattenedFeatures = []
-  featureCollection.features.forEach(feature => {
-    if (feature.geometry.type == "MultiPolygon") {
-      turf.flatten(feature).features.forEach(flatFeat => {
-        flattenedFeatures.push(flatFeat)
-      })
-    } else {
-      flattenedFeatures.push(feature)
-    }
-  })
-
-  return flattenedFeatures
-}
-
-function combineLayers(layer_1, layer_2, layer_1_Name, layer_2_Name): turf.Feature[] {
+function combineLayers(layer_1, layer_2): turf.Feature[] {
   const flattenedFeatures_1 = flattenFeatureCollection(layer_1)
   const flattenedFeatures_2 = flattenFeatureCollection(layer_2)
 
@@ -160,9 +124,6 @@ function combineLayers(layer_1, layer_2, layer_1_Name, layer_2_Name): turf.Featu
     for (const flatFeat_2 of flattenedFeatures_2) {
       if (turf.booleanOverlap(flatFeat_1, flatFeat_2)) {
         const meanValue = (flatFeat_1.properties["scaledValue"] + flatFeat_2.properties["scaledValue"]) / 2
-        flatFeat_1.properties["layerName"] = layer_1_Name
-        flatFeat_2.properties["layerName"] = layer_2_Name
-
         // try creating new feature from intersection and meanValue
         try {
         combinedFeatures.push(turf.feature(
@@ -183,7 +144,7 @@ function combineLayers(layer_1, layer_2, layer_1_Name, layer_2_Name): turf.Featu
 }
 
 
-function getPolygonForFocusArea(focusAreaId): turf.Feature<turf.Polygon> | turf.Feature<turf.MultiPolygon> {
+function getGeoFeatureForFocusArea(focusAreaId): turf.Feature<turf.Polygon> | turf.Feature<turf.MultiPolygon> {
   const polygons = focusAreas.features.filter(feature => {
     return feature.id == focusAreaId
   })
@@ -195,6 +156,21 @@ function getPolygonForFocusArea(focusAreaId): turf.Feature<turf.Polygon> | turf.
   }
 
   return turf.multiPolygon(polygons.map(polygon => {return polygon.geometry.coordinates}))
+}
+
+function flattenFeatureCollection(featureCollection) {
+  let flattenedFeatures = []
+  featureCollection.features.forEach(feature => {
+    if (feature.geometry.type == "MultiPolygon") {
+      turf.flatten(feature).features.forEach(flatFeat => {
+        flattenedFeatures.push(flatFeat)
+      })
+    } else {
+      flattenedFeatures.push(feature)
+    }
+  })
+
+  return flattenedFeatures
 }
 
 
@@ -226,6 +202,19 @@ const layerLookup = {
 'Trip Duration': store.state.scenario.abmStats,
 'Trip Length': store.state.scenario.abmStats
  */
+}
+
+
+function saveFile(filename, obj) {
+  const data = JSON.stringify(obj)
+  const blob = new Blob([data], {type: 'text/plain'})
+  const e = document.createEvent('MouseEvents'),
+    a = document.createElement('a');
+  a.download = filename + ".json";
+  a.href = window.URL.createObjectURL(blob);
+  a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
+  e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+  a.dispatchEvent(e);
 }
 
 

@@ -102,13 +102,10 @@ declare global {
         options: AnyMapboxLayer | DeckLayer
       }
 
-      interface MultiLayerAnalysisRequest {
-        layer_1_Name: string,
-        layer_1_Range: Number[],
-        layer_1_Constraints: Number[],
-        layer_2_Name: string,
-        layer_2_Range: Number[],
-        layer_2_Constraints: Number[],
+      interface LayerAnalysisRequest {
+        layerName: string,
+        layerRange: Number[],
+        layerConstraints: Number[],
         logicOperator: string
       }
 
