@@ -2,7 +2,8 @@
 import { mapState } from 'vuex'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import UseTypesLegend from "@/components/Menu/UseTypesLegend.vue";
-import FocusAreasLayer from "@/config/focusAreas.json";
+import FocusAreasLayerConfig from "@/config/focusAreas.json";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 
 export default {
     name: 'Viewbar',
@@ -24,6 +25,7 @@ export default {
                 noise: true,
                 stormwater: true,
                 microclimate: true,
+                multiLayerAnalysis: true,
             },
             visibleBuildings: {
                 show: true,
@@ -73,6 +75,9 @@ export default {
       },
       microClimate(){
           return this.$store.state.scenario.microClimate;
+      },
+      multiLayerAnalysis(){
+          return this.$store.state.map.getLayer("multiLayerAnalysis");
       }
     },
     watch: {
@@ -205,11 +210,19 @@ export default {
             if(this.layerIds.indexOf("focusAreas") > -1){
               console.log("visible layers", this.visibleLayers)
                 if(this.visibleLayers.focusAreas){
-                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'visible');
+                  this.map.setLayoutProperty(FocusAreasLayerConfig.mapSource.data.id, 'visibility', 'visible');
                 } else {
-                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+                  this.map.setLayoutProperty(FocusAreasLayerConfig.mapSource.data.id, 'visibility', 'none');
                 }
             }
+           if(this.layerIds.indexOf("multiLayerAnalysis") > -1){
+            console.log("visible layers", this.visibleLayers)
+            if(this.visibleLayers.multiLayerAnalysis){
+              this.map.setLayoutProperty(MultiLayerAnalysisConfig.layer.id, 'visibility', 'visible');
+            } else {
+              this.map.setLayoutProperty(MultiLayerAnalysisConfig.layer.id, 'visibility', 'none');
+            }
+          }
         },
         checkHighlights(active){
             Object.entries(this.visibility).map(([key, value]) => {
@@ -391,6 +404,18 @@ export default {
                     @change="updateLayerVisibility"
                     hide-details
                     :disabled="!microClimate"
+                 ></v-checkbox>
+             </div>
+           <div class="layers">
+                 <h3>Multi Layer Analysis</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.multiLayerAnalysis"
+                    label="Multi Layer Analysis"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!multiLayerAnalysis"
                  ></v-checkbox>
              </div>
          </div>
