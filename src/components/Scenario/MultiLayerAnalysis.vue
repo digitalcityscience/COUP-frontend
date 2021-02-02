@@ -179,17 +179,7 @@ export default {
             )
         },
         visualizeSelection () {
-         const request = {
-           "layer_1_Name" : this.selectValue_1.value,
-           "layer_1_Range" : this.selectValue_1.range,
-           "layer_1_Constraints" : this.sliderValues_1,
-           "layer_2_Name" : this.selectValue_2.value,
-           "layer_2_Range" : this.selectValue_2.range,
-           "layer_2_Constraints" : this.sliderValues_2,
-           "logicOperator" : "and"
-         }
-
-          showMultiLayerAnalysis(request)
+          showMultiLayerAnalysis(this.subSelectionLayer_1, this.subSelectionLayer_2)
         }
     }
 }
