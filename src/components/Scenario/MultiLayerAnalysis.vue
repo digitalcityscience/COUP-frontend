@@ -40,6 +40,11 @@ export default {
             ],
             select_Options_1: [],
             select_Options_2: [],
+            logicOptions: [
+              {"label": "AND", "value": "and"},
+              {"label": "AND NOT", "value": "and_not"},
+            ],
+            logicOperator: null,
             resultLookups: {}
         }
     },
@@ -154,6 +159,7 @@ export default {
       this.selectValue_2 = this.availableResultLayers[1]
       this.sliderValues_2 = this.selectValue_2.range
 
+      this.logicOperator = this.logicOptions[0]
       // todo create results
       // todo create resultLookups with results from store.
 
@@ -174,24 +180,22 @@ export default {
             console.log("active divisoin is", this.activeDivision)
             },
     methods: {
-        loadNoiseMap () {
-            this.$store.dispatch(
-                'scenario/updateNoiseScenario'
-            )
+        inputChanged() {
+          this.resultOutdated = true;
+          this.showError = false;
         },
         visualizeSelection () {
           this.resultOutdated = false
-          const combinedLayers = showMultiLayerAnalysis(this.subSelectionLayer_1, this.subSelectionLayer_2)
+          const combinedLayers = showMultiLayerAnalysis(
+            this.subSelectionLayer_1,
+            this.subSelectionLayer_2,
+            this.logicOperator.value
+          );
+
           if (combinedLayers.length === 0) {
             this.emptyDataWarning = true
           }
-
-        },
-      inputChanged() {
-          console.log("result outdated")
-          this.resultOutdated = true;
-          this.showError = false;
-      }
+        }
     }
 }
 
@@ -266,8 +270,7 @@ export default {
             </v-col>
           </v-row>
           <v-row align="center">
-            <v-col>
-              <!-- TODO SLIDER VALUE, oder mit watch auf range-->
+            <v-col style="margin-top: -25px">
               <v-range-slider
                 @dragstart="_ => null"
                 @dragend="_ => null"
@@ -288,7 +291,7 @@ export default {
                 flat
               ></v-range-slider>
             </v-col>
-            <v-col>
+            <v-col style="margin-top: -25px;">
               <v-range-slider
                 @dragstart="_ => null"
                 @dragend="_ => null"
@@ -326,6 +329,23 @@ export default {
               </v-checkbox>
             </v-col>
           </v-row>
+        <v-row align="center">
+          <v-select
+            :items="logicOptions"
+            v-model="logicOperator"
+            @change="inputChanged()"
+            item-text="label"
+            item-value="label"
+            hint="Combine layers by"
+            solo
+            label="Logic Layer Connection"
+            persistent-hint
+            return-object
+            single-line
+            dark
+          ></v-select>
+
+        </v-row>
         </v-container>
       <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
        Hide Noise Result
