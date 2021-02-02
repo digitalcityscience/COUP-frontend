@@ -1,1 +1,86 @@
-{"1":{"Diversity":89,"Amenity Types":8,"Density":152,"Complementarity":182},"2":{"Diversity":85,"Amenity Types":10,"Density":837,"Complementarity":182},"3":{"Diversity":100,"Amenity Types":4,"Density":74,"Complementarity":182},"4":{"Diversity":0,"Amenity Types":0,"Density":0,"Complementarity":0},"5":{"Diversity":90,"Amenity Types":4,"Density":129,"Complementarity":182},"6":{"Diversity":91,"Amenity Types":9,"Density":273,"Complementarity":182},"7":{"Diversity":100,"Amenity Types":3,"Density":62,"Complementarity":182},"8":{"Diversity":100,"Amenity Types":2,"Density":34,"Complementarity":182},"9":{"Diversity":0,"Amenity Types":0,"Density":0,"Complementarity":0},"10":{"Diversity":0,"Amenity Types":0,"Density":0,"Complementarity":0},"11":{"Diversity":73,"Amenity Types":3,"Density":36,"Complementarity":182},"12":{"Diversity":100,"Amenity Types":3,"Density":28,"Complementarity":182},"grasbrook":{"Diversity":91,"Amenity Types":20,"Density":111,"Complementarity":182},"units":["Simpson Index","unique place types","places/km²","complementary trips"]}
+{
+  "1": {
+    "Diversity": 89,
+    "Amenity Types": 8,
+    "Density": 152,
+    "Complementarity": 182
+  },
+  "2": {
+    "Diversity": 85,
+    "Amenity Types": 10,
+    "Density": 837,
+    "Complementarity": 182
+  },
+  "3": {
+    "Diversity": 100,
+    "Amenity Types": 4,
+    "Density": 74,
+    "Complementarity": 182
+  },
+  "4": {
+    "Diversity": 0,
+    "Amenity Types": 0,
+    "Density": 0,
+    "Complementarity": 0
+  },
+  "5": {
+    "Diversity": 90,
+    "Amenity Types": 4,
+    "Density": 129,
+    "Complementarity": 182
+  },
+  "6": {
+    "Diversity": 91,
+    "Amenity Types": 9,
+    "Density": 273,
+    "Complementarity": 182
+  },
+  "7": {
+    "Diversity": 100,
+    "Amenity Types": 3,
+    "Density": 62,
+    "Complementarity": 182
+  },
+  "8": {
+    "Diversity": 100,
+    "Amenity Types": 2,
+    "Density": 34,
+    "Complementarity": 182
+  },
+  "9": {
+    "Diversity": 0,
+    "Amenity Types": 0,
+    "Density": 0,
+    "Complementarity": 0
+  },
+  "10": {
+    "Diversity": 0,
+    "Amenity Types": 0,
+    "Density": 0,
+    "Complementarity": 0
+  },
+  "11": {
+    "Diversity": 73,
+    "Amenity Types": 3,
+    "Density": 36,
+    "Complementarity": 182
+  },
+  "12": {
+    "Diversity": 100,
+    "Amenity Types": 3,
+    "Density": 28,
+    "Complementarity": 182
+  },
+  "grasbrook": {
+    "Diversity": 91,
+    "Amenity Types": 20,
+    "Density": 111,
+    "Complementarity": 182
+  },
+  "units": [
+    "Simpson Index",
+    "unique place types",
+    "places/km²",
+    "complementary trips"
+  ]
+}

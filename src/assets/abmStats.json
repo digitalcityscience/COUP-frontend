@@ -1,1 +1,217 @@
-{"1":{"original":{"pedestrianDensity":0.192,"temporalEntropyPercent":80,"opportunitiesOfInteraction":0.098,"averageDuration":21,"averageLength":834},"scaledResults":{"Pedestrian Density":64,"Temporal Entropy":80,"Opportunities for Interaction":65.33333333333334,"Trip Duration":35,"Trip Length":55.60000000000001}},"2":{"original":{"pedestrianDensity":0.3,"temporalEntropyPercent":78,"opportunitiesOfInteraction":0.007,"averageDuration":16,"averageLength":957},"scaledResults":{"Pedestrian Density":100,"Temporal Entropy":78,"Opportunities for Interaction":4.666666666666667,"Trip Duration":26.666666666666668,"Trip Length":63.800000000000004}},"3":{"original":{"pedestrianDensity":0.037,"temporalEntropyPercent":78,"opportunitiesOfInteraction":0.152,"averageDuration":20,"averageLength":1271},"scaledResults":{"Pedestrian Density":12.333333333333334,"Temporal Entropy":78,"Opportunities for Interaction":100,"Trip Duration":33.33333333333333,"Trip Length":84.73333333333333}},"4":{"original":{"pedestrianDensity":0.012,"temporalEntropyPercent":76,"opportunitiesOfInteraction":0,"averageDuration":0,"averageLength":0},"scaledResults":{"Pedestrian Density":4,"Temporal Entropy":76,"Opportunities for Interaction":0,"Trip Duration":0,"Trip Length":0}},"5":{"original":{"pedestrianDensity":0.05,"temporalEntropyPercent":75,"opportunitiesOfInteraction":0,"averageDuration":14,"averageLength":679},"scaledResults":{"Pedestrian Density":16.666666666666668,"Temporal Entropy":75,"Opportunities for Interaction":0,"Trip Duration":23.333333333333332,"Trip Length":45.266666666666666}},"6":{"original":{"pedestrianDensity":0.192,"temporalEntropyPercent":79,"opportunitiesOfInteraction":0.002,"averageDuration":18,"averageLength":971},"scaledResults":{"Pedestrian Density":64,"Temporal Entropy":79,"Opportunities for Interaction":1.3333333333333335,"Trip Duration":30,"Trip Length":64.73333333333333}},"7":{"original":{"pedestrianDensity":0.065,"temporalEntropyPercent":81,"opportunitiesOfInteraction":0,"averageDuration":35,"averageLength":730},"scaledResults":{"Pedestrian Density":21.666666666666668,"Temporal Entropy":81,"Opportunities for Interaction":0,"Trip Duration":58.333333333333336,"Trip Length":48.66666666666667}},"8":{"original":{"pedestrianDensity":0.074,"temporalEntropyPercent":82,"opportunitiesOfInteraction":0.012,"averageDuration":18,"averageLength":845},"scaledResults":{"Pedestrian Density":24.666666666666668,"Temporal Entropy":82,"Opportunities for Interaction":8,"Trip Duration":30,"Trip Length":56.333333333333336}},"9":{"original":{"pedestrianDensity":0.006,"temporalEntropyPercent":62,"opportunitiesOfInteraction":0.001,"averageDuration":14,"averageLength":1013},"scaledResults":{"Pedestrian Density":2,"Temporal Entropy":62,"Opportunities for Interaction":0.6666666666666667,"Trip Duration":23.333333333333332,"Trip Length":67.53333333333333}},"10":{"original":{"pedestrianDensity":0.034,"temporalEntropyPercent":77,"opportunitiesOfInteraction":0,"averageDuration":0,"averageLength":0},"scaledResults":{"Pedestrian Density":11.333333333333334,"Temporal Entropy":77,"Opportunities for Interaction":0,"Trip Duration":0,"Trip Length":0}},"11":{"original":{"pedestrianDensity":0.025,"temporalEntropyPercent":80,"opportunitiesOfInteraction":0,"averageDuration":36,"averageLength":1071},"scaledResults":{"Pedestrian Density":8.333333333333334,"Temporal Entropy":80,"Opportunities for Interaction":0,"Trip Duration":60,"Trip Length":71.39999999999999}},"12":{"original":{"pedestrianDensity":0.058,"temporalEntropyPercent":79,"opportunitiesOfInteraction":0,"averageDuration":21,"averageLength":1032},"scaledResults":{"Pedestrian Density":19.333333333333336,"Temporal Entropy":79,"Opportunities for Interaction":0,"Trip Duration":35,"Trip Length":68.8}},"grasbrook":{"original":{"pedestrianDensity":0.076,"temporalEntropyPercent":80,"opportunitiesOfInteraction":0.025,"averageDuration":21,"averageLength":1101},"scaledResults":{"Pedestrian Density":25.333333333333336,"Temporal Entropy":80,"Opportunities for Interaction":16.666666666666668,"Trip Duration":35,"Trip Length":73.4}},"units":["pedestrians/m²","%","interactions/m²","minutes","meters"]}
+{
+  "1": {
+    "original": {
+      "pedestrianDensity": 0.192,
+      "temporalEntropyPercent": 80,
+      "opportunitiesOfInteraction": 0.098,
+      "averageDuration": 21,
+      "averageLength": 834
+    },
+    "scaledResults": {
+      "Pedestrian Density": 64,
+      "Temporal Entropy": 80,
+      "Opportunities for Interaction": 65.33333333333334,
+      "Trip Duration": 35,
+      "Trip Length": 55.60000000000001
+    }
+  },
+  "2": {
+    "original": {
+      "pedestrianDensity": 0.3,
+      "temporalEntropyPercent": 78,
+      "opportunitiesOfInteraction": 0.007,
+      "averageDuration": 16,
+      "averageLength": 957
+    },
+    "scaledResults": {
+      "Pedestrian Density": 100,
+      "Temporal Entropy": 78,
+      "Opportunities for Interaction": 4.666666666666667,
+      "Trip Duration": 26.666666666666668,
+      "Trip Length": 63.800000000000004
+    }
+  },
+  "3": {
+    "original": {
+      "pedestrianDensity": 0.037,
+      "temporalEntropyPercent": 78,
+      "opportunitiesOfInteraction": 0.152,
+      "averageDuration": 20,
+      "averageLength": 1271
+    },
+    "scaledResults": {
+      "Pedestrian Density": 12.333333333333334,
+      "Temporal Entropy": 78,
+      "Opportunities for Interaction": 100,
+      "Trip Duration": 33.33333333333333,
+      "Trip Length": 84.73333333333333
+    }
+  },
+  "4": {
+    "original": {
+      "pedestrianDensity": 0.012,
+      "temporalEntropyPercent": 76,
+      "opportunitiesOfInteraction": 0,
+      "averageDuration": 0,
+      "averageLength": 0
+    },
+    "scaledResults": {
+      "Pedestrian Density": 4,
+      "Temporal Entropy": 76,
+      "Opportunities for Interaction": 0,
+      "Trip Duration": 0,
+      "Trip Length": 0
+    }
+  },
+  "5": {
+    "original": {
+      "pedestrianDensity": 0.05,
+      "temporalEntropyPercent": 75,
+      "opportunitiesOfInteraction": 0,
+      "averageDuration": 14,
+      "averageLength": 679
+    },
+    "scaledResults": {
+      "Pedestrian Density": 16.666666666666668,
+      "Temporal Entropy": 75,
+      "Opportunities for Interaction": 0,
+      "Trip Duration": 23.333333333333332,
+      "Trip Length": 45.266666666666666
+    }
+  },
+  "6": {
+    "original": {
+      "pedestrianDensity": 0.192,
+      "temporalEntropyPercent": 79,
+      "opportunitiesOfInteraction": 0.002,
+      "averageDuration": 18,
+      "averageLength": 971
+    },
+    "scaledResults": {
+      "Pedestrian Density": 64,
+      "Temporal Entropy": 79,
+      "Opportunities for Interaction": 1.3333333333333335,
+      "Trip Duration": 30,
+      "Trip Length": 64.73333333333333
+    }
+  },
+  "7": {
+    "original": {
+      "pedestrianDensity": 0.065,
+      "temporalEntropyPercent": 81,
+      "opportunitiesOfInteraction": 0,
+      "averageDuration": 35,
+      "averageLength": 730
+    },
+    "scaledResults": {
+      "Pedestrian Density": 21.666666666666668,
+      "Temporal Entropy": 81,
+      "Opportunities for Interaction": 0,
+      "Trip Duration": 58.333333333333336,
+      "Trip Length": 48.66666666666667
+    }
+  },
+  "8": {
+    "original": {
+      "pedestrianDensity": 0.074,
+      "temporalEntropyPercent": 82,
+      "opportunitiesOfInteraction": 0.012,
+      "averageDuration": 18,
+      "averageLength": 845
+    },
+    "scaledResults": {
+      "Pedestrian Density": 24.666666666666668,
+      "Temporal Entropy": 82,
+      "Opportunities for Interaction": 8,
+      "Trip Duration": 30,
+      "Trip Length": 56.333333333333336
+    }
+  },
+  "9": {
+    "original": {
+      "pedestrianDensity": 0.006,
+      "temporalEntropyPercent": 62,
+      "opportunitiesOfInteraction": 0.001,
+      "averageDuration": 14,
+      "averageLength": 1013
+    },
+    "scaledResults": {
+      "Pedestrian Density": 2,
+      "Temporal Entropy": 62,
+      "Opportunities for Interaction": 0.6666666666666667,
+      "Trip Duration": 23.333333333333332,
+      "Trip Length": 67.53333333333333
+    }
+  },
+  "10": {
+    "original": {
+      "pedestrianDensity": 0.034,
+      "temporalEntropyPercent": 77,
+      "opportunitiesOfInteraction": 0,
+      "averageDuration": 0,
+      "averageLength": 0
+    },
+    "scaledResults": {
+      "Pedestrian Density": 11.333333333333334,
+      "Temporal Entropy": 77,
+      "Opportunities for Interaction": 0,
+      "Trip Duration": 0,
+      "Trip Length": 0
+    }
+  },
+  "11": {
+    "original": {
+      "pedestrianDensity": 0.025,
+      "temporalEntropyPercent": 80,
+      "opportunitiesOfInteraction": 0,
+      "averageDuration": 36,
+      "averageLength": 1071
+    },
+    "scaledResults": {
+      "Pedestrian Density": 8.333333333333334,
+      "Temporal Entropy": 80,
+      "Opportunities for Interaction": 0,
+      "Trip Duration": 60,
+      "Trip Length": 71.39999999999999
+    }
+  },
+  "12": {
+    "original": {
+      "pedestrianDensity": 0.058,
+      "temporalEntropyPercent": 79,
+      "opportunitiesOfInteraction": 0,
+      "averageDuration": 21,
+      "averageLength": 1032
+    },
+    "scaledResults": {
+      "Pedestrian Density": 19.333333333333336,
+      "Temporal Entropy": 79,
+      "Opportunities for Interaction": 0,
+      "Trip Duration": 35,
+      "Trip Length": 68.8
+    }
+  },
+  "grasbrook": {
+    "original": {
+      "pedestrianDensity": 0.076,
+      "temporalEntropyPercent": 80,
+      "opportunitiesOfInteraction": 0.025,
+      "averageDuration": 21,
+      "averageLength": 1101
+    },
+    "scaledResults": {
+      "Pedestrian Density": 25.333333333333336,
+      "Temporal Entropy": 80,
+      "Opportunities for Interaction": 16.666666666666668,
+      "Trip Duration": 35,
+      "Trip Length": 73.4
+    }
+  },
+  "units": [
+    "pedestrians/m²",
+    "%",
+    "interactions/m²",
+    "minutes",
+    "meters"
+  ]
+}

@@ -20,12 +20,7 @@ import FocusAreas from '@/assets/focusAreas.json'
 
 
 /**
- * averageDuration: 21
- averageLength: 834
- opportunitiesOfInteraction: 0.098
- pedestrianDensity: 0.192
- temporalEntropyPercent: 80
- */
+
 
 
 /**
@@ -79,6 +74,7 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
     return turf.featureCollection(baseDataSet["features"])
   }
 
+
   console.log("baseData", baseDataSet)
 
   // create featureCollection with focusAreas polygons and selected value
@@ -91,7 +87,13 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
 
 
     let feature = getPolygonForFocusArea(focusAreaId)
-    feature.properties = {"value": values[layerName]}
+    // TODO refactor structure of abm results
+    if (baseDataSet === abmStats) {
+      feature.properties = {"value": values["original"][layerName]}
+    } else {
+      feature.properties = {"value": values[layerName]}
+    }
+
     layerData.features.push(feature)
   }
   console.log("layer data",  layerData)
@@ -145,7 +147,7 @@ function flattenFeatureCollection(featureCollection) {
   return flattenedFeatures
 }
 
-function combineLayers(layer_1, layer_2, layer_1_Name, layer_2_Name): [] {
+function combineLayers(layer_1, layer_2, layer_1_Name, layer_2_Name): turf.Feature[] {
   const flattenedFeatures_1 = flattenFeatureCollection(layer_1)
   const flattenedFeatures_2 = flattenFeatureCollection(layer_2)
 
@@ -158,15 +160,22 @@ function combineLayers(layer_1, layer_2, layer_1_Name, layer_2_Name): [] {
     for (const flatFeat_2 of flattenedFeatures_2) {
       if (turf.booleanOverlap(flatFeat_1, flatFeat_2)) {
         const meanValue = (flatFeat_1.properties["scaledValue"] + flatFeat_2.properties["scaledValue"]) / 2
-        // create new feature from intersection and meanValue
+        flatFeat_1.properties["layerName"] = layer_1_Name
+        flatFeat_2.properties["layerName"] = layer_2_Name
+
+        // try creating new feature from intersection and meanValue
+        try {
         combinedFeatures.push(turf.feature(
-          turf.intersect(flatFeat_1, flatFeat_2).geometry,   // todo: might be polygon
+          turf.intersect(flatFeat_1, flatFeat_2).geometry,
           {
             "meanScaledValue": meanValue,
             layer_1_Name: flatFeat_1.properties,
             layer_2_Name: flatFeat_2.properties,
           }
         ))
+        } catch (e) {
+          console.warn("Error for one of layer intersections", e, flatFeat_1, flatFeat_2)
+        }
       }
     }
   }
@@ -200,12 +209,11 @@ const layerLookup = {
 'Complementarity': amenityStats,
 'Density': amenityStats,
 'Diversity': amenityStats,
-'Opportunities for Interaction': abmStats,
-'Pedestrian Density': abmStats,
-'Temporal Entropy': abmStats,
-'Trip Duration': abmStats,
-'Trip Length': abmStats
-
+'opportunitiesOfInteraction': abmStats,
+'pedestrianDensity': abmStats,
+'temporalEntropyPercent': abmStats,
+'averageDuration': abmStats,
+'averageLength': abmStats
 
 /** 'Noise Levels': store.state.scenario.currentNoiseGeoJson,
 'Amenity Types': store.state.scenario.amenityStats,
