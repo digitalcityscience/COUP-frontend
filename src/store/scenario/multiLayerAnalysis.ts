@@ -6,6 +6,7 @@ import NoiseResults from '@/assets/noise.json'
 import abmStats from '@/assets/abmStats.json'
 import amenityStats from '@/assets/amenityStats.json'
 import FocusAreas from '@/assets/focusAreas.json'
+import {booleanOverlap} from "@turf/turf";
 
 
 /**
@@ -19,6 +20,9 @@ export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
   let constraints = request.layerConstraints
   let range = request.layerRange
 
+
+  console.log("layerName, Range", request)
+
   layerData.features = layerData.features.filter(feature => {
       return constraints[0] <= feature.properties.value
         && feature.properties.value <= constraints[1]
@@ -30,6 +34,9 @@ export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
     feature.properties["scaledValue"] = ((value - range[0]) / (range[1] - range[0])) * 100
   })
 
+
+  console.log("layerdata", layerData)
+
   return layerData
 }
 
@@ -38,10 +45,13 @@ export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
  * @param layer_2
  */
 export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
-  let combinedLayers = combineLayers(layer_1, layer_2, logicOperator)
-  store.dispatch("scenario/addMultiLayerAnalysisLayer", combinedLayers)
+  const combinedLayerFeatures = combineLayers(layer_1, layer_2, logicOperator)
+  store.dispatch("scenario/addMultiLayerAnalysisLayer", combinedLayerFeatures)
 
-  return combinedLayers;
+  const performanceInfos = createPerformanceInfos(combinedLayerFeatures)
+  store.dispatch("scenario/addMultiLayerPerformanceInfos", performanceInfos)
+
+  return combinedLayerFeatures;
 }
 
 /**
@@ -58,7 +68,7 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
 
   /** get layer data from noise layer*/
   // format noise data and return as featureCollection
-  if (layerName === 'Noise Levels') {
+  if (layerName === 'noise') {
     baseDataSet = baseDataSet[0]["geojson_result"]  // todo remove this, when getting noise from store.
     baseDataSet["features"].forEach((feature, featureId) => {
       feature.properties["value"] = noiseLookup[feature.properties["idiso"]]
@@ -109,6 +119,50 @@ function combineLayers(layer_1, layer_2, logicOperator): turf.Feature[] {
   return createLayerOfIntersections(flattenedFeatures_1, flattenedFeatures_2)
 }
 
+function createPerformanceInfos(combinedFeatures: turf.Feature[]) {
+  let infos = []
+  combinedFeatures.forEach(feat => {
+    const lowOrHigh_1 = isLowOrHighValue(feat.properties.layer1)
+    const lowOrHigh_2 = isLowOrHighValue(feat.properties.layer2)
+
+    if (lowOrHigh_1 && lowOrHigh_2) {
+      let info = turf.centroid(feat,
+        {
+          "shortInfoText":
+           feat.properties.layer1.layerName + " level: " + lowOrHigh_1 + " \n"
+           + feat.properties.layer2.layerName + " level: " + lowOrHigh_2
+          ,
+          "infoText":
+          "This area has a " + lowOrHigh_1 + " " + feat.properties.layer1.layerName + " level " +
+          "combined with a " + lowOrHigh_2 + " " + feat.properties.layer2.layerName + " level"
+        }
+      )
+      infos.push(info)
+    }
+  })
+
+  return infos
+}
+
+
+/**
+ * TODO - statistical high/lows
+ *
+ * Returns "high" , "low" or null , depending on the scaled value (always scaled to 0-100)
+ * @param props
+ */
+function isLowOrHighValue(props): string | null {
+  if (props.scaledValue >= 64) {
+    return "high"
+  }
+  if (props.scaledValue <= 20) {
+    return "low"
+  }
+
+  return null
+}
+
+
 /**
  * iterate over unfiltered features
  * and keep all features that are not in the layerToInvert
@@ -136,32 +190,52 @@ function invertLayerFilter(layerToInvert) {
  * Creates a layer of all intersecting areas between the 2 input layers
  * Each intersection polygon has a property with a mean scaled value, calculated from the 2 input layers
  *
- * @param layer_1
- * @param layer_2
+ * @param layer_1_features
+ * @param layer_2_features
  */
-function createLayerOfIntersections(layer_1, layer_2) {
+function createLayerOfIntersections(layer_1_features, layer_2_features) {
   let combinedFeatures = []
-  for (const feat_1 of layer_1) {
-    for (const feat_2 of layer_2) {
-      if (turf.booleanOverlap(feat_1, feat_2)) {
+  for (const feat_1 of layer_1_features) {
+    for (const feat_2 of layer_2_features) {
+      const featureIntersection = findFeatureIntersection(feat_1, feat_2)
+      if (featureIntersection) {
         const meanValue = (feat_1.properties["scaledValue"] + feat_2.properties["scaledValue"]) / 2
         // try creating new feature from intersection and meanValue
-        try {
-          combinedFeatures.push(turf.feature(
-            turf.intersect(feat_1, feat_2).geometry,
-            {
-              "meanScaledValue": meanValue,
-              layer_1_Name: feat_1.properties,
-              layer_2_Name: feat_2.properties,
-            }
-          ))
-        } catch (e) {
-          console.warn("Error for one of layer intersections", e, feat_1, feat_2)
+        featureIntersection.properties = {
+          "meanScaledValue": meanValue,
+          "layer1": feat_1.properties,
+          "layer2": feat_2.properties,
         }
+        combinedFeatures.push(featureIntersection)
       }
     }
   }
   return combinedFeatures
+}
+
+/**
+ * Creates a simplified version of the features and looks for an intersection
+ * If simplified features intersect return a turf.Feature for the intersection area.
+ *
+ * @param feat_1
+ * @param feat_2
+ */
+function findFeatureIntersection(feat_1, feat_2): turf.Feature | null {
+  const simplifyingOptions = {tolerance:0.02, highQuality: false};
+  const simplifiedFeatures = [
+    turf.buffer(turf.simplify(JSON.parse(JSON.stringify(feat_1)), simplifyingOptions), 0.2, {"steps": 8} ),
+    turf.buffer(turf.simplify(JSON.parse(JSON.stringify(feat_2)), simplifyingOptions), 0.2, {"steps": 8})
+  ]
+
+  // if the simplified features overlap, take a closer look and return if the real features overlap
+  if (turf.booleanOverlap(simplifiedFeatures[0], simplifiedFeatures[1])) {
+    try {
+      return turf.intersect(feat_1, feat_2)
+    } catch (e) {
+      console.warn("Error for one of layer intersections", e, feat_1, feat_2)
+    }
+  }
+  return null
 }
 
 /**
@@ -204,13 +278,13 @@ function flattenFeatureCollection(featureCollection) {
 }
 
 
-const noiseLookup = [45,50,55,60,65,70,75,80,85]
+const noiseLookup = [45,50,55,60,65,70,75,80]
 
 // TODO const focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
 const focusAreas = turf.featureCollection(FocusAreas["features"]) as turf.FeatureCollection<turf.Polygon>
 
 const layerLookup = {
-'Noise Levels': NoiseResults,
+'noise': NoiseResults,
 'Amenity Types': amenityStats,
 'Complementarity': amenityStats,
 'Density': amenityStats,

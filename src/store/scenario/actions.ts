@@ -12,6 +12,7 @@ import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
+import PerformanceInfosConfig from "@/config/performanceInfos.json";
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -215,6 +216,23 @@ export default {
       }
       if (state.map?.getLayer(SubSelectionLayerConfig.layer.id)) {
         state.map?.moveLayer(SubSelectionLayerConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
+      }
+    })
+  },
+  addMultiLayerPerformanceInfos({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = PerformanceInfosConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', PerformanceInfosConfig.layer, {root: true})
+      }).then(source => {
+      // add layer on top of the layer stack
+      if (state.map?.getLayer("groundfloor")) {
+        state.map?.moveLayer(PerformanceInfosConfig.layer.id, "groundfloor")
+      }
+      if (state.map?.getLayer(PerformanceInfosConfig.layer.id)) {
+        state.map?.moveLayer(PerformanceInfosConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
       }
     })
   },

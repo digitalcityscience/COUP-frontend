@@ -5,6 +5,7 @@ import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
 import {filterAndScaleLayerData, showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
+import mdiInformationPng from '@/assets/mdi-information.png';
 
 
 export default {
@@ -27,7 +28,7 @@ export default {
             resultOutdated: false,
             availableResultLayers: [
               // TODO adjust ranges for amenity stats!
-              {"label": 'Noise Levels', "value": "Noise Levels", "unit": "dB", "range": [45,85], "step": 5},
+              {"label": 'Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
               {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
               {"label": 'Complementarity', "value": "Complementarity", "unit": "complementary trips count", "range": [0,100], "step": 1},
               {"label": 'Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
@@ -163,6 +164,16 @@ export default {
       // todo create results
       // todo create resultLookups with results from store.
 
+      // add image to map if necessary
+      if (! $store.state.map.hasImage("mdi-information")) {
+        const map = this.$store.state.map
+        map.loadImage(
+          mdiInformationPng,
+          function (error, image) {
+            if (error) throw error;
+            map.addImage('mdi-information', image);
+          })
+      }
     },
     mounted:
         function() {
