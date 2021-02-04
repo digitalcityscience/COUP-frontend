@@ -4,6 +4,8 @@ import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
 import {filterAndScaleLayerData, showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
+import {calculateAbmStatsForAllAreas} from "@/store/scenario/abmStats";
+import {calculateAmenityStatsForAllAreas} from "@/store/scenario/amenityStats";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import mdiInformationPng from '@/assets/mdi-information.png';
 
@@ -16,6 +18,7 @@ export default {
             activeDivision:null,
             componentDivisions: [],
             showError: false,
+            allDataProvided: false,
             selectValue_1: null,
             selectValue_2: null,
             sliderValues_1: [],
@@ -53,10 +56,17 @@ export default {
       ...mapState('scenario', ['resultLoading']), // getter only
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
+      ['activeMenuComponent', 'activeMenuComponent'],
       ['showNoise', 'scenario/' + 'showNoise'],
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
-    ])
+    ]),
+    abmData(){
+      return this.$store.state.scenario.abmData;
+    },
+    currentNoiseResult(){
+      return this.$store.state.scenario.currentNoiseGeoJson;
+    },
     },
     watch: {
       sliderValues_1: {
@@ -151,19 +161,7 @@ export default {
         }
       }
     },
-    beforeMount() {
-      this.select_Options_1 = this.availableResultLayers
-      this.selectValue_1 = this.availableResultLayers[0]
-      this.sliderValues_1 = this.selectValue_1.range
-
-      this.select_Options_2 = this.availableResultLayers
-      this.selectValue_2 = this.availableResultLayers[1]
-      this.sliderValues_2 = this.selectValue_2.range
-
-      this.logicOperator = this.logicOptions[0]
-      // todo create results
-      // todo create resultLookups with results from store.
-
+    async beforeMount() {
       // add image to map if necessary
       if (! $store.state.map.hasImage("mdi-information")) {
         const map = this.$store.state.map
@@ -172,7 +170,8 @@ export default {
           function (error, image) {
             if (error) throw error;
             map.addImage('mdi-information', image);
-          })
+          }
+        )
       }
     },
     mounted:
@@ -189,24 +188,52 @@ export default {
 
             this.activeDivision = divisions[0].getAttribute('data-title');
             console.log("active divisoin is", this.activeDivision)
-            },
-    methods: {
-        inputChanged() {
-          this.resultOutdated = true;
-          this.showError = false;
         },
-        visualizeSelection () {
-          this.resultOutdated = false
-          const combinedLayers = showMultiLayerAnalysis(
-            this.subSelectionLayer_1,
-            this.subSelectionLayer_2,
-            this.logicOperator.value
-          );
+    methods: {
+      switchToAbm() {
+        this.activeMenuComponent = 'AbmScenario'
+      },
+      switchToNoise() {
+        this.activeMenuComponent = 'NoiseScenario'
+      },
+      async calculateStats() {
+        console.log("this is noise")
+        console.log($store.state.scenario.currentNoiseGeoJson)
+        console.log(this.currentNoiseResult)
 
-          if (combinedLayers.length === 0) {
-            this.emptyDataWarning = true
-          }
+        await calculateAbmStatsForAllAreas()
+        await calculateAmenityStatsForAllAreas()
+        this.setInitialUiSettings()
+        this.allDataProvided = true
+      },
+      setInitialUiSettings() {
+        // set initial UI settings
+        this.select_Options_1 = this.availableResultLayers
+        this.selectValue_1 = this.availableResultLayers[0]
+        this.sliderValues_1 = this.selectValue_1.range
+
+        this.select_Options_2 = this.availableResultLayers
+        this.selectValue_2 = this.availableResultLayers[1]
+        this.sliderValues_2 = this.selectValue_2.range
+
+        this.logicOperator = this.logicOptions[0]
+      },
+      inputChanged() {
+        this.resultOutdated = true;
+        this.showError = false;
+      },
+      showCombinedLayers () {
+        this.resultOutdated = false
+        const combinedLayers = showMultiLayerAnalysis(
+          this.subSelectionLayer_1,
+          this.subSelectionLayer_2,
+          this.logicOperator.value
+        );
+
+        if (combinedLayers.length === 0) {
+          this.emptyDataWarning = true
         }
+      }
     }
 }
 
@@ -232,150 +259,176 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <h2>Choose Indexes</h2>
-        <v-container fluid>
+        <div  v-if="!allDataProvided">
+          <h2 v-if="!abmData && !currentNoiseResult">Choose input data first</h2>
+          <v-btn v-if="!abmData" style="margin: 20px;"
+            @click="switchToAbm"
+            class="confirm_btn"
+            :class="{ changesMade : resultOutdated }"
+          >Choose ABM Scenario
+          </v-btn>
+          <v-btn v-if="!currentNoiseResult" style="margin: 20px;"
+            @click="switchToNoise"
+            class="confirm_btn"
+            :class="{ changesMade : resultOutdated }"
+          >Choose Noise Scenario
+          </v-btn>
 
-          <!-- per row: check button. AND/OR selector. slider per v-select -->
-          <!-- set slider min max dynamically -->
+          <h2 v-if="abmData" style="margin-top: 25px;">Calculate statistical input values</h2>
+          <v-btn
+            @click="calculateStats"
+            class="confirm_btn"
+            :class="{ changesMade : resultOutdated }"
+            :disabled="!abmData"
+          >Calculate Input Data
+          </v-btn>
+        </div>
+        <div  v-if="allDataProvided">
+          <h2>Choose Indexes</h2>
+          <v-container fluid>
 
-          <v-row align="center">
-            <v-col
-              class="d-flex"
-              cols="12"
-              sm="6"
-            >
-              <v-select
-                :items="select_Options_1"
-                v-model="selectValue_1"
-                @change="inputChanged()"
-                item-text="label"
-                item-value="label"
-                :hint="`${selectValue_1.unit}`"
-                solo
-                label=""
-                persistent-hint
-                return-object
-                single-line
-                dark
-              ></v-select>
-            </v-col>
-            <v-col
-              class="d-flex"
-              cols="12"
-              sm="6"
-            >
-              <v-select
-                :items="select_Options_2"
-                v-model="selectValue_2"
-                @change="inputChanged()"
-                item-text="label"
-                item-value="label"
-                :hint="`${selectValue_2.unit}`"
-                solo
-                label=""
-                persistent-hint
-                return-object
-                single-line
-                dark
-              ></v-select>
-            </v-col>
-          </v-row>
-          <v-row align="center">
-            <v-col style="margin-top: -25px">
-              <v-range-slider
-                @dragstart="_ => null"
-                @dragend="_ => null"
-                @mousedown.native.stop="_ => null"
-                @mousemove.native.stop="_ => null"
-                @change="inputChanged()"
-                v-model="sliderValues_1"
-                :step="selectValue_1.step"
-                :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
-                persistent-hint
-                thumb-label="always"
-                label=""
-                thumb-size="1"
-                tick-size="50"
-                :min="selectValue_1.range[0]"
-                :max="selectValue_1.range[1]"
-                dark
-                flat
-              ></v-range-slider>
-            </v-col>
-            <v-col style="margin-top: -25px;">
-              <v-range-slider
-                @dragstart="_ => null"
-                @dragend="_ => null"
-                @mousedown.native.stop="_ => null"
-                @mousemove.native.stop="_ => null"
-                @change="inputChanged()"
-                v-model="sliderValues_2"
-                :step="selectValue_2.step"
-                :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
-                persistent-hint
-                thumb-label="always"
-                label=""
-                thumb-size="1"
-                tick-size="50"
-                :min="selectValue_2.range[0]"
-                :max="selectValue_2.range[1]"
-                dark
-                flat
-              ></v-range-slider>
-            </v-col>
-          </v-row>
-          <v-row align="center">
-            <v-col>
-              <v-checkbox
-                v-model="showSubSelection_1"
-                dark
-                label="Show subselection">
-              </v-checkbox>
-            </v-col>
-            <v-col>
-              <v-checkbox
-                v-model="showSubSelection_2"
-                dark
-                label="Show subselection">
-              </v-checkbox>
-            </v-col>
-          </v-row>
-        <v-row align="center">
-          <v-select
-            :items="logicOptions"
-            v-model="logicOperator"
-            @change="inputChanged()"
-            item-text="label"
-            item-value="label"
-            hint="Combine layers by"
-            solo
-            label="Logic Layer Connection"
-            persistent-hint
-            return-object
-            single-line
-            dark
-          ></v-select>
+            <!-- per row: check button. AND/OR selector. slider per v-select -->
+            <!-- set slider min max dynamically -->
 
-        </v-row>
-        </v-container>
-      <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
-       Hide Noise Result
-      </v-btn>-->
-      <p v-if="showError" class="warning">Invalid selection</p>
-      <p v-if="emptyDataWarning" class="warning">No data to show!</p>
-      <v-btn
-        @click="visualizeSelection"
-        class="confirm_btn"
-        :class="{ changesMade : resultOutdated }"
-        :disabled="emptyDataWarning || showError"
-      >
-       Visualize Selection
-      </v-btn>
-      <v-overlay :value="resultLoading">
-        <div>Loading results</div>
-        <v-progress-linear>...</v-progress-linear>
-      </v-overlay>
-      </div> <!--component_content end-->
+            <v-row align="center">
+              <v-col
+                class="d-flex"
+                cols="12"
+                sm="6"
+              >
+                <v-select
+                  :items="select_Options_1"
+                  v-model="selectValue_1"
+                  @change="inputChanged()"
+                  item-text="label"
+                  item-value="label"
+                  :hint="`${selectValue_1.unit}` || ''"
+                  solo
+                  label=""
+                  persistent-hint
+                  return-object
+                  single-line
+                  dark
+                ></v-select>
+              </v-col>
+              <v-col
+                class="d-flex"
+                cols="12"
+                sm="6"
+              >
+                <v-select
+                  :items="select_Options_2"
+                  v-model="selectValue_2"
+                  @change="inputChanged()"
+                  item-text="label"
+                  item-value="label"
+                  :hint="`${selectValue_2.unit}` || ''"
+                  solo
+                  label=""
+                  persistent-hint
+                  return-object
+                  single-line
+                  dark
+                ></v-select>
+              </v-col>
+            </v-row>
+            <v-row align="center">
+              <v-col style="margin-top: -25px">
+                <v-range-slider
+                  @dragstart="_ => null"
+                  @dragend="_ => null"
+                  @mousedown.native.stop="_ => null"
+                  @mousemove.native.stop="_ => null"
+                  @change="inputChanged()"
+                  v-model="sliderValues_1"
+                  :step="selectValue_1.step"
+                  :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
+                  persistent-hint
+                  thumb-label="always"
+                  label=""
+                  thumb-size="1"
+                  tick-size="50"
+                  :min="selectValue_1.range[0]"
+                  :max="selectValue_1.range[1]"
+                  dark
+                  flat
+                ></v-range-slider>
+              </v-col>
+              <v-col style="margin-top: -25px;">
+                <v-range-slider
+                  @dragstart="_ => null"
+                  @dragend="_ => null"
+                  @mousedown.native.stop="_ => null"
+                  @mousemove.native.stop="_ => null"
+                  @change="inputChanged()"
+                  v-model="sliderValues_2"
+                  :step="selectValue_2.step"
+                  :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
+                  persistent-hint
+                  thumb-label="always"
+                  label=""
+                  thumb-size="1"
+                  tick-size="50"
+                  :min="selectValue_2.range[0]"
+                  :max="selectValue_2.range[1]"
+                  dark
+                  flat
+                ></v-range-slider>
+              </v-col>
+            </v-row>
+            <v-row align="center">
+              <v-col>
+                <v-checkbox
+                  v-model="showSubSelection_1"
+                  dark
+                  label="Show subselection">
+                </v-checkbox>
+              </v-col>
+              <v-col>
+                <v-checkbox
+                  v-model="showSubSelection_2"
+                  dark
+                  label="Show subselection">
+                </v-checkbox>
+              </v-col>
+            </v-row>
+          <v-row align="center">
+            <v-select
+              :items="logicOptions"
+              v-model="logicOperator"
+              @change="inputChanged()"
+              item-text="label"
+              item-value="label"
+              hint="Combine layers by"
+              solo
+              label="Logic Layer Connection"
+              persistent-hint
+              return-object
+              single-line
+              dark
+            ></v-select>
+
+          </v-row>
+          </v-container>
+          <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
+           Hide Noise Result
+          </v-btn>-->
+          <p v-if="showError" class="warning">Invalid selection</p>
+          <p v-if="emptyDataWarning" class="warning">No data to show!</p>
+          <v-btn
+            @click="showCombinedLayers"
+            class="confirm_btn"
+            :class="{ changesMade : resultOutdated }"
+            :disabled="emptyDataWarning || showError"
+          >
+           Visualize Selection
+          </v-btn>
+          <v-overlay :value="resultLoading">
+            <div>Loading results</div>
+            <v-progress-linear>...</v-progress-linear>
+          </v-overlay>
+        </div> <!-- v-if="allDataProvided" end -->
+      </div>  <!--component_content end-->
     </div><!--division end-->
   </div>
 </template>

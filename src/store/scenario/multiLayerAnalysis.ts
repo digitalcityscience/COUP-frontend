@@ -1,13 +1,6 @@
 import * as turf from '@turf/turf'
 import store from '@/store'
 
-// debugging only
-import NoiseResults from '@/assets/noise.json'
-import abmStats from '@/assets/abmStats.json'
-import amenityStats from '@/assets/amenityStats.json'
-import FocusAreas from '@/assets/focusAreas.json'
-import {booleanOverlap} from "@turf/turf";
-
 
 /**
  * Filters the original dataset according to request
@@ -60,16 +53,11 @@ export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
  * @param layerName
  */
 function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon | turf.MultiPolygon> {
-  let baseDataSet = layerLookup[layerName]
-  if (!baseDataSet) {
-    console.warn("could not find baseDataSet for layerName ", layerName, "in multiLayerAnalysis")
-    return
-  }
+  let baseDataSet = layerLookup(layerName)
 
   /** get layer data from noise layer*/
   // format noise data and return as featureCollection
   if (layerName === 'noise') {
-    baseDataSet = baseDataSet[0]["geojson_result"]  // todo remove this, when getting noise from store.
     baseDataSet["features"].forEach((feature, featureId) => {
       feature.properties["value"] = noiseLookup[feature.properties["idiso"]]
       feature.properties["layerName"] = layerName
@@ -87,7 +75,7 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
     }
     let feature = getGeometryForFocusArea(focusAreaId)
     // TODO refactor structure of abm results
-    feature.properties = (baseDataSet === abmStats) ?
+    feature.properties = (baseDataSet === store.state.scenario.abmStats) ?
       {"value": values["original"][layerName]}
       : {"value": values[layerName]};
     feature.properties["layerName"] = layerName
@@ -243,6 +231,7 @@ function findFeatureIntersection(feat_1, feat_2): turf.Feature | null {
  * @param focusAreaId
  */
 function getGeometryForFocusArea(focusAreaId): turf.Feature<turf.Polygon> | turf.Feature<turf.MultiPolygon> {
+  const focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
   const polygons = focusAreas.features.filter(feature => {
     return feature.id == focusAreaId
   })
@@ -280,32 +269,29 @@ function flattenFeatureCollection(featureCollection) {
 
 const noiseLookup = [45,50,55,60,65,70,75,80]
 
-// TODO const focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
-const focusAreas = turf.featureCollection(FocusAreas["features"]) as turf.FeatureCollection<turf.Polygon>
-
-const layerLookup = {
-'noise': NoiseResults,
-'Amenity Types': amenityStats,
-'Complementarity': amenityStats,
-'Density': amenityStats,
-'Diversity': amenityStats,
-'opportunitiesOfInteraction': abmStats,
-'pedestrianDensity': abmStats,
-'temporalEntropyPercent': abmStats,
-'averageDuration': abmStats,
-'averageLength': abmStats
-
-/** 'Noise Levels': store.state.scenario.currentNoiseGeoJson,
-'Amenity Types': store.state.scenario.amenityStats,
-'Complementarity': store.state.scenario.amenityStats,
-'Density': store.state.scenario.amenityStats,
-'Diversity': store.state.scenario.amenityStats,
-'Opportunities for Interaction': store.state.scenario.abmStats,
-'Pedestrian Density': store.state.scenario.abmStats,
-'Temporal Entropy': store.state.scenario.abmStats,
-'Trip Duration': store.state.scenario.abmStats,
-'Trip Length': store.state.scenario.abmStats
+/**
+ * return dataset for layer
+ * @param layerName
  */
+function layerLookup(layerName:string) {
+  switch (layerName) {
+    case 'noise':
+      return store.state.scenario.currentNoiseGeoJson
+    case 'Amenity Types':
+    case 'Complementarity':
+    case 'Density':
+    case 'Diversity':
+      return store.state.scenario.amenityStats
+    case 'Opportunities for Interaction':
+    case 'Pedestrian Density':
+    case 'Temporal Entropy':
+    case 'Trip Duration':
+    case 'Trip Length':
+      return store.state.scenario.abmStats
+    default:
+        console.warn("could not find baseDataSet for layerName", layerName, "in multiLayerAnalysis")
+        break;
+  }
 }
 
 

@@ -41,7 +41,9 @@ export default {
           commit('noiseResults', noiseData["noise_results"])
           // select matching result for current scenario and add it to the map
           const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
-          dispatch('addNoiseMapLayer', noiseResult['geojson_result'])
+          const geoJsonData =  noiseResult['geojson_result']
+          commit('currentNoiseGeoJson', geoJsonData)
+          dispatch('addNoiseMapLayer', geoJsonData)
             .then(
               dispatch('addTrafficCountLayer'),
               commit('resultLoading', false)
