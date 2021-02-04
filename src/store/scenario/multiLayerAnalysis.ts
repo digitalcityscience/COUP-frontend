@@ -282,11 +282,11 @@ function layerLookup(layerName:string) {
     case 'Density':
     case 'Diversity':
       return store.state.scenario.amenityStats
-    case 'Opportunities for Interaction':
-    case 'Pedestrian Density':
-    case 'Temporal Entropy':
-    case 'Trip Duration':
-    case 'Trip Length':
+    case 'opportunitiesOfInteraction':
+    case 'pedestrianDensity':
+    case 'temporalEntropyPercent':
+    case 'averageDuration':
+    case 'averageLength':
       return store.state.scenario.abmStats
     default:
         console.warn("could not find baseDataSet for layerName", layerName, "in multiLayerAnalysis")
