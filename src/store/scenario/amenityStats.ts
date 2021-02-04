@@ -1,8 +1,22 @@
 import store from "@/store";
 import * as turf from "@turf/turf";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
+import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 
-export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
+
+export async function calculateAmenityStatsForAllAreas() {
+  const focusAreaIds = store.state.focusAreasGeoJson["features"].map(feat => {
+    return feat.id
+  })
+
+  for (const focusAreaId of focusAreaIds) {
+    if (!store.state.scenario.amenityStats[focusAreaId]) {
+      await calculateAmenityStatsForFocusArea(focusAreaId)
+    }
+  }
+}
+
+export async function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
   if (!store.state.scenario.amenitiesGeoJson) {
     console.log("cannot calc amenity stats - no amenityGeoJson in store!")
     return

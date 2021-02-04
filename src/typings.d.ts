@@ -101,4 +101,18 @@ declare global {
         id: string
         options: AnyMapboxLayer | DeckLayer
       }
+
+      interface LayerAnalysisRequest {
+        layerName: string,
+        layerRange: Number[],
+        layerConstraints: Number[],
+        logicOperator: string
+      }
+
+      interface logicOperator {
+        and: "and",
+        or: "or",
+        and_not: "and_not",
+        or_not: "or_not"
+      }
 }

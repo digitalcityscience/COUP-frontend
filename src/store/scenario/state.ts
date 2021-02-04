@@ -28,6 +28,7 @@ export default {
     traffic_percent: 0.5,
     max_speed: 50,
   },
+  currentNoiseGeoJson: null,
   currentlyShownScenarioSettings: {},
   resultOutdated: true,  // in the beginning no results are shown. Trigger user to request results.
   moduleSettings: {

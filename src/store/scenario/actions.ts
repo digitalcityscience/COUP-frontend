@@ -10,6 +10,9 @@ import { VCarouselReverseTransition } from 'vuetify/lib';
 
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
+import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
+import PerformanceInfosConfig from "@/config/performanceInfos.json";
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -24,6 +27,7 @@ export default {
     if (state.noiseResults.length > 0) {
       const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
       const geoJsonData = noiseResult['geojson_result']
+      commit('currentNoiseGeoJson', geoJsonData)
       dispatch('addNoiseMapLayer', geoJsonData)
         .then(
           dispatch('addTrafficCountLayer')
@@ -37,7 +41,9 @@ export default {
           commit('noiseResults', noiseData["noise_results"])
           // select matching result for current scenario and add it to the map
           const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
-          dispatch('addNoiseMapLayer', noiseResult['geojson_result'])
+          const geoJsonData =  noiseResult['geojson_result']
+          commit('currentNoiseGeoJson', geoJsonData)
+          dispatch('addNoiseMapLayer', geoJsonData)
             .then(
               dispatch('addTrafficCountLayer'),
               commit('resultLoading', false)
@@ -180,6 +186,57 @@ export default {
                 })
             })
         }
+  },
+  addMultiLayerAnalysisLayer({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = MultiLayerAnalysisConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', MultiLayerAnalysisConfig.layer, {root: true})
+      }).then(source => {
+      // add layer on top of the layer stack
+      if (state.map?.getLayer("groundfloor")) {
+        state.map?.moveLayer(MultiLayerAnalysisConfig.layer.id, "groundfloor")
+      }
+      if (state.map?.getLayer(SubSelectionLayerConfig.layer.id)) {
+        state.map?.moveLayer(SubSelectionLayerConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
+      }
+    })
+  },
+  addSubSelectionLayer({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = SubSelectionLayerConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', SubSelectionLayerConfig.layer, {root: true})
+      }).then(source => {
+      // add layer on top of the layer stack
+      if (state.map?.getLayer("groundfloor")) {
+        state.map?.moveLayer(SubSelectionLayerConfig.layer.id, "groundfloor")
+      }
+      if (state.map?.getLayer(SubSelectionLayerConfig.layer.id)) {
+        state.map?.moveLayer(SubSelectionLayerConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
+      }
+    })
+  },
+  addMultiLayerPerformanceInfos({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = PerformanceInfosConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', PerformanceInfosConfig.layer, {root: true})
+      }).then(source => {
+      // add layer on top of the layer stack
+      if (state.map?.getLayer("groundfloor")) {
+        state.map?.moveLayer(PerformanceInfosConfig.layer.id, "groundfloor")
+      }
+      if (state.map?.getLayer(PerformanceInfosConfig.layer.id)) {
+        state.map?.moveLayer(PerformanceInfosConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
+      }
+    })
   },
   //LOADING INITIAL ABM DATA
   initialAbmComputing({state, commit, dispatch, rootState}, workshopScenario){

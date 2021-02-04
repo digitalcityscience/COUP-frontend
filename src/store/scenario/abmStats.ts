@@ -2,6 +2,19 @@ import * as turf from '@turf/turf'
 import store from '@/store'
 import GrasbrookGeoJson from '@/assets/grasbrookArea.json'
 
+
+export async function calculateAbmStatsForAllAreas() {
+  const focusAreaIds = store.state.focusAreasGeoJson["features"].map(feat => {
+    return feat.id
+  })
+
+  for (const focusAreaId of focusAreaIds) {
+    if (!store.state.scenario.abmStats[focusAreaId]) {
+      await calculateAbmStatsForFocusArea(focusAreaId)
+    }
+  }
+}
+
 /**
  * Calculates AbmStats for a focusArea and commits them to store
  * If no focusAreaId provided, stats are calculated for entire Grasbrook.
@@ -10,7 +23,7 @@ import GrasbrookGeoJson from '@/assets/grasbrookArea.json'
  *
  * @param focusAreaId
  */
-export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
+export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
   if (!store.state.scenario.abmData) {
     console.log("cannot calc abmStats without abmData. No abmData in store.")
   }
