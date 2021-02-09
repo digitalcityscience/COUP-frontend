@@ -33,22 +33,13 @@ const bridgeLayerIds = BridgesConfig.layers.map(layer => {
   return layer.id
 })
 
-export function getBimDesignLayers() {
-  return [SpacesConfig.layer.id].concat(buildingLayerIds)
-}
-
 export function getLayerOrder() {
   let layerOrder = [FocusAreasConfig.layer.id,
     SpacesConfig.layer.id]
 
-  if (buildingLayerIds.indexOf("spaces") > -1) {
-    buildingLayerIds.splice(buildingLayerIds.indexOf("spaces"), 1)
-  }
-
   layerOrder = layerOrder.concat(bridgeLayerIds)
   layerOrder = layerOrder.concat(buildingLayerIds)
   layerOrder = layerOrder.concat(addedLayersIds)
-
 
   return layerOrder
 }

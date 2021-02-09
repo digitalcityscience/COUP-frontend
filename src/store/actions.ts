@@ -138,10 +138,8 @@ export default {
     )
   },
   updateCircledFeaturesLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>, featureBuffer) {
-
     let featureCircles = state.featureCircles
 
-    console.log("buffer", featureBuffer)
     let bufferIndex = null
     featureCircles.some((circle, index) => {
       if (circle.properties["objectId"] === featureBuffer.properties["objectId"]) {
@@ -149,8 +147,6 @@ export default {
         return true
       }
     })
-
-    console.log("buffer index", bufferIndex)
 
      // add or remove current featureBuffer from featureCircles
      if (bufferIndex === null) {
@@ -192,7 +188,3 @@ export default {
   }
    *****/
 }
-
-const layerOrder = [
-
-]
