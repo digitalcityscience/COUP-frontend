@@ -77,7 +77,7 @@ export default {
           return this.$store.state.scenario.microClimate;
       },
       multiLayerAnalysis(){
-          return this.$store.state.map.getLayer("multiLayerAnalysis");
+          return this.$store.state.scenario.multiLayerAnalysisMap;
       }
     },
     watch: {
@@ -203,8 +203,10 @@ export default {
             if(this.layerIds.indexOf("noise") > -1){
                 if(this.visibleLayers.noise){
                     this.map.setLayoutProperty("noise", 'visibility', 'visible');
+                    this.map.setLayoutProperty("trafficCounts", 'visibility', 'visible');
                 } else {
                     this.map.setLayoutProperty("noise", 'visibility', 'none');
+                    this.map.setLayoutProperty("trafficCounts", 'visibility', 'none');
                 }
             }
             if(this.layerIds.indexOf("focusAreas") > -1){

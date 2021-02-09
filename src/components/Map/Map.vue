@@ -172,13 +172,11 @@ export default {
             console.log("create design layers")
             //console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers').then(() => {
-                this.$store.dispatch('orderDesignLayers').then(() => {
-                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
-                  if(this.workshop){
-                        this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
-                    }
-                });
-            })
+                this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+                if(this.workshop){
+                      this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
+                  }
+              });
         },
         createModal(){
           this.openModalsIds.push(this.selectedObjectId)

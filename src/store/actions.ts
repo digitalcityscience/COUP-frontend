@@ -1,16 +1,23 @@
-import Designs from '@/config/designs.json'
+import Buildings from '@/config/buildings.json'
+import Spaces from '@/config/spaces.json'
 import CityPyO from '@/store/cityPyO'
 import {ActionContext} from 'vuex'
 import {Layer} from 'mapbox-gl'
 import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import CircledFeatures from "@/config/circledFeatures.json";
+import {getLayerOrder} from "@/config/layers.ts"
 
 export default {
   async createDesignLayers({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
     commit("scenario/loader", true);
     commit("scenario/loaderTxt", "Creating Design Layers ... ");
-    const sourceConfigs = Designs.sources || [];
+    const sourceConfigs = Buildings.sources || [];
+    const layerConfigs = Buildings.layers || [];
+    sourceConfigs.push(Spaces.source)
+    // @ts-ignore
+    layerConfigs.push(Spaces.layer)
+
     const loadLayers = new Promise(resolve => {
       let designLayersLoaded = 0;
       // iterate over sources in configs
@@ -23,13 +30,13 @@ export default {
             .then(source => {
               dispatch('addSourceToMap', source).then(source => {
                 // add all layers using this source
-                Designs.layers
+                layerConfigs
                   .filter(l => l.source === source.id)
                   .forEach(l => {
                     dispatch('addLayerToMap', l).then(() => {
                       designLayersLoaded += 1;
                       commit("scenario/loaderTxt", "Design Layer #" + designLayersLoaded + " successfully loaded ... ");
-                      if (designLayersLoaded >= Designs.layers.length) {
+                      if (designLayersLoaded >= layerConfigs.length) {
                         resolve()
                       }
                     })
@@ -45,14 +52,6 @@ export default {
     await loadLayers;
     commit("scenario/loader", false);
     return
-  },
-  orderDesignLayers ({state, commit, dispatch}: ActionContext<StoreState, StoreState>) {
-    // put groundfloor on top of spaces
-    state.map?.moveLayer('spaces', 'groundfloor')
-    // and upperfloor on top of groundfloor
-    state.map?.moveLayer('groundfloor', 'upperfloor')
-    // and rooftops on top
-    state.map?.moveLayer('rooftops')
   },
   addSourceToMap({state, commit, dispatch}: ActionContext<StoreState, StoreState>, source) {
     if (state.map?.getSource(source.id)) {
@@ -87,6 +86,16 @@ export default {
     state.map?.addLayer(layer as Layer)
 
     commit('addLayerId', layer.id)
+    dispatch("updateLayerOrder")
+  },
+  /** updates the layer order after a layer was added */
+  updateLayerOrder({state, commit, dispatch}) {
+    for (const layerName of getLayerOrder()) {
+      if (state.map.getLayer(layerName)) {
+        console.log("putting layer on top ", layerName)
+        state.map.moveLayer(layerName)
+      }
+    }
   },
   editFeatureProps({state}, feature) {
     if (feature) {
@@ -124,12 +133,7 @@ export default {
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', FocusAreasLayer.layer, {root: true})
-          }).then(source => {
-          // add layer on top of the layer stack
-          if (state.map?.getLayer("abmTrips")) {
-            state.map?.moveLayer(FocusAreasLayer.layer.id, "groundfloor")
-          }
-        })
+          })
       }
     )
   },
@@ -161,13 +165,7 @@ export default {
       dispatch('addSourceToMap', source, {root: true})
         .then(source => {
           dispatch('addLayerToMap', CircledFeatures.layer, {root: true})
-        }).then(source => {
-        // add layer on top of the layer stack
-        if (state.map?.getLayer("groundfloor")) {
-          state.map?.moveLayer(CircledFeatures.layer.id, "groundfloor")
-        }
-      })
-
+        })
       commit('featureCircles', featureCircles)
   },
 
@@ -194,3 +192,7 @@ export default {
   }
    *****/
 }
+
+const layerOrder = [
+
+]

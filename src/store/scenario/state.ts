@@ -9,7 +9,7 @@ export default {
   abmTrips: null,
   agentIndexes: null,
   clusteredAbmData: null,
-  activeAbmSet: null,
+  activeAbmSet: null,   // same as abmData
   abmObject:{},
   abmTimePaths:null,
   activeTimePaths:null,
@@ -23,7 +23,6 @@ export default {
   filterSettings: null,
   noiseResults: [],
   trafficCounts: null,
-  showNoise:false,
   noiseScenario:{
     traffic_percent: 0.5,
     max_speed: 50,
@@ -62,6 +61,7 @@ export default {
   noiseMap: false,
   stormWater: false,
   microClimate: false,
+  multiLayerAnalysisMap: false,
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
