@@ -24,7 +24,7 @@ export async function calculateAbmStatsForAllAreas() {
  * @param focusAreaId
  */
 export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
-  if (!store.state.scenario.abmData) {
+  if (!store.state.scenario.activeAbmSet) {
     console.log("cannot calc abmStats without abmData. No abmData in store.")
   }
 

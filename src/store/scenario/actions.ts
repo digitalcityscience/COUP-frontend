@@ -27,7 +27,7 @@ export default {
     if (state.noiseResults.length > 0) {
       const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
       const geoJsonData = noiseResult['geojson_result']
-      commit('currentNoiseGeoJson', geoJsonData)
+      commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
       dispatch('addNoiseMapLayer', geoJsonData)
         .then(
           dispatch('addTrafficCountLayer')
@@ -38,11 +38,11 @@ export default {
       commit('resultLoading', true)
       rootState.cityPyO.getLayer("noiseScenarios", false).then(
         noiseData => {
-          commit('noiseResults', noiseData["noise_results"])
+          commit('noiseResults', Object.freeze(noiseData["noise_results"]))
           // select matching result for current scenario and add it to the map
           const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
           const geoJsonData =  noiseResult['geojson_result']
-          commit('currentNoiseGeoJson', geoJsonData)
+          commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
           dispatch('addNoiseMapLayer', geoJsonData)
             .then(
               dispatch('addTrafficCountLayer'),
@@ -145,7 +145,7 @@ export default {
     rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
       source => {
         console.log("got amenities", source)
-        commit('amenitiesGeoJson', source.options.data)
+        commit('amenitiesGeoJson', Object.freeze(source.options.data))
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
@@ -261,7 +261,6 @@ export default {
 
 
         commit("loaderTxt", "Serving Abm Data ... ");
-        commit('abmData', result.options?.data);
         dispatch("computeLoop", result.options?.data)
           .then(unused => {
             dispatch('calculateStats')
@@ -359,17 +358,17 @@ export default {
     //functions working on whole data set
 
     //Commit computed results to the store
-    commit('agentIndexes', agentIndexes);
-    commit('clusteredAbmData', abmFilterData);
-    commit('abmTimePaths', timePaths);
-    commit('activeTimePaths', timePaths);
-    commit('abmTrips', trips);
+    commit('agentIndexes', Object.freeze(agentIndexes));
+    commit('clusteredAbmData', Object.freeze(abmFilterData));
+    commit('abmTimePaths', Object.freeze(timePaths));
+    commit('activeTimePaths', Object.freeze(timePaths));
+    commit('abmTrips', Object.freeze(trips));
 
     console.log("trips", trips)
     console.log(timePaths);
 
-    commit('abmSimpleTimes', simpleTimeData);
-    commit('activeAbmSet', abmCore);
+    commit('abmSimpleTimes', Object.freeze(simpleTimeData));
+    commit('activeAbmSet', Object.freeze(abmCore));
 
     //buildLayers
     dispatch("buildLayers");
@@ -508,7 +507,7 @@ export default {
       });
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
-      const abmData = state.abmData;
+      const abmData = state.activeAbmSet;
       const timePaths = state.abmTimePaths;
       const filterSet = {...state.clusteredAbmData};
       const spliceArr = [];
@@ -533,8 +532,8 @@ export default {
       });
 
       console.log("new Filter Setting applied");
-      commit('activeAbmSet', filteredAbm);
-      commit('activeTimePaths', filteredTimePaths);
+      commit('activeAbmSet', Object.freeze(filteredAbm));
+      commit('activeTimePaths', Object.freeze(filteredTimePaths));
       dispatch('updateLayers', "all");
       commit("loader", false);
   }

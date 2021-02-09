@@ -61,8 +61,8 @@ export default {
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ]),
-    abmData(){
-      return this.$store.state.scenario.abmData;
+    activeAbmSet(){
+      return this.$store.state.scenario.activeAbmSet;
     },
     currentNoiseResult(){
       return this.$store.state.scenario.currentNoiseGeoJson;
@@ -260,8 +260,8 @@ export default {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
         <div  v-if="!allDataProvided">
-          <h2 v-if="!abmData && !currentNoiseResult">Choose input data first</h2>
-          <v-btn v-if="!abmData" style="margin: 20px;"
+          <h2 v-if="!activeAbmSet && !currentNoiseResult">Choose input data first</h2>
+          <v-btn v-if="!activeAbmSet" style="margin: 20px;"
             @click="switchToAbm"
             class="confirm_btn"
             :class="{ changesMade : resultOutdated }"
@@ -274,12 +274,12 @@ export default {
           >Choose Noise Scenario
           </v-btn>
 
-          <h2 v-if="abmData" style="margin-top: 25px;">Calculate statistical input values</h2>
+          <h2 v-if="activeAbmSet" style="margin-top: 25px;">Calculate statistical input values</h2>
           <v-btn
             @click="calculateStats"
             class="confirm_btn"
             :class="{ changesMade : resultOutdated }"
-            :disabled="!abmData"
+            :disabled="!activeAbmSet"
           >Calculate Input Data
           </v-btn>
         </div>

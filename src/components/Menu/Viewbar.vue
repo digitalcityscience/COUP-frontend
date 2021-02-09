@@ -61,8 +61,8 @@ export default {
       loader(){
           return this.$store.state.scenario.loader;
       },
-      abmData(){
-          return this.$store.state.scenario.abmData;
+      activeAbmSet(){
+          return this.$store.state.scenario.activeAbmSet;
       },
       heatMap(){
           return this.$store.state.scenario.heatMap;
@@ -81,7 +81,7 @@ export default {
       }
     },
     watch: {
-        abmData(){},
+        activeAbmSet(){},
         heatMap(newVal, oldVal){
             console.log(newVal, oldVal);
         },
@@ -315,7 +315,7 @@ export default {
                 @change="updateBuildingVisibility"
                 dark
                 hide-details
-                :disabled="abmData == null"
+                :disabled="activeAbmSet == null"
              ></v-checkbox>
              <v-btn class="legendbutton" @click="legendVisible = !legendVisible">
                  <v-icon>mdi-map-legend</v-icon>
@@ -358,7 +358,7 @@ export default {
                     dark
                     @change="updateLayerVisibility"
                     hide-details
-                    :disabled="abmData == null"
+                    :disabled="activeAbmSet == null"
                  ></v-checkbox>
                  <v-checkbox
                     v-model="visibleLayers.heat"
