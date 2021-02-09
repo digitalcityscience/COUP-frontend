@@ -1,9 +1,22 @@
 import store from "@/store";
 import * as turf from "@turf/turf";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
+import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 
 
-export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
+export async function calculateAmenityStatsForAllAreas() {
+  const focusAreaIds = store.state.focusAreasGeoJson["features"].map(feat => {
+    return feat.id
+  })
+
+  for (const focusAreaId of focusAreaIds) {
+    if (!store.state.scenario.amenityStats[focusAreaId]) {
+      await calculateAmenityStatsForFocusArea(focusAreaId)
+    }
+  }
+}
+
+export async function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
   if (!store.state.scenario.amenitiesGeoJson) {
     console.log("cannot calc amenity stats - no amenityGeoJson in store!")
     return
@@ -11,7 +24,7 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
 
   console.log("calc amenity stats")
   //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
-  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
+  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
 
   if (focusAreaId) {
     focusAreas.features = focusAreas.features.filter(feature => {
@@ -19,7 +32,8 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
     })
   } else {
     // take the entire grasbrook
-    focusAreas.features = GrasbrookGeoJson["features"]
+    const grasbrook = GrasbrookGeoJson as turf.GeoJSONObject
+    focusAreas.features = grasbrook["features"]
   }
 
   let amenitiesFeatures = getFeatureCollectionOfNonResidentialAmenities()
@@ -52,15 +66,13 @@ export function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
  *
  * @returns FeatureCollection<Point>
  */
-function getFeatureCollectionOfNonResidentialAmenities() {
-  let amenities = store.state.scenario.amenitiesGeoJson
+function getFeatureCollectionOfNonResidentialAmenities(): turf.FeatureCollection<turf.Point> {
+  let amenities = store.state.scenario.amenitiesGeoJson as turf.GeoJSONObject
 
   // all amenities that are non-residential
-  let amenitiesFeatures = turf.featureCollection(amenities["features"].filter(
+  return turf.featureCollection(amenities["features"].filter(
     feature => (feature["properties"]["GFK"] > 2000))
   )
-
-  return amenitiesFeatures
 }
 
 
@@ -68,7 +80,7 @@ function getFeatureCollectionOfNonResidentialAmenities() {
  * Return count of amenities where an amenity is destination and also origin of the trips of one same agent
  * @param amenitiesWithin
  */
-function calculateComplementarity(amenitiesWithin: FeatureCollection<Point>) {
+function calculateComplementarity(amenitiesWithin: turf.FeatureCollection<turf.Point>) {
   const abmTrips = store.state.scenario.abmTrips
 
   if (amenitiesWithin.features.length === 0) {

@@ -1,31 +1,31 @@
 <script>
 import { mapState } from 'vuex'
+import * as turf from '@turf/turf'
+import {alkisTranslations} from "@/store/abm";
+import {generateStoreGetterSetter} from "@/store/utils/generators";
+import AmenitiesLayerDefinition from '@/config/amenities.json'
+import {getOdArcData} from '@/store/scenario/odArcs.ts'
+import {abmArcLayerName} from "@/store/deck-layers";
 
 export default {
     name: 'Contextmenu',
     components: {},
     data() {
         return {
-            objType:'',
-            objId:'',
-            objGFA:'',
+            lineCanvasId: null,
             active: false,
-            objectData:[],
             indexVal:0,
-            myFeatures:[],
-            Coords:[],
-            Coordinates:[],
-            isMe:'',
-            buildingConnection:{},
-            boxConnection:{},
-            line:'',
+            modalDiv:'',
             dragging: false,
-            horizontalLine:{},
-            verticalLine:{},
-            matchingPoint:{},
-            matchingLine:{},
-            buildingLine:{},
             windowWidth: window.innerWidth,
+            objectFeatures: [],
+            objectId: null,
+            modalInfo: {},
+            arcLayerData: {},
+            asOrigin:false,
+            asDestination:false,
+            minOdTrips: 1,
+            noTripsWarning: false
         }
     },
     computed: {
@@ -33,352 +33,285 @@ export default {
         'allFeaturesHighlighted',
         'map',
         ]),
-        clickPosition(){
-            return this.$store.state.scenario.lastClick;
+      ...generateStoreGetterSetter([
+        ['openModalsIds', 'openModalsIds'],
+        ['modalIndex', 'modalIndex'],
+      ]),
+        // city_scope_id of the clicked object (set in Map.vue, onMapClick)
+        selectedObjectId() {
+          return this.$store.state.selectedObjectId;
         },
-        features(){
-            return this.$store.state.selectedFeatures;
-        },
-        modalIndex(){
-            return this.$store.state.scenario.modalIndex;
+        abmTrips(){
+            return this.$store.state.scenario.abmTrips;
         }
     },
     beforeMount(){
-        this.objType = this.features[0].properties.area_planning_type;
-        this.objId = this.features[0].properties.building_id;
-        this.objGFA = Math.round(this.features[0].properties.floor_area);
-        this.Coordinates = this.features[0].geometry.coordinates[0];
-        //this.Coords = this.features[0].geometry.coordinates[0][0];
-        this.objectData = this.features.filter((feature,i,a) => {
-            return a.indexOf(feature.layer.id) === i;
-        });
+      if (!this.selectedObjectId) {
+        console.log("Tried to open modal, but no selectedObjectId given")
+        return
+      }
 
-        this.objectData = this.features.reduce((acc, current) => {
-            const duplicateLayer = acc.find(feature => feature.layer.id === current.layer.id);
-            if (!duplicateLayer) {
-                return acc.concat([current]);
-            } else {
-                return acc;
-            }
-        }, []);
-
-        //this.checkPositions();
+      // new object selected, circleObject and create modal
+      this.objectId = this.selectedObjectId.toString()  // disconnect from store
+      this.createObjectFeatures()
+      this.gatherModalInfo()
+      this.toggleFeatureCircling()
+      this.toggleFeatureHighlighting()
+    },
+    watch: {
+      asOrigin(newVal, oldVal) {
+        if (newVal && this.asDestination) {
+          this.asDestination = false;
+        }
+        if (newVal) {
+          // get new data and add new layer to map
+          this.getArcLayerData(this.objectFeatures, true).then(() => {
+            this.updateOdTripsLayer()
+          })
+        } else {
+          this.map?.removeLayer(abmArcLayerName);
+        }
+      },
+      asDestination(newVal, oldVal) {
+        if (newVal && this.asOrigin) {
+          this.asOrigin = false;
+        }
+        if (newVal) {
+          // get new data and add new layer to map
+          this.getArcLayerData(this.objectFeatures, false).then(() => {
+            this.updateOdTripsLayer()
+          })
+        } else {
+          this.map?.removeLayer(abmArcLayerName);
+        }
+      },
+      /** filter arcLayerData with new minOdTrips value and renew layer */
+      minOdTrips() {
+        this.updateOdTripsLayer()
+      },
     },
     mounted(){
         let selector = this.$el;
-        this.isMe = selector.closest(".vm--modal");
-        this.myFeatures = this.features;
+        this.modalDiv = selector.closest(".vm--modal");
         this.selectedModal();
+
         if(window.innerWidth >= 1024){
-            this.createBuildingMarks();
             this.sleep(300).then(() => { this.createLineOnCanvas(); });
         }
 
         this.active = true;
 
         if(window.innerWidth >= 1024){
-            this.map.on('drag', this.updateBuildingMarks);
-            this.map.on('zoom', this.updateBuildingMarks);
-            this.map.on('rotate', this.updateBuildingMarks);
-            this.map.on('drag', this.checkPositions);
-            this.map.on('zoom', this.checkPositions);
-            this.map.on('rotate', this.checkPositions);
+            this.map.on('drag', this.createLineOnCanvas);
+            this.map.on('zoom', this.createLineOnCanvas);
+            this.map.on('rotate', this.createLineOnCanvas);
         }
         window.addEventListener('mouseup', this.stopDrag);
-       /* ctxMenu.style.top = this.clickPosition[0] + 10 + "px";
-        ctxMenu.style.left = this.clickPosition[1] + 10 + "px";*/
     },
     updated(){
-        //this.checkPositions();
     },
     beforeDestroy() {
+      this.toggleFeatureCircling()
+
       if (!this.allFeaturesHighlighted) {
-        const newFeature = this.myFeatures;
-        newFeature.forEach(feature => {
-            feature.properties.selected = "inactive";
-            this.$store.dispatch('editFeatureProps', feature)
-        });
+        this.toggleFeatureHighlighting()
       }
 
-        const canvas = document.getElementById(this.objId);
-        const building_canvas = document.getElementById(this.objId + '-building');
-        var context = canvas.getContext('2d');
-        //context.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.remove();
-        building_canvas.remove();
-        this.active = false;
+      if (this.map?.getLayer(abmArcLayerName)) {
+        this.map?.removeLayer(abmArcLayerName)
+      }
+
+
+      // remove line on canvas connecting modal to selected feature
+      const canvas = document.getElementById(this.lineCanvasId);
+      canvas.remove();
+      this.active = false;
+
+      this.openModalsIds.splice(this.openModalsIds.indexOf(this.selectedObjectId), 1);
     },
     methods:{
+        createObjectFeatures() {
+          const renderedFeatures = this.map.queryRenderedFeatures()
+          this.objectFeatures = renderedFeatures.filter(feat => {
+            return feat.properties["city_scope_id"] === this.objectId
+          })
+        },
+        gatherModalInfo() {
+          this.modalInfo = {
+            "objectType": "",
+            "generalContent" : [], // [{ propTitle: propValue}, ..]}
+            "detailContent" : {} // header : [{ propTitle: propValue}]}
+          }
+
+          // iterate over objects features and add modal info, depending on feature layer or type
+          this.objectFeatures.forEach((feature,i,a) => {
+            const layerId = feature.layer.id
+            switch (layerId) {
+              case "groundfloor":
+                this.modalInfo["objectType"] = "building"
+                this.modalInfo["coords"] = turf.centroid(turf.polygon(feature.geometry.coordinates)).geometry.coordinates
+                this.addBuildingFloorInfo(feature)
+                break;
+              case "rooftop":
+                // add also roof type here when available
+                this.addBuildingFloorInfo(feature)
+                break;
+              case "upperfloor":
+                this.addBuildingFloorInfo(feature)
+                this.modalInfo["generalContent"].push(
+                  {"building height": feature.properties["building_height"].toString() + "m"}
+                )
+                break;
+              case AmenitiesLayerDefinition.layer.id:
+                this.modalInfo["objectType"] = "amenity"
+                this.modalInfo["coords"] =feature.geometry.coordinates
+                this.modalInfo["detailContent"]["Amenity"] = {}
+                const alkisId = feature.properties.GFK
+                feature.properties["useType"] = alkisTranslations[alkisId] || alkisId
+                this.modalInfo["detailContent"]["Amenity"] = [
+                  {"New amenity ?": feature.properties["Pre-exist"] ? "No" : "Yes"},
+                  {"Use Type": feature.properties["useType"]},
+                  {"GFK": feature.properties.GFK}
+                ]
+                break;
+            }
+          })
+        },
+        addBuildingFloorInfo(feature) {
+          this.modalInfo["detailContent"][feature.layer.id] = [
+              {"use case": feature.properties.land_use_detailed_type},
+              {"floor area": Math.round(feature.properties["floor_area"]).toString() + "m²"}
+            ]
+        },
+        toggleFeatureHighlighting() {
+          if (this.allFeaturesHighlighted) {
+            // do not change highlighting
+            return
+          }
+          // update properties for all objectFeatures
+          this.objectFeatures.forEach(feature => {
+            // set display properties for selected features to change volume colors
+            const alreadyHighlighted = (feature.properties.selected === "active")
+            feature.properties.selected = alreadyHighlighted ? "inactive" : "active";
+            this.$store.dispatch('editFeatureProps', feature);
+          })
+        },
+        /** circles or uncircles clickedFeatures */
+        toggleFeatureCircling() {
+          let buffer = null
+
+          console.log("features", this.objectFeatures)
+
+          // find geometry to create circle around the object
+          this.objectFeatures.every(feature => {
+            if (feature.layer.id === "groundfloor") {
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.015)
+              // if a ground floor found: jump out - it is the perfect geometry for circling a building
+              return false;
+            }
+            if (feature.layer.id === "upperfloor") {
+              buffer = turf.buffer(turf.polygon(feature.geometry.coordinates), 0.015)
+              // if a upper floor found: take as fallback geometry for circling.
+              return true;
+            }
+            if (feature.layer.id === AmenitiesLayerDefinition.layer.id) {
+              buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.015)
+            }
+              return true;
+          })
+          // update circled features
+          buffer.properties["objectId"] = this.objectId
+          this.$store.dispatch("updateCircledFeaturesLayer", buffer)
+        },
+        getProjectedObjectCoords() {
+          return this.map.project(this.modalInfo["coords"])
+        },
+        async getArcLayerData(objectData, asOrigin) {
+          this.arcLayerData = await getOdArcData(objectData, this.modalInfo, asOrigin)
+        },
+        filterArcLayerData() {
+          if (this.minOdTrips === 1 || this.arcLayerData.length === 0) {
+            // no need to filter
+            return this.arcLayerData
+          }
+
+          // filter for trips that with min. amount of similar trips
+          return this.arcLayerData.filter(datapoint => {
+            /* datapoint schema
+             "color": [254, 227, 81],
+             "source": number[],
+             "target": number[],
+             "width": number  // number of trips with same origin / destination
+             */
+            return datapoint.width >= this.minOdTrips
+          })
+        },
+        updateOdTripsLayer() {
+          // filter data first
+          const data = this.filterArcLayerData()
+
+          if (data.length === 0) {
+            // empty dataset (after filtering) , remove layer
+            if (this.map?.getLayer(abmArcLayerName)) {
+              this.map?.removeLayer(abmArcLayerName);
+            }
+            this.noTripsWarning = true // show warning for empty datasets
+            return
+          }
+
+          this.$store.dispatch('scenario/addArcLayer', data);
+          this.noTripsWarning = false
+          console.log("new arc layer with # trips = ", data.length)
+        },
         sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         },
         selectedModal(){
-            this.indexVal = this.modalIndex + 1;
+            this.modalIndex += 1;
             let selector = this.$el;
             let targetModal = selector.closest(".vm--container");
-            targetModal.style.zIndex = this.indexVal;
-            this.$store.commit('scenario/modalIndex', this.indexVal);
+            targetModal.style.zIndex = this.modalIndex;
         },
+         /** creates a line on canvas connecting the modal box to it's object as anchor */
         createLineOnCanvas(){
-            //this.buildingConnection = this.map.project(this.Coords);
-            this.buildingConnection = {
-                    x: this.Coords[0],
-                    y: this.Coords[1],
-            }
-            this.boxConnection.x = parseInt(this.isMe.style.left, 10) + this.isMe.getBoundingClientRect().width/2;
-            this.boxConnection.y = parseInt(this.isMe.style.top, 10) + this.isMe.getBoundingClientRect().height/2;
-            const boxContainer = document.getElementById("line_canvas");
-            var canvas = document.createElement('canvas');
+           if(window.innerWidth >= 1024) {
+             if (this.active) {
+               this.lineCanvasId = "line_" + this.objectId;
+               const boxContainer = document.getElementById("line_canvas");
+               if (document.getElementById(this.lineCanvasId)) {
+                 // remove existing line container
+                 boxContainer.removeChild(document.getElementById(this.lineCanvasId))
+               }
 
-            canvas.id = this.objId;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            canvas.style.position = "absolute";
+               // create canvas
+               let canvas = document.createElement('canvas');
+               canvas.id = this.lineCanvasId
+               canvas.width = window.innerWidth;
+               canvas.height = window.innerHeight;
+               canvas.style.position = "absolute";
+               boxContainer.appendChild(canvas);
+               var context = canvas.getContext('2d');
 
-            boxContainer.appendChild(canvas);
-            var context = canvas.getContext('2d');
+               const projectedObjectCoords = this.getProjectedObjectCoords()
+               const anchorConnnection = {
+                 x: projectedObjectCoords.x,
+                 y: projectedObjectCoords.y,
+               }
 
-            context.canvas.width  = window.innerWidth;
-            context.canvas.height = window.innerHeight;
-            context.beginPath();
-            context.lineWidth="1";
-            context.strokeStyle="#FEE351";
-            context.moveTo(Math.round(this.boxConnection.x), Math.round(this.boxConnection.y));
-            context.lineTo(Math.round(this.buildingConnection.x), Math.round(this.buildingConnection.y));
-            context.stroke();
+               const boxConnection = {}
+               boxConnection.x = parseInt(this.modalDiv.style.left, 10) + this.modalDiv.getBoundingClientRect().width / 2;
+               boxConnection.y = parseInt(this.modalDiv.style.top, 10) + this.modalDiv.getBoundingClientRect().height / 2;
 
-        },
-        createBuildingMarks(){
-            const boxContainer = document.getElementById("line_canvas");
-            var canvas = document.createElement('canvas');
-            var coordinates = this.Coordinates;
-            coordinates = coordinates.map(x => this.map.project(x));
-            canvas.id = this.objId + "-building";
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            canvas.style.position = "absolute";
-
-            boxContainer.appendChild(canvas);
-            var context = canvas.getContext('2d');
-            context.canvas.width  = window.innerWidth;
-            context.canvas.height = window.innerHeight;
-            context.beginPath();
-            context.lineWidth="2";
-            context.strokeStyle="#FEE351";
-            context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
-            var i;
-            for (i = 1; i < coordinates.length; i++) {
-                context.lineTo(Math.round(coordinates[i].x), Math.round(coordinates[i].y));
-            }
-
-            context.stroke();
-            console.log(coordinates);
-            this.Coords = this.buildingCenter(coordinates);
-            console.log(this.Coords);
-        },
-        updateBuildingMarks(){
-            if(this.active){
-                var coordinates = this.Coordinates;
-                coordinates = coordinates.map(x => this.map.project(x));
-                this.Coords = this.buildingCenter(coordinates);
-
-                const canvas = document.getElementById(this.objId + "-building");
-                var context = canvas.getContext('2d');
-                context.canvas.width  = window.innerWidth;
-                context.canvas.height = window.innerHeight;
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                context.beginPath();
-                context.lineWidth="2";
-                context.strokeStyle="#FEE351";
-                context.moveTo(Math.round(coordinates[0].x), Math.round(coordinates[0].y));
-                for (var i = 1; i < coordinates.length; i++) {
-                    context.lineTo(Math.round(coordinates[i].x), Math.round(coordinates[i].y));
-                }
-
-                context.stroke();
-            }
-        },
-        buildingCenter(arr){
-            var minX, maxX, minY, maxY;
-            for (var i = 0; i < arr.length; i++){
-                minX = (arr[i].x < minX || minX == null) ? arr[i].x : minX;
-                maxX = (arr[i].x > maxX || maxX == null) ? arr[i].x : maxX;
-                minY = (arr[i].y < minY || minY == null) ? arr[i].y : minY;
-                maxY = (arr[i].y > maxY || maxY == null) ? arr[i].y : maxY;
-            }
-            return [(minX + maxX) / 2, (minY + maxY) / 2];
-        },
-        checkPositions(){
-            if(window.innerWidth >= 1024) {
-                if(this.active){
-                    this.boxConnection.x = this.isMe.getBoundingClientRect().left + this.isMe.getBoundingClientRect().width/2;
-                    this.boxConnection.y = this.isMe.getBoundingClientRect().top + this.isMe.getBoundingClientRect().height/2;
-
-                    //this.buildingConnection = this.map.project(this.Coords);
-                    this.buildingConnection = {
-                        x: this.Coords[0],
-                        y: this.Coords[1],
-                    }
-
-                    var coordinates = this.Coordinates;
-                    coordinates = coordinates.map(x => this.map.project(x));
-                    var allLines = [];
-                    for (var i = 0; i < coordinates.length; i++) {
-                        var ii = i + 1;
-
-                    if(ii >= coordinates.length){
-                            ii = 0;
-                        }
-
-                        //Math.round(coordinates[i].x), Math.round(coordinates[i].y);
-                        var check = this.lineIntersection(coordinates[i].x, coordinates[i].y, coordinates[ii].x, coordinates[ii].y, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y);
-                        console.log(check, this.Coordinates);
-                        if(check){
-                            this.buildingLine = {
-                                x1: coordinates[i].x,
-                                y1: coordinates[i].y,
-                                x2: coordinates[ii].x,
-                                y2: coordinates[ii].y
-                            }
-                        }
-                    }
-
-                    console.log(this.buildingLine);
-                    const canvas = document.getElementById(this.objId);
-                    var context = canvas.getContext('2d');
-                    context.clearRect(0, 0, canvas.width, canvas.height);
-                    context.beginPath();
-                    context.lineWidth="1";
-                    context.strokeStyle="#FEE351";
-                    //context.moveTo(this.boxConnection.x, this.boxConnection.y);
-
-                    this.checkMatchingLines();
-                    context.moveTo(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y);
-                    //context.lineTo(Math.round(this.buildingConnection.x), Math.round(this.buildingConnection.y));
-                    context.lineTo(this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.buildingLine.x1, this.buildingLine.y1, this.buildingLine.x2, this.buildingLine.y2, this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y);
-                    context.stroke();
-
-                    var pointSize = 3;
-                    context.fillStyle = "#FEE351";
-                    context.beginPath();
-                    context.arc(this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).x, this.lineIntersection(this.matchingLine.x1,this.matchingLine.y1,this.matchingLine.x2,this.matchingLine.y2,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y).y, pointSize, 0, Math.PI * 2, true); // Draw a point using the arc function of the canvas with a point structure.
-                    context.fill();
-                }
-            }
-        },
-        checkMatchingLines(){
-            if(this.boxConnection.x < this.buildingConnection.x){
-                    this.verticalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().top,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().bottom
-                        }
-                    ]
-                } else {
-                    this.verticalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().top,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().bottom
-                        }
-                    ]
-                }
-
-                if(this.boxConnection.y > this.buildingConnection.y){
-                    this.horizontalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().top,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().top
-                        }
-                    ]
-                } else {
-                    this.horizontalLine = [
-                        {
-                            x: this.isMe.getBoundingClientRect().left,
-                            y: this.isMe.getBoundingClientRect().bottom,
-                        },
-                        {
-                            x: this.isMe.getBoundingClientRect().right,
-                            y: this.isMe.getBoundingClientRect().bottom,
-                        }
-                    ]
-                };
-
-
-                if(this.lineIntersection(this.horizontalLine[0].x,this.horizontalLine[0].y,this.horizontalLine[1].x,this.horizontalLine[1].y,this.boxConnection.x, this.boxConnection.y, this.buildingConnection.x, this.buildingConnection.y)){
-                    this.matchingLine = {
-                        x1: this.horizontalLine[0].x,
-                        y1: this.horizontalLine[0].y,
-                        x2: this.horizontalLine[1].x,
-                        y2: this.horizontalLine[1].y,
-                    }
-                } else {
-                    this.matchingLine = {
-                        x1: this.verticalLine[0].x,
-                        y1: this.verticalLine[0].y,
-                        x2: this.verticalLine[1].x,
-                        y2: this.verticalLine[1].y,
-                    }
-                }
-
-                /*this.verticalLine.forEach(point => {
-                    this.horizontalLine.forEach(ppoint => {
-                        if(JSON.stringify(point) === JSON.stringify(ppoint)){
-                            this.matchingPoint = point;
-                        }
-                    })
-                })
-
-                console.log(this.matchingPoint);*/
-
-                /*if(Math.abs((this.buildingConnection.x - this.matchingPoint.x)/(this.buildingConnection.y - this.matchingPoint.y)) < Math.abs((this.buildingConnection.x - this.boxConnection.x)/(this.buildingConnection.y - this.boxConnection.y))){
-                    this.matchingLine = {
-                        x1: this.verticalLine[0].x,
-                        y1: this.verticalLine[0].y,
-                        x2: this.verticalLine[1].x,
-                        y2: this.verticalLine[1].y,
-                    }
-                    console.log("VERTICAL");
-                } else {
-                     this.matchingLine = {
-                        x1: this.horizontalLine[0].x,
-                        y1: this.horizontalLine[0].y,
-                        x2: this.horizontalLine[1].x,
-                        y2: this.horizontalLine[1].y,
-                    }
-                    console.log("HORIZONTAL");
-                }
-
-                console.log("M: ", Math.abs((this.buildingConnection.x - this.matchingPoint.x)/(this.buildingConnection.y - this.matchingPoint.y)), Math.abs((this.buildingConnection.x - this.boxConnection.x)/(this.buildingConnection.y - this.boxConnection.y)))
-                console.log("P:", this.matchingPoint, "L:", this.matchingLine);*/
-        },
-        lineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
-            if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
-                return false
-            }
-            var denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
-            if (denominator === 0) {
-                return false
-            }
-            let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
-            let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
-            if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
-                return false
-            }
-            let x = x1 + ua * (x2 - x1)
-            let y = y1 + ua * (y2 - y1)
-            return {x, y}
+               context.canvas.width = window.innerWidth;
+               context.canvas.height = window.innerHeight;
+               context.beginPath();
+               context.lineWidth = "1";
+               context.strokeStyle = "#FEE351";
+               context.moveTo(Math.round(boxConnection.x), Math.round(boxConnection.y));
+               context.lineTo(Math.round(anchorConnnection.x), Math.round(anchorConnnection.y));
+               context.stroke();
+             }
+           }
         },
         startDrag() {
             this.dragging = true;
@@ -388,7 +321,7 @@ export default {
         },
         doDrag(event) {
             if (this.dragging && window.innerWidth >= 1024) {
-                this.checkPositions();
+                this.createLineOnCanvas();
             }
         }
     }
@@ -398,19 +331,56 @@ export default {
 <template>
     <div class="ctx_menu" @click="selectedModal()"  @mousedown="startDrag" @mousemove="doDrag" v-bind:style="{ zIndex: indexVal }">
         <div class="wrapper">
-            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ objType }} - {{ objId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
-            <div class="general"><p>GFA: {{ objGFA }}m²</p></div>
-            <div class="head_scope" v-for="building in objectData" :key="building.layer.id">
-                <div class="head_bar"><h3>{{ building.layer.id }}</h3></div>
-                <div v-if="building.properties.number_of_stories">
-                    <p><strong>total floorarea</strong> {{ objGFA * building.properties.number_of_stories }}m²</p>
-                    <p><strong>stories</strong> {{ building.properties.number_of_stories }}</p>
+            <div class="ctx_bar"><v-icon size="18px">mdi-city</v-icon> <p>{{ modalInfo.objectType }} - {{ objectId }}</p><div class="close_btn" @click="$emit('close')"><v-icon>mdi-close</v-icon></div></div>
+            <div class="general" v-for="item in modalInfo.generalContent"><p>
+                <div v-for="(value, key) in item">
+                  <p>{{ key }} : {{ value }}</p>
                 </div>
-                <p><strong>use case</strong> {{ building.properties.land_use_detailed_type }}</p>
+              </div>
             </div>
+            <div class="head_scope" v-for="(content, name) in modalInfo.detailContent">
+                <div class="head_bar"><h3>{{ name }}</h3></div>
+                    <div v-for="ctx in content">
+                      <div v-for="(value, key) in ctx">
+                        <p><strong>{{ key }}</strong> {{value}} </p>
+                      </div>
+                    </div>
+            </div>
+          <!-- Origin // Destination checkboxes -->
             <div class="body_scope"></div>
+            <div v-if="abmTrips" class="od-menu">
+            <v-checkbox
+                v-model="asOrigin"
+                label="Origin of"
+                dark
+                hide-details
+              ></v-checkbox>
+              <v-checkbox
+                v-model="asDestination"
+                label="Destination of"
+                dark
+                hide-details
+              ></v-checkbox>
+              <v-slider style="margin-top: 15px;"
+                @dragstart="_ => null"
+                @dragend="_ => null"
+                @mousedown.native.stop="_ => null"
+                @mousemove.native.stop="_ => null"
+                v-model="minOdTrips"
+                step=1
+                thumb-label="always"
+                label="Min. Trips"
+                thumb-size="25"
+                tick-size="50"
+                min="1"
+                max=20
+                dark
+                flat
+              ></v-slider>
+              <div v-if="noTripsWarning" class="warn">No trips to show</div>
+            </div>
         </div>
-        <!--<svg class="connection"><line :x1="Math.round(buildingConnection.x)" :y1="Math.round(buildingConnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
+        <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
     </div>
 </template>
 
@@ -429,6 +399,15 @@ export default {
         box-sizing: border-box;
         @include drop_shadow;
 
+        p {
+          color:whitesmoke;
+          font-size:100%;
+          strong {
+            font-size:80%;
+            color:#ddd;
+          }
+        }
+
         .ctx_bar {
             position:relative;
             display:flex;
@@ -442,15 +421,6 @@ export default {
                 opacity:1;
                 filter:invert(1);
                 flex:0 0 35px;
-            }
-
-            p {
-                color:whitesmoke;
-                font-size:100%;
-                strong {
-                    font-size:80%;
-                    color:#ddd;
-                }
             }
 
             .close_btn {
@@ -531,6 +501,11 @@ export default {
                 }
             }
         }
+
+       .warn {
+         color: darkred;
+         margin-top: 10px;
+       }
 
         &:hover {
             border:1px solid $orange;

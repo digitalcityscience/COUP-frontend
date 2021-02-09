@@ -9,16 +9,16 @@ import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
 
+
+
 export default {
     name: 'Map',
     components:{ Contextmenu },
     data() {
         return {
             lastClicked: [],
-            featuresObject: {},
-            targetFound: false,
-            featureFound: false,
             hoveredFocusArea: null,
+            modalLayers: ["groundfloor", "upperfloor", "rooftops", "abmAmenities"],
         }
     },
     computed: {
@@ -29,16 +29,20 @@ export default {
             'map',
             'layers',
             'layerIds',
-            'selectedFeatures'
         ]),
         ...generateStoreGetterSetter([
             ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
+            ['selectedObjectId', 'selectedObjectId'],
             ['showLegend', 'showLegend' ],
             ['loader', 'scenario/loader' ],
             ['selectedFocusAreas', 'scenario/selectedFocusAreas' ],
             ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
-            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart']
+            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
+            ['openModalsIds', 'openModalsIds'],
         ]),
+        abmTrips(){
+            return this.$store.state.scenario.abmTrips;
+        },
         heatMapData(){
             return this.$store.state.scenario.heatMapData;
         },
@@ -50,9 +54,6 @@ export default {
         },
         workshop(){
             return this.$store.state.workshop;
-        },
-        selectedFeatures(){
-            return this.$store.state.selectedFeatures;
         }
     },watch: {
         heatMapData(){
@@ -88,9 +89,8 @@ export default {
         // general map interaction
         this.map.on('load', this.onMapLoaded)
         this.map.on('click', this.onMapClicked)
-        this.map.on('contextmenu', this.onMapContextMenu)
 
-        // amenties layer
+        // amenities layer
         this.map.on('mousemove', amenities.layer.id, this.onAmenitiesHover)
         this.map.on('mouseleave', amenities.layer.id, this.onAmenitiesHoverLeave)
 
@@ -104,155 +104,87 @@ export default {
                 this.lastClicked[0] = ((evt.clientX * 100)/window.innerWidth)/100;
                 this.lastClicked[1] = ((evt.clientY * 100)/window.innerHeight)/100;
                 this.$store.commit('scenario/lastClick', this.lastClicked);
-
-                if(this.targetFound){this.openContextMenu();}
         },
         onMapClicked (evt) {
           console.log("click!")
           console.log(evt)
-            if(!this.workshop){
-                this.targetFound = false;
-                const bbox = [
-                    [evt.point.x - 10, evt.point.y - 10],
-                    [evt.point.x + 10, evt.point.y + 10]
-                ]
 
-                const features = this.map.queryRenderedFeatures(bbox, {
-                    layers: this.layerIds,
-                });
+          if (this.workshop) {
+            console.log("Feature not available in workshop mode");
+            this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
+            return
+          }
 
-                const singleOutTarget = [];
-                features.forEach((feature,i,a) => {
-                    const initialFeature = a[0].properties.building_id;
-                    let specialFeature = feature.properties.building_id;
-                    if(specialFeature == initialFeature) {
-                        singleOutTarget.push(feature);
-                    }
-                });
+          const bbox = [
+              [evt.point.x - 10, evt.point.y - 10],
+              [evt.point.x + 10, evt.point.y + 10]
+          ]
 
-                this.$store.commit('selectedFeatures', singleOutTarget);
+          const features = this.map.queryRenderedFeatures(bbox, {
+              layers: this.layerIds.filter(layerId => {return this.map.getLayer(layerId)})
+          });
+          this.actionForClick(features)
+        },
+        actionForClick(clickedFeatures) {
+          const initialFeature = clickedFeatures[0]
+          const initialLayerId = initialFeature.layer.id
 
-                if(singleOutTarget === undefined || singleOutTarget.length == 0){
-                    console.log("no feature selected");
-                    this.targetFound = false;
-                } else {
-                    const building = singleOutTarget[0].properties.area_planning_type;
-                    if(building == "building"){
-                        const newFeature = this.selectedFeatures;
-                        newFeature.forEach(feature => {
-                            if(feature.properties.selected != 'active'){
-                                feature.properties.selected = "active";
-                                this.featureFound = true;
-                                this.$store.dispatch('editFeatureProps', feature);
-                            } else {
-                                if(!this.allFeaturesHighlighted){
-                                    feature.properties.selected = "inactive";
-                                    this.featureFound = false;
-                                    this.$store.dispatch('editFeatureProps', feature);
-                                } else {
-                                    feature.properties.selected = "active";
-                                    this.featureFound = true;
-                                    this.$store.dispatch('editFeatureProps', feature);
-                                }
-                            }
-                        });
-                        //newFeature.properties.selected = "active";
-                        this.targetFound = true;
 
-                    } else {
-                      this.targetFound = false;  // do not open modal
-                      features.forEach(feature => {
-                          if (feature.layer.id === FocusAreasLayer.mapSource.data.id) {
-                            console.log("focus area selected!", feature.id)
-                            this.onFocusAreaClick(feature.id)
-                          }
-                        })
-                    }
-                }
-            } else {
-                console.log("Feature not available in workshop mode");
-                this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
-            }
+          console.log(initialLayerId, initialFeature)
+
+          // calculate stats for focus area
+          if (initialLayerId === FocusAreasLayer.layer.id) {
+            this.onFocusAreaClick(initialFeature.id)
+            return
+          }
+
+          // open/close a modal
+          if (this.modalLayers.indexOf(initialLayerId) > -1) {
+            this.handleModal(initialFeature)
+            return
+          }
+
+          // do nothing for this layer, but try to find action for the next layer in the stack
+          clickedFeatures.shift(); // remove initial feature
+          if (clickedFeatures.length > 0) {
+            this.actionForClick(clickedFeatures)
+          }
+        },
+        /* opens or closes modal */
+        handleModal(initialFeature) {
+          this.selectedObjectId = initialFeature.properties["city_scope_id"]
+
+          console.log(this.selectedObjectId, "selected object id")
+          console.log(initialFeature)
+
+          if (this.openModalsIds.indexOf(this.selectedObjectId) !== -1) {
+            console.log("closing modal ", this.selectedObjectId)
+            this.$modal.hide(this.selectedObjectId);
+
+            return
+          }
+
+          // create new modal
+          this.createModal()
         },
         onMapLoaded () {
             this.$store.dispatch('addFocusAreasMapLayer')
             console.log("create design layers")
             //console.log(this.$store.state.map);
             this.$store.dispatch('createDesignLayers').then(() => {
-                this.$store.dispatch('orderDesignLayers').then(() => {
-                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
-                  if(this.workshop){
-                        this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
-                    }
-                });
-            })
+                this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+                if(this.workshop){
+                      this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
+                  }
+              });
         },
-        onMapContextMenu (evt) {
-            if(this.allFeaturesHighlighted){
-                this.targetFound = false;
-                const bbox = [
-                    [evt.point.x - 10, evt.point.y - 10],
-                    [evt.point.x + 10, evt.point.y + 10]
-                ]
-
-                const features = this.map.queryRenderedFeatures(bbox, {
-                    layers: this.layerIds,
-                });
-
-                const singleOutTarget = [];
-                features.forEach((feature,i,a) => {
-                    const initialFeature = a[0].properties.building_id;
-                    let specialFeature = feature.properties.building_id;
-                    if(specialFeature == initialFeature) {
-                        singleOutTarget.push(feature);
-                    }
-                });
-
-                this.$store.commit('selectedFeatures', singleOutTarget);
-
-                if(singleOutTarget === undefined || singleOutTarget.length == 0){
-                    console.log("no feature selected");
-                    this.targetFound = false;
-                } else {
-                    const building = singleOutTarget[0].properties.area_planning_type;
-                    if(building == "building"){
-                        const newFeature = this.selectedFeatures;
-                        newFeature.forEach(feature => {
-                            if(feature.properties.selected != 'active'){
-
-                            } else {
-                                if(this.allFeaturesHighlighted){
-                                    feature.properties.selected = "inactive";
-                                    this.featureFound = false;
-                                    this.$store.dispatch('editFeatureProps', feature);
-                                }
-                            }
-                        });
-
-                        const targetId = newFeature[0].properties.building_id;
-                        this.$modal.hide(targetId);
-                        //newFeature.properties.selected = "active";
-                        this.targetFound = true;
-
-                    } else {
-                        this.targetFound = false;
-                    }
-                }
-            }
-        },
-        openContextMenu(features){
-            this.featuresObject = {click: this.lastClicked};
-            console.log(this.selectedFeatures);
-            let modal_id = this.selectedFeatures[0].properties.building_id;
-            if(this.featureFound){
-                this.$modal.show(
-                    Contextmenu,
-                    {},
-                    {name: modal_id, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
-                )
-            } else {
-                this.$modal.hide(modal_id);
-            }
+        createModal(){
+          this.openModalsIds.push(this.selectedObjectId)
+          this.$modal.show(
+              Contextmenu,
+             {},
+             {name: this.selectedObjectId, draggable: window.innerWidth >= 1024 ? true : false, width:280, adaptive: true, shiftX: this.lastClicked[0] + 0.125, shiftY: this.lastClicked[1] + 0.125}
+          )
         },
         updateHeatMap(){
                 //this.$store.dispatch('scenario/rebuildDeckLayer')
@@ -332,8 +264,7 @@ export default {
             calculateAmenityStatsForFocusArea(selectedFocusArea)
             calculateAbmStatsForFocusArea(selectedFocusArea)
           }
-        }
-        },
+      }
     }
 }
 </script>

@@ -24,7 +24,7 @@ export default {
       ...mapState('scenario', ['resultLoading']), // getter only
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
-      ['showNoise', 'scenario/' + 'showNoise'],
+      ['noiseMap', 'scenario/' + 'noiseMap'],
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ])
@@ -56,20 +56,12 @@ export default {
         loadNoiseMap () {
             this.$store.dispatch(
                 'scenario/updateNoiseScenario'
-            )
+            ).then(() => {
+              this.$store.commit("scenario/noiseMap", true);
+            })
         },
-        showNoiseToggle () {
-            this.showNoise = !this.showNoise
-
-            if (this.showNoise) {
-                // load the noise map
-                this.loadNoiseMap()
-                this.$store.commit("scenario/noiseMap", true);
-            } else {
-                // hide the noise map
-                /* old this.$store.dispatch('scenario/hideNoiseMap')*/
-                this.$store.commit("scenario/noiseMap", false);
-            }
+        loadNoiseResults () {
+            this.loadNoiseMap()
         }
     }
 }
@@ -132,11 +124,8 @@ export default {
           />
         </v-radio-group>
       </v-container>
-      <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
-       Hide Noise Result
-      </v-btn>-->
-      <v-btn @click="showNoiseToggle" class="confirm_btn">
-       Show Noise Result
+      <v-btn @click="loadNoiseResults" :disabled="noiseMap"  class="confirm_btn" >
+       Load Noise Results
       </v-btn>
       <v-overlay :value="resultLoading">
         <div>Loading results</div>

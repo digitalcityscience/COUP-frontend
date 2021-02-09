@@ -2,6 +2,19 @@ import * as turf from '@turf/turf'
 import store from '@/store'
 import GrasbrookGeoJson from '@/assets/grasbrookArea.json'
 
+
+export async function calculateAbmStatsForAllAreas() {
+  const focusAreaIds = store.state.focusAreasGeoJson["features"].map(feat => {
+    return feat.id
+  })
+
+  for (const focusAreaId of focusAreaIds) {
+    if (!store.state.scenario.abmStats[focusAreaId]) {
+      await calculateAbmStatsForFocusArea(focusAreaId)
+    }
+  }
+}
+
 /**
  * Calculates AbmStats for a focusArea and commits them to store
  * If no focusAreaId provided, stats are calculated for entire Grasbrook.
@@ -10,12 +23,12 @@ import GrasbrookGeoJson from '@/assets/grasbrookArea.json'
  *
  * @param focusAreaId
  */
-export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
-  if (!store.state.scenario.abmData) {
+export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
+  if (!store.state.scenario.activeAbmSet) {
     console.log("cannot calc abmStats without abmData. No abmData in store.")
   }
 
-  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
+  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
 
   if (focusAreaId) {
     focusAreas.features = focusAreas.features.filter(feature => {
@@ -23,7 +36,8 @@ export function calculateAbmStatsForFocusArea(focusAreaId?: number) {
     })
   } else {
     // take the entire grasbrook
-    focusAreas.features = GrasbrookGeoJson["features"]
+    const grasbrook = GrasbrookGeoJson as turf.GeoJSONObject
+    focusAreas.features = grasbrook["features"]
   }
 
   let results = calculatePedestrianIndices(focusAreas)
@@ -90,9 +104,13 @@ function calculatePedestrianIndices(forRegion) {
   * calculate opportunities of interaction
   * The number of times that multiple agents are in the same place at the same time
  */
+
+  // TODO agent paths at hour, intersections? -> in area? or min-distance?
+  // oder wir createn artificial way points in area? mit timetamps??
+
   let opportunitiesOfInteraction = 0
   for (const [hour, points] of Object.entries(matchedPointsPerHour)) {
-    turf.featureEach(points, function (point, pointIdx) {
+    turf.featureEach(points as turf.FeatureCollection<turf.Point>, function (point) {
       let opportunitiesOfInteractionAtPoint = countPotentialMeetingsAtPoint(point, hour)
       opportunitiesOfInteraction += opportunitiesOfInteractionAtPoint
     })
@@ -105,7 +123,7 @@ function calculatePedestrianIndices(forRegion) {
    */
   let averages = calculateTripAverages(forRegion)
 
-  let results = {
+  return {
     "original" : {
     "pedestrianDensity": pedestrianDensity,
     "temporalEntropyPercent": temporalEntropyPercent,
@@ -121,8 +139,6 @@ function calculatePedestrianIndices(forRegion) {
       "Trip Length": Math.min((averages["length"] / 1500) * 100, 100)
     }
   }
-
-  return results
 }
 
 
@@ -168,11 +184,12 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
     return 0 // min. 2 people at point per meeting
   }
 
+  const geom = point.geometry as turf.Geometry
   // find all agents that are the point
   let agentsAtPoint = {}
   for (const agentName of point.properties["busyAgents"]) {
     agentsAtPoint[agentName] = {"time": null}
-    agentsAtPoint[agentName]["time"] = getTimeAgentIsAtPoint(agentName, currentHour, point.geometry.coordinates)
+    agentsAtPoint[agentName]["time"] = getTimeAgentIsAtPoint(agentName, currentHour, geom.coordinates)
   }
 
   // iterate over the agents at the same point and extract pairs of agents within similar timeframes
@@ -193,6 +210,7 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
   }
 
   // remove duplicates meetings
+  //@ts-ignore
   meetingsAtPoint = Array.from(new Set(meetingsAtPoint.map(JSON.stringify)), JSON.parse)
   return meetingsAtPoint.length
 }
@@ -259,7 +277,7 @@ function calculateShannonSummand(currentSum: number, currentIndividualCount: num
  *
  * @returns {"duration": number, "length": number}
  */
-function calculateTripAverages(forRegion  = grasbrookRegion) {
+function calculateTripAverages(forRegion) {
   // array of all trips [{"agent", "origin", "destination", "length", "duration", "pathIndexes" }]
   let allTrips = store.state.scenario.abmTrips
 
@@ -268,10 +286,15 @@ function calculateTripAverages(forRegion  = grasbrookRegion) {
     return turf.pointsWithinPolygon(turf.points([trip.origin, trip.destination]), forRegion).features.length
   })
 
+  if (tripsInRegion.length === 0) {
+    return {"duration": 0, "length": 0}
+  }
+
   let averageDurationSec = tripsInRegion.reduce((acc, trip) => acc + trip["duration"], 0) / tripsInRegion.length
   let averageLengthMeters = tripsInRegion.reduce((acc, trip) => acc + trip["length"], 0) / tripsInRegion.length
 
-  let averageDuration = averageDurationSec / 60
+  let averageDuration = (averageDurationSec / 60)
 
   return {"duration": Math.round(averageDuration), "length": Math.round(averageLengthMeters)}
 }
+//@ts-ignore

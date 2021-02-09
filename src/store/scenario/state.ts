@@ -9,7 +9,7 @@ export default {
   abmTrips: null,
   agentIndexes: null,
   clusteredAbmData: null,
-  activeAbmSet: null,
+  activeAbmSet: null,   // same as abmData
   abmObject:{},
   abmTimePaths:null,
   activeTimePaths:null,
@@ -23,11 +23,11 @@ export default {
   filterSettings: null,
   noiseResults: [],
   trafficCounts: null,
-  showNoise:false,
   noiseScenario:{
     traffic_percent: 0.5,
     max_speed: 50,
   },
+  currentNoiseGeoJson: null,
   currentlyShownScenarioSettings: {},
   resultOutdated: true,  // in the beginning no results are shown. Trigger user to request results.
   moduleSettings: {
@@ -61,9 +61,9 @@ export default {
   noiseMap: false,
   stormWater: false,
   microClimate: false,
+  multiLayerAnalysisMap: false,
   lastClick: [],
   showUi: true,
-  modalIndex: 0,
   allFeaturesHighlighted: false,
   amenitiesGeoJson: null,
   selectedFocusAreas: []

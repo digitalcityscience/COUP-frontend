@@ -50,7 +50,6 @@ export default {
     },
     computed: {
         ...mapState(['map']),// getter only
-        ...mapState(['selectedFeatures']),// getter only
         ...mapState('scenario', ['resultLoading']), // getter only
         ...mapState('scenario', ['moduleSettings']), // getter only
         // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
@@ -78,9 +77,6 @@ export default {
         },
         amenityStats(){
           return this.$store.state.scenario.amenityStats;
-        },
-        abmData(){
-            return this.$store.state.scenario.abmData;
         },
         filterSet(){
             return this.$store.state.scenario.clusteredAbmData;
@@ -201,7 +197,7 @@ export default {
         <div class="component_divisions">
             <ul>
                 <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', abmData == 'undefined' || abmData == null ? 'hidden' : '']">
+                <li v-for="division in componentDivisions" :key="division.title" v-bind:class="[ activeDivision === division.title ? 'highlight' : '', activeAbmSet == 'undefined' || activeAbmSet == null ? 'hidden' : '']">
                     <div class="component_link" @click="activeDivision = division.title">
                       <v-tooltip left>
                         <template v-slot:activator="{ on, attrs }">

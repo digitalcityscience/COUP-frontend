@@ -12,5 +12,9 @@
   },
   lintOnSave: false,
   configureWebpack: {
+    watchOptions: {
+      poll: 5000,
+      aggregateTimeout: 1000,
+    }
   }
 }

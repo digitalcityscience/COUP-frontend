@@ -2,7 +2,8 @@
 import { mapState } from 'vuex'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import UseTypesLegend from "@/components/Menu/UseTypesLegend.vue";
-import FocusAreasLayer from "@/config/focusAreas.json";
+import FocusAreasLayerConfig from "@/config/focusAreas.json";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 
 export default {
     name: 'Viewbar',
@@ -24,6 +25,7 @@ export default {
                 noise: true,
                 stormwater: true,
                 microclimate: true,
+                multiLayerAnalysis: true,
             },
             visibleBuildings: {
                 show: true,
@@ -42,8 +44,6 @@ export default {
             'map',
             'activeMenuComponent',
             'layers',
-            'layerIds',
-            'selectedFeatures',
             'selectedMultiFeatures',
         ]),
       ...generateStoreGetterSetter([
@@ -51,14 +51,18 @@ export default {
         ['showLegend', 'showLegend' ],
         ['focusAreasShown', 'focusAreasShown' ]
       ]),
+      layerIds() {
+          return this.$store.state.layerIds
+      },
+
       workshop(){
           return this.$store.state.workshop;
       },
       loader(){
           return this.$store.state.scenario.loader;
       },
-      abmData(){
-          return this.$store.state.scenario.abmData;
+      activeAbmSet(){
+          return this.$store.state.scenario.activeAbmSet;
       },
       heatMap(){
           return this.$store.state.scenario.heatMap;
@@ -71,10 +75,13 @@ export default {
       },
       microClimate(){
           return this.$store.state.scenario.microClimate;
+      },
+      multiLayerAnalysis(){
+          return this.$store.state.scenario.multiLayerAnalysisMap;
       }
     },
     watch: {
-        abmData(){},
+        activeAbmSet(){},
         heatMap(newVal, oldVal){
             console.log(newVal, oldVal);
         },
@@ -196,18 +203,28 @@ export default {
             if(this.layerIds.indexOf("noise") > -1){
                 if(this.visibleLayers.noise){
                     this.map.setLayoutProperty("noise", 'visibility', 'visible');
+                    this.map.setLayoutProperty("trafficCounts", 'visibility', 'visible');
                 } else {
                     this.map.setLayoutProperty("noise", 'visibility', 'none');
+                    this.map.setLayoutProperty("trafficCounts", 'visibility', 'none');
                 }
             }
             if(this.layerIds.indexOf("focusAreas") > -1){
               console.log("visible layers", this.visibleLayers)
                 if(this.visibleLayers.focusAreas){
-                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'visible');
+                  this.map.setLayoutProperty(FocusAreasLayerConfig.mapSource.data.id, 'visibility', 'visible');
                 } else {
-                  this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+                  this.map.setLayoutProperty(FocusAreasLayerConfig.mapSource.data.id, 'visibility', 'none');
                 }
             }
+           if(this.layerIds.indexOf("multiLayerAnalysis") > -1){
+            console.log("visible layers", this.visibleLayers)
+            if(this.visibleLayers.multiLayerAnalysis){
+              this.map.setLayoutProperty(MultiLayerAnalysisConfig.layer.id, 'visibility', 'visible');
+            } else {
+              this.map.setLayoutProperty(MultiLayerAnalysisConfig.layer.id, 'visibility', 'none');
+            }
+          }
         },
         checkHighlights(active){
             Object.entries(this.visibility).map(([key, value]) => {
@@ -254,7 +271,7 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-         <!--<v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ highlight: showLegend }"><v-tooltip right>
+         <!--<v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ circleObject: showLegend }"><v-tooltip right>
              <template v-slot:activator="{ on, attrs }">
                <v-icon
                  v-bind="attrs"
@@ -300,7 +317,7 @@ export default {
                 @change="updateBuildingVisibility"
                 dark
                 hide-details
-                :disabled="abmData == null"
+                :disabled="activeAbmSet == null"
              ></v-checkbox>
              <v-btn class="legendbutton" @click="legendVisible = !legendVisible">
                  <v-icon>mdi-map-legend</v-icon>
@@ -343,7 +360,7 @@ export default {
                     dark
                     @change="updateLayerVisibility"
                     hide-details
-                    :disabled="abmData == null"
+                    :disabled="activeAbmSet == null"
                  ></v-checkbox>
                  <v-checkbox
                     v-model="visibleLayers.heat"
@@ -389,6 +406,18 @@ export default {
                     @change="updateLayerVisibility"
                     hide-details
                     :disabled="!microClimate"
+                 ></v-checkbox>
+             </div>
+           <div class="layers">
+                 <h3>Multi Layer Analysis</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.multiLayerAnalysis"
+                    label="Multi Layer Analysis"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!multiLayerAnalysis"
                  ></v-checkbox>
              </div>
          </div>

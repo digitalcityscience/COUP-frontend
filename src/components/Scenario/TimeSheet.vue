@@ -81,7 +81,7 @@ export default {
                         spliceArr = [...new Set(value[filterKey]), ...spliceArr];
                     }
                 });
-                
+
                 let removeDuplicates = [...new Set(value.all)];
                 this.transCoords = removeDuplicates.filter(el => !spliceArr.includes(el));
                 this.activeAbmTimeCoords.push(this.transCoords.length);
@@ -186,7 +186,7 @@ export default {
              // do not filter timeCoords
              this.filterCoords = [...this.timeCoords]
            } else {
-               
+
                 Object.values(this.abmSimpleTimes).forEach(value =>{
                     let coords = [...new Set(value[this.filterOptions[this.filter]])];
                     this.filterCoords.push(coords.length);
@@ -210,9 +210,6 @@ export default {
             ['currentTimeStamp', 'scenario/currentTimeStamp']
           ]
         ),
-        abmData(){
-            return this.$store.state.scenario.abmData;
-        },
         selectedRange(){
             return this.$store.state.scenario.selectedRange;
         },
@@ -254,7 +251,7 @@ export default {
         }
     },
     watch: {
-        abmData(){
+        activeAbmSet(){
             this.getDataForTimeChart();
         },
         heatMapActive(){
@@ -268,7 +265,7 @@ export default {
         selectedRange(){
             var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
             var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
-            
+
             this.heatMapRange.left = (leftVal * 100)/57600 + "%";
             this.heatMapRange.width = ((rightVal - leftVal) * 100)/57600 + "%";
             console.log(this.heatMapRange);
@@ -291,7 +288,7 @@ export default {
 
 <template>
     <!--<div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">-->
-        <div id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">
+        <div id="timesheet" :class="{ ui_hide: !showUi || activeAbmSet == null }">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel" :class="{ show: mobileTimePanel }">
             <div class="time_graph">

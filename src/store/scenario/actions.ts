@@ -2,7 +2,7 @@ import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
-import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer} from "@/store/deck-layers";
+import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
@@ -10,6 +10,9 @@ import { VCarouselReverseTransition } from 'vuetify/lib';
 
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
+import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
+import PerformanceInfosConfig from "@/config/performanceInfos.json";
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -24,6 +27,7 @@ export default {
     if (state.noiseResults.length > 0) {
       const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
       const geoJsonData = noiseResult['geojson_result']
+      commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
       dispatch('addNoiseMapLayer', geoJsonData)
         .then(
           dispatch('addTrafficCountLayer')
@@ -34,10 +38,12 @@ export default {
       commit('resultLoading', true)
       rootState.cityPyO.getLayer("noiseScenarios", false).then(
         noiseData => {
-          commit('noiseResults', noiseData["noise_results"])
+          commit('noiseResults', Object.freeze(noiseData["noise_results"]))
           // select matching result for current scenario and add it to the map
           const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
-          dispatch('addNoiseMapLayer', noiseResult['geojson_result'])
+          const geoJsonData =  noiseResult['geojson_result']
+          commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
+          dispatch('addNoiseMapLayer', geoJsonData)
             .then(
               dispatch('addTrafficCountLayer'),
               commit('resultLoading', false)
@@ -57,10 +63,6 @@ export default {
       .then(source => {
         dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
       }).then(source => {
-      // add layer on top of the layer stack
-      if (rootState.map?.getLayer("abmTrips")) {
-        rootState.map?.moveLayer(noiseLayerName, "abmTrips")
-      }
     })
   },
   addTrafficCountLayer({state, commit, dispatch, rootState}) {
@@ -85,15 +87,7 @@ export default {
       dispatch('addSourceToMap', source, {root: true})
         .then(source => {
           dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
-        }).then(source => {
-        // add layer on top of the layer stack
-        rootState.map?.moveLayer(TrafficCountLayer.layer.id)
         })
-  },
-  hideNoiseMap({state, commit, dispatch, rootState}) {
-    if (rootState.map?.getSource(NoiseLayer.mapSource.data.id)) {
-      dispatch("removeSourceFromMap", NoiseLayer.mapSource.data.id, { root: true })
-    }
   },
   loadWorkshopScenario({state, commit, dispatch, rootState}, scenarioId) {
     let bridges = updateBridges(
@@ -139,12 +133,11 @@ export default {
     rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
       source => {
         console.log("got amenities", source)
-        commit('amenitiesGeoJson', source.options.data)
+        commit('amenitiesGeoJson', Object.freeze(source.options.data))
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
-          }).then(source => { rootState.map?.moveLayer(Amenities.layer.id, "groundfloor")}  // add layer on top of the layer stack
-          )
+          })
       })
   },
   // load layer source from cityPyo and add the layer to the map
@@ -172,14 +165,37 @@ export default {
                 .then(source => {
                   layers.forEach(layer => {
                     dispatch('addLayerToMap', layer, {root: true})
-                    // put bridge layer on top of spaces
-                    if (rootState.map?.moveLayer(layer.id, "spaces")) {
-                      rootState.map?.moveLayer(layer.id, "spaces")
-                    }
                   })
                 })
             })
         }
+  },
+  addMultiLayerAnalysisLayer({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = MultiLayerAnalysisConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', MultiLayerAnalysisConfig.layer, {root: true})
+      })
+  },
+  addSubSelectionLayer({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = SubSelectionLayerConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', SubSelectionLayerConfig.layer, {root: true})
+      })
+  },
+  addMultiLayerPerformanceInfos({state, commit, dispatch, rootState}, features) {
+    // update layer on map
+    let source = PerformanceInfosConfig.mapSource
+    source.options.data.features = features
+    dispatch('addSourceToMap', source, {root: true})
+      .then(source => {
+        dispatch('addLayerToMap', PerformanceInfosConfig.layer, {root: true})
+      })
   },
   //LOADING INITIAL ABM DATA
   initialAbmComputing({state, commit, dispatch, rootState}, workshopScenario){
@@ -204,7 +220,6 @@ export default {
 
 
         commit("loaderTxt", "Serving Abm Data ... ");
-        commit('abmData', result.options?.data);
         dispatch("computeLoop", result.options?.data)
           .then(unused => {
             dispatch('calculateStats')
@@ -302,17 +317,17 @@ export default {
     //functions working on whole data set
 
     //Commit computed results to the store
-    commit('agentIndexes', agentIndexes);
-    commit('clusteredAbmData', abmFilterData);
-    commit('abmTimePaths', timePaths);
-    commit('activeTimePaths', timePaths);
-    commit('abmTrips', trips);
+    commit('agentIndexes', Object.freeze(agentIndexes));
+    commit('clusteredAbmData', Object.freeze(abmFilterData));
+    commit('abmTimePaths', Object.freeze(timePaths));
+    commit('activeTimePaths', Object.freeze(timePaths));
+    commit('abmTrips', Object.freeze(trips));
 
     console.log("trips", trips)
     console.log(timePaths);
 
-    commit('abmSimpleTimes', simpleTimeData);
-    commit('activeAbmSet', abmCore);
+    commit('abmSimpleTimes', Object.freeze(simpleTimeData));
+    commit('activeAbmSet', Object.freeze(abmCore));
 
     //buildLayers
     dispatch("buildLayers");
@@ -337,8 +352,6 @@ export default {
 
         // check if scenario is still valid - user input might have changed while loading trips layer
         rootState.map?.addLayer(deckLayer);
-        rootState.map?.moveLayer(abmTripsLayerName, "groundfloor");  // add layer on top of the groundfloor layer
-
         console.log("new trips layer loaded");
         commit('addLayerId', abmTripsLayerName, {root: true});
         commit('animationRunning', true);
@@ -365,12 +378,8 @@ export default {
         commit('addLayerId', abmAggregationLayerName, {root: true});
         commit('heatMap', true);
         console.log(state.heatMap);
-        if (rootState.map?.getLayer("groundfloor")) {
-          rootState.map?.moveLayer("abmHeat", "groundfloor")
-        }
 
       });
-
   },
   updateLayers({state, commit, dispatch, rootState}, layer){
     const range = state.selectedRange;
@@ -389,8 +398,6 @@ export default {
 
           // check if scenario is still valid - user input might have changed while loading trips layer
           rootState.map?.addLayer(deckLayer);
-          rootState.map?.moveLayer(abmTripsLayerName, "groundfloor");  // add layer on top of the groundfloor layer
-
           console.log("new trips layer loaded");
           commit('addLayerId', abmTripsLayerName, {root: true});
           if(state.animationRunning){
@@ -426,19 +433,27 @@ export default {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
             rootState.map?.removeLayer(abmAggregationLayerName)
           }
-
           console.log("new aggregation layer loaded");
           rootState.map?.addLayer(deckLayer)
           commit('addLayerId', abmAggregationLayerName, {root: true})
-          if (rootState.map?.getLayer("groundfloor")) {
-            rootState.map?.moveLayer("abmHeat", "groundfloor")
-          }
-
         });
     }
   },
+  addArcLayer({state, commit, dispatch, rootState}, arcLayerData) {
+    buildArcLayer(arcLayerData).then(
+      deckLayer => {
+        if (rootState.map?.getLayer(abmArcLayerName)) {
+          rootState.map?.removeLayer(abmArcLayerName)
+        }
+
+        console.log("new arc layer loaded");
+        rootState.map?.addLayer(deckLayer)
+        commit('addLayerId', abmArcLayerName, {root: true});
+        rootState.map?.flyTo({"zoom": 15, "pitch": 45, "speed": 0.2})
+      });
+  },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
-      const abmData = state.abmData;
+      const abmData = state.activeAbmSet;
       const timePaths = state.abmTimePaths;
       const filterSet = {...state.clusteredAbmData};
       const spliceArr = [];
@@ -463,8 +478,8 @@ export default {
       });
 
       console.log("new Filter Setting applied");
-      commit('activeAbmSet', filteredAbm);
-      commit('activeTimePaths', filteredTimePaths);
+      commit('activeAbmSet', Object.freeze(filteredAbm));
+      commit('activeTimePaths', Object.freeze(filteredTimePaths));
       dispatch('updateLayers', "all");
       commit("loader", false);
   }
