@@ -57,7 +57,6 @@ export default {
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
       ['activeMenuComponent', 'activeMenuComponent'],
-      ['showNoise', 'scenario/' + 'showNoise'],
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ]),
@@ -232,6 +231,8 @@ export default {
 
         if (combinedLayers.length === 0) {
           this.emptyDataWarning = true
+        } else {
+          this.$store.commit("scenario/multiLayerAnalysisMap", true);
         }
       }
     }
@@ -410,9 +411,6 @@ export default {
 
           </v-row>
           </v-container>
-          <!-- old <v-btn @click="showNoiseToggle" class="confirm_btn" v-if="showNoise">
-           Hide Noise Result
-          </v-btn>-->
           <p v-if="showError" class="warning">Invalid selection</p>
           <p v-if="emptyDataWarning" class="warning">No data to show!</p>
           <v-btn

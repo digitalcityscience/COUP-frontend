@@ -63,10 +63,6 @@ export default {
       .then(source => {
         dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
       }).then(source => {
-      // add layer on top of the layer stack
-      if (rootState.map?.getLayer("abmTrips")) {
-        rootState.map?.moveLayer(noiseLayerName, "abmTrips")
-      }
     })
   },
   addTrafficCountLayer({state, commit, dispatch, rootState}) {
@@ -91,15 +87,7 @@ export default {
       dispatch('addSourceToMap', source, {root: true})
         .then(source => {
           dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
-        }).then(source => {
-        // add layer on top of the layer stack
-        rootState.map?.moveLayer(TrafficCountLayer.layer.id)
         })
-  },
-  hideNoiseMap({state, commit, dispatch, rootState}) {
-    if (rootState.map?.getSource(NoiseLayer.mapSource.data.id)) {
-      dispatch("removeSourceFromMap", NoiseLayer.mapSource.data.id, { root: true })
-    }
   },
   loadWorkshopScenario({state, commit, dispatch, rootState}, scenarioId) {
     let bridges = updateBridges(
@@ -149,8 +137,7 @@ export default {
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', Amenities.layer, {root: true})
-          }).then(source => { rootState.map?.moveLayer(Amenities.layer.id, "groundfloor")}  // add layer on top of the layer stack
-          )
+          })
       })
   },
   // load layer source from cityPyo and add the layer to the map
@@ -178,10 +165,6 @@ export default {
                 .then(source => {
                   layers.forEach(layer => {
                     dispatch('addLayerToMap', layer, {root: true})
-                    // put bridge layer on top of spaces
-                    if (rootState.map?.moveLayer(layer.id, "spaces")) {
-                      rootState.map?.moveLayer(layer.id, "spaces")
-                    }
                   })
                 })
             })
@@ -194,15 +177,7 @@ export default {
     dispatch('addSourceToMap', source, {root: true})
       .then(source => {
         dispatch('addLayerToMap', MultiLayerAnalysisConfig.layer, {root: true})
-      }).then(source => {
-      // add layer on top of the layer stack
-      if (state.map?.getLayer("groundfloor")) {
-        state.map?.moveLayer(MultiLayerAnalysisConfig.layer.id, "groundfloor")
-      }
-      if (state.map?.getLayer(SubSelectionLayerConfig.layer.id)) {
-        state.map?.moveLayer(SubSelectionLayerConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
-      }
-    })
+      })
   },
   addSubSelectionLayer({state, commit, dispatch, rootState}, features) {
     // update layer on map
@@ -211,15 +186,7 @@ export default {
     dispatch('addSourceToMap', source, {root: true})
       .then(source => {
         dispatch('addLayerToMap', SubSelectionLayerConfig.layer, {root: true})
-      }).then(source => {
-      // add layer on top of the layer stack
-      if (state.map?.getLayer("groundfloor")) {
-        state.map?.moveLayer(SubSelectionLayerConfig.layer.id, "groundfloor")
-      }
-      if (state.map?.getLayer(SubSelectionLayerConfig.layer.id)) {
-        state.map?.moveLayer(SubSelectionLayerConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
-      }
-    })
+      })
   },
   addMultiLayerPerformanceInfos({state, commit, dispatch, rootState}, features) {
     // update layer on map
@@ -228,15 +195,7 @@ export default {
     dispatch('addSourceToMap', source, {root: true})
       .then(source => {
         dispatch('addLayerToMap', PerformanceInfosConfig.layer, {root: true})
-      }).then(source => {
-      // add layer on top of the layer stack
-      if (state.map?.getLayer("groundfloor")) {
-        state.map?.moveLayer(PerformanceInfosConfig.layer.id, "groundfloor")
-      }
-      if (state.map?.getLayer(PerformanceInfosConfig.layer.id)) {
-        state.map?.moveLayer(PerformanceInfosConfig.layer.id, MultiLayerAnalysisConfig.layer.id)
-      }
-    })
+      })
   },
   //LOADING INITIAL ABM DATA
   initialAbmComputing({state, commit, dispatch, rootState}, workshopScenario){
@@ -394,8 +353,6 @@ export default {
 
         // check if scenario is still valid - user input might have changed while loading trips layer
         rootState.map?.addLayer(deckLayer);
-        rootState.map?.moveLayer(abmTripsLayerName, "groundfloor");  // add layer on top of the groundfloor layer
-
         console.log("new trips layer loaded");
         commit('addLayerId', abmTripsLayerName, {root: true});
         commit('animationRunning', true);
@@ -422,12 +379,8 @@ export default {
         commit('addLayerId', abmAggregationLayerName, {root: true});
         commit('heatMap', true);
         console.log(state.heatMap);
-        if (rootState.map?.getLayer("groundfloor")) {
-          rootState.map?.moveLayer("abmHeat", "groundfloor")
-        }
 
       });
-
   },
   updateLayers({state, commit, dispatch, rootState}, layer){
     const range = state.selectedRange;
@@ -446,8 +399,6 @@ export default {
 
           // check if scenario is still valid - user input might have changed while loading trips layer
           rootState.map?.addLayer(deckLayer);
-          rootState.map?.moveLayer(abmTripsLayerName, "groundfloor");  // add layer on top of the groundfloor layer
-
           console.log("new trips layer loaded");
           commit('addLayerId', abmTripsLayerName, {root: true});
           if(state.animationRunning){
@@ -483,14 +434,9 @@ export default {
           if (rootState.map?.getLayer(abmAggregationLayerName)) {
             rootState.map?.removeLayer(abmAggregationLayerName)
           }
-
           console.log("new aggregation layer loaded");
           rootState.map?.addLayer(deckLayer)
           commit('addLayerId', abmAggregationLayerName, {root: true})
-          if (rootState.map?.getLayer("groundfloor")) {
-            rootState.map?.moveLayer("abmHeat", "groundfloor")
-          }
-
         });
     }
   },
