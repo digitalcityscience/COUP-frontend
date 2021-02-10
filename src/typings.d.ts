@@ -104,8 +104,8 @@ declare global {
 
       interface LayerAnalysisRequest {
         layerName: string,
-        layerRange: Number[],
-        layerConstraints: Number[],
+        layerRange: number[],
+        layerConstraints: number[],
         logicOperator: string
       }
 

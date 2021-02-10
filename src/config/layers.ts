@@ -21,7 +21,6 @@ const addedLayersIds = [
   abmArcLayerName,
   MultiLayerAnalysisConfig.layer.id,
   PerformanceInfosConfig.layer.id,
-  AmenitiesConfig.layer.id,
   CircledFeatures.layer.id,
 ]
 
@@ -34,8 +33,11 @@ const bridgeLayerIds = BridgesConfig.layers.map(layer => {
 })
 
 export function getLayerOrder() {
-  let layerOrder = [FocusAreasConfig.layer.id,
-    SpacesConfig.layer.id]
+  let layerOrder = [
+    FocusAreasConfig.layer.id,
+    SpacesConfig.layer.id,
+    AmenitiesConfig.layer.id,
+  ]
 
   layerOrder = layerOrder.concat(bridgeLayerIds)
   layerOrder = layerOrder.concat(buildingLayerIds)
