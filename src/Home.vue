@@ -63,10 +63,10 @@ export default {
             </div>
             <button type="submit">Access</button>
             <p v-if="showError" id="error">Username or Password is incorrect</p>
-            <div class="public_teaser">
+<!--            <div class="public_teaser">
               <p>Click here for a public version</p>
               <v-btn href="/public">Public Version</v-btn>
-            </div>
+            </div>-->
           </form>
         </div>
       </div>
