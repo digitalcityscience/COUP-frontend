@@ -85,8 +85,8 @@ export default {
 .login {
   width: 100%;
   height: 100%;
-  background-position: center 0%;
-  opacity: 90%;
+  background-position: center 0;
+  opacity: 0.7;
 }
 
 * {
@@ -119,6 +119,7 @@ input {
   box-shadow:0 0 15px 4px rgba(0,0,0,0.06);
   padding:10px;
   border-radius:30px;
+  background-color: #E8F0FE !important;
 }
 #error {
   margin-top: 20px;
