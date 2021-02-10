@@ -97,7 +97,7 @@ export default {
 
     commit('bridges', bridges)
     dispatch('updateBridgeLayer')
-    dispatch('updateDeckLayer', scenarioId)
+    dispatch('initialAbmComputing', scenarioId)
     dispatch('updateAmenitiesLayer', scenarioId)
   },
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
