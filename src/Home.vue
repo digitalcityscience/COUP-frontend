@@ -120,6 +120,7 @@ input {
   padding:10px;
   border-radius:30px;
   background-color: #E8F0FE !important;
+  color: black;
 }
 #error {
   margin-top: 20px;
