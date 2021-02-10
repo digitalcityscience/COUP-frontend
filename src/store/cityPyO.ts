@@ -5,9 +5,9 @@ export default class CityPyO {
     url: string;
     userid: string;
 
-    constructor(userdata: {username: string, password: string}) {
+    constructor() {
         this.url = process.env.VUE_APP_CITYPYO_URL
-        this.login(userdata)
+        //this.login(userdata)
     }
 
     async login (userdata: {username: string, password: string}) {
@@ -22,11 +22,12 @@ export default class CityPyO {
 
         if (res.status === 200) {
             const json = await res.json()
-
             this.userid = json.user_id
+            return true
         }
         else {
             console.warn(res.status, res.statusText)
+            return false
         }
     }
 

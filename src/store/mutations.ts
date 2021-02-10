@@ -14,7 +14,7 @@ export default {
   removeLayerId(state: StoreState, id: string) {
     state.layerIds = state.layerIds.filter(_id => _id !== id)
   },
-  checkoutWorkshop(state: StoreState, input: boolean){
+  publicAccess(state: StoreState, input: boolean){
     state.workshop = input;
   }
 }

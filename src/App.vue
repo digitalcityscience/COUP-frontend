@@ -22,6 +22,9 @@ export default {
         workshop(){
             return this.$store.state.workshop;
         },
+        authenticated(){
+            return this.$store.state.isUserAuthenticated;
+        },
         loader(){
             return this.$store.state.loader;
         }
@@ -36,24 +39,27 @@ export default {
         },
     },
     mounted(){
-        this.$store.dispatch('checkoutWorkshop');
+        this.$store.dispatch('checkoutPublicAccess');
     },
     created () {
-        this.$store.dispatch('connect')
+        // automatically connect for public access
+        if (this.workshop) {
+          this.$store.dispatch('connect')
+        }
     }
 }
 </script>
 
 <template>
-    <v-app>
-        <Map />
-        <GFI />
-        <Menu />
-        <TimeSheet />
-        <Viewbar />
-        <Loader />
-        <div id="line_canvas"></div>
-    </v-app>
+  <v-app>
+    <Map />
+    <GFI />
+    <Menu />
+    <TimeSheet />
+    <Viewbar />
+    <Loader />
+    <div id="line_canvas"></div>
+  </v-app>
 </template>
 
 <style lang="scss">

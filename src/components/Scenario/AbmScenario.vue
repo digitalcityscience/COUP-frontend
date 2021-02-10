@@ -343,7 +343,7 @@ export default {
 
         <!--each div element needs data-title and data-pic for autocreating menu buttons-->
         <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
-        <div v-if="!workshop" class="division" data-title='Dashboard' data-pic='mdi-view-dashboard'>
+        <div class="division" data-title='Dashboard' data-pic='mdi-view-dashboard'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Dashboard'" class="component_content">
                <h2>ABM Dashboard</h2>

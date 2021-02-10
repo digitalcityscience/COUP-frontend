@@ -113,19 +113,29 @@ export default {
       }
     }
   },
-  checkoutWorkshop({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
+  checkoutPublicAccess({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
     console.log(window.location.href);
     if (window.location.href.indexOf("/workshop") > -1) {
-      commit('checkoutWorkshop', true);
+      commit('publicAccess', true);
+    }
+    if (window.location.href.indexOf("/public") > -1) {
+      commit('publicAccess', true);
     }
   },
-  connect({commit}: ActionContext<StoreState, StoreState>, options?: ConnectionOptions) {
+  async connect({state, commit, dispatch}: ActionContext<StoreState, StoreState>, options?: ConnectionOptions) {
+    const cityPyo = new CityPyO()
+    commit('cityPyO', cityPyo)
+
+    let login = false
     if (!options) {
       // login with default user if no userdata is passed
-      commit('cityPyO', new CityPyO(CityPyODefaultUser))
+      login = await cityPyo.login(CityPyODefaultUser)
+      // login = await state.cityPyO.login(CityPyODefaultUser)
     } else {
-      commit('cityPyO', new CityPyO(options.userdata))
+      login = await cityPyo.login(options.userdata)
     }
+
+    return login
   },
   addFocusAreasMapLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
     state.cityPyO.getLayer("focusAreas").then(source => {
