@@ -1,23 +1,22 @@
 <script>
 import { mapActions } from "vuex";
 import App from './App.vue'
+import CityPyoDefaultUser from '@/config/cityPyoDefaultUser.json'
 
 export default {
-  name: "Home",
+  name: "Login",
   components: {
     App
   },
   computed: {
     cityPyO(){
       return this.$store.state.cityPyO;
-    },
-    workshop(){
-      return this.$store.state.workshop;
-    },
+    }
   },
   data() {
     return {
       authenticated: false,
+      restrictedAccess: true,
       form: {
         username: "",
         password: "",
@@ -26,7 +25,11 @@ export default {
     };
   },
   mounted(){
-    this.$store.dispatch('checkoutPublicAccess');
+    if (process.env.NODE_ENV === 'development') {
+      this.form.username = CityPyoDefaultUser.username
+      this.form.password = CityPyoDefaultUser.password
+      this.submit()
+    }
   },
   methods: {
     ...mapActions(["LogIn"]),
@@ -41,7 +44,11 @@ export default {
           "password": this.form.password
         }
       }
-      this.authenticated =  await this.$store.dispatch('connect', userdata)
+      const loginResult =  await this.$store.dispatch('connect', userdata)
+      this.authenticated =  loginResult.authenticated
+      if (this.authenticated) {
+        this.restrictedAccess = loginResult.restricted
+      }
       this.showError = !this.authenticated
     },
   },
@@ -50,7 +57,7 @@ export default {
 
 <template>
   <v-app>
-      <div class="login" v-if="!workshop && !authenticated" :style="{ backgroundImage: 'url(' + require('@/assets/grasbrook.png')}">
+      <div class="login" v-if="!authenticated" :style="{ backgroundImage: 'url(' + require('@/assets/grasbrook.png')}">
         <div>
           <form @submit.prevent="submit">
             <div>
@@ -63,15 +70,11 @@ export default {
             </div>
             <button type="submit">Access</button>
             <p v-if="showError" id="error">Username or Password is incorrect</p>
-<!--            <div class="public_teaser">
-              <p>Click here for a public version</p>
-              <v-btn href="/public">Public Version</v-btn>
-            </div>-->
           </form>
         </div>
       </div>
-    <template v-if="workshop || authenticated">
-      <App/>
+    <template v-if="authenticated">
+      <App :restrictedAccess="restrictedAccess" />
     </template>
   </v-app>
 </template>

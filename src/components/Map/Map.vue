@@ -14,11 +14,15 @@ import FocusAreasLayer from "@/config/focusAreas.json";
 export default {
     name: 'Map',
     components:{ Contextmenu },
+    props: {
+      restrictedAccess: Boolean
+    },
     data() {
         return {
             lastClicked: [],
             hoveredFocusArea: null,
             modalLayers: ["groundfloor", "upperfloor", "rooftops", "abmAmenities"],
+            restrictedLayers: ["groundfloor", "upperfloor", "rooftops"],
         }
     },
     computed: {
@@ -51,9 +55,6 @@ export default {
         },
         heatMapType(){
             return this.$store.state.scenario.heatMapType;
-        },
-        workshop(){
-            return this.$store.state.workshop;
         }
     },watch: {
         heatMapData(){
@@ -107,13 +108,6 @@ export default {
         },
         onMapClicked (evt) {
           console.log("click!")
-          console.log(evt)
-
-          if (this.workshop) {
-            console.log("Feature not available in workshop mode");
-            this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
-            return
-          }
 
           const bbox = [
               [evt.point.x - 10, evt.point.y - 10],
@@ -129,9 +123,6 @@ export default {
           const initialFeature = clickedFeatures[0]
           const initialLayerId = initialFeature.layer.id
 
-
-          console.log(initialLayerId, initialFeature)
-
           // calculate stats for focus area
           if (initialLayerId === FocusAreasLayer.layer.id) {
             this.onFocusAreaClick(initialFeature.id)
@@ -140,6 +131,10 @@ export default {
 
           // open/close a modal
           if (this.modalLayers.indexOf(initialLayerId) > -1) {
+            if (this.restrictedAccess && this.restrictedLayers.indexOf(initialLayerId) > -1) {
+              console.warn("feature not available for restricted users.")
+              return
+            }
             this.handleModal(initialFeature)
             return
           }
@@ -152,10 +147,9 @@ export default {
         },
         /* opens or closes modal */
         handleModal(initialFeature) {
-          this.selectedObjectId = initialFeature.properties["city_scope_id"]
+          // TODO restrcited modals
 
-          console.log(this.selectedObjectId, "selected object id")
-          console.log(initialFeature)
+          this.selectedObjectId = initialFeature.properties["city_scope_id"]
 
           if (this.openModalsIds.indexOf(this.selectedObjectId) !== -1) {
             console.log("closing modal ", this.selectedObjectId)
@@ -170,13 +164,7 @@ export default {
         onMapLoaded () {
             this.$store.dispatch('addFocusAreasMapLayer')
             console.log("create design layers")
-            //console.log(this.$store.state.map);
-            this.$store.dispatch('createDesignLayers').then(() => {
-                this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
-                if(this.workshop){
-                      this.map.setLayoutProperty('upperfloor', 'visibility', 'none');
-                  }
-              });
+            this.$store.dispatch('createDesignLayers')
         },
         createModal(){
           this.openModalsIds.push(this.selectedObjectId)

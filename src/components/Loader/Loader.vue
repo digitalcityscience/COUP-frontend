@@ -27,17 +27,14 @@ export default {
             this.loading = val;
         }
     },
-    mounted(){ 
-        console.log("at beginners lvl", this.loading);
-    },
     methods:{
-        
+
     }
 }
 </script>
 
 <template>
- 
+
         <div id="big_loader" :class="loading ? '' : 'hidden'">
             <div class="css-loader"><div></div><div></div><div></div><div></div></div>
             <div class="loader_text">{{ loaderTxt }}</div>
@@ -122,7 +119,7 @@ export default {
             transform: scale(1);
         }
         }
-    
+
     @keyframes lds-ellipsis3 {
         0% {
             transform: scale(1);
@@ -131,7 +128,7 @@ export default {
             transform: scale(0);
         }
     }
-    
+
     @keyframes lds-ellipsis2 {
         0% {
             transform: translate(0, 0);

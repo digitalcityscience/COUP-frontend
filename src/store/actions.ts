@@ -113,29 +113,11 @@ export default {
       }
     }
   },
-  checkoutPublicAccess({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
-    console.log(window.location.href);
-    if (window.location.href.indexOf("/workshop") > -1) {
-      commit('publicAccess', true);
-    }
-    if (window.location.href.indexOf("/public") > -1) {
-      commit('publicAccess', true);
-    }
-  },
-  async connect({state, commit, dispatch}: ActionContext<StoreState, StoreState>, options?: ConnectionOptions) {
+  async connect({state, commit, dispatch}: ActionContext<StoreState, StoreState>, options: ConnectionOptions) {
     const cityPyo = new CityPyO()
     commit('cityPyO', cityPyo)
 
-    let login = false
-    if (!options) {
-      // login with default user if no userdata is passed
-      login = await cityPyo.login(CityPyODefaultUser)
-      // login = await state.cityPyO.login(CityPyODefaultUser)
-    } else {
-      login = await cityPyo.login(options.userdata)
-    }
-
-    return login
+    return await cityPyo.login(options.userdata)
   },
   addFocusAreasMapLayer({state, commit, dispatch}: ActionContext<StoreState, StoreState>){
     state.cityPyO.getLayer("focusAreas").then(source => {
@@ -143,7 +125,9 @@ export default {
         dispatch('addSourceToMap', source, {root: true})
           .then(source => {
             dispatch('addLayerToMap', FocusAreasLayer.layer, {root: true})
-          })
+          }).then(() => {
+          state.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none');
+        })
       }
     )
   },

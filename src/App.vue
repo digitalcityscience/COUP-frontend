@@ -1,7 +1,6 @@
 <script>
 import Map from './components/Map/Map.vue';
 import GFI from './components/GFI/GFI.vue';
-import Scenario from "@/components/Scenario/AbmScenario";
 import Menu from "./components/Menu/Menu.vue";
 import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
@@ -12,39 +11,20 @@ export default {
     components: {
         Map,
         GFI,
-        Scenario,
         TimeSheet,
         Menu,
         Viewbar,
         Loader
     },
+    props: {
+      restrictedAccess: Boolean
+    },
     computed: {
-        workshop(){
-            return this.$store.state.workshop;
-        },
-        authenticated(){
-            return this.$store.state.isUserAuthenticated;
+        cityPyo(){
+            return this.$store.state.cityPyO;
         },
         loader(){
             return this.$store.state.loader;
-        }
-    },
-    watch: {
-        workshop(){
-            if(!this.workshop){
-                console.log("URL does not include workshop")
-            } else {
-                console.log("Url does include workshop");
-            }
-        },
-    },
-    mounted(){
-        this.$store.dispatch('checkoutPublicAccess');
-    },
-    created () {
-        // automatically connect for public access
-        if (this.workshop) {
-          this.$store.dispatch('connect')
         }
     }
 }
@@ -52,11 +32,10 @@ export default {
 
 <template>
   <v-app>
-    <Map />
-    <GFI />
-    <Menu />
+    <Map :restrictedAccess="restrictedAccess"/>
+    <Menu :restrictedAccess="restrictedAccess"/>
     <TimeSheet />
-    <Viewbar />
+    <Viewbar :restrictedAccess="restrictedAccess"/>
     <Loader />
     <div id="line_canvas"></div>
   </v-app>

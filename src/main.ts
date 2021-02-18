@@ -1,6 +1,5 @@
 import Vue from 'vue'
-import Home from './Home.vue'
-//import Login from './components/Login/Login.vue'
+import Login from './Login.vue'
 import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify'
@@ -13,5 +12,5 @@ new Vue({
     router,
     store,
     vuetify,
-    render: h => h(Home)
+    render: h => h(Login)
 }).$mount('#app')
