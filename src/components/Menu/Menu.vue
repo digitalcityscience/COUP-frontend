@@ -20,9 +20,6 @@ export default {
             menuOpen: false,
         }
     },
-    mounted(){
-      console.log("in menu....", this.restrictedAccess)
-    },
     computed: {
         activeComponent: {
             get () {
