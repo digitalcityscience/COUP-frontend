@@ -23,13 +23,33 @@ export default class CityPyO {
         if (res.status === 200) {
             const json = await res.json()
             this.userid = json.user_id
-            return true
+            return {"authenticated": true, "restricted": json.restricted }
         }
         else {
             console.warn(res.status, res.statusText)
-            return false
+            return  {"authenticated": false}
         }
     }
+
+   async isUserRestricted() {
+     const res = await fetch(this.url + 'isRestrictedUser', {
+       method: 'POST',
+       mode: 'cors',
+       headers: {
+         'Content-Type': 'application/json'
+       },
+       body: JSON.stringify({"username" : this.userid})
+     })
+
+     if (res.status === 200) {
+       const json = await res.json()
+       return json.restricted
+     }
+     else {
+       console.warn(res.status, res.statusText)
+       return true
+     }
+   }
 
   async performRequest(layerId, requestUrl, body) {
 
@@ -47,7 +67,6 @@ export default class CityPyO {
     }
 
     return await res
-
   }
 
     async getLayer (id: string, formattedAsSource: boolean = true) {

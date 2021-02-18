@@ -21,6 +21,9 @@ export default {
     components: {
       DashboardCharts: DashboardCharts
     },
+    props: {
+      restrictedAccess: Boolean
+    },
     data () {
         return {
             activeDivision:null,
@@ -90,9 +93,6 @@ export default {
         heatMap(){
             return this.$store.state.scenario.heatMap;
         },
-        workshop(){
-            return this.$store.state.workshop;
-        },
         showUi(){
             return this.$store.state.scenario.showUi;
         }
@@ -129,6 +129,9 @@ export default {
         }
     },
     mounted: function() {
+      console.log("abm menu ----", this.restrictedAccess)
+
+
         /*autogenerationg Sub Menu for all divs of Class "division"*/
         var divisions = document.getElementsByClassName("division");
         for (var i = 0; i < divisions.length; i++) {
@@ -215,7 +218,7 @@ export default {
 
         <!--each div element needs data-title and data-pic for autocreating menu buttons-->
         <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
-        <div v-if="!workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+        <div v-if="!restrictedAccess" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
                <h2>ABM Scenario Settings</h2>
@@ -326,7 +329,7 @@ export default {
         </div><!--division end-->
 
         <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
-        <div v-if="workshop" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+        <div v-if="restrictedAccess" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content">
                <h2>ABM Scenario Selection</h2>

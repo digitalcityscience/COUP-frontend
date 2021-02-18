@@ -8,6 +8,9 @@ import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 export default {
     name: 'Viewbar',
     components: { UseTypesLegend },
+    props: {
+      restrictedAccess: Boolean
+    },
     data() {
         return {
             toggleFeatures: false,
@@ -54,10 +57,6 @@ export default {
       layerIds() {
           return this.$store.state.layerIds
       },
-
-      workshop(){
-          return this.$store.state.workshop;
-      },
       loader(){
           return this.$store.state.scenario.loader;
       },
@@ -92,7 +91,10 @@ export default {
           this.visibleLayers.focusAreas = newVal
         },
     },
-    methods:{
+    mounted() {
+    console.log("restrictedaccess", this.restrictedAccess)
+      },
+  methods:{
         toggleUi(){
             this.showUi = !this.showUi;
             this.$store.commit("scenario/showUi", this.showUi);
@@ -284,7 +286,7 @@ export default {
         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-city</v-icon> <div class="infobox"><p>Residential</p></div></v-btn>
         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #ab0124;">mdi-city</v-icon> <div class="infobox"><p>Commercial</p></div></v-btn>
         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Special Use</p></div></v-btn>
-         <v-btn v-if="!workshop" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
+         <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
             <span @click="checkHighlights('buildings')">
              <v-icon
@@ -326,7 +328,7 @@ export default {
              </v-btn>
          </div>
          </v-btn>
-         <v-btn v-if="!workshop" v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
+         <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
 
            <template v-slot:activator="{ on, attrs }">
                <span  @click="checkHighlights('layers')">

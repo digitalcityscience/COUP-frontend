@@ -269,6 +269,17 @@ body, html {
                 cursor:pointer;
             }
         }
+        .disclaimer {
+            position: absolute;
+            display: block;
+            bottom: 20px;
+            right: 10px;
+            color:$bright1;
+
+            h2 {
+                text-align: center;
+            }
+        }
     }
 }
 

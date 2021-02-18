@@ -72,7 +72,7 @@ declare global {
         accessToken: string,
         cityPyO: CityPyO | null,
         mapStyle: string,
-        workshop: Boolean,
+        restrictedAccess: Boolean,
         focusAreasGeoJson: GenericObject | null,
         focusAreasShown: boolean,
         openModalsIds: string[],

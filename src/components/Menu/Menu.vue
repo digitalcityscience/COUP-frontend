@@ -11,6 +11,9 @@ import {generateStoreGetterSetter} from "@/store/utils/generators";
 export default {
     name: 'Menu',
     components: {AbmScenario, SWScenario, MCScenario, NoiseScenario, MultiLayerAnalysis},
+    props: {
+      restrictedAccess: Boolean
+    },
     data() {
         return {
             windowWidth: window.innerWidth,
@@ -18,6 +21,7 @@ export default {
         }
     },
     mounted(){
+      console.log("in menu....", this.restrictedAccess)
     },
     computed: {
         activeComponent: {
@@ -76,7 +80,7 @@ export default {
                 </template>
             </div>
             <div class="body_scope">
-                <div v-if="activeComponent === 'AbmScenario'"><AbmScenario /></div>
+                <div v-if="activeComponent === 'AbmScenario'"><AbmScenario :restrictedAccess="restrictedAccess" /></div>
                 <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
                 <div v-if="activeComponent === 'MCScenario'"><MCScenario /></div>
                 <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario /></div>

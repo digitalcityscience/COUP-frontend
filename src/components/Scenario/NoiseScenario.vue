@@ -131,6 +131,12 @@ export default {
         <div>Loading results</div>
         <v-progress-linear>...</v-progress-linear>
       </v-overlay>
+      <div class="disclaimer">
+        <h2>Disclaimer</h2>
+        <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
+          The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
+          Scientific validity of the results cannot be guaranteed in the testing phases.</p>
+      </div>
       </div> <!--component_content end-->
     </div><!--division end-->
   </div>
