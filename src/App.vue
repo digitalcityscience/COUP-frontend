@@ -26,25 +26,6 @@ export default {
         loader(){
             return this.$store.state.loader;
         }
-    },
-    watch: {
-        restrictedAccess(){
-            if(!this.restrictedAccess){
-                console.log("Full functionality mode")
-            } else {
-                console.log("Limited functionality mode");
-            }
-        },
-    },
-    mounted(){
-      console.log("in APP.vue....restricted?", this.restrictedAccess)
-        //this.restrictedAccess = this.cityPyo.isUserRestricted()
-    },
-    created () {
-/*   TODO remove this     // automatically connect for public access
-        if (this.restrictedAccess) {
-          this.$store.dispatch('connect')
-        }*/
     }
 }
 </script>

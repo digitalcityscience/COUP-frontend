@@ -91,9 +91,6 @@ export default {
           this.visibleLayers.focusAreas = newVal
         },
     },
-    mounted() {
-    console.log("restrictedaccess", this.restrictedAccess)
-      },
   methods:{
         toggleUi(){
             this.showUi = !this.showUi;

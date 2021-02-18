@@ -129,9 +129,6 @@ export default {
         }
     },
     mounted: function() {
-      console.log("abm menu ----", this.restrictedAccess)
-
-
         /*autogenerationg Sub Menu for all divs of Class "division"*/
         var divisions = document.getElementsByClassName("division");
         for (var i = 0; i < divisions.length; i++) {
