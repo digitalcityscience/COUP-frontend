@@ -8,6 +8,7 @@
     "start": "vue-cli-service serve"
   },
   "dependencies": {
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "@danmarshall/deckgl-typings": "^4.1.9",
     "@deck.gl/aggregation-layers": "^8.2.5",
     "@deck.gl/core": "^8.2.5",

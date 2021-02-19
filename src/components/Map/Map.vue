@@ -147,8 +147,6 @@ export default {
         },
         /* opens or closes modal */
         handleModal(initialFeature) {
-          // TODO restrcited modals
-
           this.selectedObjectId = initialFeature.properties["city_scope_id"]
 
           if (this.openModalsIds.indexOf(this.selectedObjectId) !== -1) {
