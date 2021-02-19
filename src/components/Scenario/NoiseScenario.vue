@@ -7,6 +7,9 @@ import { noiseSettingsNames } from '@/store/noise'
 export default {
     name: 'NoiseScenario',
     components: {},
+    props: {
+      restrictedAccess: Boolean
+    },
     data () {
         return {
             activeDivision:null,
@@ -131,7 +134,7 @@ export default {
         <div>Loading results</div>
         <v-progress-linear>...</v-progress-linear>
       </v-overlay>
-      <div class="disclaimer">
+      <div v-if="restrictedAccess" class="disclaimer">
         <h2>Disclaimer</h2>
         <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
           The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.

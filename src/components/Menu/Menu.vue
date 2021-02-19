@@ -80,7 +80,7 @@ export default {
                 <div v-if="activeComponent === 'AbmScenario'"><AbmScenario :restrictedAccess="restrictedAccess" /></div>
                 <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
                 <div v-if="activeComponent === 'MCScenario'"><MCScenario /></div>
-                <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario /></div>
+                <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario :restrictedAccess="restrictedAccess" /></div>
                 <div v-if="activeComponent === 'MultiLayerAnalysis'"><MultiLayerAnalysis /></div>
             </div>
             <div class="footer_scope">
