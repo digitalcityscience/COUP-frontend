@@ -9,7 +9,7 @@ import Noise from '@/config/noise.json'
 import TrafficCounts from '@/config/trafficCounts.json'
 import DesignConfigs from '@/config/buildings.json'
 import SpacesConfig from '@/config/spaces.json'
-import {abmArcLayerName,abmTripsLayerName, abmAggregationLayerName} from '@/store/deck-layers'
+import {abmArcLayerName,abmTripsLayerName, abmAggregationLayerName, swLayerName} from '@/store/deck-layers'
 
 
 const addedLayersIds = [
@@ -19,6 +19,7 @@ const addedLayersIds = [
   TrafficCounts.layer.id,
   abmAggregationLayerName,
   abmArcLayerName,
+  swLayerName,
   MultiLayerAnalysisConfig.layer.id,
   PerformanceInfosConfig.layer.id,
   CircledFeatures.layer.id,

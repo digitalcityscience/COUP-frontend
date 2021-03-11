@@ -59,13 +59,18 @@ export default {
   heatMapVisible:true,
   selectedRange:[8,23],
   noiseMap: false,
-  stormWater: false,
   microClimate: false,
   multiLayerAnalysisMap: false,
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
   amenitiesGeoJson: null,
-  selectedFocusAreas: []
+  selectedFocusAreas: [],
+  junctions:{},
+  stormWater: false,
+  selectGraph: 'abm',
+  swData: {},
+  rainAmount: [],
+  rainTime:0,
 }
 

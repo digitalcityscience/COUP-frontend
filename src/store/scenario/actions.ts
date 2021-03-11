@@ -2,7 +2,7 @@ import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
-import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
+import {abmTripsLayerName, animate, getPolygonColor, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, buildSWLayer, abmArcLayerName, swLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
@@ -451,6 +451,47 @@ export default {
         commit('addLayerId', abmArcLayerName, {root: true});
         rootState.map?.flyTo({"zoom": 15, "pitch": 45, "speed": 0.2})
       });
+  },
+  addSWLayer({state, commit, dispatch, rootState}, swLayerData){
+    var timeStamp = 0;
+    var transformSWLayerData = Object.values(swLayerData);
+    buildSWLayer(transformSWLayerData, state.rainTime).then(
+      deckLayer => {
+        if (rootState.map?.getLayer(swLayerName)) {
+          rootState.map?.removeLayer(swLayerName)
+        }
+
+        console.log("stormwater layer loaded");
+        rootState.map?.addLayer(deckLayer);
+        commit('addLayerId', swLayerName, {root: true});
+      });
+  },
+  updateSWLayerTime({state, commit, dispatch, rootState}){
+    var swLayerData = state.swData;
+    var transformSWLayerData = Object.values(swLayerData);
+
+    buildSWLayer(transformSWLayerData, state.rainTime).then(
+      deckLayer => {
+        if (rootState.map?.getLayer(swLayerName)) {
+        rootState.map?.removeLayer(swLayerName)
+      }
+
+      rootState.map?.addLayer(deckLayer);
+      commit('addLayerId', swLayerName, {root: true});
+    });
+
+   
+    /*var swLayer = rootState.map.getLayer(swLayerName);
+    swLayer.implementation.setProps({ swTime: state.rainTime});
+    console.log(swLayer);*/
+
+
+    //swLayer.implementation.setProps({ getFillColor: });
+
+    //swLayer.implementation.props.getFillColor();
+
+    /*var swLayer = buildSWLayer(transformSWLayerData);
+    swLayer.setProps({ getElevation: 40 })*/
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
       const abmData = state.activeAbmSet;

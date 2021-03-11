@@ -9,9 +9,15 @@ export default {
     data() {
         return {
             timeChart: null,
+            swChart: null,
+            rainChart: null,
+            swBValues: {"n": 0, "r":[]},
+            swPTValues: {"n": 0, "r":[]},
+            swTValues: {"n": 0, "r":[]},
             currentTimeSet: 0,
             animationSpeed: 21,
             timeArray: {},
+            swTimeStamps: Array.from(Array(288).keys()),
             timeStamps: [],
             timeCoords: [],
             timeHours: [],
@@ -31,6 +37,8 @@ export default {
             loopSetter:false,
             windowWidth: window.innerWidth,
             mobileTimePanel: false,
+            rainTime:0,
+            swAnimationRunning:false,
         }
     },
     mounted(){
@@ -57,6 +65,10 @@ export default {
                 const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
                 animate(deckLayer.implementation, null, null, this.currentTimeStamp);
             }
+        },
+        updateSWLayer(){
+            this.$store.commit("scenario/rainTime", this.rainTime);
+            this.$store.dispatch('scenario/updateSWLayerTime');
         },
         getDataForTimeChart(){
             Object.entries(this.abmSimpleTimes).forEach(entry =>{
@@ -87,6 +99,36 @@ export default {
                 this.activeAbmTimeCoords.push(this.transCoords.length);
             });
             this.renderTimeGraph();
+        },
+        calculateSWDataSets(){
+            this.swBValues = {"n": 0, "r": []};
+            this.swPTValues = {"n": 0, "r": []};
+            this.swTValues = {"n": 0, "r": []};
+            Object.entries(this.swData).forEach(([key, value]) => {
+                if(value.type == "B_C" || value.type == "B_R" || value.type == "B_S") {
+                    this.swBValues.n = this.swBValues.n +1;
+                    this.swBValues.r.length > 0 ? this.swBValues.r = this.swBValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swBValues.r = value.runoff;
+                }
+                
+                if(value.type == "PT_park" || value.type == "PT_promenade" || value.type == "PT_plaza") {
+                    this.swPTValues.n = this.swPTValues.n +1;
+                    this.swPTValues.r.length > 0 ? this.swPTValues.r = this.swPTValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swPTValues.r = value.runoff;
+                }
+                
+                if(value.type == "T_street") {
+                    this.swTValues.n = this.swTValues.n +1;
+                    this.swTValues.r.length > 0 ? this.swTValues.r = this.swTValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swTValues.r = value.runoff;
+                };
+            });
+            
+            this.swBValues.r = this.swBValues.r.map(num => Math.round((num/this.swBValues.n)*0.75) );
+            this.swPTValues.r = this.swPTValues.r.map(num => Math.round((num/this.swPTValues.n)*1.1) );
+            this.swTValues.r = this.swTValues.r.map(num => Math.round((num/this.swTValues.n)*0.98) );
+
+            this.swTimeStamps = Array.from(Array(288).keys());
+            this.swTimeStamps = this.swTimeStamps.map(num => Math.floor(num/12) + ":00");
+            this.renderSWGraphRO();
+            this.renderSWGraphRain();
         },
         renderTimeGraph(){
             /*render graph via chart.js*/
@@ -155,6 +197,147 @@ export default {
                 }
                 });
         },
+        renderSWGraphRO(){
+            var ctxSW = document.getElementById('swChart').getContext('2d');
+
+            if (this.swChart) {
+              this.swChart.destroy();
+            }
+
+            this.swChart = new Chart(ctxSW, {
+                type: 'line',
+                data: {
+                    labels: this.swTimeStamps,
+                    datasets: [
+                    {
+                        data: this.swBValues.r,
+                        //borderColor: 'rgba(253, 128, 93, 1)',
+                        borderColor: 'rgba(16,245,229,1)',
+                        backgroundColor: 'rgba(0,0,0,0.75)',
+                        borderWidth: 1,
+                        fill: false,
+                        label: 'Buildings',
+                    },{
+                        data: this.swPTValues.r,
+                        label: 'Plazas & Parks',
+                        borderColor: 'rgba(81,209,252,0.85)',
+                        borderWidth:1,
+                        fill:true,
+                    },{
+                        data: this.swTValues.r,
+                        label: 'Streets',
+                        borderColor: 'rgba(10,171,135,0.85)',
+                        borderWidth:1,
+                        fill:true,
+                    }
+                    ]
+                },
+                options: {
+                    scales: {
+                    yAxes: [{
+                        /*ticks: {
+                        beginAtZero: true
+                        },*/
+                        max: "350",
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Runoff'
+                        },
+                        gridLines: {
+                            color: "rgba(49,48,73,0.35)",
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize:35,
+                            maxTicksLimit:10,
+                            suggestedMax:350,
+                            display: false
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'hours'
+                        },
+                        gridLines: {
+                            color: "rgba(49,48,73,0.35)",
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            //display: false
+                        }
+                    }],
+                    },
+                    elements: {
+                    point:{
+                        radius: 0
+                    },
+                    line:{
+                        tension: 1
+                    },
+                    },
+                    legend: {
+                        display:false,
+                    }
+                }
+                });
+        },
+        renderSWGraphRain(){
+            var ctxR = document.getElementById('rainChart').getContext('2d');
+
+            if (this.rainChart) {
+              this.rainChart.destroy();
+            }
+
+            this.rainChart = new Chart(ctxR, {
+                type: 'bar',
+                data: {
+                    labels: Array.from(Array(24).keys()),
+                    datasets: [
+                    {
+                        data: this.rainAmount,
+                        //borderColor: 'rgba(16,245,229,1)',
+                        backgroundColor: 'rgba(255,255,255,0.5)',
+                        fill: true,
+                        label: 'mm/m²',
+                    }
+                    ]
+                },
+                options: {
+                    legend: {
+                        display: false
+                    },scales: {
+                    xAxes: [{
+                        gridLines: {
+                            display:false,
+                            color: "rgba(49,48,73,0.35)",
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                            display:false,
+                        }
+                    }],
+                    yAxes: [{
+                        max: "260",
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'mm/m²'
+                        },
+                        gridLines: {
+                            display:false,
+                            color: "rgba(49,48,73,0.35)",
+                        },
+                        ticks: {
+                            stepSize:26,
+                            maxTicksLimit:10,
+                            suggestedMax:260,
+                            display: false
+                    }
+                    }],
+                }
+                }
+            })
+        },
         functionFollowsForm(){
             alert("now function yet. come up with one :) ")
         },
@@ -198,8 +381,22 @@ export default {
         },
         setLoop(){
             this.loopSetter = !this.loopSetter;
-            console.log("i am doing this shit:", this.loopSetter);
             this.$store.commit("scenario/setLoop", this.loopSetter);
+        },
+        autoLoopAnimation(){
+            var animationSpeed = 1;
+            var max = 288;
+            
+            if(this.swAnimationRunning){
+                if (this.rainTime + animationSpeed >= max) { this.rainTime = 0 }
+                else { this.rainTime = this.rainTime + animationSpeed};
+
+                this.$store.commit("scenario/rainTime", this.rainTime);
+                this.$store.dispatch('scenario/updateSWLayerTime');
+                 window.requestAnimationFrame(() => {
+                    this.autoLoopAnimation();
+                 });
+            }
         },
     },
       computed: {
@@ -248,6 +445,18 @@ export default {
         },
         loop(){
             return this.$store.state.scenario.loop;
+        },
+        stormWater(){
+            return this.$store.state.scenario.stormWater;
+        },
+        selectGraph(){
+            return this.$store.state.scenario.selectGraph;
+        },
+        swData(){
+            return this.$store.state.scenario.swData;
+        },
+        rainAmount(){
+            return this.$store.state.scenario.rainAmount;
         }
     },
     watch: {
@@ -268,7 +477,13 @@ export default {
 
             this.heatMapRange.left = (leftVal * 100)/57600 + "%";
             this.heatMapRange.width = ((rightVal - leftVal) * 100)/57600 + "%";
-            console.log(this.heatMapRange);
+        },
+        swData(){
+            this.$store.commit("scenario/selectGraph", "sw");
+            this.calculateSWDataSets();
+        },
+        swAnimationRunning(){
+            if(this.swAnimationRunning){this.autoLoopAnimation()};
         },
         filterSettings:{
             deep: true,
@@ -288,13 +503,17 @@ export default {
 
 <template>
     <!--<div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">-->
-        <div id="timesheet" :class="{ ui_hide: !showUi || activeAbmSet == null }">
+        <div id="timesheet" :class="{ ui_hide: !showUi || (activeAbmSet == null && stormWater == false)}">
+        <div class="graph_selection" v-if="activeAbmSet != null && stormWater != false">
+            <v-btn>Show ABM Results</v-btn>
+            <v-btn>Show Storm Water Results</v-btn>
+        </div>
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
-        <div class="time_panel" :class="{ show: mobileTimePanel }">
+        <div class="time_panel panel" :class="{ show: mobileTimePanel, dismiss: selectGraph != 'abm' }">
             <div class="time_graph">
-                <canvas id="timeChart" width="300" height="160"></canvas>
+                <canvas id="timeChart" width="300" height="200"></canvas>
             </div>
-            <div class="time_slider">
+            <div class="time_slider slider">
                 <div id="run_slider">
                     <v-slider
                         thumb-label="always"
@@ -311,7 +530,25 @@ export default {
                 <p>animation speed<strong> x{{animationSpeed/7}}</strong></p>
             </div>
         </div>
-        <div class="button_section">
+        <div class="sw_panel panel" :class="{ show: mobileTimePanel, dismiss: selectGraph != 'sw' }">
+            <div class="sw_graph">
+                <canvas id="rainChart" width="300" height="40"></canvas>
+                <canvas id="swChart" width="300" height="200"></canvas>
+                <div class="sw_slider slider">
+                    <div id="rain_slider">
+                        <v-slider
+                        v-model="rainTime"
+                        max="287"
+                        min="0"
+                        hide-details
+                        dark
+                        @change="updateSWLayer()"
+                        ></v-slider>
+                    </div>
+            </div>
+            </div>
+        </div>
+        <div :class="{ dismiss: selectGraph != 'abm' }" class="button_section abm_buttons">
             <!-- unused button with no function
             <div class="btn_wrapper">
                 <v-btn @click="functionFollowsForm">
@@ -329,7 +566,7 @@ export default {
                     <v-icon>mdi-chart-line</v-icon>
                   </v-btn>
                 </template>
-                <span>Compare by Transport Mode</span>
+                <span>Change Selection</span>
               </v-tooltip>
                 <div class="filterMenu" v-bind:class="{ visible: checkState }">
                     <div class="wrapper">
@@ -393,6 +630,88 @@ export default {
                 </v-btn>
             </div>
         </div>
+        <div :class="{ dismiss: selectGraph != 'sw' }" class="button_section abm_buttons">
+            <!-- unused button with no function
+            <div class="btn_wrapper">
+                <v-btn @click="functionFollowsForm">
+                    <v-icon>mdi-account-circle</v-icon>
+                </v-btn>
+            </div>
+            -->
+            <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
+              <v-tooltip right>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="checkState = !checkState">
+                    <v-icon>mdi-chart-line</v-icon>
+                  </v-btn>
+                </template>
+                <span>Compare by Transport Mode</span>
+              </v-tooltip>
+                <div class="filterMenu" v-bind:class="{ visible: checkState }">
+                    <div class="wrapper">
+                        <!--<div class="hint">
+                            <p>Select a dataset to compare</p>
+                        </div>-->
+                        <v-select
+                            :items="filterLabels"
+                            label="Select"
+                            hint="Choose dataset for comparison"
+                            persistent-hint
+                            dark
+                            v-model="filter"
+                            @change="activateComparisonGraph"
+                        ></v-select>
+                    </div>
+                </div>
+            </div>
+            <div class="btn_wrapper">
+                  <v-tooltip right>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn @click="increaseAnimationSpeed">
+                        <v-icon
+                          v-bind="attrs"
+                          v-on="on"
+                        >mdi-fast-forward</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Adjust Simulation Speed</span>
+              </v-tooltip>
+                <div class="indicators">
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 7 }"></span>
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 14 }"></span>
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 21 }"></span>
+                    <span class="indicator" v-bind:class="{ marked: animationSpeed >= 28 }"></span>
+                </div>
+            </div>
+            <div class="btn_wrapper">
+              <v-tooltip right>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    v-bind="attrs"
+                    v-on="on"
+                    @click="swAnimationRunning = !swAnimationRunning"
+                  >
+                    <v-icon v-if="swAnimationRunning">mdi-pause</v-icon>
+                    <v-icon v-else>mdi-play</v-icon>
+                  </v-btn>
+                </template>
+                <span v-if="swAnimationRunning">Pause Animation</span>
+                <span v-else>Play Animation</span>
+              </v-tooltip>
+
+              <div v-if="loop" class="looper" @click="setLoop" :class="{highlight: loopSetter}">
+                  <v-icon>mdi-backup-restore</v-icon>
+              </div>
+            </div>
+            <div v-if="windowWidth <= 720" class="btn_wrapper" :class="{ highlight: mobileTimePanel }">
+                <v-btn @click="mobileTimePanel = !mobileTimePanel">
+                    <v-icon>mdi-timetable</v-icon>
+                </v-btn>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -431,6 +750,109 @@ export default {
                 font-weight:500;
                 color:whitesmoke;
                 padding-right:10px;
+            }
+        }
+
+        .panel {
+            display:block;
+            position:relative;
+            opacity:1;
+            z-index:1;
+            pointer-events: all;
+
+            .sw_graph {
+                position:relative;
+                width:300px;
+                height:200px;
+
+                #swChart {
+                    position:absolute;
+                    bottom:0;
+                    left:0;
+                }
+
+                #rainChart {
+                    position:absolute;
+                    top:0;
+                    left:0;
+                    transform:scale(1,-1);
+                }
+
+                
+                .sw_slider {
+                    position:relative;
+                    width: 260px;
+                    top: 162px;
+                    left: -8px;
+                    margin: 0px 0px 0px auto;
+
+                    #rain_slider {
+
+                        ::v-deep.v-input {
+                            .v-input__control {
+                                .v-input__slot {
+                                    margin-bottom:0px !important;
+                                    .v-slider {
+
+                                        margin:0 !important;
+                                        .v-slider__track-container {
+                                            background:radial-gradient(rgba(255,255,255,0.35), rgba(255,255,255,0.9));
+                                            .v-slider__track-background {
+                                                background: transparent !important;
+                                                border-color:$bright2 !important;
+                                            }
+                                            .v-slider__track-fill {
+                                                background:$opaqueorange !important;
+                                            }
+                                        }
+
+                                        .v-slider__thumb-container {
+                                            .v-slider__thumb {
+                                                width:1px !important;
+                                                height:177px !important;
+                                                background:rgba(255,255,255,0.75) !important;
+                                                top:-177px;
+                                                left:0;
+                                                transform:translate(0,0);
+
+                                                &:hover {
+                                                    cursor:grab;
+                                                }
+
+                                                &:after {
+                                                    content:'';
+                                                    position:absolute;
+                                                    top:calc(100% - 4px);
+                                                    left:50%;
+                                                    transform:translateX(-50%);
+                                                    width:8px;
+                                                    height:8px;
+                                                    background:$orange;
+                                                    border:1px solid $bright1;
+                                                    border-radius:50%;
+                                                }
+                                            }
+                                            .v-slider__thumb-label-container {
+                                                display:none;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                .v-messages {
+                                    display:none;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            &.dismiss {
+                position:absolute;
+                opacity:0;
+                z-index:-5;
+                pointer-events:none;
             }
         }
 
@@ -505,7 +927,7 @@ export default {
 
                 .range_slider {
                     position:absolute;
-                    height:120px;
+                    height:160px;
                     bottom:70px;
                     background:rgba(255,255,255,0.15);
                 }
@@ -534,6 +956,10 @@ export default {
             left: calc(100% + 5px);
             width: 30px;
             height: 70%;
+
+            &.dismiss {
+                display:none;
+            }
 
             .btn_wrapper {
                 position:relative;
