@@ -90,6 +90,8 @@ export default class CityPyO {
 
         return responseJson
       }
+
+      return response.status
     }
 
     async getAbmResultLayer (id: string, scenario: AbmScenario) {
@@ -140,6 +142,48 @@ export default class CityPyO {
         return this.formatResponse(id, responseJson.data)
       }
     }
+
+  /**
+   * fetch stormwater scenario result for the scenario_hash
+   * This function will wait for the backend to provide a stormwater result file as SCENARIO_HASH.json
+   *
+   * If the result file cannot be found after trying for 10seconds the function throws an error and exits
+   *
+   * @param scenario_hash
+   */
+  async getStormwaterResultLayerSource(scenario_hash) {
+    const sleepTime = 500
+    const maxTries = 10000 / sleepTime  // give up after 10seconds
+    let requestCount = 0
+
+    // try to get stormwater result until maxTries is reached
+    while (requestCount <= maxTries) {
+      const result = await this.getLayer(scenario_hash, true)
+
+      // result has been found
+      if (typeof result === 'object' && result !== null) {
+        return result
+      }
+
+      // result has not been found. check if error code is expected for non-existent files
+      if (typeof result === "number") {
+        // unexpected error occurred
+        if (!(result === 404 || 400)) {
+          console.error("Could not fetch result for stormwater, Hash, httpRespsone", scenario_hash, result)
+          return null
+        }
+      }
+
+      // result not found yet. wait until result available.
+      await new Promise(resolve => setTimeout(resolve, sleepTime)).then(() => {
+        requestCount += 1
+      });
+    }
+
+    // too many tries. backend did not provide result file in reasonable time.
+    console.error("Could not fetch result for stormwater", scenario_hash, "because of timeout")
+  }
+
 
     getLayerData(query: string) {
     }

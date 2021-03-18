@@ -7,6 +7,7 @@ import Subcatchments from '@/config/subcatchments.json'
 import Pipes from '@/config/links.json'
 import Rain from '@/config/rain.json'
 import { swLayerName } from "@/store/deck-layers";
+import CityPyo from "@/store/cityPyO";
 
 export default {
     name: 'AbmScenario',
@@ -40,6 +41,14 @@ export default {
         },
     },
     methods: {
+        async getStormWaterResult() {
+          // todo create an action for this
+          const scenario_hash = "xyz123"
+          const resultLayer = await this.$store.state.cityPyO.getStormwaterResultLayerSource(scenario_hash)
+          console.log("got stormwater result layer source")
+          console.log("add me to the map")
+          console.log(resultLayer)
+        },
         activateStormWater(){
             this.generateDummyData("2yr");
             this.$store.commit("scenario/rainAmount", Rain['2yr']);
@@ -98,7 +107,10 @@ export default {
                 <v-btn @click="changeRain('100yr')" :class="{ disabled: rainAmount == '100yr'}">100 year Event</v-btn>
             </div>
         </div>
-        
+        <div>
+          <v-btn @click="getStormWaterResult()" :class="{ disabled: false}">GET RESULT</v-btn>
+        </div>
+
     </div>
 </template>
 
@@ -121,7 +133,7 @@ export default {
     .sw_dashboard {
         .storm_selection {
             .v-btn {
-                
+
                     opacity:1;
                     pointer-events:all;
                 &.disabled {
@@ -141,6 +153,6 @@ export default {
             margin:10px auto;
             @include drop_shadow;
         }
-        
+
     }
 </style>
