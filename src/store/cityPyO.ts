@@ -43,10 +43,29 @@ export default class CityPyO {
     })
 
     if (res.status !== 200) {
-      console.warn("could not get ressource from cityPyo ", layerId, res.status, res.statusText)
+      console.warn("could not get/update ressource from cityPyo ", layerId, res.status, res.statusText)
     }
 
     return await res
+  }
+
+  /**
+   * @param fileName | without the .json ending
+   * @param propPath | path to property that should be updated (inside the file)
+   * @param payload | new value of the property to be updated
+   */
+  addLayerData(fileName:string, propPath: Array<string>, payload) {
+    let requestUrl = this.url + 'addLayerData/' + fileName
+
+    for (let prop of propPath) {
+      requestUrl += '/' + prop
+    }
+
+    const body = {
+      "userid": this.userid,
+      "data": payload
+    }
+    this.performRequest(fileName, requestUrl, body)
   }
 
     async getLayer (id: string, formattedAsSource: boolean = true) {
@@ -163,7 +182,6 @@ export default class CityPyO {
     // too many tries. backend did not provide result file in reasonable time.
     console.error("Could not fetch result for stormwater", scenario_hash, "because of timeout")
   }
-
 
     getLayerData(query: string) {
     }
