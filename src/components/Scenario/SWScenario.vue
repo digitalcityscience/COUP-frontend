@@ -51,22 +51,24 @@ export default {
         },
         sendScenarioToCityPyo() {
           const fileName = "stormwater_scenario"
-          const propPath = ["scenario_1"]
+          // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
+          // for our scenario name "scenario_1"
+          const propPath = ["scenario_1"]   // we could imagine to let the user create multiple scenarios to compare...
           const payload = {
-            "hash": "xyz123",
+            "hash": "NEW HASH",
             "model_updates":
               [
                 {
                   "subcatchment_id": "Sub000",
-                  "outlet_id": "J_out20"
+                  "outlet_id": "J_out17"
                 },
                 {
                   "subcatchment_id": "Sub001",
-                  "outlet_id": "J_out21"
+                  "outlet_id": "J_out18"
                 }
               ],
             "rain_event" : {
-              "return_period": 10,
+              "return_period": 100,
               "duration": 120
             }
           }
