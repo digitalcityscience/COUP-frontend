@@ -49,6 +49,29 @@ export default {
           console.log("add me to the map")
           console.log(resultLayer)
         },
+        sendScenarioToCityPyo() {
+          const fileName = "stormwater_scenario"
+          const propPath = ["scenario_1"]
+          const payload = {
+            "hash": "xyz123",
+            "model_updates":
+              [
+                {
+                  "subcatchment_id": "Sub000",
+                  "outlet_id": "J_out20"
+                },
+                {
+                  "subcatchment_id": "Sub001",
+                  "outlet_id": "J_out21"
+                }
+              ],
+            "rain_event" : {
+              "return_period": 10,
+              "duration": 120
+            }
+          }
+          this.$store.state.cityPyO.addLayerData(fileName, propPath, payload)
+        },
         activateStormWater(){
             this.generateDummyData("2yr");
             this.$store.commit("scenario/rainAmount", Rain['2yr']);
@@ -108,6 +131,7 @@ export default {
             </div>
         </div>
         <div>
+          <v-btn @click="sendScenarioToCityPyo()" :class="{ disabled: false}">Save Scenario | Calculate</v-btn>
           <v-btn @click="getStormWaterResult()" :class="{ disabled: false}">GET RESULT</v-btn>
         </div>
 
