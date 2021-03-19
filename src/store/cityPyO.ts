@@ -11,6 +11,9 @@ export default class CityPyO {
     }
 
     async login (userdata: {username: string, password: string}) {
+        // log login request on cityPyo only if in production
+        userdata["log_this_request"] =  !(process.env.NODE_ENV === 'development')
+
         const res = await fetch(this.url + 'login', {
             method: 'POST',
             mode: 'cors',
