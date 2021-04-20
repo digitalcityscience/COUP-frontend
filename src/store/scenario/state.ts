@@ -66,6 +66,9 @@ export default {
   showUi: true,
   allFeaturesHighlighted: false,
   amenitiesGeoJson: null,
-  selectedFocusAreas: []
+  selectedFocusAreas: [],
+  windScenarioHash: '',
+  windResultGeoJson: null,
+  windResultComplete: true
 }
 

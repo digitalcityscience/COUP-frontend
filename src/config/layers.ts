@@ -6,6 +6,7 @@ import BridgesConfig from '@/config/bridges.json'
 import CircledFeatures from '@/config/circledFeatures.json'
 import FocusAreasConfig from '@/config/focusAreas.json'
 import Noise from '@/config/noise.json'
+import WindResult from '@/config/windResult.json'
 import TrafficCounts from '@/config/trafficCounts.json'
 import DesignConfigs from '@/config/buildings.json'
 import SpacesConfig from '@/config/spaces.json'
@@ -15,6 +16,7 @@ import {abmArcLayerName,abmTripsLayerName, abmAggregationLayerName} from '@/stor
 const addedLayersIds = [
   abmTripsLayerName,
   LayerSubselectionConfig.layer.id,
+  WindResult.layer.id,
   Noise.layer.id,
   TrafficCounts.layer.id,
   abmAggregationLayerName,

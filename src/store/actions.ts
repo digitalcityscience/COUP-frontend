@@ -92,7 +92,7 @@ export default {
   updateLayerOrder({state, commit, dispatch}) {
     for (const layerName of getLayerOrder()) {
       if (state.map.getLayer(layerName)) {
-        console.log("putting layer on top ", layerName)
+        //console.log("putting layer on top ", layerName)
         state.map.moveLayer(layerName)
       }
     }

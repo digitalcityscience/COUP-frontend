@@ -2,15 +2,15 @@
 import { mapState } from 'vuex'
 import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import SWScenario from "@/components/Scenario/SWScenario.vue";
-import MCScenario from "@/components/Scenario/MCScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
+import WindScenario from "@/components/Scenario/WindAndSun.vue";
 import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
 import TimeSheet from "@/components/Scenario/TimeSheet";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
     name: 'Menu',
-    components: {AbmScenario, SWScenario, MCScenario, NoiseScenario, MultiLayerAnalysis},
+    components: {AbmScenario, SWScenario, NoiseScenario, WindScenario, MultiLayerAnalysis},
     props: {
       restrictedAccess: Boolean
     },
@@ -61,8 +61,8 @@ export default {
                     <ul class="component_list">
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'AbmScenario' }" @click="activeComponent = 'AbmScenario'"><p>ABM</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SWScenario' }" @click="activeComponent = 'SWScenario'"><p>Stormwater</p></li>
-                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MCScenario' }" @click="activeComponent = 'MCScenario'"><p>Microclimate</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }" @click="activeComponent = 'NoiseScenario'"><p>Noise</p></li>
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'WindScenario' }" @click="activeComponent = 'WindScenario'"><p>Wind & Sun</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MultiLayerAnalysis' }" @click="activeComponent = 'MultiLayerAnalysis'"><p>MultiLayerAnalysis</p></li>
                     </ul>
                 </template>
@@ -70,8 +70,8 @@ export default {
                     <select class="mobile_select" v-model="activeComponent">
                         <option value="AbmScenario">ABM</option>
                         <option value="SWScenario">Stormwater</option>
-                        <option value="MCScenario">Microclimate</option>
                         <option value="NoiseScenario">Noise</option>
+                        <option value="WindScenario">Wind & Sun</option>
                         <option value="MultiLayerAnalysis">MultiLayerAnalysis</option>
                     </select>
                 </template>
@@ -79,8 +79,8 @@ export default {
             <div class="body_scope">
                 <div v-if="activeComponent === 'AbmScenario'"><AbmScenario :restrictedAccess="restrictedAccess" /></div>
                 <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
-                <div v-if="activeComponent === 'MCScenario'"><MCScenario /></div>
                 <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario :restrictedAccess="restrictedAccess" /></div>
+                <div v-if="activeComponent === 'WindScenario'"><WindScenario :restrictedAccess="restrictedAccess" /></div>
                 <div v-if="activeComponent === 'MultiLayerAnalysis'"><MultiLayerAnalysis /></div>
             </div>
             <div class="footer_scope">

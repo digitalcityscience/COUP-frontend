@@ -1,6 +1,7 @@
 import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
+import WindResult from "@/config/windResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
@@ -88,6 +89,38 @@ export default {
         .then(source => {
           dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
         })
+  },
+  // load layer source from cityPyo and add the layer to the map
+  // Todo : isnt there a way to update the source data without reinstanciating the entire layer?
+  async updateWindLayer({state, commit, dispatch, rootState}) {
+
+    // fetch results, add to map and return boolean whether results are complete or not
+    const completed = await rootState.cityPyO.getSimulationResultForScenario("wind", state.windScenarioHash).then(
+      resultInfo => {
+        const receivedCompleteResult = resultInfo.complete || false  // was the result complete?
+        const source = resultInfo.source
+
+        // results are new if they contain more features than the known result
+        const newResults = !state.windResultGeoJson
+          || (source.options.data.features.length > state.windResultGeoJson["features"].length)
+
+        if (receivedCompleteResult || newResults) {   // todo use timestamP??
+          // received an updated result
+          source.id = "wind"
+          commit('windResultGeoJson', Object.freeze(source.options.data))
+          dispatch('addSourceToMap', source, {root: true})
+            .then(source => {
+              dispatch('addLayerToMap', WindResult.layer, {root: true})
+            })
+        }
+        return receivedCompleteResult
+    })
+
+    if (!completed) {
+      // keep fetching new results until the results are complete
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      dispatch("updateWindLayer")
+      }
   },
   loadWorkshopScenario({state, commit, dispatch, rootState}, scenarioId) {
     let bridges = updateBridges(

@@ -1,0 +1,39 @@
+{
+  "layer": {
+    "id": "wind",
+    "type": "fill-extrusion",
+    "source": "wind",
+    "paint": {
+      "fill-extrusion-height": 0.2,
+      "fill-extrusion-base": 0.25,
+      "fill-extrusion-opacity": 0.8,
+      "fill-extrusion-color": [
+        "match",
+
+         ["*", ["get", "value"], 10],
+
+        0,
+        "#B8D6D1",
+        2,
+        "#CEE4CC",
+        4,
+        "#F3C683",
+        6,
+        "#E87E4D",
+        8,
+        "#A11A4D",
+        10,
+        "#75085C",
+        "white"
+      ]
+    }
+  },
+  "mapSource": {
+    "id": "wind",
+    "type": "geojson",
+    "data": {
+      "from": "cityPyO",
+      "id": "wind"
+    }
+  }
+}
