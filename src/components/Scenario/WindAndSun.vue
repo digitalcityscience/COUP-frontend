@@ -16,27 +16,33 @@ export default {
             activeDivision:null,
             componentDivisions: [],
             windSpeed: 10,
-            windDirection: 180
+            windDirection: 240,
+            savedScenario: {},
+            resultOutdated: true,
+            showError: false
         }
     },
   computed: {
-      ...mapState('scenario', ['resultLoading', "windResultComplete"]), // getter only
+      //...mapState('scenario', ['resultLoading']), // getter only
 
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
-        ['noiseMap', 'scenario/' + 'noiseMap'],  // todo wind map
+        ['windLayer', 'scenario/' + 'windLayer'],  // todo wind map
         ['windScenarioHash', 'scenario/' + 'windScenarioHash'],  // todo wind store
+        ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
       ])
     },
     watch: {
       windSpeed(newVal, old) {
         console.log("wind speed changed")
         console.log(newVal)
+        this.resultOutdated = this.isResultOutdated()
 
       },
       windDirection(newVal, old) {
         console.log("wind direction changed")
         console.log(newVal)
+        this.resultOutdated = this.isResultOutdated()
       }
     },
     mounted:
@@ -55,50 +61,38 @@ export default {
             console.log("active divisoin is", this.activeDivision)
             },
     methods: {
-
+        isResultOutdated() {
+          return this.windSpeed !== this.savedScenario["wind_speed"]
+            || this.windDirection !== this.savedScenario["wind_direction"];
+        },
         // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
         // for our scenario name "scenario_1"
         sendScenarioToCityPyo() {
           const fileName = "wind_scenario"
           const propPath = ["scenario_1"]
-          const payload = {
+          this.savedScenario = {
             "wind_speed": this.windSpeed,
             "wind_direction": this.windDirection,
             "result_format": "geojson",
             "custom_roi": []
           }
-          this.windScenarioHash = hash(payload)  // todo use store variable
-          payload["hash"] = this.windScenarioHash
+          this.windScenarioHash = hash(this.savedScenario)  // todo use store variable
+          this.savedScenario["hash"] = this.windScenarioHash
           console.log(hash)
 
-          this.$store.state.cityPyO.addLayerData(fileName, propPath, payload).then(() => this.getWindResults())
+          this.$store.state.cityPyO.addLayerData(fileName, propPath, this.savedScenario).then(() => this.getWindResults())
         },
         async getWindResults() {
+          this.resultLoading = true
           this.$store.dispatch('removeSourceFromMap', "wind",  {root: true})
           this.$store.commit('scenario/windResultGeoJson', null)
-          this.$store.dispatch("scenario/updateWindLayer") //.then(isResultComplete => {
-            /*if (!isResultComplete) {
-              new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-                console.log("calling again until result complete")
-                this.getWindResults()
-              })
-            }
-          })*/
-
-
-
-          /*const resultLayer = await this.$store.state.cityPyO.getSimulationResultLayerSource("wind", this.windScenarioHash)
-          console.log("got wind result layer source")
-          console.log("add me to the map")
-          console.log(resultLayer)*/
-        },
-        getWindResultsOld () {
-          this.$store.dispatch(
-            // todo action to get results for wind, solar, sun
-            'scenario/updateNoiseScenario'
-          ).then(() => {
-            // todo set wind map??
-            this.$store.commit("scenario/noiseMap", true);
+          this.$store.dispatch("scenario/updateWindLayer").then(() => {
+            this.$store.commit("scenario/windLayer", true);
+            this.resultLoading = false
+          }).catch(() => {
+            this.$store.commit("scenario/windLayer", false);
+            this.resultLoading = false
+            this.showError = true
           })
         }
     }
@@ -159,11 +153,18 @@ export default {
             flat
           ></v-slider>
       </v-container>
-        <!-- todo make button pulsate if changed -->
-      <v-btn @click="sendScenarioToCityPyo()" :class="{ disabled: !this.windResultComplete}">Save Scenario | Calculate</v-btn>       Load Wind Results
-      <v-overlay :value="resultLoading">
+        <p v-if="showError" class="warning">Wind server not available at the moment</p>
+        <v-btn
+          @click="sendScenarioToCityPyo"
+          class="confirm_btn"
+          :class="{ changesMade : resultOutdated }"
+          :disabled="resultLoading || showError"
+        >
+          Load Wind Results
+        </v-btn>
+        <v-overlay :value="resultLoading">
         <div>Loading results</div>
-        <v-progress-linear>...</v-progress-linear>
+        <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>
       </v-overlay>
       <div class="disclaimer">
         <h2>Disclaimer</h2>

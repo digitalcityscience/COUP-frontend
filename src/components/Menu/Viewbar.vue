@@ -27,7 +27,7 @@ export default {
                 heat: true,
                 noise: true,
                 stormwater: true,
-                microclimate: true,
+                wind: true,
                 multiLayerAnalysis: true,
             },
             visibleBuildings: {
@@ -72,8 +72,8 @@ export default {
       stormWater(){
           return this.$store.state.scenario.stormWater;
       },
-      microClimate(){
-          return this.$store.state.scenario.microClimate;
+      wind(){
+          return this.$store.state.scenario.windLayer;
       },
       multiLayerAnalysis(){
           return this.$store.state.scenario.multiLayerAnalysisMap;
@@ -86,7 +86,9 @@ export default {
         },
         noiseMap(){},
         stormWater(){},
-        microClimate(){},
+        wind(newVal, oldVal){
+          this.visibleLayers.wind = newVal
+        },
         focusAreasShown(newVal, oldVal){
           this.visibleLayers.focusAreas = newVal
         },
@@ -206,6 +208,14 @@ export default {
                 } else {
                     this.map.setLayoutProperty("noise", 'visibility', 'none');
                     this.map.setLayoutProperty("trafficCounts", 'visibility', 'none');
+                }
+            }
+
+            if(this.layerIds.indexOf("wind") > -1){
+                if(this.visibleLayers.wind){
+                    this.map.setLayoutProperty("wind", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("wind", 'visibility', 'none');
                 }
             }
             if(this.layerIds.indexOf("focusAreas") > -1){
@@ -397,15 +407,15 @@ export default {
                  ></v-checkbox>
              </div>
              <div class="layers">
-                 <h3>Microclimate Layers</h3>
+                 <h3>Climate Layers</h3>
                  <v-checkbox
-                    v-model="visibleLayers.microclimate"
-                    label="Microclimate Layer"
+                    v-model="visibleLayers.wind"
+                    label="Wind Layer"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
                     hide-details
-                    :disabled="!microClimate"
+                    :disabled="!wind"
                  ></v-checkbox>
              </div>
            <div class="layers">

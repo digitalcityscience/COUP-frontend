@@ -60,7 +60,7 @@ export default {
   selectedRange:[8,23],
   noiseMap: false,
   stormWater: false,
-  microClimate: false,
+  windLayer: false,
   multiLayerAnalysisMap: false,
   lastClick: [],
   showUi: true,
@@ -69,6 +69,5 @@ export default {
   selectedFocusAreas: [],
   windScenarioHash: '',
   windResultGeoJson: null,
-  windResultComplete: true
 }
 
