@@ -27,7 +27,6 @@ export default {
 
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
-        ['windLayer', 'scenario/' + 'windLayer'],  // todo wind map
         ['windScenarioHash', 'scenario/' + 'windScenarioHash'],  // todo wind store
         ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
       ])
@@ -37,6 +36,8 @@ export default {
         console.log("wind speed changed")
         console.log(newVal)
         this.resultOutdated = this.isResultOutdated()
+        console.log("is outdated?", this.isResultOutdated())
+        console.log("saved scen", this.savedScenario)
 
       },
       windDirection(newVal, old) {
@@ -67,7 +68,7 @@ export default {
         },
         // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
         // for our scenario name "scenario_1"
-        sendScenarioToCityPyo() {
+        confirmWindScenario() {
           const fileName = "wind_scenario"
           const propPath = ["scenario_1"]
           this.savedScenario = {
@@ -79,6 +80,7 @@ export default {
           this.windScenarioHash = hash(this.savedScenario)  // todo use store variable
           this.savedScenario["hash"] = this.windScenarioHash
           console.log(hash)
+          console.log("saved scenari", this.savedScenario)
 
           this.$store.state.cityPyO.addLayerData(fileName, propPath, this.savedScenario).then(() => this.getWindResults())
         },
@@ -94,7 +96,19 @@ export default {
             this.resultLoading = false
             this.showError = true
           })
+        },
+      async loadStaticResult(resultType) {
+        if (resultType === "sun") {
+          this.$store.dispatch('scenario/addSunExposureLayer').then(() => {
+            this.$store.commit("scenario/sunExposureLayer", true);
+          })
         }
+        if (resultType === "solar") {
+          this.$store.dispatch('scenario/addSolarRadiationLayer').then(() => {
+            this.$store.commit("scenario/solarRadiationLayer", true);
+          })
+        }
+      }
     }
 }
 
@@ -155,12 +169,24 @@ export default {
       </v-container>
         <p v-if="showError" class="warning">Wind server not available at the moment</p>
         <v-btn
-          @click="sendScenarioToCityPyo"
+          @click="confirmWindScenario"
           class="confirm_btn"
           :class="{ changesMade : resultOutdated }"
           :disabled="resultLoading || showError"
         >
           Load Wind Results
+        </v-btn>
+        <v-btn style="margin-top: 15px"
+          @click="loadStaticResult('sun')"
+          class="confirm_btn"
+        >
+          Load Sun Exposure Results
+        </v-btn>
+        <v-btn style="margin-top: 15px"
+          @click="loadStaticResult('solar')"
+          class="confirm_btn"
+        >
+          Load Solar Radiation Results
         </v-btn>
         <v-overlay :value="resultLoading">
         <div>Loading results</div>

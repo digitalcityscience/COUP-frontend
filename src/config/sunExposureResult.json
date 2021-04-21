@@ -1,8 +1,8 @@
 {
   "layer": {
-    "id": "wind",
+    "id": "sun_exposure",
     "type": "fill-extrusion",
-    "source": "wind",
+    "source": "sun_exposure",
     "paint": {
       "fill-extrusion-height": 0.2,
       "fill-extrusion-base": 0.25,
@@ -11,29 +11,38 @@
         "match",
 
          ["*", ["get", "value"], 10],
-
         0,
+        "white",
+        1,
         "#B8D6D1",
         2,
         "#CEE4CC",
+        3,
+        "#E2F2BF",
         4,
         "#F3C683",
-        6,
+        5,
         "#E87E4D",
-        8,
+        6,
+        "#CD463E",
+        7,
         "#A11A4D",
-        10,
+        8,
         "#75085C",
+        9,
+        "red",
+        10,
+        "violet",
         "black"
       ]
     }
   },
   "mapSource": {
-    "id": "wind",
+    "id": "sun_exposure",
     "type": "geojson",
     "data": {
       "from": "cityPyO",
-      "id": "wind"
+      "id": "sun_exposure"
     }
   }
 }

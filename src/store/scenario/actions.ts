@@ -2,6 +2,8 @@ import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import WindResult from "@/config/windResult.json";
+import SunExposure from "@/config/sunExposureResult.json";
+import SolarRadiation from "@/config/solarRadiationResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
@@ -14,6 +16,8 @@ import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import PerformanceInfosConfig from "@/config/performanceInfos.json";
+import {ActionContext} from "vuex";
+import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -89,6 +93,26 @@ export default {
         .then(source => {
           dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
         })
+  },
+  addSolarRadiationLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
+    rootState.cityPyO.getLayer("solar_radiation").then(source => {
+        commit('solarRadiationGeoJson', source.options.data)
+        dispatch('addSourceToMap', source, {root: true})
+          .then(source => {
+            dispatch('addLayerToMap', SolarRadiation.layer, {root: true})
+          })
+      }
+    )
+  },
+  addSunExposureLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
+    rootState.cityPyO.getLayer("sun_exposure").then(source => {
+        commit('sunExposureGeoJson', source.options.data)
+        dispatch('addSourceToMap', source, {root: true})
+          .then(source => {
+            dispatch('addLayerToMap', SunExposure.layer, {root: true})
+          })
+      }
+    )
   },
   // load layer source from cityPyo and add the layer to the map
   // Todo : isnt there a way to update the source data without reinstanciating the entire layer?

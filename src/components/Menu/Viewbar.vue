@@ -28,6 +28,8 @@ export default {
                 noise: true,
                 stormwater: true,
                 wind: true,
+                sunExposure: true,
+                solarRadiation: true,
                 multiLayerAnalysis: true,
             },
             visibleBuildings: {
@@ -74,6 +76,12 @@ export default {
       },
       wind(){
           return this.$store.state.scenario.windLayer;
+      },
+      solarRadiation(){
+          return this.$store.state.scenario.solarRadiationLayer;
+      },
+      sunExposure(){
+          return this.$store.state.scenario.sunExposureLayer;
       },
       multiLayerAnalysis(){
           return this.$store.state.scenario.multiLayerAnalysisMap;
@@ -179,6 +187,7 @@ export default {
                 this.map.setLayoutProperty("abmAmenities", 'visibility', 'visible');
             }
         },
+        // todo this really needs to be refactored to use a central function which takes layers as arguments
         updateLayerVisibility(){
             console.log(this.layerIds);
             if(this.layerIds.indexOf("abmTrips") > -1){
@@ -216,6 +225,20 @@ export default {
                     this.map.setLayoutProperty("wind", 'visibility', 'visible');
                 } else {
                     this.map.setLayoutProperty("wind", 'visibility', 'none');
+                }
+            }
+            if(this.layerIds.indexOf("sun_exposure") > -1){
+                if(this.visibleLayers.sunExposure){
+                    this.map.setLayoutProperty("sun_exposure", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("sun_exposure", 'visibility', 'none');
+                }
+            }
+            if(this.layerIds.indexOf("solar_radiation") > -1){
+                if(this.visibleLayers.solarRadiation){
+                    this.map.setLayoutProperty("solar_radiation", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("solar_radiation", 'visibility', 'none');
                 }
             }
             if(this.layerIds.indexOf("focusAreas") > -1){
@@ -416,6 +439,24 @@ export default {
                     @change="updateLayerVisibility"
                     hide-details
                     :disabled="!wind"
+                 ></v-checkbox>
+               <v-checkbox
+                    v-model="visibleLayers.sunExposure"
+                    label="Sun Exposure Layer"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!sunExposure"
+                 ></v-checkbox>
+               <v-checkbox
+                    v-model="visibleLayers.solarRadiation"
+                    label="Solar Radiation Layer"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!solarRadiation"
                  ></v-checkbox>
              </div>
            <div class="layers">
