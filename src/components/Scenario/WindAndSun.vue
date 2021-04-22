@@ -17,9 +17,10 @@ export default {
             componentDivisions: [],
             windSpeed: 10,
             windDirection: 240,
-            savedScenario: {},
+            currentScenario: {},
             resultOutdated: true,
-            showError: false
+            showError: false,
+            scenarioAlreadySaved: false
         }
     },
   computed: {
@@ -29,6 +30,7 @@ export default {
       ...generateStoreGetterSetter([
         ['windScenarioHash', 'scenario/' + 'windScenarioHash'],  // todo wind store
         ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
+        ['savedWindScenarios', 'scenario/' + 'savedWindScenarios'],  // todo manage stores
       ])
     },
     watch: {
@@ -36,14 +38,16 @@ export default {
         console.log("wind speed changed")
         console.log(newVal)
         this.resultOutdated = this.isResultOutdated()
+        this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
         console.log("is outdated?", this.isResultOutdated())
-        console.log("saved scen", this.savedScenario)
+        console.log("saved scen", this.currentScenario)
 
       },
       windDirection(newVal, old) {
         console.log("wind direction changed")
         console.log(newVal)
         this.resultOutdated = this.isResultOutdated()
+        this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
       }
     },
     mounted:
@@ -63,40 +67,73 @@ export default {
             },
     methods: {
         isResultOutdated() {
-          return this.windSpeed !== this.savedScenario["wind_speed"]
-            || this.windDirection !== this.savedScenario["wind_direction"];
+          return this.windSpeed !== this.currentScenario["wind_speed"]
+            || this.windDirection !== this.currentScenario["wind_direction"];
         },
         // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
         // for our scenario name "scenario_1"
         confirmWindScenario() {
           const fileName = "wind_scenario"
           const propPath = ["scenario_1"]
-          this.savedScenario = {
+          this.currentScenario = {
             "wind_speed": this.windSpeed,
             "wind_direction": this.windDirection,
             "result_format": "geojson",
             "custom_roi": []
           }
-          this.windScenarioHash = hash(this.savedScenario)  // todo use store variable
-          this.savedScenario["hash"] = this.windScenarioHash
+          this.windScenarioHash = hash(this.currentScenario)  // todo use store variable
+          this.currentScenario["hash"] = this.windScenarioHash
           console.log(hash)
-          console.log("saved scenari", this.savedScenario)
+          console.log("saved scenari", this.currentScenario)
 
-          this.$store.state.cityPyO.addLayerData(fileName, propPath, this.savedScenario).then(() => this.getWindResults())
+          // update scenario add cityPyo
+          this.$store.state.cityPyO.addLayerData(fileName, propPath, this.currentScenario).then(() => this.getWindResults())
         },
         async getWindResults() {
           this.resultLoading = true
           this.$store.dispatch('removeSourceFromMap', "wind",  {root: true})
           this.$store.commit('scenario/windResultGeoJson', null)
           this.$store.dispatch("scenario/updateWindLayer").then(() => {
+            // success
             this.$store.commit("scenario/windLayer", true);
             this.resultLoading = false
+            this.resultOutdated = this.isResultOutdated()
+            this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
           }).catch(() => {
+            // fail
             this.$store.commit("scenario/windLayer", false);
             this.resultLoading = false
             this.showError = true
           })
         },
+      loadSavedScenario(savedScenario) {
+          this.windDirection = savedScenario["wind_direction"]
+          this.windSpeed = savedScenario["wind_speed"]
+          this.confirmWindScenario()
+      },
+      saveWindScenario() {
+          console.log("saved scenarios", this.savedWindScenarios)
+          if (!this.scenarioAlreadySaved) {
+            // add current scenario to saved scenarios
+            this.savedWindScenarios.push(this.currentScenario)
+            if (this.savedWindScenarios.length > 3) {
+              // store only the 3 latest saved scenarios
+              this.savedWindScenarios.shift()
+            }
+          }
+          // update scenarioAlreadySaved variable
+          this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
+          console.log(this.savedWindScenarios)
+      },
+      isScenarioAlreadySaved() {
+          const isSaved = this.savedWindScenarios.filter(savedScen => {
+              return JSON.stringify(savedScen) === JSON.stringify(this.currentScenario)
+          }
+          ).length > 0
+
+        console.log("is saved", isSaved)
+        return isSaved
+      },
       async loadStaticResult(resultType) {
         if (resultType === "sun") {
           this.$store.dispatch('scenario/addSunExposureLayer').then(() => {
@@ -138,6 +175,7 @@ export default {
         <v-container fluid>
           <header class="text-sm-left">
             Wind Direction</header>
+          <p dark style="float:left;">{{ windDirection }}°</p>
           <v-slider
             v-model="windDirection"
             step=15
@@ -153,6 +191,7 @@ export default {
           ></v-slider>
           <header class="text-sm-left">
             Wind Speed</header>
+          <p dark style="float:left;">{{ windSpeed }} km/h</p>
           <v-slider
             v-model="windSpeed"
             step=5
@@ -176,13 +215,21 @@ export default {
         >
           Load Wind Results
         </v-btn>
-        <v-btn style="margin-top: 15px"
+        <v-btn style="margin-top: 1vh;"
+          @click="saveWindScenario"
+          class="confirm_btn"
+          :disabled="resultOutdated || scenarioAlreadySaved"
+          :dark="resultOutdated  || scenarioAlreadySaved"
+        >
+          Save this wind scenario
+        </v-btn>
+        <v-btn style="margin-top: 1vh;"
           @click="loadStaticResult('sun')"
           class="confirm_btn"
         >
           Load Sun Exposure Results
         </v-btn>
-        <v-btn style="margin-top: 15px"
+        <v-btn style="margin-top: 1vh;"
           @click="loadStaticResult('solar')"
           class="confirm_btn"
         >
@@ -191,7 +238,27 @@ export default {
         <v-overlay :value="resultLoading">
         <div>Loading results</div>
         <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>
-      </v-overlay>
+        </v-overlay>
+        <div class="saved_scenarios" style="margin-top: 3vh;">
+          <h2>Reload a saved scenario</h2>
+          <v-data-iterator
+            :items="savedWindScenarios"
+            :hide-default-footer="true"
+          >
+            <template v-slot:default="{ items }">
+              {{/* Use the items to iterate */}}
+              <v-flex v-for="(scenario, index) in items" :key="index">
+                <v-btn v-if="index <= 2" style="margin-top: 1vh;"
+                  @click="loadSavedScenario(scenario)"
+                  class="confirm_btn"
+                > Direction: {{ scenario.wind_direction }} | Speed: {{ scenario.wind_speed }}
+                </v-btn>
+              </v-flex>
+            </template>
+          </v-data-iterator>
+        </div>
+
+
       <div class="disclaimer">
         <h2>Disclaimer</h2>
         <p>Results provided by InfraredCity @ AIT</p>

@@ -70,6 +70,7 @@ export default {
   amenitiesGeoJson: null,
   selectedFocusAreas: [],
   windScenarioHash: '',
+  savedWindScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,
   solarRadiationGeoJson: null,
