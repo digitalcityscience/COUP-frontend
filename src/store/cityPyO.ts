@@ -151,7 +151,7 @@ export default class CityPyO {
    */
   async getSimulationResultForScenario(simType, scenarioHash) {
     const sleepTime = 2000
-    const maxTries = 45000 / sleepTime  // give up after 45 seconds
+    const maxTries = 90000 / sleepTime  // give up after 90 seconds
     let requestCount = 0
     let noResultReceived = true
 
