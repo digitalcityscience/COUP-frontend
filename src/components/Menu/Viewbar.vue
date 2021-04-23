@@ -4,6 +4,7 @@ import {generateStoreGetterSetter} from "@/store/utils/generators";
 import UseTypesLegend from "@/components/Menu/UseTypesLegend.vue";
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
+import Legends from "@/config/legends.json";
 
 export default {
     name: 'Viewbar',
@@ -18,6 +19,7 @@ export default {
             showUi: true,
             visibility: {
                 layers: false,
+                legends: false,
                 buildings: false,
                 slider: false,
             },
@@ -37,8 +39,11 @@ export default {
                 highlight: false,
                 amenities: true,
             },
-            legendVisible: false,
             presentationRunning: false,
+            legendVisible: false,
+            selectedLegend: null,
+            legendCategories: [],
+            legendHeadline: ''
         }
     },
     computed: {
@@ -53,7 +58,7 @@ export default {
         ]),
       ...generateStoreGetterSetter([
         ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
-        ['showLegend', 'showLegend' ],
+        // todo is this used somewhre ??['showLegend', 'showLegend' ],
         ['focusAreasShown', 'focusAreasShown' ]
       ]),
       layerIds() {
@@ -100,6 +105,14 @@ export default {
         focusAreasShown(newVal, oldVal){
           this.visibleLayers.focusAreas = newVal
         },
+        selectedLegend(newVal, oldVal) {
+          this.legendHeadline = Legends[newVal]["headline"]
+          this.legendCategories = Legends[newVal]["categories"]
+          this.legendVisible = true // set true if user clicks on new legend topic
+        },
+        legendVisible(newVale, oldVal) {
+          console.log("legendVisible", newVale)
+        }
     },
   methods:{
         toggleUi(){
@@ -120,6 +133,7 @@ export default {
             let satureateValue = 1 + this.brightness/500;
             mapCanvas.style.filter = "brightness(" + brightnessValue + ") saturate("+ satureateValue +")";
         },
+        /** TODO completely unused ??
         openUseTypesLegend(){
           this.showLegend = true
           this.$modal.show(
@@ -127,9 +141,8 @@ export default {
             {},
             {draggable: true, width:200, adaptive: true, clickToClose: true,  shiftX: 0.025, shiftY: 0.1}
           )
-        },
+        }, */
         highlightAllFeatures(){
-
             this.$store.commit("scenario/loader", true);
             console.log(this.loader)
 
@@ -187,6 +200,11 @@ export default {
                 this.map.setLayoutProperty("abmAmenities", 'visibility', 'visible');
             }
         },
+        showBuildingUses() {
+          this.legendVisible = true
+          this.selectedLegend = 'buildingUses'
+        },
+
         // todo this really needs to be refactored to use a central function which takes layers as arguments
         updateLayerVisibility(){
             console.log(this.layerIds);
@@ -303,21 +321,25 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-         <v-btn v-if="restrictedAccess" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
-         <!--<v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ circleObject: showLegend }"><v-tooltip right>
-             <template v-slot:activator="{ on, attrs }">
-               <v-icon
-                 v-bind="attrs"
-                 v-on="on"
-               >mdi-map-legend</v-icon>
-             </template>
-             <span>Use Types Legend</span>
-           </v-tooltip>
-           </v-btn>-->
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-city</v-icon> <div class="infobox"><p>Residential</p></div></v-btn>
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #ab0124;">mdi-city</v-icon> <div class="infobox"><p>Commercial</p></div></v-btn>
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Special Use</p></div></v-btn>
-         <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
+         <! -- show BIM version -->
+         <v-btn v-if="restrictedAccess && !legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
+
+         <!-- LEGEND with headline and all legendCategories as v-data-iterator -->
+         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-map-legend</v-icon> <div class="infobox"><p>{{ legendHeadline }}</p></div></v-btn>
+         <v-data-iterator v-if="legendVisible"
+           :items="legendCategories"
+           :hide-default-footer="true"
+         >
+           <template v-slot:default="{ items }">
+             {{/* Use the items to iterate */}}
+             <v-flex v-for="(item, index) in items" :key="index">
+               <v-btn v-if="legendVisible" class="legend"><v-icon :color="item.color">{{ item.icon }}</v-icon> <div class="infobox"><p>
+                 {{ item.label }}</p></div></v-btn>
+             </v-flex>
+           </template>
+         </v-data-iterator>
+         <!-- TODO : v-if="!restrictedAccess" !!!!! -->
+         <v-btn v-if="restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
             <span @click="checkHighlights('buildings')">
              <v-icon
@@ -352,15 +374,16 @@ export default {
                 hide-details
                 :disabled="activeAbmSet == null"
              ></v-checkbox>
-             <v-btn class="legendbutton" @click="legendVisible = !legendVisible">
+             <v-btn class="legendbutton" @click="showBuildingUses">
                  <v-icon>mdi-map-legend</v-icon>
                 <template v-if="legendVisible">Hide Use Type Legend</template>
                 <template v-else>Show Use Type Legend</template>
              </v-btn>
          </div>
          </v-btn>
-         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
 
+         <!-- Layer Visibility Menu -->
+         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
                <span  @click="checkHighlights('layers')">
              <v-icon
@@ -409,7 +432,7 @@ export default {
                  <h3>Noise Layers</h3>
                  <v-checkbox
                     v-model="visibleLayers.noise"
-                    label="Noise Polution"
+                    label="Traffic Noise"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -473,6 +496,67 @@ export default {
              </div>
          </div>
          </v-btn>
+
+         <!-- Layer Legends Menu -->
+         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
+           <template v-slot:activator="{ on, attrs }">
+             <span  @click="checkHighlights('legends')">
+             <v-icon
+               v-bind="attrs"
+               v-on="on"
+             >mdi-map-legend</v-icon>
+           </span>
+           </template>
+           <span>Layer Legends</span>
+         </v-tooltip>
+           <div v-if="visibility.legends" class="view_popup">
+             <v-btn v-if="!legendVisible" @click="legendVisible = !legendVisible" class="main_btn"
+             >Show Legend</v-btn>
+             <v-btn v-if="legendVisible" @click="legendVisible = !legendVisible" class="main_btn"
+             >Hide Legend</v-btn>
+               <v-radio-group v-model="selectedLegend">
+                 <div class="layers">
+                   <h3>Building Use Legend</h3>
+                   <v-radio
+                     :value="'buildingUses'"
+                     flat
+                     label="Building Uses"
+                     dark
+                   ></v-radio>
+                 </div>
+                 <div class="layers">
+                   <h3>Noise Legend</h3>
+                   <v-radio
+                     :value="'noise'"
+                     flat
+                     label="Traffic Noise"
+                     dark
+                   ></v-radio>
+                 </div>
+                 <div class="layers">
+                   <h3>Climate Legends</h3>
+                   <v-radio
+                     :value="'wind'"
+                     flat
+                     label="Wind Layer"
+                     dark
+                   ></v-radio>
+                   <v-radio
+                     label="Sun Exposure Layer"
+                     :value="'sunExposure'"
+                     flat
+                     dark
+                   ></v-radio>
+                   <v-radio
+                     :value="'solarRadiation'"
+                     label="Solar Radiation Layer"
+                     flat
+                     dark
+                   ></v-radio>
+                 </div>
+               </v-radio-group>
+           </div>
+         </v-btn>
          <v-btn class="light_view" v-bind:class="{ highlight: visibility.slider }" @click="checkHighlights('slider')"> <v-tooltip right>
                  <template v-slot:activator="{ on, attrs }">
                    <v-icon
@@ -532,15 +616,6 @@ export default {
              </v-tooltip>
            </v-btn>
         </div>
-
-        <!--<div class="building_legend" v-if="legendVisible">
-            <h3>Building Use Types</h3>
-            <ul>
-                <li><v-icon class="yellow">mdi-city</v-icon><p>Residential</p></li>
-                <li><v-icon class="red">mdi-city</v-icon><p>Commercial</p></li>
-                <li><v-icon class="blue">mdi-city</v-icon><p>Special Use</p></li>
-            </ul>
-        </div>-->
         <div class="rogue_btn" v-if="!showUi" :class="{ toggled: presentationRunning }">
             <v-btn @click="presentationMode">
                 <v-tooltip left>
@@ -574,7 +649,7 @@ export default {
             width:40px;
 
             .v-btn {
-                width:40px;
+                //width:40px;
                 min-width:0px;
                 height:30px;
                 margin:2px;
@@ -602,7 +677,7 @@ export default {
                     }*/
 
                     .infobox {
-                        width:115px;
+                        width:30px;
                         height:28px;
                         position:absolute;
                         top:0;
@@ -613,9 +688,9 @@ export default {
                         p {
                             text-transform: none;
                             color:whitesmoke;
-                            line-height:28px;
-                            font-size:90%;
-                            font-weight:300;
+                            line-height:32px;
+                            font-size:100%;
+                            font-weight:400;
                         }
                     }
                 }
@@ -628,7 +703,7 @@ export default {
                     position:absolute;
                     left:34px;
                     top:50%;
-                    transform:translateY(-50%);
+                    transform:translateY(-25%);
                     width:200px;
                     background:rgba(0,0,0,0.8);
                     @include drop_shadow;
@@ -665,8 +740,12 @@ export default {
                         }
                     }
 
+                  .v-input--selection-controls {
+                    color: white ;
+                  }
+
                     .legendbutton {
-                        width:calc(100% - 20px);
+                        width:50%;
                         background:$reversed;
                         color:whitesmoke;
                         font-size:85%;

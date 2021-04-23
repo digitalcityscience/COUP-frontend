@@ -1,0 +1,221 @@
+{
+  "buildingUses": {
+    "headline": "Building Use Types",
+    "categories": [
+      {
+        "label": "Residential",
+        "color": "#FFB121",
+        "icon": "mdi-city"
+      },
+      {
+        "label": "Commercial | Office",
+        "color": "#F76A6A",
+        "icon": "mdi-city"
+      },
+      {
+        "label": "Public | Daycare",
+        "color": "#4EBFFC",
+        "icon": "mdi-city"
+      }
+    ]
+  },
+  "wind": {
+    "headline": "Lawson Criteria categories",
+    "categories": [
+      {
+        "label": "Sitting Long",
+        "color": "#B8D6D1",
+        "icon": "mdi-windsock"
+      },
+      {
+        "label": "Sitting Short",
+        "color": "#CEE4CC",
+        "icon": "mdi-windsock"
+      },
+      {
+        "label": "Walking Slow",
+        "color": "#F3C683",
+        "icon": "mdi-windsock"
+      },
+      {
+        "label": "Walking Fast",
+        "color": "#E87E4D",
+        "icon": "mdi-windsock"
+      },
+      {
+        "label": "Uncomfortable",
+        "color": "#A11A4D",
+        "icon": "mdi-windsock"
+      },
+      {
+        "label": "Dangerous",
+        "color": "#75085C",
+        "icon": "mdi-windsock"
+      }
+    ]
+  },
+  "solarRadiation": {
+    "headline": "Yearly Solar Radiation on horizontal plane",
+    "categories": [
+      {
+        "label": "0 kWh/m²",
+        "color": "white",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "140 kWh/m²",
+        "color": "#B8D6D1",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "280 kWh/m²",
+        "color": "#CEE4CC",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "420 kWh/m²",
+        "color": "#E2F2BF",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "560 kWh/m²",
+        "color": "#F3C683",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "700 kWh/m²",
+        "color": "#E87E4D",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "840 kWh/m²",
+        "color": "#CD463E",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "980 kWh/m²",
+        "color": "#A11A4D",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "1120 kWh/m²",
+        "color": "#75085C",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "1260 kWh/m²",
+        "color": "red",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "140 kWh/m²",
+        "color": "violet",
+        "icon": "mdi-circle"
+      }
+    ]
+  },
+  "sunExposure": {
+    "headline": "Hours of sunlight per day averaged over a year",
+    "categories": [
+      {
+        "label": "0 h/day",
+        "color": "white",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "1.2 h/day",
+        "color": "#B8D6D1",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "2.4 h/day",
+        "color": "#CEE4CC",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "3.6 h/day",
+        "color": "#E2F2BF",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "4.8 h/day",
+        "color": "#F3C683",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "6 h/day",
+        "color": "#E87E4D",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "7.2 h/day",
+        "color": "#CD463E",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "8.4 h/day",
+        "color": "#A11A4D",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "9.6 h/day",
+        "color": "#75085C",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "10.8 h/day",
+        "color": "red",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "12 h/day",
+        "color": "violet",
+        "icon": "mdi-circle"
+      }
+    ]
+  },
+  "noise": {
+    "headline": "Noise Results in dB [LDEN]",
+    "categories": [
+      {
+        "label": "<45dB (A)",
+        "color": "#B8D6D1",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "45-50dB (A)",
+        "color": "#CEE4CC",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "50-55dB (A)",
+        "color": "#E2F2BF",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "55-60dB (A)",
+        "color": "#F3C683",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "60-65dB (A)",
+        "color": "#E87E4D",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "65-70dB (A)",
+        "color": "#CD463E",
+        "icon": "mdi-circle"
+      },{
+        "label": "70-75dB (A)",
+        "color": "#A11A4D",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": ">75dB (A)",
+        "color": "#75085C",
+        "icon": "mdi-circle"
+      }
+    ]
+  }
+}
