@@ -139,6 +139,8 @@ export default {
         <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
           The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
           Scientific validity of the results cannot be guaranteed in the testing phases.</p>
+          <br>
+          The model is a simplified implementation of the French national method NMPB-08. Model by IFSTTAR.
       </div>
       </div> <!--component_content end-->
     </div><!--division end-->
