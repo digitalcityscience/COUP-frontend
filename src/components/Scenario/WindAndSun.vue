@@ -261,7 +261,8 @@ export default {
 
       <div class="disclaimer">
         <h2>Disclaimer</h2>
-        <p>Results provided by InfraredCity @ AIT</p>
+        <p>Results provided by InfraredCity @ AIT <br>
+        The model was trained on the solar characteristics of Vienna, AT</p>
       </div>
       </div> <!--component_content end-->
     </div><!--division end-->
