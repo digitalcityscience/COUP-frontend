@@ -321,7 +321,7 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-         <! -- show BIM version -->
+         <!-- show BIM version -->
          <v-btn v-if="restrictedAccess && !legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
 
          <!-- LEGEND with headline and all legendCategories as v-data-iterator -->
@@ -643,12 +643,13 @@ export default {
         width:auto;
         background:transparent;
 
-        .button_bar {
+
+      .button_bar {
             display:flex;
             flex-flow:column wrap;
             width:40px;
 
-            .v-btn {
+          .v-btn {
                 //width:40px;
                 min-width:0px;
                 height:30px;
@@ -676,9 +677,10 @@ export default {
                         }
                     }*/
 
+
                     .infobox {
-                        width:30px;
-                        height:28px;
+                        width:115px;
+                        height:34px;
                         position:absolute;
                         top:0;
                         left:34px;
@@ -688,7 +690,7 @@ export default {
                         p {
                             text-transform: none;
                             color:whitesmoke;
-                            line-height:32px;
+                            line-height:20px;
                             font-size:100%;
                             font-weight:400;
                         }
@@ -745,14 +747,14 @@ export default {
                   }
 
                     .legendbutton {
-                        width:50%;
+                        width:calc(100% - 20px);
                         background:$reversed;
                         color:whitesmoke;
                         font-size:85%;
                         font-weight:300;
                         text-transform:none;
                         border-radius:0px;
-                        margin:10px auto;
+                        margin: auto;
 
                         .v-icon {
                             margin-right:5px;
