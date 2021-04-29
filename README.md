@@ -1,28 +1,24 @@
 # GRASBROOK FUNCTIONAL SCOPE
-![GRASBROOK_ABM_SIM](
-https://user-images.githubusercontent.com/4631906/116551925-b95a7100-a8f8-11eb-8489-c98f8cb4c732.mp4
-)
+
+![abm](https://user-images.githubusercontent.com/4631906/116558839-258ca300-a900-11eb-943f-dc9d65d0235d.gif)
+
 
 ## Features
 The Grasbrook Functional Scope provides a mapbox based application to support functional planning for a new urban neighborhood. Users will be able to simulate pedestrian flows, stormwater runoffs, traffic noise propagation, sun exposure and wind speeds. With more modules to come.
 
 ### Pedestrian Flow Analysis
-![GRASBROOK_ABM_SIM](
-https://user-images.githubusercontent.com/4631906/116551925-b95a7100-a8f8-11eb-8489-c98f8cb4c732.mp4
-)
+![abm](https://user-images.githubusercontent.com/4631906/116558881-30473800-a900-11eb-9157-2f65203ba3d3.gif)
+
 
 ### Noise Propagation Analysis
-![GRASBROOK_NOISE_SIM](
-https://user-images.githubusercontent.com/4631906/116555704-f88ac100-a8fc-11eb-8a67-b85315adb165.mp4
-)
+![noise](https://user-images.githubusercontent.com/4631906/116558911-350bec00-a900-11eb-9601-555e4b4ea138.gif)
+
 
 ### Multi Layer Analysis
 Explore interrelationships of different result layers.
 Example: In which areas are many pedestrians exposed to high traffic noise?
+![multi_layer](https://user-images.githubusercontent.com/4631906/116558943-3a693680-a900-11eb-8eba-5cd2b0391cac.gif)
 
-![GRASBROOK_MULTI_LAYER](
-https://user-images.githubusercontent.com/4631906/116555714-fb85b180-a8fc-11eb-86ff-74e6b8044815.mp4
-)
 
 
 ### Stormwater RunOff Analysis
