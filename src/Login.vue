@@ -26,6 +26,8 @@ export default {
         username: "",
         password: "",
       },
+      passwordFieldType: "password",
+      passwordIcon: "mdi-eye",
       showError: false,
       backgroundImages: [
       { size: 'xs', src: xsImage },
@@ -57,6 +59,10 @@ export default {
 
       return img.src
     },
+    switchVisibility() {
+      this.passwordFieldType = this.passwordFieldType === "password" ? "text" : "password";
+      this.passwordIcon = this.passwordFieldType === "password" ? "mdi-eye" : "mdi-eye-off";
+    },
     async submit() {
       this.authenticated = false;
 
@@ -78,20 +84,20 @@ export default {
 
 <template>
   <v-app>
-        <div class="component_content">
         <div v-if="!authenticated" class="login_background">
           <div class="background_image" :style="{ backgroundImage: `url(${backgroundImage()})`}">
             <div>
               <form @submit.prevent="submit" class="submit_form" >
                 <div>
                   <label for="username">Username</label>
-                  <input id="input_field" type="text" name="username" v-model="form.username" />
+                  <input id="input_field_user" type="text" name="username" v-model="form.username" />
                 </div>
+                <label for="password">Password <v-icon color="white" @click="switchVisibility">
+                  {{ passwordIcon }}</v-icon></label>
+                <input id="input_field_pw" :type="passwordFieldType" name="password" v-model="form.password">
+
+                <!-- submit button -->
                 <div>
-                  <label for="password">Password</label>
-                  <input id="input_field" type="password" name="password" v-model="form.password" />
-                </div>
-                <div style="opacity: 1">
                 <v-btn class="submit_button" type="submit">Access</v-btn>
                 <p v-if="showError" id="error">Username or Password is incorrect</p>
                 </div>
@@ -99,7 +105,6 @@ export default {
             </div>
       </div>
     </div>
-        </div>
     <template v-if="authenticated">
       <App :restrictedAccess="restrictedAccess" />
     </template>
@@ -133,7 +138,7 @@ export default {
     box-sizing: border-box;
     color: whitesmoke;
     font-family: 'Tajawal', sans-serif;
-    background: rgb(41,66,82, 0.35);
+    background: rgb(41,66,82, 0.5);
     border:1px solid #888;
     margin:300px auto;
 
@@ -157,14 +162,36 @@ export default {
 
 
 
-  #input_field {
+  #input_field_user {
     width: calc(100% - 30px);
     max-height: 30px;
     margin:0;
     background-color: #444444;
-    opacity: 0.35;
+    opacity: 0.5;
     color: whitesmoke;
+    border-color: rgb(111, 111, 111);
+    border-width: 2px !important;
+    border-top-width: 4px;
+    border-style: solid;
   }
+
+  #input_field_pw {
+      width: calc(100% - 30px);
+      max-height: 30px;
+      margin:0;
+      background-color: #444444;
+      opacity: 0.5;
+      color: whitesmoke;
+      border-color: rgb(111, 111, 111);
+      border-width: 2px !important;
+      border-top-width: 4px;
+      border-style: solid;
+
+    .textarea {
+      color: white !important;
+      border: 2px rgb(133, 133, 133);
+    }
+    }
 
   form {
     margin-top: 20vh;
@@ -179,6 +206,7 @@ export default {
     color: white;
     text-align: left !important;
     margin-top: 10px;
+    margin-left: 15px;
   }
 
   input {
@@ -187,6 +215,11 @@ export default {
     background-color: rgba(0, 0, 0, 0.8);
     color: whitesmoke !important;
   }
+
+   .v-icon {
+     font-size:18px;
+     display: inline-block;
+   }
 
   #error {
     margin-top: 20px;
