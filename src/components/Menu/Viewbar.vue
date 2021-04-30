@@ -338,8 +338,7 @@ export default {
              </v-flex>
            </template>
          </v-data-iterator>
-         <!-- TODO : v-if="!restrictedAccess" !!!!! -->
-         <v-btn v-if="restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
+         <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
             <span @click="checkHighlights('buildings')">
              <v-icon
