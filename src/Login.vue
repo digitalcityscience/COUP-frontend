@@ -2,10 +2,6 @@
 import { mapActions } from "vuex";
 import App from './App.vue'
 import CityPyoDefaultUser from '@/config/cityPyoDefaultUser.json'
-import xsImage from '@/assets/login_background_320.png'
-import smImage from '@/assets/login_background_576.png'
-import mdImage from '@/assets/login_background_900.png'
-import lgImage from '@/assets/login_background_1200.png'
 import xlImage from '@/assets/login_background_1900.png'
 
 export default {
@@ -29,35 +25,20 @@ export default {
       passwordFieldType: "password",
       passwordIcon: "mdi-eye",
       showError: false,
-      backgroundImages: [
-      { size: 'xs', src: xsImage },
-      { size: 'sm', src: smImage },
-      { size: 'md', src: mdImage },
-      { size: 'lg', src: lgImage },
-      { size: 'xl', src: xlImage }
-    ]
-    };
+      backgroundImage: xlImage
+    }
   },
   mounted(){
-    /** todo comment in again
     if (process.env.NODE_ENV === 'development') {
       this.form.username = CityPyoDefaultUser.username
       this.form.password = CityPyoDefaultUser.password
       this.submit()
     }
-     */
   },
   methods: {
     ...mapActions(["LogIn"]),
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
-    },
-    backgroundImage() {
-      const img = this.backgroundImages.find(
-        r => r.size === this.$vuetify.breakpoint.name
-      )
-
-      return img.src
     },
     switchVisibility() {
       this.passwordFieldType = this.passwordFieldType === "password" ? "text" : "password";
@@ -84,8 +65,7 @@ export default {
 
 <template>
   <v-app>
-        <div v-if="!authenticated" class="login_background">
-          <div class="background_image" :style="{ backgroundImage: `url(${backgroundImage()})`}">
+        <div v-if="!authenticated" class="login_background" :style="{backgroundImage: `url(${backgroundImage})`}">
             <div>
               <form @submit.prevent="submit" class="submit_form" >
                 <div>
@@ -95,7 +75,6 @@ export default {
                 <label for="password">Password <v-icon color="white" @click="switchVisibility">
                   {{ passwordIcon }}</v-icon></label>
                 <input id="input_field_pw" :type="passwordFieldType" name="password" v-model="form.password">
-
                 <!-- submit button -->
                 <div>
                 <v-btn class="submit_button" type="submit">Access</v-btn>
@@ -103,7 +82,6 @@ export default {
                 </div>
               </form>
             </div>
-      </div>
     </div>
     <template v-if="authenticated">
       <App :restrictedAccess="restrictedAccess" />
@@ -120,16 +98,11 @@ export default {
     left:0;
     width:100vw;
     height:100vh;
-    background-color: rgba(0,0,0,1);
     transition:0.3s;
-  }
-
-  .background_image{
-    top:0;
-    left:0;
-    width:100vw;
-    height:100vh;
-    position: absolute;
+    background-color: rgba(0,0,0,1);
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
   }
 
   .submit_form {
@@ -142,11 +115,11 @@ export default {
     border:1px solid #888;
     margin:300px auto;
 
-    @media(max-device-height:540px) {
-      margin: 100px auto;
-    }
-    @media(max-device-width:600px) {
+    @media(min-device-width:600px) {
       margin: 300px auto;
+    }
+    @media(max-device-height:650px) {
+      margin: 100px auto;
     }
   }
 
@@ -159,8 +132,6 @@ export default {
     width: calc(100% - 30px);
     margin-top: 20px;
   }
-
-
 
   #input_field_user {
     width: calc(100% - 30px);
@@ -189,7 +160,6 @@ export default {
 
     .textarea {
       color: white !important;
-      border: 2px rgb(133, 133, 133);
     }
     }
 
