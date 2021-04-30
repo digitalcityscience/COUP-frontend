@@ -16,14 +16,14 @@ import {abmArcLayerName,abmTripsLayerName, abmAggregationLayerName} from '@/stor
 
 
 const addedLayersIds = [
-  abmTripsLayerName,
-  abmAggregationLayerName,
   LayerSubselectionConfig.layer.id,
   WindResult.layer.id,
   SolarRadiation.layer.id,
   SunExposure.layer.id,
   Noise.layer.id,
   TrafficCounts.layer.id,
+  abmAggregationLayerName,
+  abmTripsLayerName,
   abmArcLayerName,
   MultiLayerAnalysisConfig.layer.id,
   PerformanceInfosConfig.layer.id,
@@ -48,6 +48,8 @@ export function getLayerOrder() {
   layerOrder = layerOrder.concat(bridgeLayerIds)
   layerOrder = layerOrder.concat(buildingLayerIds)
   layerOrder = layerOrder.concat(addedLayersIds)
+
+  console.log("layerOrder", layerOrder)
 
   return layerOrder
 }

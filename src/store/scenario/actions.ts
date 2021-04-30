@@ -408,7 +408,9 @@ export default {
         }
 
         // check if scenario is still valid - user input might have changed while loading trips layer
-        rootState.map?.addLayer(deckLayer);
+        dispatch('addLayerToMap', deckLayer, {root: true}).then(() => {
+          commit('addLayerId', abmAggregationLayerName, {root: true})
+        })
         console.log("new trips layer loaded");
         commit('addLayerId', abmTripsLayerName, {root: true});
         commit('animationRunning', true);
@@ -431,8 +433,9 @@ export default {
         }
 
         console.log("new aggregation layer loaded");
-        rootState.map?.addLayer(deckLayer)
-        commit('addLayerId', abmAggregationLayerName, {root: true});
+        dispatch('addLayerToMap', deckLayer, {root: true}).then(() => {
+          commit('addLayerId', abmAggregationLayerName, {root: true})
+        })
         commit('heatMap', true);
         console.log(state.heatMap);
 
@@ -454,9 +457,11 @@ export default {
           }
 
           // check if scenario is still valid - user input might have changed while loading trips layer
-          rootState.map?.addLayer(deckLayer);
-          console.log("new trips layer loaded");
-          commit('addLayerId', abmTripsLayerName, {root: true});
+          // ----> is this comment still at the right place??
+          dispatch('addLayerToMap', deckLayer, {root: true}).then(() => {
+            commit('addLayerId', abmTripsLayerName, {root: true})
+            console.log("new trips layer loaded");
+          })
           if(state.animationRunning){
             animate(deckLayer, null, null, currentTimeStamp)
           }
@@ -491,8 +496,10 @@ export default {
             rootState.map?.removeLayer(abmAggregationLayerName)
           }
           console.log("new aggregation layer loaded");
-          rootState.map?.addLayer(deckLayer)
-          commit('addLayerId', abmAggregationLayerName, {root: true})
+          console.warn("putting new aggregation layer")
+          dispatch('addLayerToMap', deckLayer, {root: true}).then(() => {
+            commit('addLayerId', abmAggregationLayerName, {root: true})
+          })
         });
     }
   },
@@ -504,8 +511,9 @@ export default {
         }
 
         console.log("new arc layer loaded");
-        rootState.map?.addLayer(deckLayer)
-        commit('addLayerId', abmArcLayerName, {root: true});
+        dispatch('addLayerToMap', deckLayer, {root: true}).then(() => {
+          commit('addLayerId', abmArcLayerName, {root: true})
+        })
         rootState.map?.flyTo({"zoom": 15, "pitch": 45, "speed": 0.2})
       });
   },
@@ -537,7 +545,10 @@ export default {
       console.log("new Filter Setting applied");
       commit('activeAbmSet', Object.freeze(filteredAbm));
       commit('activeTimePaths', Object.freeze(filteredTimePaths));
-      dispatch('updateLayers', "all");
+      dispatch('updateLayers', "all").then(()=>  {
+        dispatch('updateLayerOrder', {root: true});
+      });
+      console.log("updating layer order")
       commit("loader", false);
   }
 }
