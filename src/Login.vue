@@ -118,7 +118,7 @@ export default {
     @media(min-device-width:600px) {
       margin: 300px auto;
     }
-    @media(max-device-height:650px) {
+    @media(max-device-height:800px) {
       margin: 100px auto;
     }
   }
