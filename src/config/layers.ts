@@ -17,13 +17,13 @@ import {abmArcLayerName,abmTripsLayerName, abmAggregationLayerName} from '@/stor
 
 const addedLayersIds = [
   abmTripsLayerName,
+  abmAggregationLayerName,
   LayerSubselectionConfig.layer.id,
   WindResult.layer.id,
   SolarRadiation.layer.id,
   SunExposure.layer.id,
   Noise.layer.id,
   TrafficCounts.layer.id,
-  abmAggregationLayerName,
   abmArcLayerName,
   MultiLayerAnalysisConfig.layer.id,
   PerformanceInfosConfig.layer.id,
