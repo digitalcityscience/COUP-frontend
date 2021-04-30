@@ -17,6 +17,7 @@ The Grasbrook Functional Scope provides a mapbox based application to support fu
 ### Multi Layer Analysis
 Explore interrelationships of different result layers.
 Example: In which areas are many pedestrians exposed to high traffic noise?
+
 ![multi_layer](https://user-images.githubusercontent.com/4631906/116558943-3a693680-a900-11eb-8eba-5cd2b0391cac.gif)
 
 
