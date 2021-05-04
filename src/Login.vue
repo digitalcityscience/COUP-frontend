@@ -56,10 +56,19 @@ export default {
       this.authenticated =  loginResult.authenticated
       if (this.authenticated) {
         this.restrictedAccess = loginResult.restricted
+        this.setMapCenter()
       }
       this.showError = !this.authenticated
     },
-  },
+    // see if the user has a custom map center specified on cityPyo - if not - continue using app default
+    async setMapCenter() {
+      let customMapCenter = await this.$store.state.cityPyO.getLayer('mapCenter', false) || null
+
+      if (customMapCenter) {
+        this.$store.state.map?.setCenter(customMapCenter["mapCenter"])
+      }
+    }
+  }
 };
 </script>
 
