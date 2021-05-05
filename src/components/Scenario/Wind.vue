@@ -159,8 +159,8 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
-        <h2>Wind Scenario Settings</h2>
         <v-container fluid>
+          <h2>Wind Scenario Settings</h2>
           <!-- Wind Direction -->
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">

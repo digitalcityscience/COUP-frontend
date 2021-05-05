@@ -86,8 +86,8 @@ export default {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
         <!--- Solar Radiation-->
-        <h2>Solar Radiation</h2>
         <v-container fluid>
+          <h2>Solar Radiation</h2>
           <div class="scenario_box" :class="!solarRadiationLoaded ? 'highlight' : ''">
             <header class="text-sm-left">
               kWH/m² <br>
@@ -109,8 +109,8 @@ export default {
 
         <div class="scenario_box" :class="!sunExposureLoaded ? 'highlight' : ''">
             <header class="text-sm-left">
-              kWH/m² <br>
-              Annual solar radiation on a horizontal plane
+              h/day <br>
+              Hours of sunlight per day averaged over a year
             </header>
           </div>
           <v-btn
