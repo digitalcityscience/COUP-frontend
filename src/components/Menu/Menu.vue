@@ -4,7 +4,7 @@ import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import SWScenario from "@/components/Scenario/SWScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
 import SunAndSolarResults from "@/components/Scenario/SunAndSolar.vue";
-import WindScenario from "@/components/Scenario/WindAndSun.vue";
+import WindScenario from "@/components/Scenario/Wind.vue";
 import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
 import TimeSheet from "@/components/Scenario/TimeSheet";
 import {generateStoreGetterSetter} from "@/store/utils/generators";
