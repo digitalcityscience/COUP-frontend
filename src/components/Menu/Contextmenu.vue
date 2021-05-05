@@ -158,9 +158,12 @@ export default {
                 break;
               case "upperfloor":
                 this.addBuildingFloorInfo(feature)
+
                 this.modalInfo["generalContent"].push(
                   {"building height": feature.properties["building_height"].toString() + "m"}
                 )
+
+
                 break;
               case AmenitiesLayerDefinition.layer.id:
                 this.modalInfo["objectType"] = "amenity"
@@ -177,11 +180,22 @@ export default {
             }
           })
         },
-        addBuildingFloorInfo(feature) {
+        addBuildingFloorInfo(feature, floorType) {
           this.modalInfo["detailContent"][feature.layer.id] = [
               {"use case": feature.properties.land_use_detailed_type},
               {"floor area": Math.round(feature.properties["floor_area"]).toString() + "m²"}
             ]
+
+          if (feature.layer.id === "upperfloor") {
+            const upperFloorsCount = feature.properties["upper_floor_count"]
+            // if upperfloors count is specified, provide more info
+            if (upperFloorsCount) {
+              this.modalInfo["detailContent"][feature.layer.id].push(
+                {"upper floors count (excl. groundfloor)": upperFloorsCount},
+                {"total floor area upperfloors": Math.floor(upperFloorsCount * properties["floor_area"]) + "m²"}
+              )
+            }
+          }
         },
         toggleFeatureHighlighting() {
           if (this.allFeaturesHighlighted) {
