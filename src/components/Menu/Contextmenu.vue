@@ -136,6 +136,16 @@ export default {
             return feat.properties["city_scope_id"] === this.objectId
           })
         },
+        getLayerHeadline(layerName) {
+          const headlines = {
+            "groundfloor": "Groundfloor",
+            "upperfloor": "Upper Floors",
+            "rooftop": "Rooftop",
+          }
+          headlines[AmenitiesLayerDefinition.layer.id] = "Amenity"
+
+          return headlines[layerName]
+        },
         gatherModalInfo() {
           this.modalInfo = {
             "objectType": "",
@@ -158,12 +168,9 @@ export default {
                 break;
               case "upperfloor":
                 this.addBuildingFloorInfo(feature)
-
                 this.modalInfo["generalContent"].push(
                   {"building height": feature.properties["building_height"].toString() + "m"}
                 )
-
-
                 break;
               case AmenitiesLayerDefinition.layer.id:
                 this.modalInfo["objectType"] = "amenity"
@@ -353,7 +360,7 @@ export default {
               </div>
             </div>
             <div class="head_scope" v-for="(content, name) in modalInfo.detailContent">
-                <div class="head_bar"><h3>{{ name }}</h3></div>
+                <div class="head_bar"><h3>{{ getLayerHeadline(name) }}</h3></div>
                     <div v-for="ctx in content">
                       <div v-for="(value, key) in ctx">
                         <p><strong>{{ key }}</strong> {{value}} </p>
