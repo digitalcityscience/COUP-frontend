@@ -323,22 +323,26 @@ export default {
          <!-- show BIM version -->
          <v-btn v-if="restrictedAccess && !legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
 
-         <!-- LEGEND with headline and all legendCategories as v-data-iterator -->
+         <!-- LEGENDS -->
+         <!-- Headline -->
          <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-map-legend</v-icon> <div class="infobox"><p>{{ legendHeadline }}</p></div></v-btn>
+         <!-- iterate over all items in legendCategories and display icon and label for each -->
          <v-data-iterator v-if="legendVisible"
            :items="legendCategories"
            :hide-default-footer="true"
          >
            <template v-slot:default="{ items }">
-             {{/* Use the items to iterate */}}
-             <v-flex v-for="(item, index) in items" :key="index">
-               <v-btn v-if="legendVisible" class="legend">
-                 <v-icon :color="item.color">{{ item.icon }}</v-icon>
-                 <div class="infobox"><p>{{ item.label }}</p></div>
-               </v-btn>
-             </v-flex>
+               {{/* Each legend category has an icon, <gra></gra> color and a label to display */}}
+               <v-flex v-for="(item, index) in items" :key="index">
+                 <v-btn v-if="legendVisible" class="legend">
+                   <v-icon :color="item.color">{{ item.icon }}</v-icon>
+                   <div class="infobox"><p>{{ item.label }}</p></div>
+                 </v-btn>
+               </v-flex>
            </template>
          </v-data-iterator>
+
+         <!-- BUILDING MENU -->
          <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
             <span @click="checkHighlights('buildings')">
@@ -465,7 +469,7 @@ export default {
                  ></v-checkbox>
                <v-checkbox
                     v-model="visibleLayers.sunExposure"
-                    label="Sun Exposure Layer"
+                    label="Sun Exposure"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -474,7 +478,7 @@ export default {
                  ></v-checkbox>
                <v-checkbox
                     v-model="visibleLayers.solarRadiation"
-                    label="Solar Radiation Layer"
+                    label="Solar Radiation"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -498,7 +502,7 @@ export default {
          </v-btn>
 
          <!-- Layer Legends Menu -->
-         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
+         <v-btn v-bind:class="{ highlight: visibility.legends }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
              <span  @click="checkHighlights('legends')">
              <v-icon
@@ -636,6 +640,10 @@ export default {
 <style scoped lang='scss'>
     @import "../../style.main.scss";
 
+    .v-tooltip__content--fixed {
+      margin-left: 10px;
+    }
+
     #viewbar {
         position:fixed;
         left:10px;
@@ -643,10 +651,14 @@ export default {
         transform:translateY(-50%);
         width:auto;
         background:transparent;
+
+
         .button_bar {
             display:flex;
             flex-flow:column wrap;
             width:40px;
+
+
 
           .legend {
             display: block;
@@ -660,6 +672,9 @@ export default {
             @include drop_shadow;
           }
 
+
+
+
           .v-btn {
             width:40px;
             min-width:0px;
@@ -667,6 +682,7 @@ export default {
             margin:2px;
             background:rgba(255,255,255,0.9);
             @include drop_shadow;
+
 
                 &.legend {
                     pointer-events:none;
@@ -714,7 +730,7 @@ export default {
                 //  if button in button bar is clicked
                 .view_popup {
                     position:absolute;
-                    left:34px;
+                    left:45px;
                     top:50%;
                     transform:translateY(-25%);
                     width:200px;
@@ -754,6 +770,11 @@ export default {
                             }
                         }
                     }
+
+                  .v-radio {
+                    margin:5px 5px 5px 20px;
+                  }
+
 
                   // radio buttons
                   .v-input--selection-controls {
