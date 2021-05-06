@@ -207,7 +207,7 @@ export default {
             :class="{ changesMade : resultOutdated }"
             :disabled="resultLoading || showError"
           >
-            Load Wind Results
+            RUN SCENARIO
           </v-btn>
           <v-btn style="margin-top: 1vh; margin-bottom: 1vh; float:right; max-width: 30px;"
             @click="saveWindScenario"
