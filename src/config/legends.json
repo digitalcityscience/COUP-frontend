@@ -58,11 +58,6 @@
     "headline": "Yearly Solar Radiation on horizontal plane",
     "categories": [
       {
-        "label": "0 kWh/m²",
-        "color": "white",
-        "icon": "mdi-circle"
-      },
-      {
         "label": "140 kWh/m²",
         "color": "#B8D6D1",
         "icon": "mdi-circle"
@@ -108,7 +103,7 @@
         "icon": "mdi-circle"
       },
       {
-        "label": "140 kWh/m²",
+        "label": "1400 kWh/m²",
         "color": "violet",
         "icon": "mdi-circle"
       }
@@ -117,11 +112,6 @@
   "sunExposure": {
     "headline": "Hours of sunlight per day averaged over a year",
     "categories": [
-      {
-        "label": "0 h/day",
-        "color": "white",
-        "icon": "mdi-circle"
-      },
       {
         "label": "1.2 h/day",
         "color": "#B8D6D1",
