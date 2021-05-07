@@ -4,6 +4,7 @@ import {generateStoreGetterSetter} from "@/store/utils/generators";
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import Legends from "@/config/legends.json";
+import {filterAndScaleLayerData} from "@/store/scenario/multiLayerAnalysis";
 
 export default {
     name: 'Viewbar',
@@ -21,17 +22,6 @@ export default {
                 legends: false,
                 buildings: false,
                 slider: false,
-            },
-            visibleLayers: {
-                focusAreas: false,
-                abm: true,
-                heat: true,
-                noise: true,
-                stormwater: true,
-                wind: true,
-                sunExposure: true,
-                solarRadiation: true,
-                multiLayerAnalysis: true,
             },
             visibleBuildings: {
                 show: true,
@@ -57,6 +47,7 @@ export default {
         ]),
       ...generateStoreGetterSetter([
         ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
+        ['visibleLayers', 'visibleLayers' ],
         // todo is this used somewhre ??['showLegend', 'showLegend' ],
         ['focusAreasShown', 'focusAreasShown' ]
       ]),
@@ -111,6 +102,13 @@ export default {
         },
         legendVisible(newVale, oldVal) {
           console.log("legendVisible", newVale)
+        },
+        visibleLayers: {
+            deep: true,
+            handler() {
+            console.warn("visible layers watched")
+            this.updateLayerVisibility()
+          }
         }
     },
   methods:{
@@ -226,6 +224,19 @@ export default {
 
                 //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
             }
+
+            if(this.layerIds.indexOf("abmAmenities") > -1){
+              if(this.visibleLayers.amenities){
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'visible');
+                //this.$store.commit("scenario/heatMapVisible", true);
+              } else {
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'none');
+                //this.$store.commit("scenario/heatMapVisible", false);
+              }
+
+              //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
+            }
+
 
             if(this.layerIds.indexOf("noise") > -1){
                 if(this.visibleLayers.noise){
@@ -430,6 +441,15 @@ export default {
                     @change="updateLayerVisibility"
                     hide-details
                     :disabled="!heatMap"
+                 ></v-checkbox>
+               <v-checkbox
+                    v-model="visibleLayers.amenities"
+                    label="ABM Amenities"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="activeAbmSet == null"
                  ></v-checkbox>
              </div>
              <div class="layers">

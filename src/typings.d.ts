@@ -61,6 +61,19 @@ declare global {
           main_street_orientation: "vertical" | "horizontal"
       }
 
+      interface visibleLayers {
+        focusAreas: boolean,
+        abm: boolean,
+        heat: boolean,
+        amenities: boolean,
+        noise: boolean,
+        stormwater: boolean,
+        wind: boolean,
+        sunExposure: boolean,
+        solarRadiation: boolean,
+        multiLayerAnalysis: boolean,
+      }
+
       interface StoreState {
         map: mapboxgl.Map | null,
         activeMenuComponent: string,
@@ -74,11 +87,12 @@ declare global {
         mapStyle: string,
         restrictedAccess: Boolean,
         focusAreasGeoJson: GenericObject | null,
-        focusAreasShown: boolean,
+        focusAreasShown: boolean, // TODO: use visible layers instead
         openModalsIds: string[],
         modalIndex: number,
         selectedObjectId: string | null
-        featureCircles: any[]
+        featureCircles: any[],
+        visibleLayers: GenericObject
       }
 
       interface View {

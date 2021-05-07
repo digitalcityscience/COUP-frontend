@@ -31,16 +31,11 @@ export default {
             resultOutdated: false,
             availableResultLayers: [
               // TODO adjust ranges for amenity stats!
-              {"label": 'Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
+              // TODO add wind solar sun
+              {"label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
               {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
-              {"label": 'Complementarity', "value": "Complementarity", "unit": "complementary trips count", "range": [0,100], "step": 1},
-              {"label": 'Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
-              {"label": 'Diversity', "value": "Diversity", "unit": "Simpson Index", "range": [0,100], "step": 1},
-              {"label": 'Opportunities for Interaction', "value": "opportunitiesOfInteraction", "unit": "interactions/m²", "range": [0,0.15], "step": 0.01},
+              {"label": 'Amenity Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
               {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
-              {"label": 'Temporal Entropy', "value": "temporalEntropyPercent", "unit": "%", "range": [0,100], "step": 1},
-              {"label": 'Trip Duration', "value": "averageDuration", "unit": "minutes", "range": [0, 60], "step": 1},
-              {"label": 'Trip Length', "value": "averageLength", "unit": "meters", "range": [0,150], "step": 1},
             ],
             select_Options_1: [],
             select_Options_2: [],
@@ -57,6 +52,7 @@ export default {
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
       ['activeMenuComponent', 'activeMenuComponent'],
+      ['visibleLayers', 'visibleLayers'],
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ]),
@@ -187,8 +183,15 @@ export default {
 
             this.activeDivision = divisions[0].getAttribute('data-title');
             console.log("active divisoin is", this.activeDivision)
+            this.hideAllLayers()
         },
     methods: {
+      // hides all visible layers
+      hideAllLayers() {
+        for (const [key, value] of Object.entries(this.visibleLayers)) {
+          this.visibleLayers[key] = true;
+        }
+      },
       switchToAbm() {
         this.activeMenuComponent = 'AbmScenario'
       },
@@ -204,6 +207,7 @@ export default {
         await calculateAmenityStatsForAllAreas()
         this.setInitialUiSettings()
         this.allDataProvided = true
+        this.hideAllLayers()
       },
       setInitialUiSettings() {
         // set initial UI settings
@@ -288,9 +292,28 @@ export default {
           <h2>Choose Indexes</h2>
           <v-container fluid>
 
+
+            <v-row align="center">
+              <v-col>
+                <v-btn
+                  @click="showSubSelection_1 = !showSubSelection_1"
+                  dark>
+                  <v-icon v-if="!showSubSelection_1" style="color: #1380AB;">mdi-eye</v-icon>
+                  <v-icon v-if="showSubSelection_1" style="color: #1380AB;">mdi-eye-off</v-icon>
+                </v-btn>
+              </v-col>
+              <v-col>
+                <v-btn
+                  @click="showSubSelection_2 = !showSubSelection_2"
+                  dark>
+                  <v-icon v-if="!showSubSelection_2" style="color: #1380AB;">mdi-eye</v-icon>
+                  <v-icon v-if="showSubSelection_2" style="color: #1380AB;">mdi-eye-off</v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+
             <!-- per row: check button. AND/OR selector. slider per v-select -->
             <!-- set slider min max dynamically -->
-
             <v-row align="center">
               <v-col
                 class="d-flex"
@@ -377,22 +400,9 @@ export default {
                 ></v-range-slider>
               </v-col>
             </v-row>
-            <v-row align="center">
-              <v-col>
-                <v-checkbox
-                  v-model="showSubSelection_1"
-                  dark
-                  label="Show subselection">
-                </v-checkbox>
-              </v-col>
-              <v-col>
-                <v-checkbox
-                  v-model="showSubSelection_2"
-                  dark
-                  label="Show subselection">
-                </v-checkbox>
-              </v-col>
-            </v-row>
+
+
+          <!-- exclude logic options for now - too complicated
           <v-row align="center">
             <v-select
               :items="logicOptions"
@@ -408,8 +418,8 @@ export default {
               single-line
               dark
             ></v-select>
-
           </v-row>
+          -->
           </v-container>
           <p v-if="showError" class="warning">Invalid selection</p>
           <p v-if="emptyDataWarning" class="warning">No data to show!</p>
