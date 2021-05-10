@@ -11,13 +11,14 @@ import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
 import { VCarouselReverseTransition } from 'vuetify/lib';
 
-import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
-import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+import {calcAbmStatsForMultiLayer, calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
+import {calculateAmenityStatsForMultiLayerAnalysis, calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import PerformanceInfosConfig from "@/config/performanceInfos.json";
 import {ActionContext} from "vuex";
 import FocusAreasLayer from "@/config/focusAreas.json";
+import vue from 'vue'
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -178,9 +179,24 @@ export default {
     //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
   },
-  calculateStats({state, commit, dispatch, rootState}) {
+  calculateStatsForGrasbrook({state, commit, dispatch, rootState}) {
     calculateAmenityStatsForFocusArea()
     calculateAbmStatsForFocusArea()
+  },
+  showLoadingScreen({state, commit, dispatch, rootState}, message='loading') {
+
+  },
+  calculateStatsForMultiLayerAnalysis({state, commit, dispatch, rootState}) {
+    commit('resultLoading', true);
+    commit('loader', true);
+    commit("loaderTxt", 'Calculating statistics for each focus area')
+    calculateAmenityStatsForMultiLayerAnalysis().then(() => {
+        calcAbmStatsForMultiLayer().then(() => {
+          commit("resultLoading", false)
+          commit("loader", false)
+          commit("loaderTxt", "loading")
+        })
+      })
   },
   // load layer source from cityPyo and add the layer to the map
   updateAmenitiesLayer({state, commit, dispatch, rootState}, workshopId) {
@@ -279,7 +295,7 @@ export default {
         commit("loaderTxt", "Serving Abm Data ... ");
         dispatch("computeLoop", result.options?.data)
           .then(unused => {
-            dispatch('calculateStats')
+            dispatch('calculateStatsForGrasbrook')
         })
       }
     )

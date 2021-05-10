@@ -4,8 +4,8 @@ import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
 import {filterAndScaleLayerData, showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
-import {calculateAbmStatsForAllAreas} from "@/store/scenario/abmStats";
-import {calculateAmenityStatsForAllAreas} from "@/store/scenario/amenityStats";
+import {calcAbmStatsForMultiLayer} from "@/store/scenario/abmStats";
+import {calculateAmenityStatsForMultiLayerAnalysis} from "@/store/scenario/amenityStats";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import mdiInformationPng from '@/assets/mdi-information.png';
 
@@ -202,15 +202,10 @@ export default {
         this.activeMenuComponent = 'NoiseScenario'
       },
       async calculateStats() {
-        console.log("this is noise")
-        console.log($store.state.scenario.currentNoiseGeoJson)
-        console.log(this.currentNoiseResult)
-
-        await calculateAbmStatsForAllAreas()
-        await calculateAmenityStatsForAllAreas()
-        this.setInitialUiSettings()
-        this.allDataProvided = true
-        this.hideAllLayers()
+        this.$store.dispatch('scenario/calculateStatsForMultiLayerAnalysis').then(() => {
+          this.setInitialUiSettings()
+          this.allDataProvided = true
+        })
       },
       setInitialUiSettings() {
         // set initial UI settings

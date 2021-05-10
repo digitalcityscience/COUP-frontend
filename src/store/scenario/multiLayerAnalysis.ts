@@ -75,9 +75,7 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
     }
     let feature = getGeometryForFocusArea(focusAreaId)
     // TODO refactor structure of abm results
-    feature.properties = (baseDataSet === store.state.scenario.abmStats) ?
-      {"value": values["original"][layerName]}
-      : {"value": values[layerName]};
+    feature.properties = {"value": values[layerName]};
     feature.properties["layerName"] = layerName
     feature.properties["id"] = focusAreaId
     layerData.push(feature)
@@ -266,7 +264,6 @@ function flattenFeatureCollection(featureCollection) {
   return flattenedFeatures
 }
 
-
 const noiseLookup = [45,50,55,60,65,70,75,80]
 
 /**
@@ -277,17 +274,11 @@ function layerLookup(layerName:string) {
   switch (layerName) {
     case 'noise':
       return store.state.scenario.currentNoiseGeoJson
-    case 'Amenity Types':
-    case 'Complementarity':
     case 'Density':
-    case 'Diversity':
-      return store.state.scenario.amenityStats
-    case 'opportunitiesOfInteraction':
+    case 'Amenity Types':
+      return store.state.scenario.amenityStatsMultiLayer
     case 'pedestrianDensity':
-    case 'temporalEntropyPercent':
-    case 'averageDuration':
-    case 'averageLength':
-      return store.state.scenario.abmStats
+      return store.state.scenario.abmStatsMultiLayer
     default:
         console.warn("could not find baseDataSet for layerName", layerName, "in multiLayerAnalysis")
         break;
