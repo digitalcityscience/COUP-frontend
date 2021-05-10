@@ -32,7 +32,13 @@ export default {
     },
     mounted:
         function() {
-            /*autogenerationg Sub Menu for all divs of Class "division"*/
+          // hide all other layers
+          this.$store.dispatch(
+            'hideAllLayersButThese',
+            ['sun_exposure']
+          )
+
+          /*autogenerationg Sub Menu for all divs of Class "division"*/
             var divisions = document.getElementsByClassName("division");
             for (var i = 0; i < divisions.length; i++) {
                 let divInstance = {

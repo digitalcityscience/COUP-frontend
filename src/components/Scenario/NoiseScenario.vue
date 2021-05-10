@@ -42,19 +42,25 @@ export default {
     },
     mounted:
         function() {
-            /*autogenerationg Sub Menu for all divs of Class "division"*/
-            var divisions = document.getElementsByClassName("division");
-            for (var i = 0; i < divisions.length; i++) {
-                let divInstance = {
-                    title: divisions[i].getAttribute('data-title'),
-                    pic: divisions[i].getAttribute('data-pic'),
-                };
-                this.componentDivisions.push(divInstance);
-            }
+          // hide all other layers
+          this.$store.dispatch(
+            'hideAllLayersButThese',
+            ['noise', 'trafficCounts']
+          )
 
-            this.activeDivision = divisions[0].getAttribute('data-title');
-            console.log("active divisoin is", this.activeDivision)
-            },
+          /*autogenerationg Sub Menu for all divs of Class "division"*/
+          var divisions = document.getElementsByClassName("division");
+          for (var i = 0; i < divisions.length; i++) {
+              let divInstance = {
+                  title: divisions[i].getAttribute('data-title'),
+                  pic: divisions[i].getAttribute('data-pic'),
+              };
+              this.componentDivisions.push(divInstance);
+          }
+
+          this.activeDivision = divisions[0].getAttribute('data-title');
+          console.log("active divisoin is", this.activeDivision)
+          },
     methods: {
         loadNoiseMap () {
             this.$store.dispatch(

@@ -97,6 +97,39 @@ export default {
       }
     }
   },
+  hideAllLayersButThese(
+    {state, dispatch},
+    layersToShow: string[] = [],
+    hideDesignLayers: boolean = false
+  ) {
+    // TODO: design layer names as global variable add in createDesignLayers
+    const designLayers = ['spaces', 'groundfloor', 'upperfloor', 'rooftops']
+    if (!hideDesignLayers) {
+      layersToShow.push(...designLayers)
+    }
+
+    // iterates over all layers and hides them if not excluded
+    for (const layerId of state.layerIds) {
+      // not in layers to show
+      if (layersToShow.indexOf(layerId) === -1) {
+        dispatch('hideLayer', layerId)
+      }
+    }
+    // shows layers in layersToShow
+    for (const layerId of layersToShow) {
+      dispatch('showLayer', layerId)
+    }
+  },
+  hideLayer({state}, layerId: string) {
+    if (state.map.getLayer(layerId)) {
+      state.map.setLayoutProperty(layerId, 'visibility', 'none');
+    }
+  },
+  showLayer({state}, layerId: string) {
+    if (state.map.getLayer(layerId)) {
+      state.map.setLayoutProperty(layerId, 'visibility', 'visible');
+    }
+  },
   editFeatureProps({state}, feature) {
     if (feature) {
       try {

@@ -79,6 +79,13 @@ export default {
           }
         }
       },
+      visibleLayers: {
+        deep: true,
+        handler() {
+          console.log("visible layers changed in multilayeranalysis")
+          conslole.log(this.visibleLayers)
+        }
+      },
       sliderValues_2: {
         deep: true,
         handler() {
@@ -171,27 +178,23 @@ export default {
     },
     mounted:
         function() {
-            /*autogenerationg Sub Menu for all divs of Class "division"*/
-            var divisions = document.getElementsByClassName("division");
-            for (var i = 0; i < divisions.length; i++) {
-                let divInstance = {
-                    title: divisions[i].getAttribute('data-title'),
-                    pic: divisions[i].getAttribute('data-pic'),
-                };
-                this.componentDivisions.push(divInstance);
-            }
+          // hide all layers
+          this.$store.dispatch('hideAllLayersButThese')
 
-            this.activeDivision = divisions[0].getAttribute('data-title');
-            console.log("active divisoin is", this.activeDivision)
-            this.hideAllLayers()
+          /*autogenerationg Sub Menu for all divs of Class "division"*/
+          var divisions = document.getElementsByClassName("division");
+          for (var i = 0; i < divisions.length; i++) {
+              let divInstance = {
+                  title: divisions[i].getAttribute('data-title'),
+                  pic: divisions[i].getAttribute('data-pic'),
+              };
+              this.componentDivisions.push(divInstance);
+          }
+
+          this.activeDivision = divisions[0].getAttribute('data-title');
+          console.log("active divisoin is", this.activeDivision)
         },
     methods: {
-      // hides all visible layers
-      hideAllLayers() {
-        for (const [key, value] of Object.entries(this.visibleLayers)) {
-          this.visibleLayers[key] = true;
-        }
-      },
       switchToAbm() {
         this.activeMenuComponent = 'AbmScenario'
       },
