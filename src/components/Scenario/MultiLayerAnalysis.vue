@@ -4,10 +4,10 @@ import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
 import {filterAndScaleLayerData, showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
-import {calcAbmStatsForMultiLayer} from "@/store/scenario/abmStats";
-import {calculateAmenityStatsForMultiLayerAnalysis} from "@/store/scenario/amenityStats";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import mdiInformationPng from '@/assets/mdi-information.png';
+import CombinedLayersConfig from  "@/config/multiLayerAnalysis.json";
+import PerformanceInfoLayerConfig from  "@/config/performanceInfos.json";
 
 export default {
     name: 'MultiLayerAnalysis',
@@ -80,13 +80,6 @@ export default {
           }
         }
       },
-      visibleLayers: {
-        deep: true,
-        handler() {
-          console.log("visible layers changed in multilayeranalysis")
-          conslole.log(this.visibleLayers)
-        }
-      },
       sliderValues_2: {
         deep: true,
         handler() {
@@ -142,6 +135,7 @@ export default {
             this.showSubSelection_2 = false
           }
           this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_1.features)
+          this.$store.dispatch("hideAllLayersButThese",[SubSelectionLayerConfig.layer.id])
         } else {
           // hide subSelectionLayer, if subSelection is not to be shown
           if (!this.showSubSelection_2) {
@@ -155,8 +149,8 @@ export default {
             this.showSubSelection_1 = false
           }
           this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_2.features)
+          this.$store.dispatch("hideAllLayersButThese",[SubSelectionLayerConfig.layer.id])
         } else {
-          console.log("hiding?")
           // hide subSelectionLayer, if subSelection is not to be shown
           if (!this.showSubSelection_1) {
             this.$store.state.map?.setLayoutProperty(SubSelectionLayerConfig.layer.id, 'visibility', 'none');
@@ -249,7 +243,11 @@ export default {
         }
         this.$store.commit('scenario/resultLoading', false)
         this.$store.commit("scenario/loader", false);
-      }
+        this.$store.dispatch("hideAllLayersButThese",[
+          CombinedLayersConfig.layer.id,
+          PerformanceInfoLayerConfig.layer.id
+        ])
+     }
     }
 }
 
