@@ -55,14 +55,20 @@ export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
 function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon | turf.MultiPolygon> {
   let baseDataSet = layerLookup(layerName)
 
-  /** get layer data from noise layer*/
-  // format noise data and return as featureCollection
-  if (layerName === 'noise') {
+  /** get layer data from geojson layers*/
+  if (baseDataSet["type"] === "FeatureCollection") {
+    // map properties to standard featureCollection for multiLayerAnalysis
     baseDataSet["features"].forEach((feature, featureId) => {
-      feature.properties["value"] = noiseLookup[feature.properties["idiso"]]
+      if (layerName === 'noise') {
+        feature.properties["value"] = noiseLookup[feature.properties["idiso"]]
+      } else {
+        // wind and sun result value has key "value"
+        feature.properties["value"] = feature.properties["value"]
+      }
       feature.properties["layerName"] = layerName
       feature.properties["id"] = featureId
     })
+
     return turf.featureCollection(baseDataSet["features"])
   }
 
@@ -272,6 +278,10 @@ const noiseLookup = [45,50,55,60,65,70,75,80]
  */
 function layerLookup(layerName:string) {
   switch (layerName) {
+    case 'wind':
+      return store.state.scenario.windResultGeoJson
+    case 'sun':
+      return store.state.scenario.sunExposureGeoJson
     case 'noise':
       return store.state.scenario.currentNoiseGeoJson
     case 'Density':

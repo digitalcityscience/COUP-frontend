@@ -29,12 +29,14 @@ export default {
             emptyDataWarning: false,
             resultOutdated: false,
             availableResultLayers: [
-              // TODO adjust ranges for amenity stats!
-              // TODO add wind solar sun
+              // TODO adjust ranges for amenity stats!??
+              // add corresponding result file source in multiLayerAnalysis.ts  -> layerLookup()
               {"label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
               {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
               {"label": 'Amenity Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
               {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
+              {"label": 'Wind Speed', "value": "wind", "unit": "Lawson Criteria", "range": [0,1], "step": 0.2},
+              {"label": 'Sun Exposure', "value": "sun", "unit": "h/day", "range": [0,1], "step": 0.1},
             ],
             select_Options_1: [],
             select_Options_2: [],
@@ -177,6 +179,11 @@ export default {
     },
     mounted:
         function() {
+          // calc input statistics, if all scenarios chosen
+          if (this.activeAbmSet && this.currentNoiseResult) {
+            this.calculateStats()
+          }
+
           // hide all layers
           this.$store.dispatch('hideAllLayersButThese')
 
@@ -274,15 +281,6 @@ export default {
             class="confirm_btn"
             :class="{ changesMade : resultOutdated }"
           >Choose Noise Scenario
-          </v-btn>
-
-          <h2 v-if="activeAbmSet" style="margin-top: 25px;">Calculate statistical input values</h2>
-          <v-btn
-            @click="calculateStats"
-            class="confirm_btn"
-            :class="{ changesMade : resultOutdated }"
-            :disabled="!activeAbmSet"
-          >Calculate Input Data
           </v-btn>
         </div>
         <div  v-if="allDataProvided">
