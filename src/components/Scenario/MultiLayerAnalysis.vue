@@ -229,7 +229,12 @@ export default {
         this.resultOutdated = true;
         this.showError = false;
       },
-      showCombinedLayers () {
+     async showCombinedLayers () {
+         this.$store.commit('scenario/resultLoading', true)
+         this.$store.commit("scenario/loader", true);
+         this.$store.commit("scenario/loaderTxt", "Combining Layers");
+         await new Promise(resolve => setTimeout(resolve, 500));
+
         this.resultOutdated = false
         const combinedLayers = showMultiLayerAnalysis(
           this.subSelectionLayer_1,
@@ -242,6 +247,8 @@ export default {
         } else {
           this.$store.commit("scenario/multiLayerAnalysisMap", true);
         }
+        this.$store.commit('scenario/resultLoading', false)
+        this.$store.commit("scenario/loader", false);
       }
     }
 }
