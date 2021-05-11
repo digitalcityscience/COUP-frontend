@@ -77,7 +77,8 @@ declare global {
         focusAreasShown: boolean,
         openModalsIds: string[],
         modalIndex: number,
-        selectedObjectId: string | null
+        selectedObjectId: string | null,
+        selectedMultiFeatures: any[],
         featureCircles: any[]
       }
 
