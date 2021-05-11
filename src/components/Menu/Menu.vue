@@ -65,7 +65,7 @@ export default {
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }" @click="activeComponent = 'NoiseScenario'"><p>Noise</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'WindScenario' }" @click="activeComponent = 'WindScenario'"><p>Wind</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SunAndSolarResults' }" @click="activeComponent = 'SunAndSolarResults'"><p>Sun</p></li>
-                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MultiLayerAnalysis' }" @click="activeComponent = 'MultiLayerAnalysis'"><p>MultiLayerAnalysis</p></li>
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MultiLayerAnalysis' }" @click="activeComponent = 'MultiLayerAnalysis'"><p>Combine Layers</p></li>
                     </ul>
                 </template>
                 <template v-else>
@@ -75,7 +75,7 @@ export default {
                         <option value="NoiseScenario">Noise</option>
                         <option value="WindScenario">Wind</option>
                         <option value="SunAndSolarResults">Sun</option>
-                        <option value="MultiLayerAnalysis">MultiLayerAnalysis</option>
+                        <option value="MultiLayerAnalysis">Combine Layers</option>
                     </select>
                 </template>
             </div>
