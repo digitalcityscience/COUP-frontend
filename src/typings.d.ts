@@ -90,6 +90,7 @@ declare global {
         openModalsIds: string[],
         modalIndex: number,
         selectedObjectId: string | null
+        selectedMultiFeatures: any[],
         featureCircles: any[],
         visibleLayers: GenericObject
       }

@@ -9,6 +9,7 @@ const initialState: StoreState = {
     layerIds: [],
     allFeaturesHighlighted: false,
     showLegend: false,
+    selectedMultiFeatures: [],
     view: Config['view'] || Defaults.view,
     mapStyle: Config['mapStyle'] || Defaults.mapStyle,
     accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
