@@ -9,7 +9,6 @@ import {calculateAmenityStatsForMultiLayerAnalysis} from "@/store/scenario/ameni
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import mdiInformationPng from '@/assets/mdi-information.png';
 
-
 export default {
     name: 'MultiLayerAnalysis',
     components: {},
@@ -429,11 +428,11 @@ export default {
           >
            Visualize Selection
           </v-btn>
-          <v-overlay :value="resultLoading">
-            <div>Loading results</div>
-            <v-progress-linear>...</v-progress-linear>
-          </v-overlay>
         </div> <!-- v-if="allDataProvided" end -->
+        <v-overlay :value="resultLoading">
+          <div>Loading results</div>
+          <v-progress-linear>...</v-progress-linear>
+        </v-overlay>
       </div>  <!--component_content end-->
     </div><!--division end-->
   </div>

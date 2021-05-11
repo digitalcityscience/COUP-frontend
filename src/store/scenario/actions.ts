@@ -173,6 +173,8 @@ export default {
     if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
       commit("abmStats", {}) // reset abmStats
       commit("amenityStats", {}) // reset amenityStats
+      commit("abmMultiLayerStats", {}) // reset abmStats
+      commit("amenityStatsMultiLayer", {}) // reset amenityStats
     }
     dispatch('initialAbmComputing')
 
@@ -186,10 +188,14 @@ export default {
   showLoadingScreen({state, commit, dispatch, rootState}, message='loading') {
 
   },
-  calculateStatsForMultiLayerAnalysis({state, commit, dispatch, rootState}) {
-    commit('resultLoading', true);
+  async calculateStatsForMultiLayerAnalysis({state, commit, dispatch, rootState}) {
+    commit('resultLoading', true)
     commit('loader', true);
     commit("loaderTxt", 'Calculating statistics for each focus area')
+
+    // the timeout just gives time for the commits above to persist and the app to be rerendered
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     calculateAmenityStatsForMultiLayerAnalysis().then(() => {
         calcAbmStatsForMultiLayer().then(() => {
           commit("resultLoading", false)
