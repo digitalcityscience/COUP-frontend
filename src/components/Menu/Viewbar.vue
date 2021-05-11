@@ -72,9 +72,6 @@ export default {
       wind(){
           return this.$store.state.scenario.windLayer;
       },
-      solarRadiation(){
-          return this.$store.state.scenario.solarRadiationLayer;
-      },
       sunExposure(){
           return this.$store.state.scenario.sunExposureLayer;
       },
@@ -260,13 +257,6 @@ export default {
                     this.map.setLayoutProperty("sun_exposure", 'visibility', 'visible');
                 } else {
                     this.map.setLayoutProperty("sun_exposure", 'visibility', 'none');
-                }
-            }
-            if(this.layerIds.indexOf("solar_radiation") > -1){
-                if(this.visibleLayers.solarRadiation){
-                    this.map.setLayoutProperty("solar_radiation", 'visibility', 'visible');
-                } else {
-                    this.map.setLayoutProperty("solar_radiation", 'visibility', 'none');
                 }
             }
             if(this.layerIds.indexOf("focusAreas") > -1){
@@ -496,15 +486,6 @@ export default {
                     hide-details
                     :disabled="!sunExposure"
                  ></v-checkbox>
-               <v-checkbox
-                    v-model="visibleLayers.solarRadiation"
-                    label="Solar Radiation"
-                    color="white"
-                    dark
-                    @change="updateLayerVisibility"
-                    hide-details
-                    :disabled="!solarRadiation"
-                 ></v-checkbox>
              </div>
            <div class="layers">
                  <h3>Multi Layer Analysis</h3>
@@ -564,12 +545,6 @@ export default {
                  <v-radio
                    label="Sun Exposure Layer"
                    :value="'sunExposure'"
-                   flat
-                   dark
-                 ></v-radio>
-                 <v-radio
-                   :value="'solarRadiation'"
-                   label="Solar Radiation Layer"
                    flat
                    dark
                  ></v-radio>

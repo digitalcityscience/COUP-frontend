@@ -30,7 +30,6 @@ const initialState: StoreState = {
       stormwater: false,
       wind: false,
       sunExposure: false,
-      solarRadiation: false,
       multiLayerAnalysis: false
   }
 }

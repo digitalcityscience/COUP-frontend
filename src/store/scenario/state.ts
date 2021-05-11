@@ -64,7 +64,6 @@ export default {
   stormWater: false,
   windLayer: false,
   sunExposureLayer: false,
-  solarRadiationLayer: false,
   multiLayerAnalysisMap: false,
   lastClick: [],
   showUi: true,
@@ -75,6 +74,5 @@ export default {
   savedWindScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,
-  solarRadiationGeoJson: null,
 }
 

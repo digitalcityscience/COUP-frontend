@@ -6,7 +6,7 @@ import { noiseSettingsNames } from '@/store/noise'
 import hash from 'object-hash'
 
 export default {
-    name: 'SunAndSolarResults',
+    name: 'SunExposureResults',
     components: {},
     props: {
       restrictedAccess: Boolean
@@ -16,17 +16,16 @@ export default {
             activeDivision:null,
             componentDivisions: [],
             showError: false,
-            solarRadiationLoaded: false,
             sunExposureLoaded: false
         }
     },
   computed: {
-      //...mapState('scenario', ['resultLoading']), // getter only
+      ...mapState('scenario', ['resultLoading']), // getter only
 
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
-      ...generateStoreGetterSetter([
+      /*...generateStoreGetterSetter([
         ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
-      ])
+      ])*/
     },
     watch: {
     },
@@ -52,19 +51,11 @@ export default {
             console.log("active divisoin is", this.activeDivision)
             },
     methods: {
-      async loadResult(resultType) {
-        if (resultType === "sun") {
-          this.$store.dispatch('scenario/addSunExposureLayer').then(() => {
-            this.$store.commit("scenario/sunExposureLayer", true);
-            this.sunExposureLoaded = true;
-          })
-        }
-        if (resultType === "solar") {
-          this.$store.dispatch('scenario/addSolarRadiationLayer').then(() => {
-            this.$store.commit("scenario/solarRadiationLayer", true);
-            this.solarRadiationLoaded = true;
-          })
-        }
+      async loadResult() {
+        this.$store.dispatch('scenario/addSunExposureLayer').then(() => {
+          this.$store.commit("scenario/sunExposureLayer", true);
+          this.sunExposureLoaded = true;
+        })
       }
     }
 }
@@ -91,26 +82,8 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
-        <!--- Solar Radiation-->
         <v-container fluid>
-          <h2>Solar Radiation</h2>
-          <div class="scenario_box" :class="!solarRadiationLoaded ? 'highlight' : ''">
-            <header class="text-sm-left">
-              kWH/m² <br>
-              Annual solar radiation on a horizontal plane
-            </header>
-
-          </div>
-          <v-btn
-            style="margin-top: 1vh;"
-            @click="loadResult('solar')"
-            class="confirm_btn"
-            :class="{ changesMade : !solarRadiationLoaded }"
-          >
-            Run Scenario
-          </v-btn>
-
-          <!--- SUN EXPOSURE -->
+        <!--- SUN EXPOSURE -->
         <h2>Sun Exposure</h2>
 
         <div class="scenario_box" :class="!sunExposureLoaded ? 'highlight' : ''">
@@ -121,17 +94,11 @@ export default {
           </div>
           <v-btn
             style="margin-top: 1vh;"
-            @click="loadResult('sun')"
+            @click="loadResult()"
             class="confirm_btn"
-            :class="{ changesMade : !sunExposureLoaded }"
           >
           Run Scenario
           </v-btn>
-
-          <v-overlay :value="resultLoading">
-          <div>Loading results</div>
-          <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>
-          </v-overlay>
 
           <div class="disclaimer">
             <h2>Disclaimer</h2>
@@ -141,6 +108,10 @@ export default {
         </v-container>
 
       </div> <!--component_content end-->
+      <v-overlay :value="resultLoading">
+        <div>Loading results</div>
+        <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>
+      </v-overlay>
     </div><!--division end-->
   </div>
 </template>

@@ -70,7 +70,6 @@ declare global {
         stormwater: boolean,
         wind: boolean,
         sunExposure: boolean,
-        solarRadiation: boolean,
         multiLayerAnalysis: boolean,
       }
 

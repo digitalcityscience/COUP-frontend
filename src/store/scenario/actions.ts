@@ -3,7 +3,6 @@ import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import WindResult from "@/config/windResult.json";
 import SunExposure from "@/config/sunExposureResult.json";
-import SolarRadiation from "@/config/solarRadiationResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
@@ -94,16 +93,6 @@ export default {
         .then(source => {
           dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
         })
-  },
-  addSolarRadiationLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
-    rootState.cityPyO.getLayer("solar_radiation").then(source => {
-        commit('solarRadiationGeoJson', source.options.data)
-        dispatch('addSourceToMap', source, {root: true})
-          .then(source => {
-            dispatch('addLayerToMap', SolarRadiation.layer, {root: true})
-          })
-      }
-    )
   },
   addSunExposureLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
     rootState.cityPyO.getLayer("sun_exposure").then(source => {

@@ -1,17 +1,14 @@
 <script>
-import { mapState } from 'vuex'
 import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import SWScenario from "@/components/Scenario/SWScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
-import SunAndSolarResults from "@/components/Scenario/SunAndSolar.vue";
+import SunExposureResults from "@/components/Scenario/SunExposure.vue";
 import WindScenario from "@/components/Scenario/Wind.vue";
 import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
-import TimeSheet from "@/components/Scenario/TimeSheet";
-import {generateStoreGetterSetter} from "@/store/utils/generators";
 
 export default {
     name: 'Menu',
-    components: {AbmScenario, SWScenario, NoiseScenario, WindScenario, SunAndSolarResults, MultiLayerAnalysis},
+    components: {AbmScenario, SWScenario, NoiseScenario, WindScenario, SunExposureResults, MultiLayerAnalysis},
     props: {
       restrictedAccess: Boolean
     },
@@ -64,7 +61,7 @@ export default {
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SWScenario' }" @click="activeComponent = 'SWScenario'"><p>Stormwater</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }" @click="activeComponent = 'NoiseScenario'"><p>Noise</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'WindScenario' }" @click="activeComponent = 'WindScenario'"><p>Wind</p></li>
-                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SunAndSolarResults' }" @click="activeComponent = 'SunAndSolarResults'"><p>Sun</p></li>
+                        <li class="component_link" v-bind:class="{ highlight: activeComponent === 'SunExposureResults' }" @click="activeComponent = 'SunExposureResults'"><p>Sun</p></li>
                         <li class="component_link" v-bind:class="{ highlight: activeComponent === 'MultiLayerAnalysis' }" @click="activeComponent = 'MultiLayerAnalysis'"><p>Combine Layers</p></li>
                     </ul>
                 </template>
@@ -74,7 +71,7 @@ export default {
                         <option value="SWScenario">Stormwater</option>
                         <option value="NoiseScenario">Noise</option>
                         <option value="WindScenario">Wind</option>
-                        <option value="SunAndSolarResults">Sun</option>
+                        <option value="SunExposureResults">Sun</option>
                         <option value="MultiLayerAnalysis">Combine Layers</option>
                     </select>
                 </template>
@@ -84,7 +81,7 @@ export default {
                 <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
                 <div v-if="activeComponent === 'NoiseScenario'"><NoiseScenario :restrictedAccess="restrictedAccess" /></div>
                 <div v-if="activeComponent === 'WindScenario'"><WindScenario :restrictedAccess="restrictedAccess" /></div>
-                <div v-if="activeComponent === 'SunAndSolarResults'"><SunAndSolarResults :restrictedAccess="restrictedAccess" /></div>
+                <div v-if="activeComponent === 'SunExposureResults'"><SunExposureResults :restrictedAccess="restrictedAccess" /></div>
                 <div v-if="activeComponent === 'MultiLayerAnalysis'"><MultiLayerAnalysis /></div>
             </div>
             <div class="footer_scope">
