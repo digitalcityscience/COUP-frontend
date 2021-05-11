@@ -3,7 +3,6 @@ import { mapState } from 'vuex'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
-import Legends from "@/config/legends.json";
 import {filterAndScaleLayerData} from "@/store/scenario/multiLayerAnalysis";
 
 export default {
@@ -29,10 +28,7 @@ export default {
                 amenities: true,
             },
             presentationRunning: false,
-            legendVisible: false,
-            selectedLegend: null,
-            legendCategories: [],
-            legendHeadline: ''
+            legendVisible: false
         }
     },
     computed: {
@@ -91,11 +87,6 @@ export default {
         },
         focusAreasShown(newVal, oldVal){
           this.visibleLayers.focusAreas = newVal
-        },
-        selectedLegend(newVal, oldVal) {
-          this.legendHeadline = Legends[newVal]["headline"]
-          this.legendCategories = Legends[newVal]["categories"]
-          this.legendVisible = true // set true if user clicks on new legend topic
         },
         legendVisible(newVale, oldVal) {
           console.log("legendVisible", newVale)
@@ -324,25 +315,6 @@ export default {
          <!-- show BIM version -->
          <v-btn v-if="restrictedAccess && !legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
 
-         <!-- LEGENDS -->
-         <!-- Headline -->
-         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-map-legend</v-icon> <div class="infobox"><p>{{ legendHeadline }}</p></div></v-btn>
-         <!-- iterate over all items in legendCategories and display icon and label for each -->
-         <v-data-iterator v-if="legendVisible"
-           :items="legendCategories"
-           :hide-default-footer="true"
-         >
-           <template v-slot:default="{ items }">
-               {{/* Each legend category has an icon, <gra></gra> color and a label to display */}}
-               <v-flex v-for="(item, index) in items" :key="index">
-                 <v-btn v-if="legendVisible" class="legend">
-                   <v-icon :color="item.color">{{ item.icon }}</v-icon>
-                   <div class="infobox"><p>{{ item.label }}</p></div>
-                 </v-btn>
-               </v-flex>
-           </template>
-         </v-data-iterator>
-
          <!-- BUILDING MENU -->
          <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
@@ -501,93 +473,7 @@ export default {
              </div>
          </div>
          </v-btn>
-
-         <!-- Layer Legends Menu -->
-         <v-btn v-bind:class="{ highlight: visibility.legends }"><v-tooltip right>
-           <template v-slot:activator="{ on, attrs }">
-             <span  @click="checkHighlights('legends')">
-             <v-icon
-               v-bind="attrs"
-               v-on="on"
-             >mdi-map-legend</v-icon>
-           </span>
-           </template>
-           <span>Layer Legends</span>
-         </v-tooltip>
-           <div v-if="visibility.legends" class="view_popup">
-             <v-radio-group v-model="selectedLegend">
-               <div class="layers">
-                 <h3>Building Use Legend</h3>
-                 <v-radio
-                   :value="'buildingUses'"
-                   flat
-                   label="Building Uses"
-                   dark
-                 ></v-radio>
-               </div>
-               <div class="layers">
-                 <h3>Noise Legend</h3>
-                 <v-radio
-                   :value="'noise'"
-                   flat
-                   label="Traffic Noise"
-                   dark
-                 ></v-radio>
-               </div>
-               <div class="layers">
-                 <h3>Climate Legends</h3>
-                 <v-radio
-                   :value="'wind'"
-                   flat
-                   label="Wind Layer"
-                   dark
-                 ></v-radio>
-                 <v-radio
-                   label="Sun Exposure Layer"
-                   :value="'sunExposure'"
-                   flat
-                   dark
-                 ></v-radio>
-               </div>
-             </v-radio-group>
-             <v-btn @click="legendVisible = !legendVisible" class="legendbutton">
-               <v-icon>mdi-map-legend</v-icon>
-               <template v-if="!legendVisible">Show Legend</template>
-               <template v-if="legendVisible">Hide Legend</template>
-             </v-btn>
-           </div>
-         </v-btn>
-         <v-btn class="light_view" v-bind:class="{ highlight: visibility.slider }" @click="checkHighlights('slider')"> <v-tooltip right>
-                 <template v-slot:activator="{ on, attrs }">
-                   <v-icon
-                     v-bind="attrs"
-                     v-on="on"
-                   >mdi-lightbulb-on-outline</v-icon>
-                 </template>
-                 <span>Adjust Brightness</span>
-               </v-tooltip>
-                <div class="popup_cnt" v-if="visibility.slider">
-                    <p>Adjust Map Lighting</p>
-                    <v-slider
-                        dark
-                        min="1"
-                        max="100"
-                        v-model="brightness"
-                        @change="changeBrightness"
-                    >
-                    <template v-slot:append>
-                        <v-text-field
-                            :value="brightness"
-                            class="mt-0 pt-0"
-                            single-line
-                            readonly
-                            type="number"
-                        ></v-text-field>
-                    </template>
-                    </v-slider>
-                </div>
-           </v-btn>
-           <v-btn class="reset_view" @click="resetView">
+         <v-btn class="reset_view" @click="resetView" style="margin-top: 30px;">
              <v-tooltip right>
                <template v-slot:activator="{ on, attrs }">
                  <v-icon
