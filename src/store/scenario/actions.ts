@@ -143,7 +143,7 @@ export default {
 
     if (!completed) {
       // keep fetching new results until the results are complete
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       dispatch("updateWindLayer")
       }
   },
