@@ -382,7 +382,8 @@ export default {
          </v-btn>
 
          <!-- Layer Visibility Menu -->
-         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
+         <v-btn v-bind:class="{ highlight: visibility.layers }">
+         <v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
                <span  @click="checkHighlights('layers')">
              <v-icon
@@ -391,14 +392,14 @@ export default {
              >mdi-layers</v-icon>
            </span>
            </template>
-           <span>Layer Visibility</span>
+           <span>Layers</span>
          </v-tooltip>
          <div v-if="visibility.layers" class="view_popup">
              <div class="layers">
                  <h3>Focus Areas</h3>
                  <v-checkbox
                     v-model="visibleLayers.focusAreas"
-                    label="Focus Areas Layer"
+                    label="Focus Areas"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -410,7 +411,7 @@ export default {
                  <h3>ABM Layers</h3>
                  <v-checkbox
                     v-model="visibleLayers.abm"
-                    label="ABM Animation Layer"
+                    label="ABM Animation"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -419,7 +420,7 @@ export default {
                  ></v-checkbox>
                  <v-checkbox
                     v-model="visibleLayers.heat"
-                    label="ABM Aggregation Layer"
+                    label="ABM Aggregation"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -443,7 +444,7 @@ export default {
                  <h3>Stormwater Layers</h3>
                  <v-checkbox
                     v-model="visibleLayers.stormwater"
-                    label="Stormwater Layer"
+                    label="Stormwater"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -455,7 +456,7 @@ export default {
                  <h3>Climate Layers</h3>
                  <v-checkbox
                     v-model="visibleLayers.wind"
-                    label="Wind Layer"
+                    label="Wind"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -464,7 +465,7 @@ export default {
                  ></v-checkbox>
                <v-checkbox
                     v-model="visibleLayers.sunExposure"
-                    label="Sun Exposure Layer"
+                    label="Sun Exposure"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -473,7 +474,7 @@ export default {
                  ></v-checkbox>
                <v-checkbox
                     v-model="visibleLayers.solarRadiation"
-                    label="Solar Radiation Layer"
+                    label="Solar Radiation"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -485,7 +486,7 @@ export default {
                  <h3>Multi Layer Analysis</h3>
                  <v-checkbox
                     v-model="visibleLayers.multiLayerAnalysis"
-                    label="Multi Layer Analysis"
+                    label="Combined Layers"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -537,7 +538,7 @@ export default {
                    <v-radio
                      :value="'wind'"
                      flat
-                     label="Wind Layer"
+                     label="Wind"
                      dark
                    ></v-radio>
                    <v-radio
@@ -548,7 +549,7 @@ export default {
                    ></v-radio>
                    <v-radio
                      :value="'solarRadiation'"
-                     label="Solar Radiation Layer"
+                     label="Solar Radiation"
                      flat
                      dark
                    ></v-radio>
