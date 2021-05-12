@@ -595,7 +595,7 @@ export default {
                    v-on="on"
                  >mdi-crosshairs-gps</v-icon>
                </template>
-               <span>Home</span>
+               <span>Top View</span>
              </v-tooltip>
            </v-btn>
            <v-btn class="toggle_ui" @click="toggleUi">
