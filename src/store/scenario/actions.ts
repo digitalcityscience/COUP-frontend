@@ -3,7 +3,6 @@ import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import WindResult from "@/config/windResult.json";
 import SunExposure from "@/config/sunExposureResult.json";
-import SolarRadiation from "@/config/solarRadiationResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
@@ -11,13 +10,14 @@ import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
 import { VCarouselReverseTransition } from 'vuetify/lib';
 
-import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
-import {calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
+import {calcAbmStatsForMultiLayer, calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
+import {calculateAmenityStatsForMultiLayerAnalysis, calculateAmenityStatsForFocusArea} from "@/store/scenario/amenityStats";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import PerformanceInfosConfig from "@/config/performanceInfos.json";
 import {ActionContext} from "vuex";
 import FocusAreasLayer from "@/config/focusAreas.json";
+import vue from 'vue'
 
 export default {
   updateNoiseScenario({state, commit, dispatch, rootState}) {
@@ -94,16 +94,6 @@ export default {
           dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
         })
   },
-  addSolarRadiationLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
-    rootState.cityPyO.getLayer("solar_radiation").then(source => {
-        commit('solarRadiationGeoJson', source.options.data)
-        dispatch('addSourceToMap', source, {root: true})
-          .then(source => {
-            dispatch('addLayerToMap', SolarRadiation.layer, {root: true})
-          })
-      }
-    )
-  },
   addSunExposureLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
     rootState.cityPyO.getLayer("sun_exposure").then(source => {
         commit('sunExposureGeoJson', source.options.data)
@@ -142,7 +132,7 @@ export default {
 
     if (!completed) {
       // keep fetching new results until the results are complete
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       dispatch("updateWindLayer")
       }
   },
@@ -172,15 +162,36 @@ export default {
     if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
       commit("abmStats", {}) // reset abmStats
       commit("amenityStats", {}) // reset amenityStats
+      commit("abmMultiLayerStats", {}) // reset abmStats
+      commit("amenityStatsMultiLayer", {}) // reset amenityStats
     }
     dispatch('initialAbmComputing')
 
     //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
   },
-  calculateStats({state, commit, dispatch, rootState}) {
+  calculateStatsForGrasbrook({state, commit, dispatch, rootState}) {
     calculateAmenityStatsForFocusArea()
     calculateAbmStatsForFocusArea()
+  },
+  showLoadingScreen({state, commit, dispatch, rootState}, message='loading') {
+
+  },
+  async calculateStatsForMultiLayerAnalysis({state, commit, dispatch, rootState}) {
+    commit('resultLoading', true)
+    commit('loader', true);
+    commit("loaderTxt", 'Calculating statistics for each focus area')
+
+    // the timeout just gives time for the commits above to persist and the app to be rerendered
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    calculateAmenityStatsForMultiLayerAnalysis().then(() => {
+        calcAbmStatsForMultiLayer().then(() => {
+          commit("resultLoading", false)
+          commit("loader", false)
+          commit("loaderTxt", "loading")
+        })
+      })
   },
   // load layer source from cityPyo and add the layer to the map
   updateAmenitiesLayer({state, commit, dispatch, rootState}, workshopId) {
@@ -279,7 +290,7 @@ export default {
         commit("loaderTxt", "Serving Abm Data ... ");
         dispatch("computeLoop", result.options?.data)
           .then(unused => {
-            dispatch('calculateStats')
+            dispatch('calculateStatsForGrasbrook')
         })
       }
     )

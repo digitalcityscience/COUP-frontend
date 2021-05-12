@@ -54,74 +54,9 @@
       }
     ]
   },
-  "solarRadiation": {
-    "headline": "Yearly Solar Radiation on horizontal plane",
-    "categories": [
-      {
-        "label": "0 kWh/m²",
-        "color": "white",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "140 kWh/m²",
-        "color": "#B8D6D1",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "280 kWh/m²",
-        "color": "#CEE4CC",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "420 kWh/m²",
-        "color": "#E2F2BF",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "560 kWh/m²",
-        "color": "#F3C683",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "700 kWh/m²",
-        "color": "#E87E4D",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "840 kWh/m²",
-        "color": "#CD463E",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "980 kWh/m²",
-        "color": "#A11A4D",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "1120 kWh/m²",
-        "color": "#75085C",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "1260 kWh/m²",
-        "color": "red",
-        "icon": "mdi-circle"
-      },
-      {
-        "label": "140 kWh/m²",
-        "color": "violet",
-        "icon": "mdi-circle"
-      }
-    ]
-  },
   "sunExposure": {
     "headline": "Hours of sunlight per day averaged over a year",
     "categories": [
-      {
-        "label": "0 h/day",
-        "color": "white",
-        "icon": "mdi-circle"
-      },
       {
         "label": "1.2 h/day",
         "color": "#B8D6D1",

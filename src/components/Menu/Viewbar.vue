@@ -1,14 +1,13 @@
 <script>
 import { mapState } from 'vuex'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
-import UseTypesLegend from "@/components/Menu/UseTypesLegend.vue";
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
-import Legends from "@/config/legends.json";
+import {filterAndScaleLayerData} from "@/store/scenario/multiLayerAnalysis";
 
 export default {
     name: 'Viewbar',
-    components: { UseTypesLegend },
+    components: { },
     props: {
       restrictedAccess: Boolean
     },
@@ -23,27 +22,13 @@ export default {
                 buildings: false,
                 slider: false,
             },
-            visibleLayers: {
-                focusAreas: false,
-                abm: true,
-                heat: true,
-                noise: true,
-                stormwater: true,
-                wind: true,
-                sunExposure: true,
-                solarRadiation: true,
-                multiLayerAnalysis: true,
-            },
             visibleBuildings: {
                 show: true,
                 highlight: false,
                 amenities: true,
             },
             presentationRunning: false,
-            legendVisible: false,
-            selectedLegend: null,
-            legendCategories: [],
-            legendHeadline: ''
+            legendVisible: false
         }
     },
     computed: {
@@ -58,6 +43,7 @@ export default {
         ]),
       ...generateStoreGetterSetter([
         ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
+        ['visibleLayers', 'visibleLayers' ],
         // todo is this used somewhre ??['showLegend', 'showLegend' ],
         ['focusAreasShown', 'focusAreasShown' ]
       ]),
@@ -82,9 +68,6 @@ export default {
       wind(){
           return this.$store.state.scenario.windLayer;
       },
-      solarRadiation(){
-          return this.$store.state.scenario.solarRadiationLayer;
-      },
       sunExposure(){
           return this.$store.state.scenario.sunExposureLayer;
       },
@@ -105,13 +88,15 @@ export default {
         focusAreasShown(newVal, oldVal){
           this.visibleLayers.focusAreas = newVal
         },
-        selectedLegend(newVal, oldVal) {
-          this.legendHeadline = Legends[newVal]["headline"]
-          this.legendCategories = Legends[newVal]["categories"]
-          this.legendVisible = true // set true if user clicks on new legend topic
-        },
         legendVisible(newVale, oldVal) {
           console.log("legendVisible", newVale)
+        },
+        visibleLayers: {
+            deep: true,
+            handler() {
+            console.warn("visible layers watched")
+            this.updateLayerVisibility()
+          }
         }
     },
   methods:{
@@ -228,6 +213,19 @@ export default {
                 //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
             }
 
+            if(this.layerIds.indexOf("abmAmenities") > -1){
+              if(this.visibleLayers.amenities){
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'visible');
+                //this.$store.commit("scenario/heatMapVisible", true);
+              } else {
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'none');
+                //this.$store.commit("scenario/heatMapVisible", false);
+              }
+
+              //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
+            }
+
+
             if(this.layerIds.indexOf("noise") > -1){
                 if(this.visibleLayers.noise){
                     this.map.setLayoutProperty("noise", 'visibility', 'visible');
@@ -250,13 +248,6 @@ export default {
                     this.map.setLayoutProperty("sun_exposure", 'visibility', 'visible');
                 } else {
                     this.map.setLayoutProperty("sun_exposure", 'visibility', 'none');
-                }
-            }
-            if(this.layerIds.indexOf("solar_radiation") > -1){
-                if(this.visibleLayers.solarRadiation){
-                    this.map.setLayoutProperty("solar_radiation", 'visibility', 'visible');
-                } else {
-                    this.map.setLayoutProperty("solar_radiation", 'visibility', 'none');
                 }
             }
             if(this.layerIds.indexOf("focusAreas") > -1){
@@ -324,20 +315,7 @@ export default {
          <!-- show BIM version -->
          <v-btn v-if="restrictedAccess && !legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
 
-         <!-- LEGEND with headline and all legendCategories as v-data-iterator -->
-         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-map-legend</v-icon> <div class="infobox"><p>{{ legendHeadline }}</p></div></v-btn>
-         <v-data-iterator v-if="legendVisible"
-           :items="legendCategories"
-           :hide-default-footer="true"
-         >
-           <template v-slot:default="{ items }">
-             {{/* Use the items to iterate */}}
-             <v-flex v-for="(item, index) in items" :key="index">
-               <v-btn v-if="legendVisible" class="legend"><v-icon :color="item.color">{{ item.icon }}</v-icon> <div class="infobox"><p>
-                 {{ item.label }}</p></div></v-btn>
-             </v-flex>
-           </template>
-         </v-data-iterator>
+         <!-- BUILDING MENU -->
          <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
             <span @click="checkHighlights('buildings')">
@@ -427,6 +405,15 @@ export default {
                     hide-details
                     :disabled="!heatMap"
                  ></v-checkbox>
+               <v-checkbox
+                    v-model="visibleLayers.amenities"
+                    label="ABM Amenities"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="activeAbmSet == null"
+                 ></v-checkbox>
              </div>
              <div class="layers">
                  <h3>Noise Layers</h3>
@@ -472,15 +459,6 @@ export default {
                     hide-details
                     :disabled="!sunExposure"
                  ></v-checkbox>
-               <v-checkbox
-                    v-model="visibleLayers.solarRadiation"
-                    label="Solar Radiation"
-                    color="white"
-                    dark
-                    @change="updateLayerVisibility"
-                    hide-details
-                    :disabled="!solarRadiation"
-                 ></v-checkbox>
              </div>
            <div class="layers">
                  <h3>Multi Layer Analysis</h3>
@@ -496,98 +474,7 @@ export default {
              </div>
          </div>
          </v-btn>
-
-         <!-- Layer Legends Menu -->
-         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
-           <template v-slot:activator="{ on, attrs }">
-             <span  @click="checkHighlights('legends')">
-             <v-icon
-               v-bind="attrs"
-               v-on="on"
-             >mdi-map-legend</v-icon>
-           </span>
-           </template>
-           <span>Layer Legends</span>
-         </v-tooltip>
-           <div v-if="visibility.legends" class="view_popup">
-             <v-btn v-if="!legendVisible" @click="legendVisible = !legendVisible" class="main_btn"
-             >Show Legend</v-btn>
-             <v-btn v-if="legendVisible" @click="legendVisible = !legendVisible" class="main_btn"
-             >Hide Legend</v-btn>
-               <v-radio-group v-model="selectedLegend">
-                 <div class="layers">
-                   <h3>Building Use Legend</h3>
-                   <v-radio
-                     :value="'buildingUses'"
-                     flat
-                     label="Building Uses"
-                     dark
-                   ></v-radio>
-                 </div>
-                 <div class="layers">
-                   <h3>Noise Legend</h3>
-                   <v-radio
-                     :value="'noise'"
-                     flat
-                     label="Traffic Noise"
-                     dark
-                   ></v-radio>
-                 </div>
-                 <div class="layers">
-                   <h3>Climate Legends</h3>
-                   <v-radio
-                     :value="'wind'"
-                     flat
-                     label="Wind"
-                     dark
-                   ></v-radio>
-                   <v-radio
-                     label="Sun Exposure Layer"
-                     :value="'sunExposure'"
-                     flat
-                     dark
-                   ></v-radio>
-                   <v-radio
-                     :value="'solarRadiation'"
-                     label="Solar Radiation"
-                     flat
-                     dark
-                   ></v-radio>
-                 </div>
-               </v-radio-group>
-           </div>
-         </v-btn>
-         <v-btn class="light_view" v-bind:class="{ highlight: visibility.slider }" @click="checkHighlights('slider')"> <v-tooltip right>
-                 <template v-slot:activator="{ on, attrs }">
-                   <v-icon
-                     v-bind="attrs"
-                     v-on="on"
-                   >mdi-lightbulb-on-outline</v-icon>
-                 </template>
-                 <span>Adjust Brightness</span>
-               </v-tooltip>
-                <div class="popup_cnt" v-if="visibility.slider">
-                    <p>Adjust Map Lighting</p>
-                    <v-slider
-                        dark
-                        min="1"
-                        max="100"
-                        v-model="brightness"
-                        @change="changeBrightness"
-                    >
-                    <template v-slot:append>
-                        <v-text-field
-                            :value="brightness"
-                            class="mt-0 pt-0"
-                            single-line
-                            readonly
-                            type="number"
-                        ></v-text-field>
-                    </template>
-                    </v-slider>
-                </div>
-           </v-btn>
-           <v-btn class="reset_view" @click="resetView">
+         <v-btn class="reset_view" @click="resetView" style="margin-top: 30px;">
              <v-tooltip right>
                <template v-slot:activator="{ on, attrs }">
                  <v-icon
@@ -635,6 +522,10 @@ export default {
 <style scoped lang='scss'>
     @import "../../style.main.scss";
 
+    .v-tooltip__content--fixed {
+      margin-left: 10px;
+    }
+
     #viewbar {
         position:fixed;
         left:10px;
@@ -644,18 +535,36 @@ export default {
         background:transparent;
 
 
-      .button_bar {
+        .button_bar {
             display:flex;
             flex-flow:column wrap;
             width:40px;
 
+
+
+          .legend {
+            display: block;
+            position: relative;
+            width:150px;
+            //min-height:200px;
+            background: rgba(0, 0, 0, 0.9);
+            max-width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            @include drop_shadow;
+          }
+
+
+
+
           .v-btn {
-                //width:40px;
-                min-width:0px;
-                height:30px;
-                margin:2px;
-                background:rgba(255,255,255,0.9);
-                @include drop_shadow;
+            width:40px;
+            min-width:0px;
+            height:30px;
+            margin:2px;
+            background:rgba(255,255,255,0.9);
+            @include drop_shadow;
+
 
                 &.legend {
                     pointer-events:none;
@@ -677,33 +586,33 @@ export default {
                         }
                     }*/
 
-
-                    .infobox {
-                        width:115px;
-                        height:34px;
-                        position:absolute;
-                        top:0;
-                        left:34px;
-                        background:rgba(0,0,0,0.75);
-                        @include drop_shadow;
-
-                        p {
-                            text-transform: none;
-                            color:whitesmoke;
-                            line-height:20px;
-                            font-size:100%;
-                            font-weight:400;
-                        }
+                  .infobox {
+                    width:115px;
+                    height:28px;
+                    position:absolute;
+                    top:-1;
+                    left:40px;
+                    background:rgba(0,0,0,0.75);
+                    @include drop_shadow;
+                    p {
+                      text-transform: none;
+                      color:whitesmoke;
+                      line-height:28px;
+                      font-size:90%;
+                      font-weight:300;
                     }
+                  }
                 }
 
                 .v-icon {
                     font-size:18px;
                 }
 
+                // the element that folds out
+                //  if button in button bar is clicked
                 .view_popup {
                     position:absolute;
-                    left:34px;
+                    left:45px;
                     top:50%;
                     transform:translateY(-25%);
                     width:200px;
@@ -729,10 +638,12 @@ export default {
                         }
                     }
 
-                    .v-input--checkbox {
+                  // checkboxes
+                    .v-input--checkbox{
                         margin:5px 5px 5px 20px;
 
                         ::v-deep.v-input__control {
+
                             label {
                                 text-transform:none;
                                 color:white;
@@ -742,30 +653,46 @@ export default {
                         }
                     }
 
-                  .v-input--selection-controls {
-                    color: white ;
+                  .v-radio {
+                    margin:5px 5px 5px 20px;
                   }
 
-                    .legendbutton {
-                        width:calc(100% - 20px);
-                        background:$reversed;
-                        color:whitesmoke;
-                        font-size:85%;
-                        font-weight:300;
-                        text-transform:none;
-                        border-radius:0px;
-                        margin: auto;
 
-                        .v-icon {
-                            margin-right:5px;
-                        }
+                  // radio buttons
+                  .v-input--selection-controls {
+                    color: rgba(211,211,211,0.5); // lightgrey, 50%
+
+                    ::v-deep.v-input__control {
+                      label {
+                        text-transform:none;
+                        color:white;
+                        font-size:90%;
+                        font-weight:200;
+                      }
+
                     }
+                  }
+
+                  .legendbutton {
+                      width:calc(100% - 20px);
+                      background:$reversed;
+                      color:whitesmoke;
+                      font-size:85%;
+                      font-weight:300;
+                      text-transform:none;
+                      border-radius:0px;
+                      margin:10px auto;
+
+                      .v-icon {
+                          margin-right:5px;
+                      }
+                  }
                 }
 
                 .popup_cnt {
                     position:absolute;
                     left:34px;
-                    top:0x;
+                    top:0;
                     width:200px;
                     background:rgba(0,0,0,0.8);
                     @include drop_shadow;

@@ -15,6 +15,7 @@ import {
 } from '@/store/abm.ts'
 import DashboardCharts from "./DashboardCharts";
 import FocusAreasLayer from "@/config/focusAreas.json";
+import {getAbmLayerIds} from "@/config/layers";
 
 export default {
     name: 'AbmScenario',
@@ -129,6 +130,9 @@ export default {
         }
     },
     mounted: function() {
+        // hide all other layers
+        this.$store.dispatch('hideAllLayersButThese', getAbmLayerIds())
+
         /*autogenerationg Sub Menu for all divs of Class "division"*/
         var divisions = document.getElementsByClassName("division");
         for (var i = 0; i < divisions.length; i++) {

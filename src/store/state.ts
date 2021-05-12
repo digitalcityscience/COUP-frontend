@@ -21,7 +21,18 @@ const initialState: StoreState = {
     openModalsIds: [],
     modalIndex: 0,
     selectedObjectId: null,
-    featureCircles: [] // circles around features for feature highlighting
+    featureCircles: [], // circles around features for feature highlighting
+    visibleLayers: {
+      focusAreas: false,
+      abm: false,
+      heat: false,
+      amenities: false,
+      noise: false,
+      stormwater: false,
+      wind: false,
+      sunExposure: false,
+      multiLayerAnalysis: false
+  }
 }
 
 export default initialState;

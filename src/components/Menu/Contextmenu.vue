@@ -136,6 +136,16 @@ export default {
             return feat.properties["city_scope_id"] === this.objectId
           })
         },
+        getLayerHeadline(layerName) {
+          const headlines = {
+            "groundfloor": "Groundfloor",
+            "upperfloor": "Upper Floors",
+            "rooftop": "Rooftop",
+          }
+          headlines[AmenitiesLayerDefinition.layer.id] = "Amenity"
+
+          return headlines[layerName]
+        },
         gatherModalInfo() {
           this.modalInfo = {
             "objectType": "",
@@ -177,11 +187,22 @@ export default {
             }
           })
         },
-        addBuildingFloorInfo(feature) {
+        addBuildingFloorInfo(feature, floorType) {
           this.modalInfo["detailContent"][feature.layer.id] = [
               {"use case": feature.properties.land_use_detailed_type},
               {"floor area": Math.round(feature.properties["floor_area"]).toString() + "m²"}
             ]
+
+          if (feature.layer.id === "upperfloor") {
+            const upperFloorsCount = feature.properties["upper_floor_count"]
+            // if upperfloors count is specified, provide more info
+            if (upperFloorsCount) {
+              this.modalInfo["detailContent"][feature.layer.id].push(
+                {"upper floors count (excl. groundfloor)": upperFloorsCount},
+                {"total floor area upperfloors": Math.floor(upperFloorsCount * properties["floor_area"]) + "m²"}
+              )
+            }
+          }
         },
         toggleFeatureHighlighting() {
           if (this.allFeaturesHighlighted) {
@@ -339,7 +360,7 @@ export default {
               </div>
             </div>
             <div class="head_scope" v-for="(content, name) in modalInfo.detailContent">
-                <div class="head_bar"><h3>{{ name }}</h3></div>
+                <div class="head_bar"><h3>{{ getLayerHeadline(name) }}</h3></div>
                     <div v-for="ctx in content">
                       <div v-for="(value, key) in ctx">
                         <p><strong>{{ key }}</strong> {{value}} </p>

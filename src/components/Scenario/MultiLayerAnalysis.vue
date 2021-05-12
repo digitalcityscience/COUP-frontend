@@ -4,11 +4,10 @@ import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
 import {filterAndScaleLayerData, showMultiLayerAnalysis} from "@/store/scenario/multiLayerAnalysis";
-import {calculateAbmStatsForAllAreas} from "@/store/scenario/abmStats";
-import {calculateAmenityStatsForAllAreas} from "@/store/scenario/amenityStats";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import mdiInformationPng from '@/assets/mdi-information.png';
-
+import CombinedLayersConfig from  "@/config/multiLayerAnalysis.json";
+import PerformanceInfoLayerConfig from  "@/config/performanceInfos.json";
 
 export default {
     name: 'MultiLayerAnalysis',
@@ -30,17 +29,14 @@ export default {
             emptyDataWarning: false,
             resultOutdated: false,
             availableResultLayers: [
-              // TODO adjust ranges for amenity stats!
-              {"label": 'Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
+              // TODO adjust ranges for amenity stats!??
+              // add corresponding result file source in multiLayerAnalysis.ts  -> layerLookup()
+              {"label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
               {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
-              {"label": 'Complementarity', "value": "Complementarity", "unit": "complementary trips count", "range": [0,100], "step": 1},
-              {"label": 'Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
-              {"label": 'Diversity', "value": "Diversity", "unit": "Simpson Index", "range": [0,100], "step": 1},
-              {"label": 'Opportunities for Interaction', "value": "opportunitiesOfInteraction", "unit": "interactions/m²", "range": [0,0.15], "step": 0.01},
+              {"label": 'Amenity Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
               {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
-              {"label": 'Temporal Entropy', "value": "temporalEntropyPercent", "unit": "%", "range": [0,100], "step": 1},
-              {"label": 'Trip Duration', "value": "averageDuration", "unit": "minutes", "range": [0, 60], "step": 1},
-              {"label": 'Trip Length', "value": "averageLength", "unit": "meters", "range": [0,150], "step": 1},
+              {"label": 'Wind Speed', "value": "wind", "unit": "Lawson Criteria", "range": [0,1], "step": 0.2},
+              {"label": 'Sun Exposure', "value": "sun", "unit": "h/day", "range": [0,1], "step": 0.1},
             ],
             select_Options_1: [],
             select_Options_2: [],
@@ -57,6 +53,7 @@ export default {
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
       ['activeMenuComponent', 'activeMenuComponent'],
+      ['visibleLayers', 'visibleLayers'],
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ]),
@@ -138,6 +135,7 @@ export default {
             this.showSubSelection_2 = false
           }
           this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_1.features)
+          this.$store.dispatch("hideAllLayersButThese",[SubSelectionLayerConfig.layer.id])
         } else {
           // hide subSelectionLayer, if subSelection is not to be shown
           if (!this.showSubSelection_2) {
@@ -151,8 +149,8 @@ export default {
             this.showSubSelection_1 = false
           }
           this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_2.features)
+          this.$store.dispatch("hideAllLayersButThese",[SubSelectionLayerConfig.layer.id])
         } else {
-          console.log("hiding?")
           // hide subSelectionLayer, if subSelection is not to be shown
           if (!this.showSubSelection_1) {
             this.$store.state.map?.setLayoutProperty(SubSelectionLayerConfig.layer.id, 'visibility', 'none');
@@ -175,18 +173,26 @@ export default {
     },
     mounted:
         function() {
-            /*autogenerationg Sub Menu for all divs of Class "division"*/
-            var divisions = document.getElementsByClassName("division");
-            for (var i = 0; i < divisions.length; i++) {
-                let divInstance = {
-                    title: divisions[i].getAttribute('data-title'),
-                    pic: divisions[i].getAttribute('data-pic'),
-                };
-                this.componentDivisions.push(divInstance);
-            }
+          // calc input statistics, if all scenarios chosen
+          if (this.activeAbmSet && this.currentNoiseResult) {
+            this.calculateStats()
+          }
 
-            this.activeDivision = divisions[0].getAttribute('data-title');
-            console.log("active divisoin is", this.activeDivision)
+          // hide all layers
+          this.$store.dispatch('hideAllLayersButThese')
+
+          /*autogenerationg Sub Menu for all divs of Class "division"*/
+          var divisions = document.getElementsByClassName("division");
+          for (var i = 0; i < divisions.length; i++) {
+              let divInstance = {
+                  title: divisions[i].getAttribute('data-title'),
+                  pic: divisions[i].getAttribute('data-pic'),
+              };
+              this.componentDivisions.push(divInstance);
+          }
+
+          this.activeDivision = divisions[0].getAttribute('data-title');
+          console.log("active divisoin is", this.activeDivision)
         },
     methods: {
       switchToAbm() {
@@ -196,14 +202,10 @@ export default {
         this.activeMenuComponent = 'NoiseScenario'
       },
       async calculateStats() {
-        console.log("this is noise")
-        console.log($store.state.scenario.currentNoiseGeoJson)
-        console.log(this.currentNoiseResult)
-
-        await calculateAbmStatsForAllAreas()
-        await calculateAmenityStatsForAllAreas()
-        this.setInitialUiSettings()
-        this.allDataProvided = true
+        this.$store.dispatch('scenario/calculateStatsForMultiLayerAnalysis').then(() => {
+          this.setInitialUiSettings()
+          this.allDataProvided = true
+        })
       },
       setInitialUiSettings() {
         // set initial UI settings
@@ -221,7 +223,12 @@ export default {
         this.resultOutdated = true;
         this.showError = false;
       },
-      showCombinedLayers () {
+     async showCombinedLayers () {
+         this.$store.commit('scenario/resultLoading', true)
+         this.$store.commit("scenario/loader", true);
+         this.$store.commit("scenario/loaderTxt", "Combining Layers");
+         await new Promise(resolve => setTimeout(resolve, 500));
+
         this.resultOutdated = false
         const combinedLayers = showMultiLayerAnalysis(
           this.subSelectionLayer_1,
@@ -234,7 +241,13 @@ export default {
         } else {
           this.$store.commit("scenario/multiLayerAnalysisMap", true);
         }
-      }
+        this.$store.commit('scenario/resultLoading', false)
+        this.$store.commit("scenario/loader", false);
+        this.$store.dispatch("hideAllLayersButThese",[
+          CombinedLayersConfig.layer.id,
+          PerformanceInfoLayerConfig.layer.id
+        ])
+     }
     }
 }
 
@@ -274,23 +287,33 @@ export default {
             :class="{ changesMade : resultOutdated }"
           >Choose Noise Scenario
           </v-btn>
-
-          <h2 v-if="activeAbmSet" style="margin-top: 25px;">Calculate statistical input values</h2>
-          <v-btn
-            @click="calculateStats"
-            class="confirm_btn"
-            :class="{ changesMade : resultOutdated }"
-            :disabled="!activeAbmSet"
-          >Calculate Input Data
-          </v-btn>
         </div>
         <div  v-if="allDataProvided">
           <h2>Choose Indexes</h2>
           <v-container fluid>
 
+
+            <v-row align="center">
+              <v-col>
+                <v-btn
+                  @click="showSubSelection_1 = !showSubSelection_1"
+                  dark>
+                  <v-icon v-if="!showSubSelection_1" style="color: #1380AB;">mdi-eye</v-icon>
+                  <v-icon v-if="showSubSelection_1" style="color: #1380AB;">mdi-eye-off</v-icon>
+                </v-btn>
+              </v-col>
+              <v-col>
+                <v-btn
+                  @click="showSubSelection_2 = !showSubSelection_2"
+                  dark>
+                  <v-icon v-if="!showSubSelection_2" style="color: #1380AB;">mdi-eye</v-icon>
+                  <v-icon v-if="showSubSelection_2" style="color: #1380AB;">mdi-eye-off</v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+
             <!-- per row: check button. AND/OR selector. slider per v-select -->
             <!-- set slider min max dynamically -->
-
             <v-row align="center">
               <v-col
                 class="d-flex"
@@ -377,22 +400,9 @@ export default {
                 ></v-range-slider>
               </v-col>
             </v-row>
-            <v-row align="center">
-              <v-col>
-                <v-checkbox
-                  v-model="showSubSelection_1"
-                  dark
-                  label="Show subselection">
-                </v-checkbox>
-              </v-col>
-              <v-col>
-                <v-checkbox
-                  v-model="showSubSelection_2"
-                  dark
-                  label="Show subselection">
-                </v-checkbox>
-              </v-col>
-            </v-row>
+
+
+          <!-- exclude logic options for now - too complicated
           <v-row align="center">
             <v-select
               :items="logicOptions"
@@ -408,8 +418,8 @@ export default {
               single-line
               dark
             ></v-select>
-
           </v-row>
+          -->
           </v-container>
           <p v-if="showError" class="warning">Invalid selection</p>
           <p v-if="emptyDataWarning" class="warning">No data to show!</p>
@@ -421,11 +431,11 @@ export default {
           >
            Visualize Selection
           </v-btn>
-          <v-overlay :value="resultLoading">
-            <div>Loading results</div>
-            <v-progress-linear>...</v-progress-linear>
-          </v-overlay>
         </div> <!-- v-if="allDataProvided" end -->
+        <v-overlay :value="resultLoading">
+          <div>Loading results</div>
+          <v-progress-linear>...</v-progress-linear>
+        </v-overlay>
       </div>  <!--component_content end-->
     </div><!--division end-->
   </div>

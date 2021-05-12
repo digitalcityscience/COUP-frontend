@@ -16,7 +16,9 @@ export default {
   abmSimpleTimes:null,
   abmWeightCount:null,
   abmStats: {},
+  abmStatsMultiLayer: {},
   amenityStats: {},
+  amenityStatsMultiLayer: {},
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
   filterActive: false,
@@ -62,7 +64,6 @@ export default {
   stormWater: false,
   windLayer: false,
   sunExposureLayer: false,
-  solarRadiationLayer: false,
   multiLayerAnalysisMap: false,
   lastClick: [],
   showUi: true,
@@ -73,6 +74,5 @@ export default {
   savedWindScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,
-  solarRadiationGeoJson: null,
 }
 
