@@ -347,7 +347,7 @@ export default {
              >mdi-city</v-icon>
              </span>
            </template>
-           <span>Highlight All Buildings</span>
+           <span>Buildings</span>
          </v-tooltip>
          <div v-if="visibility.buildings" class="view_popup buildings">
              <v-checkbox
