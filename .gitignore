@@ -2,6 +2,12 @@
 node_modules
 /dist
 
+# julia ignore
+.env.development
+package-lock.json
+package.json
+
+
 # user credentials
 src/config/cityPyoDefaultUser.json
 
