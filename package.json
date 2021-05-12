@@ -21,7 +21,7 @@
     "@turf/turf": "^5.1.6",
     "acorn": "^8.0.1",
     "babel-plugin-transform-remove-console": "^6.9.4",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "chartjs-plugin-datalabels": "^0.7.0",
     "copy-webpack-plugin": "^6.3.1",
     "core-js": "^3.6.4",
