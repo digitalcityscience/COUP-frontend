@@ -22,6 +22,8 @@ export default {
             selectValue_2: null,
             sliderValues_1: [],
             sliderValues_2: [],
+            preset_1: 'high',
+            preset_2: 'high',
             showSubSelection_1: false,
             showSubSelection_2: false,
             subSelectionLayer_1: null,
@@ -32,9 +34,9 @@ export default {
               // TODO adjust ranges for amenity stats!??
               // add corresponding result file source in multiLayerAnalysis.ts  -> layerLookup()
               {"label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
+              {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
               {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
               {"label": 'Amenity Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
-              {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
               {"label": 'Wind Speed', "value": "wind", "unit": "Lawson Criteria", "range": [0,1], "step": 0.2},
               {"label": 'Sun Exposure', "value": "sun", "unit": "h/day", "range": [0,1], "step": 0.1},
             ],
@@ -45,7 +47,12 @@ export default {
               {"label": "AND NOT", "value": "and_not"},
             ],
             logicOperator: null,
-            resultLookups: {}
+            resultLookups: {},
+            presets: [
+              'low',
+              'high',
+              'custom',
+            ],
         }
     },
   computed: {
@@ -299,7 +306,7 @@ export default {
                   @click="showSubSelection_1 = !showSubSelection_1"
                   dark>
                   <v-icon v-if="!showSubSelection_1" style="color: #1380AB;">mdi-eye</v-icon>
-                  <v-icon v-if="showSubSelection_1" style="color: #1380AB;">mdi-eye-off</v-icon>
+                  <v-icon v-if="showSubSelection_1" style="color: #8b0000;">mdi-eye-off</v-icon>
                 </v-btn>
               </v-col>
               <v-col>
@@ -307,7 +314,7 @@ export default {
                   @click="showSubSelection_2 = !showSubSelection_2"
                   dark>
                   <v-icon v-if="!showSubSelection_2" style="color: #1380AB;">mdi-eye</v-icon>
-                  <v-icon v-if="showSubSelection_2" style="color: #1380AB;">mdi-eye-off</v-icon>
+                  <v-icon v-if="showSubSelection_2" style="color: #8b0000;">mdi-eye-off</v-icon>
                 </v-btn>
               </v-col>
             </v-row>
@@ -316,9 +323,9 @@ export default {
             <!-- set slider min max dynamically -->
             <v-row align="center">
               <v-col
-                class="d-flex"
+                class="pa-2"
                 cols="12"
-                sm="6"
+                md="6"
               >
                 <v-select
                   :items="select_Options_1"
@@ -338,7 +345,6 @@ export default {
               <v-col
                 class="d-flex"
                 cols="12"
-                sm="6"
               >
                 <v-select
                   :items="select_Options_2"
@@ -354,6 +360,78 @@ export default {
                   single-line
                   dark
                 ></v-select>
+              </v-col>
+            </v-row>
+            <!--<v-row>
+              <v-col style="float:left;"
+                 class="pa-2"
+                 cols="1"
+                 justify="center"
+
+              > Filter Layer
+                <v-btn-toggle
+                  v-model="preset_1"
+                  tile
+                  color="deep-purple accent-3"
+                  group
+                  style="min-width: 150px;"
+                >
+                  <v-btn value="low">
+                    Low
+                  </v-btn>
+                  <v-btn value="high">
+                    High
+                  </v-btn>
+                  <v-btn value="custom">
+                    Custom
+                  </v-btn>
+                </v-btn-toggle>
+              </v-col>
+              <v-col style="float:left;"
+                 class="d-flex"
+                 cols="1"
+                 sm="6"
+              > Filter Layer
+                <v-btn-toggle
+                  v-model="preset_2"
+                  tile
+                  color="deep-purple accent-3"
+                  group
+                  style="min-width: 150px;"
+                >
+                  <v-btn value="low">
+                    Low
+                  </v-btn>
+
+                  <v-btn value="high">
+                    High
+                  </v-btn>
+                  <v-btn value="custom">
+                    Custom
+                  </v-btn>
+                </v-btn-toggle>
+              </v-col>
+
+            </v-row>-->
+            Filter Layers
+            <v-row no-gutters
+              v-for="j in presets"
+              :key="j"
+              justify="space-around"
+            >
+              <v-col
+                v-for="k in 2"
+                :key="k"
+                md="4"
+                class="mr-auto ml-auto"
+              >
+                <v-card
+                  class="pa-2"
+                  outlined
+                  tile
+                >
+                  {{ j }}
+                </v-card>
               </v-col>
             </v-row>
             <v-row align="center">
@@ -448,4 +526,7 @@ export default {
     p.warning {
       color: darkred;
     }
+
+
+
 </style>

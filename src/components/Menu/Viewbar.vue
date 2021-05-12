@@ -4,6 +4,7 @@ import {generateStoreGetterSetter} from "@/store/utils/generators";
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import {filterAndScaleLayerData} from "@/store/scenario/multiLayerAnalysis";
+import legends from '@/config/legends.json'
 
 export default {
     name: 'Viewbar',
@@ -28,7 +29,8 @@ export default {
                 amenities: true,
             },
             presentationRunning: false,
-            legendVisible: false
+            legendVisible: false,
+            buildingUses: legends.buildingUses
         }
     },
     computed: {
@@ -112,12 +114,6 @@ export default {
                 pitch: this.view.pitch,
             });
         },
-        changeBrightness(){
-            const mapCanvas = document.querySelector(".mapboxgl-canvas");
-            let brightnessValue = 1 + this.brightness/100;
-            let satureateValue = 1 + this.brightness/500;
-            mapCanvas.style.filter = "brightness(" + brightnessValue + ") saturate("+ satureateValue +")";
-        },
         /** TODO completely unused ??
         openUseTypesLegend(){
           this.showLegend = true
@@ -127,7 +123,7 @@ export default {
             {draggable: true, width:200, adaptive: true, clickToClose: true,  shiftX: 0.025, shiftY: 0.1}
           )
         }, */
-        highlightAllFeatures(){
+        colorizeBuildingsByUseType(){
             this.$store.commit("scenario/loader", true);
             console.log(this.loader)
 
@@ -186,8 +182,8 @@ export default {
             }
         },
         showBuildingUses() {
-          this.legendVisible = true
-          this.selectedLegend = 'buildingUses'
+          this.legendVisible = !this.legendVisible
+          this.colorizeBuildingsByUseType()
         },
 
         // todo this really needs to be refactored to use a central function which takes layers as arguments
@@ -314,7 +310,24 @@ export default {
        <div class="button_bar">
          <!-- show BIM version -->
          <v-btn v-if="restrictedAccess && !legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
-
+         <!-- LEGENDS -->
+         <!-- Headline -->
+         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-map-legend</v-icon> <div class="infobox"><p>{{ buildingUses.headline }}</p></div></v-btn>
+         <!-- iterate over all items in legendCategories and display icon and label for each -->
+         <v-data-iterator v-if="legendVisible"
+                          :items="buildingUses.categories"
+                          :hide-default-footer="true"
+         >
+           <template v-slot:default="{ items }">
+             <!-- Each legend category has an icon, color and a label to display -->
+             <v-flex v-for="(item, index) in items" :key="index">
+               <v-btn v-if="legendVisible" class="legend">
+                 <v-icon :color="item.color">{{ item.icon }}</v-icon>
+                 <div class="infobox"><p>{{ item.label }}</p></div>
+               </v-btn>
+             </v-flex>
+           </template>
+         </v-data-iterator>
          <!-- BUILDING MENU -->
          <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
@@ -334,14 +347,6 @@ export default {
                 @change="updateBuildingVisibility"
                 dark
                 hide-details
-             ></v-checkbox>
-             <v-checkbox
-                v-model="visibleBuildings.highlight"
-                label="Highlight All Buildings"
-                @change="highlightAllFeatures"
-                dark
-                hide-details
-                :disabled="visibleBuildings.show == false"
              ></v-checkbox>
              <v-checkbox
                 v-model="visibleBuildings.amenities"
