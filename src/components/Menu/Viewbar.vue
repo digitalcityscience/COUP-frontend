@@ -322,7 +322,7 @@ export default {
              <!-- Each legend category has an icon, color and a label to display -->
              <v-flex v-for="(item, index) in items" :key="index">
                <v-btn v-if="legendVisible" class="legend">
-                 <v-icon :color="item.color">{{ item.icon }}</v-icon>
+                 <v-icon :color="item.color">{{ buildingUses.icon }}</v-icon>
                  <div class="infobox"><p>{{ item.label }}</p></div>
                </v-btn>
              </v-flex>

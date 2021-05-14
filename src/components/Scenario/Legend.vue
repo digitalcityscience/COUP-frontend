@@ -19,37 +19,80 @@ export default {
 </script>
 
 <template>
-  <!-- LEGEND with headline and all legendCategories as v-data-iterator -->
-  <div class="button_bar">
-    <v-btn class="legend"><v-icon style="color: #FFD529;">{{ icon }}</v-icon> <div class="infobox"><p>{{ legendHeadline }}</p></div></v-btn>
-    <v-data-iterator
-      :items="legendCategories"
-      :hide-default-footer="true"
+  <div>
+  <v-container class="component_content">
+    <!-- LEGEND headline -->
+    <v-row
+      no-gutters
+      class="mb-2"
+      style="background-color: rgba(0,0,0,0.6);"
     >
-      <template v-slot:default="{ items }">
-        {{/* Use the items to iterate */}}
-        <v-flex v-for="(item, index) in items" :key="index">
-          <v-btn class="legend"><v-icon :color="item.color">mdi-square</v-icon>
-            <div class="infobox">
-              <p>
-                {{ item.label }}
-              </p>
-            </div>
-          </v-btn>
-        </v-flex>
-      </template>
-    </v-data-iterator>
-  </div>
+      <v-col cols="2">
+        <v-card
+          class="pa-0"
+          tile
+          dark
+          style="background-color: rgba(0,0,0,0.6); margin-top: 5px;"
+        >
+          <v-icon style="color: #FFD529;">{{ icon }}</v-icon>
+        </v-card>
+      </v-col>
+      <v-col cols="10">
+        <v-card
+          class="pa-0"
+          tile
+          dark
+          style="background-color: rgba(0,0,0,0.6);"
+        >
+          <p style="font-weight: bold">{{ legendHeadline }} </p>
+        </v-card>
+      </v-col>
+    </v-row>
 
+    <!-- Legend categories as v-for -->
+    <v-row no-gutters
+      v-for="item in legendCategories"
+      class="mb-2 ml-0"
+      style="background-color: rgba(0,0,0,0.6);"
+    >
+      <v-col cols="2">
+        <v-card
+          class="pa-0"
+          tile
+          dark
+          style="background-color: rgba(0,0,0,0.6); margin-top: 5px;"
+        >
+          <v-icon :color="item.color">mdi-square</v-icon>
+        </v-card>
+      </v-col>
+      <v-col cols="9">
+        <v-card
+          class="pa-0"
+          tile
+          dark
+          style="background-color: rgba(0,0,0,0.6);"
+        >
+          {{ item.label }}<br>
+          <span v-if="item.detail">{{item.detail }} </span>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
+  </div>
 </template>
 
 <style scoped lang="scss">
   @import "../../style.main.scss";
 
-  .button_bar {
-    display: flex;
-    flex-flow: column wrap;
-    width: 40px;
+
+    .andre-legend {
+      background-color: rgba(0,0,0,0.8) !important;
+      color: white;
+
+      .v-col {
+        background-color: red !important;
+      }
+    }
 
     .legend {
       display: block;
@@ -95,6 +138,5 @@ export default {
         font-size: 18px;
       }
     }
-  }
 
 </style>

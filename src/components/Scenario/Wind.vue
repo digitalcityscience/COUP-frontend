@@ -4,10 +4,13 @@ import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import { noiseSettingsNames } from '@/store/noise'
 import hash from 'object-hash'
+import Legend from "@/components/Scenario/Legend";
 
 export default {
     name: 'WindScenario',
-    components: {},
+    components: {
+      Legend: Legend
+    },
     props: {
       restrictedAccess: Boolean
     },
@@ -252,13 +255,35 @@ export default {
           <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>
         </v-overlay>
 
-      <div class="disclaimer">
-        <h2>Disclaimer</h2>
-        <p>Results provided by InfraredCity @ AIT.
-        The model was trained on the solar characteristics of Vienna, AT</p>
-      </div>
-      </div> <!--component_content end-->
+      </div><!--component_content end-->
     </div><!--division end-->
+      <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+      <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+      <div class="division" data-title='Dashboard' data-pic='mdi-view-dashboard'>
+        <!--v-if needs to be set to data-title to make switch between divisions possible-->
+        <div v-if="activeDivision === 'Dashboard'" class="component_content">
+          <h2>Wind | Dashboard</h2>
+          <p>To be developed</p>
+        </div><!--component_content end-->
+      </div>
+      <!--division end-->
+
+    <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+    <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+    <div class="division" data-title='info' data-pic='mdi-information-variant'>
+      <!--v-if needs to be set to data-title to make switch between divisions possible-->
+      <div v-if="activeDivision === 'info'" class="component_content">
+        <h2>Wind | About</h2>
+        <Legend v-bind:topic="'wind'"></Legend>
+        <!-- todo disclaimer - info stuff -->
+        <div class="disclaimer">
+          <h2>Disclaimer</h2>
+          <p>Results provided by InfraredCity @ AIT <br>
+            The model was trained on the solar characteristics of Vienna, AT</p>
+        </div>
+      </div><!--component_content end-->
+    </div>
+    <!--division end-->
   </div>
 </template>
 
