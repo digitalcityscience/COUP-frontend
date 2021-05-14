@@ -47,12 +47,7 @@ export default {
               {"label": "AND NOT", "value": "and_not"},
             ],
             logicOperator: null,
-            resultLookups: {},
-            presets: [
-              'low',
-              'high',
-              'custom',
-            ],
+            resultLookups: {}
         }
     },
   computed: {
@@ -360,78 +355,6 @@ export default {
                   single-line
                   dark
                 ></v-select>
-              </v-col>
-            </v-row>
-            <!--<v-row>
-              <v-col style="float:left;"
-                 class="pa-2"
-                 cols="1"
-                 justify="center"
-
-              > Filter Layer
-                <v-btn-toggle
-                  v-model="preset_1"
-                  tile
-                  color="deep-purple accent-3"
-                  group
-                  style="min-width: 150px;"
-                >
-                  <v-btn value="low">
-                    Low
-                  </v-btn>
-                  <v-btn value="high">
-                    High
-                  </v-btn>
-                  <v-btn value="custom">
-                    Custom
-                  </v-btn>
-                </v-btn-toggle>
-              </v-col>
-              <v-col style="float:left;"
-                 class="d-flex"
-                 cols="1"
-                 sm="6"
-              > Filter Layer
-                <v-btn-toggle
-                  v-model="preset_2"
-                  tile
-                  color="deep-purple accent-3"
-                  group
-                  style="min-width: 150px;"
-                >
-                  <v-btn value="low">
-                    Low
-                  </v-btn>
-
-                  <v-btn value="high">
-                    High
-                  </v-btn>
-                  <v-btn value="custom">
-                    Custom
-                  </v-btn>
-                </v-btn-toggle>
-              </v-col>
-
-            </v-row>-->
-            Filter Layers
-            <v-row no-gutters
-              v-for="j in presets"
-              :key="j"
-              justify="space-around"
-            >
-              <v-col
-                v-for="k in 2"
-                :key="k"
-                md="4"
-                class="mr-auto ml-auto"
-              >
-                <v-card
-                  class="pa-2"
-                  outlined
-                  tile
-                >
-                  {{ j }}
-                </v-card>
               </v-col>
             </v-row>
             <v-row align="center">
