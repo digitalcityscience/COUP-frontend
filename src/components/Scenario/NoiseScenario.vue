@@ -143,14 +143,6 @@ export default {
         <div>Loading results</div>
         <v-progress-linear>...</v-progress-linear>
       </v-overlay>
-      <div v-if="restrictedAccess" class="disclaimer">
-        <h2>Disclaimer</h2>
-        <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
-          The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
-          Scientific validity of the results cannot be guaranteed in the testing phases.</p>
-          <br>
-          The model is a simplified implementation of the French national method NMPB-08. Model by IFSTTAR.
-      </div>
       </div> <!--component_content end-->
     </div><!--division end-->
 
@@ -172,7 +164,15 @@ export default {
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Traffic Noise | About</h2>
         <Legend v-bind:topic="'noise'"></Legend>
-        <!-- todo disclaimer - info stuff -->
+        <div class="disclaimer">
+          <h2>Disclaimer</h2>
+          <p v-if="restrictedAccess">The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
+            The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
+            Scientific validity of the results cannot be guaranteed in the testing phases.
+            <br>
+          </p>
+          The model is a simplified implementation of the French national method NMPB-08. Model by IFSTTAR.
+        </div>
       </div><!--component_content end-->
     </div>
     <!--division end-->
