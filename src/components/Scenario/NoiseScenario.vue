@@ -27,6 +27,8 @@ export default {
             trafficPercent: 1,
             maxSpeed: 50,
             resultOutdated: true,
+            showError: false,
+            scenarioAlreadySaved: false
         }
     },
   computed: {
@@ -34,8 +36,9 @@ export default {
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
       ['noiseMap', 'scenario/' + 'noiseMap'],
-      ['noiseScenario', 'scenario/noiseScenario']
-      //['trafficPercent', 'scenario/noiseScenario/' + noiseSettingsNames.trafficPercent],
+      ['noiseScenario', 'scenario/noiseScenario'],
+      ['savedNoiseScenarios', 'scenario/' + 'savedNoiseScenarios'],  // todo manage stores
+        //['trafficPercent', 'scenario/noiseScenario/' + noiseSettingsNames.trafficPercent],
       //['maxSpeed', 'scenario/noiseScenario/' + noiseSettingsNames.maxSpeed],
     ])
     },
@@ -89,8 +92,36 @@ export default {
             max_speed: this.maxSpeed,
           });
           this.loadNoiseMap()
+        },
+        loadSavedScenario(savedScenario) {
+          this.trafficPercent = savedScenario["traffic_percent"]
+          this.maxSpeed = savedScenario["max_speed"]
+          this.loadNoiseResults()
+        },
+        saveNoiseScenario() {
+          console.log("saved scenarios", this.savedNoiseScenarios)
+          if (!this.scenarioAlreadySaved) {
+            // add current scenario to saved scenarios
+            this.savedNoiseScenarios.push(this.noiseScenario)
+            if (this.savedNoiseScenarios.length > 3) {
+              // store only the 3 latest saved scenarios
+              this.savedNoiseScenarios.shift()
+            }
+          }
+          // update scenarioAlreadySaved variable
+          this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
+          console.log(this.savedNoiseScenarios)
+        },
+        isScenarioAlreadySaved() {
+          const isSaved = this.savedNoiseScenarios.filter(savedScen => {
+              return JSON.stringify(savedScen) === JSON.stringify(this.currentScenario)
+            }
+          ).length > 0
+
+          console.log("is saved", isSaved)
+          return isSaved
         }
-    }
+      }
 }
 
 
@@ -117,10 +148,11 @@ export default {
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
         <h2>Noise Scenario Settings</h2>
         <v-container fluid>
-          <!-- Wind Direction -->
+          <!-- Traffic Percentage -->
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
-              Traffic In Project Area
+              TRAFFIC VOLUME <br>
+              In Project Area
             </header>
             <v-slider
               v-model="trafficPercent"
@@ -139,7 +171,8 @@ export default {
           </div>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
-              Max. Speed in Project Area
+              SPEED LIMIT <br>
+              In Project Area
             </header>
             <v-radio-group v-model="maxSpeed">
               <v-radio
@@ -163,7 +196,39 @@ export default {
           >
             Run Scenario
           </v-btn>
+          <v-btn style="margin-top: 1vh; margin-bottom: 1vh; float:right; max-width: 30px;"
+                 @click="saveNoiseScenario"
+                 class="confirm_btn"
+                 :disabled="resultOutdated || scenarioAlreadySaved"
+                 :dark="resultOutdated  || scenarioAlreadySaved"
+          >
+            Save
+          </v-btn>
         </v-container>
+
+
+        <!--saved scenarios -->
+        <div class="saved_scenarios" style="margin-top: 5vh;">
+          <h2>Reload a saved scenario</h2>
+          <v-data-iterator
+            :items="savedNoiseScenarios"
+            :hide-default-footer="true"
+          >
+            <template v-slot:default="{ items }">
+              {{/* Use the items to iterate */}}
+              <v-flex v-for="(scenario, index) in items" :key="index">
+                <v-btn v-if="index <= 2" style="margin: 1vh auto;"
+                       @click="loadSavedScenario(scenario)"
+                       outlined
+                       dark
+                       small>
+                        VOLUME: {{ 100 * scenario.traffic_percent }} % | SPEED: {{ scenario.max_speed }}
+                </v-btn>
+              </v-flex>
+
+            </template>
+          </v-data-iterator>
+        </div>
 
       <v-overlay :value="resultLoading">
         <div>Loading results</div>

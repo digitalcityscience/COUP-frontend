@@ -72,6 +72,7 @@ export default {
   selectedFocusAreas: [],
   windScenarioHash: '',
   savedWindScenarios: [],
+  savedNoiseScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,
 }
