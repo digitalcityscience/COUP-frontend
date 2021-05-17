@@ -71,7 +71,13 @@ export default {
   amenitiesGeoJson: null,
   selectedFocusAreas: [],
   windScenarioHash: '',
-  savedWindScenarios: [],
+  savedWindScenarios: [
+    {
+      "wind_speed": 5,
+      "wind_direction": 270,
+      "label": "ANNUAL AVERAGE"
+    }
+  ],
   savedNoiseScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,

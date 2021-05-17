@@ -124,10 +124,6 @@ export default {
         if (!this.scenarioAlreadySaved) {
           // add current scenario to saved scenarios
           this.savedWindScenarios.push(this.currentScenario)
-          if (this.savedWindScenarios.length > 3) {
-            // store only the 3 latest saved scenarios
-            this.savedWindScenarios.shift()
-          }
         }
         // update scenarioAlreadySaved variable
         this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
@@ -243,7 +239,13 @@ export default {
                   outlined
                   dark
                   small
-                > Direction: {{ scenario.wind_direction }} | Speed: {{ scenario.wind_speed }}
+                >
+                  <span v-if="scenario.label">
+                    {{ scenario.label }}
+                  </span>
+                  <span v-if="!scenario.label">
+                    Direction: {{ scenario.wind_direction }} | Speed: {{ scenario.wind_speed }}
+                  </span>
                 </v-btn>
               </v-flex>
             </template>

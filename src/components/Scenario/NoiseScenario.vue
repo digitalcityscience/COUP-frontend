@@ -103,10 +103,6 @@ export default {
           if (!this.scenarioAlreadySaved) {
             // add current scenario to saved scenarios
             this.savedNoiseScenarios.push(this.noiseScenario)
-            if (this.savedNoiseScenarios.length > 3) {
-              // store only the 3 latest saved scenarios
-              this.savedNoiseScenarios.shift()
-            }
           }
           // update scenarioAlreadySaved variable
           this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
@@ -222,7 +218,12 @@ export default {
                        outlined
                        dark
                        small>
-                        VOLUME: {{ 100 * scenario.traffic_percent }} % | SPEED: {{ scenario.max_speed }}
+                         <span v-if="scenario.label">
+                            {{ scenario.label }}
+                         </span>
+                         <span v-if="!scenario.label">
+                            VOLUME: {{ 100 * scenario.traffic_percent }} % | SPEED: {{ scenario.max_speed }}
+                         </span>
                 </v-btn>
               </v-flex>
 
@@ -283,7 +284,7 @@ export default {
           Used with permission.
             Find out more: https://www.coloringnoise.com/</p>
 
-          <h2>Disclaimer</h2>
+          <h2>DISCLAIMER</h2>
           <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
             The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
             Scientific validity of the results cannot be guaranteed in the testing phases.
