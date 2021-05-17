@@ -53,14 +53,14 @@ export default {
     <v-row no-gutters
       v-for="item in legendCategories"
       class="mb-2 ml-0"
-      style="background-color: rgba(0,0,0,0.6);"
+      style="background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px) saturate(140%);"
     >
       <v-col cols="2">
         <v-card
           class="pa-0"
           tile
           dark
-          style="background-color: rgba(0,0,0,0.6); margin-top: 5px;"
+          style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px) saturate(140%); margin-top: 5px;"
         >
           <v-icon :color="item.color">mdi-square</v-icon>
         </v-card>
@@ -70,7 +70,7 @@ export default {
           class="pa-0"
           tile
           dark
-          style="background-color: rgba(0,0,0,0.6);"
+          style="background-color: rgba(0,0,0,0.8);"
         >
           {{ item.label }}<br>
           <span v-if="item.detail">{{item.detail }} </span>
@@ -111,6 +111,7 @@ export default {
       height: 30px;
       margin: 2px;
       background-color: rgba(0, 0, 0, 0.8) !important;
+      backdrop-filter: blur(5px) saturate(140%);
       @include drop_shadow;
 
       &.legend {

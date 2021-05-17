@@ -152,7 +152,7 @@ export default {
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
               TRAFFIC VOLUME <br>
-              In Project Area
+              On the kl. Grasbrook Peninsula
             </header>
             <v-slider
               v-model="trafficPercent"
@@ -172,7 +172,7 @@ export default {
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
               SPEED LIMIT <br>
-              In Project Area
+              IOn the kl. Grasbrook Peninsula
             </header>
             <v-radio-group v-model="maxSpeed">
               <v-radio
@@ -255,9 +255,44 @@ export default {
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Traffic Noise | About</h2>
         <Legend v-bind:topic="'noise'"></Legend>
-        <div class="disclaimer">
+
+        <!-- text block with subtext blocks, fade out to end to hint for scrolling -->
+        <!-- legend color same as background! -->
+        <div class="info_text">
+          <h4>TRAFFIC VOLUME</h4>
+          <p>
+          Volume of motorized traffic (cars, trucks).
+          Selecting 100% shows the traffic volume
+          according to current planning assumptions
+          (predicted traffic volume).
+          Selecting 25%, for example, shows 25% of the
+            predicted traffic volume. This is concerning traffic on the Grasbrook peninsula only.</p>
+
+          <h4>SIMULATION</h4>
+          <p>
+          The noise simulation is adapted from the software NoiseModelling
+          (https://noise-planet.org/noisemodelling.html),
+          a free and open-source tool for producing environmental noise maps using a simplified implementation of the French national method NMPB-08,
+          The calculation method is almost compliant with the CNOSSOS-EU standard method for noise
+          emission (only road traffic) and noise propagation.
+          The software is developed by the French Institute of Science and Technology for Transport,
+          Development and Networks (Ifsttar).</p>
+
+          <h4>COLOR SCHEME</h4>
+          <p>The composition of the eleven-class scheme for the presentation of noise immission, e.g. the combined use of colors that are similar to the presented colors according to visual assessment or due to their color codes, by Beate Tomio is licensed under a Creative Commons Attribution – NonCommercial – NoDerivatives 4.0 International License.
+          Used with permission.
+            Find out more: https://www.coloringnoise.com/</p>
+
           <h2>Disclaimer</h2>
-          <p v-if="restrictedAccess">The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
+          <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
+            The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
+            Scientific validity of the results cannot be guaranteed in the testing phases.
+          </p>
+
+        </div>
+        <div v-if="(restrictedAccess && activeDivision !== 'info')" class="disclaimer">
+          <h2>Disclaimer</h2>
+          <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
             The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
             Scientific validity of the results cannot be guaranteed in the testing phases.
             <br>
