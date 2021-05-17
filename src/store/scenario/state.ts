@@ -26,7 +26,7 @@ export default {
   noiseResults: [],
   trafficCounts: null,
   noiseScenario:{
-    traffic_percent: 0.5,
+    traffic_percent: 1,
     max_speed: 50,
   },
   currentNoiseGeoJson: null,

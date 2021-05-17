@@ -17,13 +17,16 @@ export default {
         return {
             activeDivision:null,
             componentDivisions: [],
-            traffic_percent_labels: [
+            trafficPercent_labels: [
               '0%',
               '25%',
               '50%',
               '75%',
               "100%"
-            ]
+            ],
+            trafficPercent: 1,
+            maxSpeed: 50,
+            resultOutdated: true,
         }
     },
   computed: {
@@ -31,16 +34,19 @@ export default {
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
       ['noiseMap', 'scenario/' + 'noiseMap'],
-      ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
-      ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
+      ['noiseScenario', 'scenario/noiseScenario']
+      //['trafficPercent', 'scenario/noiseScenario/' + noiseSettingsNames.trafficPercent],
+      //['maxSpeed', 'scenario/noiseScenario/' + noiseSettingsNames.maxSpeed],
     ])
     },
     watch: {
-      max_speed(newVal, old) {
-        this.loadNoiseMap()
+      maxSpeed(newVal, old) {
+        this.resultOutdated = this.isResultOutdated()
+        this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
       },
-      traffic_percent(newVal, old) {
-        this.loadNoiseMap()
+      trafficPercent(newVal, old) {
+        this.resultOutdated = this.isResultOutdated()
+        this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
       }
     },
     mounted:
@@ -65,15 +71,24 @@ export default {
           console.log("active divisoin is", this.activeDivision)
           },
     methods: {
+       isResultOutdated() {
+          return this.trafficPercent !== this.noiseScenario["traffic_percent"]
+            || this.maxSpeed !== this.noiseScenario["max_speed"];
+        },
         loadNoiseMap () {
             this.$store.dispatch(
                 'scenario/updateNoiseScenario'
             ).then(() => {
               this.$store.commit("scenario/noiseMap", true);
             })
+            this.resultOutdated = false;
         },
         loadNoiseResults () {
-            this.loadNoiseMap()
+          this.$store.commit("scenario/noiseScenario", {
+            traffic_percent: this.trafficPercent,
+            max_speed: this.maxSpeed,
+          });
+          this.loadNoiseMap()
         }
     }
 }
@@ -99,46 +114,57 @@ export default {
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
-      <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <h2>Choose Noise Scenario</h2>
+      <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
+        <h2>Noise Scenario Settings</h2>
         <v-container fluid>
-          <header class="text-sm-left">
-            Motorized Traffic Level</header>
-          <v-slider
-            v-model="traffic_percent"
-            step=0.25
-            thumb-label="always"
-            label="%"
-            thumb-size="25"
-            ticks="always"
-            tick-size="4"
-            :tick-labels="traffic_percent_labels"
-            min="0"
-            max="1"
-            dark
-            flat
-          ></v-slider>
-          <header class="text-sm-left">
-            Max. Speed
-          </header>
-        <v-radio-group v-model="max_speed">
-          <v-radio
-            :value="30"
-            flat
-            label="30 kmh/h"
-            dark
-          />
-          <v-radio
-            :value="50"
-            flat
-            label="50 kmh/h"
-            dark
-          />
-        </v-radio-group>
-      </v-container>
-      <v-btn @click="loadNoiseResults" :disabled="noiseMap"  class="confirm_btn" >
-       Load Noise Results
-      </v-btn>
+          <!-- Wind Direction -->
+          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+            <header class="text-sm-left">
+              Traffic In Project Area
+            </header>
+            <v-slider
+              v-model="trafficPercent"
+              step=0.25
+              thumb-label="always"
+              label="%"
+              thumb-size="25"
+              ticks="always"
+              tick-size="4"
+              :tick-labels="trafficPercent_labels"
+              min="0"
+              max="1"
+              dark
+              flat
+            ></v-slider>
+          </div>
+          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+            <header class="text-sm-left">
+              Max. Speed in Project Area
+            </header>
+            <v-radio-group v-model="maxSpeed">
+              <v-radio
+                :value="30"
+                flat
+                label="30 kmh/h"
+                dark
+              />
+              <v-radio
+                :value="50"
+                flat
+                label="50 kmh/h"
+                dark
+              />
+            </v-radio-group>
+          </div>
+          <v-btn @click="loadNoiseResults"
+                 class="confirm_btn"
+                 :class="{ changesMade : resultOutdated }"
+                 :disabled="resultLoading || showError"
+          >
+            Run Scenario
+          </v-btn>
+        </v-container>
+
       <v-overlay :value="resultLoading">
         <div>Loading results</div>
         <v-progress-linear>...</v-progress-linear>
