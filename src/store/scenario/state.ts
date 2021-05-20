@@ -70,7 +70,7 @@ export default {
   allFeaturesHighlighted: false,
   amenitiesGeoJson: null,
   selectedFocusAreas: [],
-  windScenarioHash: '',
+  windScenarioHash: '158d2b824886d908440da5c5f6c4dc4f815cdeba',  // hash for annual average setting
   savedWindScenarios: [
     {
       "wind_speed": 5,

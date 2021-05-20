@@ -18,6 +18,8 @@ export default {
             componentDivisions: [],
             showError: false,
             allDataProvided: false,
+            missingInputScenarios: [],
+            showMissingScenarios: false,
             selectValue_1: null,
             selectValue_2: null,
             sliderValues_1: [],
@@ -59,11 +61,17 @@ export default {
       ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
       ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
     ]),
-    activeAbmSet(){
+    currentAbmResult(){
       return this.$store.state.scenario.activeAbmSet;
     },
     currentNoiseResult(){
       return this.$store.state.scenario.currentNoiseGeoJson;
+    },
+    currentWindResult(){
+      return this.$store.state.scenario.windResultGeoJson;
+    },
+    currentSunResult(){
+      return this.$store.state.scenario.sunExposureGeoJson;
     },
     },
     watch: {
@@ -161,7 +169,9 @@ export default {
       }
     },
     async beforeMount() {
-      // add image to map if necessary
+      this.determineMissingScenarios()
+
+      // add image to map if necessary . For result annotation layer.
       if (! $store.state.map.hasImage("mdi-information")) {
         const map = this.$store.state.map
         map.loadImage(
@@ -175,8 +185,9 @@ export default {
     },
     mounted:
         function() {
+
           // calc input statistics, if all scenarios chosen
-          if (this.activeAbmSet && this.currentNoiseResult) {
+          if (this.currentAbmResult) {
             this.calculateStats()
           }
 
@@ -197,6 +208,52 @@ export default {
           console.log("active divisoin is", this.activeDivision)
         },
     methods: {
+      determineMissingScenarios() {
+        const scenarioResults = {
+          "Noise": this.currentNoiseResult,
+          "Abm": this.currentAbmResult,
+          "Wind": this.currentWindResult,
+          "Sun": this.currentSunResult
+        }
+
+        // iterate over scenario results, if a result is empty add the topic to missing Input scenarios
+        this.missingInputScenarios = []
+        for (const [key, value] of Object.entries(scenarioResults)) {
+          if (!value) {
+            this.missingInputScenarios.push(key)
+          }
+        }
+
+        console.warn("missing these scenarios", this.missingInputScenarios)
+      },
+      async loadDefault(layerName) {
+        console.warn("loading default for", layerName)
+
+        switch(layerName) {
+          case "Sun":
+            await this.$store.dispatch('scenario/addSunExposureLayer')
+            break;
+          case "Wind":
+            await this.$store.dispatch('scenario/updateWindLayer')
+            break;
+          case "Noise":
+            await this.$store.dispatch('scenario/updateNoiseScenario')
+            break;
+          case "Abm":
+            await this.$store.dispatch('scenario/updateAbmDesignScenario')
+            this.determineMissingScenarios()
+            console.warn("abm action complete!")
+            this.$store.dispatch('hideAllLayersButThese')
+            //this.calculateStats()
+
+            break;
+          default:
+          console.error("cannot load default result for unknown layer", layerName)
+        }
+        // then update missing scenarios and hide result layers
+        this.determineMissingScenarios()
+        this.$store.dispatch('hideAllLayersButThese')
+      },
       switchToAbm() {
         this.activeMenuComponent = 'AbmScenario'
       },
@@ -204,6 +261,7 @@ export default {
         this.activeMenuComponent = 'NoiseScenario'
       },
       async calculateStats() {
+        // todo only for ABM!
         this.$store.dispatch('scenario/calculateStatsForMultiLayerAnalysis').then(() => {
           this.setInitialUiSettings()
           this.allDataProvided = true
@@ -275,22 +333,89 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <div  v-if="!allDataProvided">
-          <h2 v-if="!activeAbmSet && !currentNoiseResult">Choose input data first</h2>
-          <v-btn v-if="!activeAbmSet" style="margin: 20px;"
-            @click="switchToAbm"
-            class="confirm_btn"
-            :class="{ changesMade : resultOutdated }"
-          >Choose ABM Scenario
-          </v-btn>
-          <v-btn v-if="!currentNoiseResult" style="margin: 20px;"
-            @click="switchToNoise"
-            class="confirm_btn"
-            :class="{ changesMade : resultOutdated }"
-          >Choose Noise Scenario
-          </v-btn>
+        <div v-if="!allDataProvided">
+          <v-row class="mb-2">
+            <v-col cols="10">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px) saturate(140%); margin-top: 5px;"
+              >
+                <h2>Layer Not Available?</h2>
+              </v-card>
+            </v-col>
+            <v-col cols="2">
+                <v-icon v-if="!showMissingScenarios" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-270</v-icon>
+                <v-icon v-if="showMissingScenarios" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-180</v-icon>
+            </v-col>
+          </v-row>
+          <!-- Legend categories as v-for -->
+          <v-row v-if="showMissingScenarios" no-gutters
+                 v-for="layerName in missingInputScenarios"
+                 class="mb-2 ml-0"
+                 style="background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px) saturate(140%);"
+          >
+            <v-col cols="2">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px) saturate(140%); margin-top: 5px;"
+              >
+                <v-icon :color="'white'">mdi-close</v-icon>
+              </v-card>
+            </v-col>
+            <v-col cols="4">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: rgba(0,0,0,0.8);"
+              >
+                {{ layerName }}
+              </v-card>
+            </v-col>
+            <v-col cols="6">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: rgba(0,0,0,0.8);"
+              >
+                <v-btn
+                  @click="loadDefault(layerName)"
+                  class="confirm_btn"
+                  :class="{ changesMade : resultOutdated }"
+                  :disabled="resultLoading || showError"
+                >Load Default
+                </v-btn>
+              </v-card>
+            </v-col>
+          </v-row>
+
+
+
+
+
+
+<!--
+            <div v-for="layerName in missingInputScenarios" :key="layerName">
+             &lt;!&ndash;x icon mdi-close &ndash;&gt;
+
+              {{ layerName }}
+              <v-btn
+                @click="loadDefault(layerName)"
+                class="confirm_btn"
+                :class="{ changesMade : resultOutdated }"
+                :disabled="resultLoading || showError"
+              >Load Default
+              </v-btn>
+            </div>
+-->
         </div>
-        <div  v-if="allDataProvided">
+
+      <div  v-if="allDataProvided">
           <h2>Choose Indexes</h2>
           <v-container fluid>
 
