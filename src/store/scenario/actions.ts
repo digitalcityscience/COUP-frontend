@@ -33,7 +33,7 @@ export default {
       const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
       const geoJsonData = noiseResult['geojson_result']
       commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
-      dispatch('addNoiseMapLayer', geoJsonData)
+      return dispatch('addNoiseMapLayer', geoJsonData)
         .then(
           dispatch('addTrafficCountLayer')
       )
@@ -41,14 +41,14 @@ export default {
       // load noise data from cityPyo and add it to the store
       // gets one file containing all noise scenario result
       commit('resultLoading', true)
-      rootState.cityPyO.getLayer("noiseScenarios", false).then(
+      return rootState.cityPyO.getLayer("noiseScenarios", false).then(
         noiseData => {
           commit('noiseResults', Object.freeze(noiseData["noise_results"]))
           // select matching result for current scenario and add it to the map
           const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
           const geoJsonData =  noiseResult['geojson_result']
           commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
-          dispatch('addNoiseMapLayer', geoJsonData)
+          return dispatch('addNoiseMapLayer', geoJsonData)
             .then(
               dispatch('addTrafficCountLayer'),
               commit('resultLoading', false)
@@ -64,7 +64,7 @@ export default {
         data: geoJsonData
       }
     }
-    dispatch('addSourceToMap', source, {root: true})
+    return dispatch('addSourceToMap', source, {root: true})
       .then(source => {
         dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
       }).then(source => {
@@ -89,17 +89,17 @@ export default {
         data: scenarioTraffic
       }
     }
-      dispatch('addSourceToMap', source, {root: true})
+    return dispatch('addSourceToMap', source, {root: true})
         .then(source => {
-          dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
+          return dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
         })
   },
   addSunExposureLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
-    rootState.cityPyO.getLayer("sun_exposure").then(source => {
+    return rootState.cityPyO.getLayer("sun_exposure").then(source => {
         commit('sunExposureGeoJson', source.options.data)
-        dispatch('addSourceToMap', source, {root: true})
+        return dispatch('addSourceToMap', source, {root: true})
           .then(source => {
-            dispatch('addLayerToMap', SunExposure.layer, {root: true})
+            return dispatch('addLayerToMap', SunExposure.layer, {root: true})
           })
       }
     )
@@ -165,10 +165,9 @@ export default {
       commit("abmMultiLayerStats", {}) // reset abmStats
       commit("amenityStatsMultiLayer", {}) // reset amenityStats
     }
-    dispatch('initialAbmComputing')
-
-    //dispatch('updateDeckLayer')
     dispatch('updateAmenitiesLayer')
+
+    return dispatch('initialAbmComputing')
   },
   calculateStatsForGrasbrook({state, commit, dispatch, rootState}) {
     calculateAmenityStatsForFocusArea()
@@ -198,13 +197,13 @@ export default {
     // load new data from cityPyo
     let amenitiesLayerName = workshopId || Amenities.mapSource.data.id
 
-    rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
+    return rootState.cityPyO.getAbmAmenitiesLayer(amenitiesLayerName, state).then(
       source => {
         console.log("got amenities", source)
         commit('amenitiesGeoJson', Object.freeze(source.options.data))
-        dispatch('addSourceToMap', source, {root: true})
+        return dispatch('addSourceToMap', source, {root: true})
           .then(source => {
-            dispatch('addLayerToMap', Amenities.layer, {root: true})
+            return dispatch('addLayerToMap', Amenities.layer, {root: true})
           })
       })
   },
@@ -277,7 +276,7 @@ export default {
     //LOAD DATA FROM CITYPYO
 
     commit("loaderTxt", "Getting ABM Simulation Data from CityPyO ... ");
-    rootState.cityPyO.getAbmResultLayer(scenarioName, state).then(
+    return rootState.cityPyO.getAbmResultLayer(scenarioName, state).then(
       result => {
         if (!result) {
           alert("There was an error requesting the data from the server. Please get in contact with the admins.");
@@ -288,10 +287,10 @@ export default {
 
 
         commit("loaderTxt", "Serving Abm Data ... ");
-        dispatch("computeLoop", result.options?.data)
-          .then(unused => {
+        return dispatch("computeLoop", result.options?.data)
+          .then(
             dispatch('calculateStatsForGrasbrook')
-        })
+        )
       }
     )
   },
@@ -398,13 +397,11 @@ export default {
     commit('activeAbmSet', Object.freeze(abmCore));
 
     //buildLayers
-    dispatch("buildLayers");
-
-    //layer Show/Hide
-
-    // hide loading screen
-    commit('resultLoading', false);
-    commit('loader', false);
+    return dispatch("buildLayers").then(
+      // hide loading screen
+      commit('resultLoading', false),
+      commit('loader', false)
+    )
   },
   buildLayers({state, commit, dispatch, rootState}){
     const tripsLayerData = state.activeAbmSet;
@@ -437,7 +434,7 @@ export default {
       })
     });
 
-    buildAggregationLayer(heatLayerFormed, "default").then(
+    return buildAggregationLayer(heatLayerFormed, "default").then(
       deckLayer => {
         if (rootState.map?.getLayer(abmAggregationLayerName)) {
           rootState.map?.removeLayer(abmAggregationLayerName)

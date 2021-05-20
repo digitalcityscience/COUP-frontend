@@ -86,7 +86,7 @@ export default {
     state.map?.addLayer(layer as Layer)
 
     commit('addLayerId', layer.id)
-    dispatch("updateLayerOrder")
+    return dispatch("updateLayerOrder")
   },
   /** updates the layer order after a layer was added */
   updateLayerOrder({state, commit, dispatch}) {
