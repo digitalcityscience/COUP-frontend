@@ -20,6 +20,7 @@ export default {
             allDataProvided: false,
             missingInputScenarios: [],
             showMissingScenarios: false,
+            layersReadyToCompare: [],
             selectValue_1: null,
             selectValue_2: null,
             sliderValues_1: [],
@@ -32,15 +33,15 @@ export default {
             subSelectionLayer_2: null,
             emptyDataWarning: false,
             resultOutdated: false,
-            availableResultLayers: [
+            resultLayerOptions: [
               // TODO adjust ranges for amenity stats!??
               // add corresponding result file source in multiLayerAnalysis.ts  -> layerLookup()
-              {"label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
-              {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
-              {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
-              {"label": 'Amenity Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
-              {"label": 'Wind Speed', "value": "wind", "unit": "Lawson Criteria", "range": [0,1], "step": 0.2},
-              {"label": 'Sun Exposure', "value": "sun", "unit": "h/day", "range": [0,1], "step": 0.1},
+              {"layerName": "Noise", "label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
+              {"layerName": "Abm", "label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
+              {"layerName": "Abm", "label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
+              {"layerName": "Abm", "label": 'Amenity Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
+              {"layerName": "Wind", "label": 'Wind Speed', "value": "wind", "unit": "Lawson Criteria", "range": [0,1], "step": 0.2},
+              {"layerName": "Sun", "label": 'Sun Exposure', "value": "sun", "unit": "h/day", "range": [0,1], "step": 0.1},
             ],
             select_Options_1: [],
             select_Options_2: [],
@@ -221,9 +222,12 @@ export default {
         for (const [key, value] of Object.entries(scenarioResults)) {
           if (!value) {
             this.missingInputScenarios.push(key)
+          } else {
+            this.layersReadyToCompare.push(key)
           }
         }
 
+        this.updateCombinationMenu()
         console.warn("missing these scenarios", this.missingInputScenarios)
       },
       async loadDefault(layerName) {
@@ -242,10 +246,8 @@ export default {
           case "Abm":
             await this.$store.dispatch('scenario/updateAbmDesignScenario')
             this.determineMissingScenarios()
-            console.warn("abm action complete!")
             this.$store.dispatch('hideAllLayersButThese')
-            //this.calculateStats()
-
+            this.calculateStats()
             break;
           default:
           console.error("cannot load default result for unknown layer", layerName)
@@ -263,21 +265,35 @@ export default {
       async calculateStats() {
         // todo only for ABM!
         this.$store.dispatch('scenario/calculateStatsForMultiLayerAnalysis').then(() => {
-          this.setInitialUiSettings()
           this.allDataProvided = true
         })
       },
-      setInitialUiSettings() {
-        // set initial UI settings
-        this.select_Options_1 = this.availableResultLayers
-        this.selectValue_1 = this.availableResultLayers[0]
-        this.sliderValues_1 = this.selectValue_1.range
+      updateCombinationMenu() {
+        // check if at least to layers are available for analysis
+        if (!this.layersReadyToCompare.length >= 2) {
+          console.warn("need at least 2 input layers to combine")
+          return
+        }
 
-        this.select_Options_2 = this.availableResultLayers
-        this.selectValue_2 = this.availableResultLayers[1]
-        this.sliderValues_2 = this.selectValue_2.range
+        // filter layer options for actually available layers
+        const availableResultLayers = this.resultLayerOptions.filter(option => {
+          return this.missingInputScenarios.indexOf(option.layerName) === -1
+        })
 
-        this.logicOperator = this.logicOptions[0]
+        // update select options for layer combination
+        this.select_Options_1 = availableResultLayers
+        this.select_Options_2 = availableResultLayers
+
+        // set initial UI settings if not set yet
+        if (!this.selectValue_1) {
+          this.selectValue_1 = availableResultLayers[0]
+          this.sliderValues_1 = this.selectValue_1.range
+
+          this.selectValue_2 =availableResultLayers[1]
+          this.sliderValues_2 = this.selectValue_2.range
+
+          this.logicOperator = this.logicOptions[0]
+        }
       },
       inputChanged() {
         this.resultOutdated = true;
@@ -333,7 +349,7 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <div v-if="!allDataProvided">
+        <div v-if="missingInputScenarios.length">
           <v-row class="mb-2">
             <v-col cols="10">
               <v-card
@@ -393,33 +409,11 @@ export default {
               </v-card>
             </v-col>
           </v-row>
-
-
-
-
-
-
-<!--
-            <div v-for="layerName in missingInputScenarios" :key="layerName">
-             &lt;!&ndash;x icon mdi-close &ndash;&gt;
-
-              {{ layerName }}
-              <v-btn
-                @click="loadDefault(layerName)"
-                class="confirm_btn"
-                :class="{ changesMade : resultOutdated }"
-                :disabled="resultLoading || showError"
-              >Load Default
-              </v-btn>
-            </div>
--->
         </div>
 
-      <div  v-if="allDataProvided">
+      <div v-if="layersReadyToCompare.length >= 2">
           <h2>Choose Indexes</h2>
           <v-container fluid>
-
-
             <v-row align="center">
               <v-col>
                 <v-btn
