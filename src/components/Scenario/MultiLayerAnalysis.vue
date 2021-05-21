@@ -21,8 +21,11 @@ export default {
             missingInputScenarios: [],
             showMissingScenarios: false,
             layersReadyToCompare: [],
-            selectValue_1: null,
-            selectValue_2: null,
+            topic_1: null,
+            topic_2: null,
+            availableResultIndexes: [],
+            indexChoice_1: null,
+            indexChoice_2: null,
             sliderValues_1: [],
             sliderValues_2: [],
             preset_1: 'high',
@@ -33,7 +36,7 @@ export default {
             subSelectionLayer_2: null,
             emptyDataWarning: false,
             resultOutdated: false,
-            resultLayerOptions: [
+            resultIndexOptions: [
               // TODO adjust ranges for amenity stats!??
               // add corresponding result file source in multiLayerAnalysis.ts  -> layerLookup()
               {"layerName": "Noise", "label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
@@ -43,8 +46,8 @@ export default {
               {"layerName": "Wind", "label": 'Wind Speed', "value": "wind", "unit": "Lawson Criteria", "range": [0,1], "step": 0.2},
               {"layerName": "Sun", "label": 'Sun Exposure', "value": "sun", "unit": "h/day", "range": [0,1], "step": 0.1},
             ],
-            select_Options_1: [],
-            select_Options_2: [],
+            index_Options_1: [],
+            index_Options_2: [],
             logicOptions: [
               {"label": "AND", "value": "and"},
               {"label": "AND NOT", "value": "and_not"},
@@ -76,12 +79,37 @@ export default {
     },
     },
     watch: {
+      topic_1(newVal, oldVal) {
+        // index for topic
+        // update options for selectable indexes (to be combined to new layer)
+        console.warn("topic 1 changed")
+
+        this.index_Options_1 = this.availableResultIndexes.filter(option => {
+          return option.layerName === this.topic_1
+        })
+        this.index_Options_2 = this.availableResultIndexes.filter(option => {
+          return option.layerName === this.topic_2
+        })
+
+        this.indexChoice_1 = this.index_Options_1[0]
+        this.sliderValues_1 = this.indexChoice_1.range
+
+        this.indexChoice_2 = this.index_Options_2[0]
+        this.sliderValues_2 = this.indexChoice_2.range
+
+      },
+      topic_2(newVal, oldVal) {
+        // todo reset indexChoices
+
+      },
+
+
       sliderValues_1: {
         deep: true,
         handler() {
           const request = {
-            "layerName": this.selectValue_1.value,
-            "layerRange": this.selectValue_1.range,
+            "layerName": this.indexChoice_1.value,
+            "layerRange": this.indexChoice_1.range,
             "layerConstraints": this.sliderValues_1,
           }
           this.subSelectionLayer_1 = filterAndScaleLayerData(request)
@@ -95,8 +123,8 @@ export default {
         deep: true,
         handler() {
           const request = {
-            "layerName": this.selectValue_2.value,
-            "layerRange": this.selectValue_2.range,
+            "layerName": this.indexChoice_2.value,
+            "layerRange": this.indexChoice_2.range,
             "layerConstraints": this.sliderValues_2,
           }
           this.subSelectionLayer_2 = filterAndScaleLayerData(request)
@@ -106,34 +134,35 @@ export default {
           }
         }
       },
-      selectValue_1: {
+      indexChoice_1: {
         deep: true,
         handler() {
+          console.warn("indexChoice_1 changed", this.indexChoice_1)
           this.showSubSelection_1 = false
-          if (this.selectValue_1.label === this.selectValue_2.label) {
+          if (this.indexChoice_1.label === this.indexChoice_2.label) {
             this.showError = true
           } else {
-            this.sliderValues_1 = this.selectValue_1.range
+            this.sliderValues_1 = this.indexChoice_1.range
             const request = {
-              "layerName": this.selectValue_1.value,
-              "layerRange": this.selectValue_1.range,
+              "layerName": this.indexChoice_1.value,
+              "layerRange": this.indexChoice_1.range,
               "layerConstraints": this.sliderValues_1,
             }
             this.subSelectionLayer_1 = filterAndScaleLayerData(request)
           }
         }
       },
-      selectValue_2: {
+      indexChoice_2: {
         deep: true,
         handler() {
           this.showSubSelection_2 = false
-          if (this.selectValue_1.label === this.selectValue_2.label) {
+          if (this.indexChoice_1.label === this.indexChoice_2.label) {
             this.showError = true
           } else {
-            this.sliderValues_2 = this.selectValue_2.range
+            this.sliderValues_2 = this.indexChoice_2.range
             const request = {
-              "layerName": this.selectValue_2.value,
-              "layerRange": this.selectValue_2.range,
+              "layerName": this.indexChoice_2.value,
+              "layerRange": this.indexChoice_2.range,
               "layerConstraints": this.sliderValues_2,
             }
             this.subSelectionLayer_2 = filterAndScaleLayerData(request)
@@ -210,6 +239,9 @@ export default {
         },
     methods: {
       determineMissingScenarios() {
+
+        console.warn("determine missing scenarios")
+
         const scenarioResults = {
           "Noise": this.currentNoiseResult,
           "Abm": this.currentAbmResult,
@@ -219,6 +251,7 @@ export default {
 
         // iterate over scenario results, if a result is empty add the topic to missing Input scenarios
         this.missingInputScenarios = []
+        this.layersReadyToCompare = []
         for (const [key, value] of Object.entries(scenarioResults)) {
           if (!value) {
             this.missingInputScenarios.push(key)
@@ -227,8 +260,9 @@ export default {
           }
         }
 
-        this.updateCombinationMenu()
         console.warn("missing these scenarios", this.missingInputScenarios)
+        console.warn("scenarios ready to compare", this.layersReadyToCompare)
+        this.updateCombinationMenu()
       },
       async loadDefault(layerName) {
         console.warn("loading default for", layerName)
@@ -270,27 +304,27 @@ export default {
       },
       updateCombinationMenu() {
         // check if at least to layers are available for analysis
-        if (!this.layersReadyToCompare.length >= 2) {
+        if (!(this.layersReadyToCompare.length >= 2)) {
           console.warn("need at least 2 input layers to combine")
           return
         }
 
+        console.warn("updating menu now", this.layersReadyToCompare.length)
+
         // filter layer options for actually available layers
-        const availableResultLayers = this.resultLayerOptions.filter(option => {
+        this.availableResultIndexes = this.resultIndexOptions.filter(option => {
           return this.missingInputScenarios.indexOf(option.layerName) === -1
         })
 
-        // update select options for layer combination
-        this.select_Options_1 = availableResultLayers
-        this.select_Options_2 = availableResultLayers
-
         // set initial UI settings if not set yet
-        if (!this.selectValue_1) {
-          this.selectValue_1 = availableResultLayers[0]
-          this.sliderValues_1 = this.selectValue_1.range
+        if (!this.topic_1) {
 
-          this.selectValue_2 =availableResultLayers[1]
-          this.sliderValues_2 = this.selectValue_2.range
+          // topic
+          this.topic_1 = this.layersReadyToCompare[0]
+          this.topic_2 = this.layersReadyToCompare[1]
+
+          console.warn("topics", this.topic_1, this.topic_2)
+          console.warn("this result indexes are available", this.availableResultIndexes)
 
           this.logicOperator = this.logicOptions[0]
         }
@@ -349,6 +383,44 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
+      <div class="scenario_box">
+        <!-- Choose Layers to combine -->
+
+        <h2>LAYER SELECTION</h2>
+        <v-container fluid>
+          <!-- per row: check button. AND/OR selector. slider per v-select -->
+          <!-- set slider min max dynamically -->
+          <div v-if="layersReadyToCompare.length >= 2">
+            <v-row align="center">
+                <v-select
+                  :items="layersReadyToCompare"
+                  v-model="topic_1"
+                  @change="inputChanged()"
+                  item-text="label"
+                  item-value="label"
+                  solo
+                  persistent-hint
+                  return-object
+                  single-line
+                  dark
+                ></v-select>
+            </v-row>
+            <v-row>
+                <v-select
+                  :items="layersReadyToCompare"
+                  v-model="topic_2"
+                  @change="inputChanged()"
+                  item-text="label"
+                  item-value="label"
+                  solo
+                  persistent-hint
+                  return-object
+                  single-line
+                  dark
+                ></v-select>
+            </v-row>
+          </div>
+        <!-- Layers not available?? Load defaults! -->
         <div v-if="missingInputScenarios.length">
           <v-row class="mb-2">
             <v-col cols="10">
@@ -356,170 +428,168 @@ export default {
                 class="pa-0"
                 tile
                 dark
-                style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px) saturate(140%); margin-top: 5px;"
+                style="background-color: transparent; margin-top: 5px;"
               >
                 <h2>Layer Not Available?</h2>
               </v-card>
             </v-col>
             <v-col cols="2">
-                <v-icon v-if="!showMissingScenarios" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-270</v-icon>
-                <v-icon v-if="showMissingScenarios" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-180</v-icon>
+                <v-icon v-if="!showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-270</v-icon>
+                <v-icon v-if="showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-180</v-icon>
             </v-col>
           </v-row>
           <!-- Legend categories as v-for -->
           <v-row v-if="showMissingScenarios" no-gutters
                  v-for="layerName in missingInputScenarios"
                  class="mb-2 ml-0"
-                 style="background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px) saturate(140%);"
+                 style=""
           >
-            <v-col cols="2">
+            <v-col cols="2" xs="3">
               <v-card
-                class="pa-0"
+                class="mr-2"
                 tile
                 dark
-                style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px) saturate(140%); margin-top: 5px;"
+                style=""
               >
                 <v-icon :color="'white'">mdi-close</v-icon>
               </v-card>
             </v-col>
-            <v-col cols="4">
+            <v-col cols="3" xs="9">
               <v-card
                 class="pa-0"
                 tile
                 dark
-                style="background-color: rgba(0,0,0,0.8);"
+                style="background-color: inherit"
               >
                 {{ layerName }}
               </v-card>
             </v-col>
-            <v-col cols="6">
+            <v-col cols="7" xs="12">
               <v-card
                 class="pa-0"
                 tile
                 dark
-                style="background-color: rgba(0,0,0,0.8);"
+                style="background-color: inherit"
               >
                 <v-btn
                   @click="loadDefault(layerName)"
                   class="confirm_btn"
                   :class="{ changesMade : resultOutdated }"
                   :disabled="resultLoading || showError"
+                  style="min-width: 100%;"
                 >Load Default
                 </v-btn>
               </v-card>
             </v-col>
           </v-row>
         </div>
+      </v-container>
+      </div>
 
-      <div v-if="layersReadyToCompare.length >= 2">
-          <h2>Choose Indexes</h2>
-          <v-container fluid>
-            <v-row align="center">
-              <v-col>
-                <v-btn
-                  @click="showSubSelection_1 = !showSubSelection_1"
-                  dark>
-                  <v-icon v-if="!showSubSelection_1" style="color: #1380AB;">mdi-eye</v-icon>
-                  <v-icon v-if="showSubSelection_1" style="color: #8b0000;">mdi-eye-off</v-icon>
-                </v-btn>
-              </v-col>
-              <v-col>
-                <v-btn
-                  @click="showSubSelection_2 = !showSubSelection_2"
-                  dark>
-                  <v-icon v-if="!showSubSelection_2" style="color: #1380AB;">mdi-eye</v-icon>
-                  <v-icon v-if="showSubSelection_2" style="color: #8b0000;">mdi-eye-off</v-icon>
-                </v-btn>
-              </v-col>
-            </v-row>
 
-            <!-- per row: check button. AND/OR selector. slider per v-select -->
-            <!-- set slider min max dynamically -->
-            <v-row align="center">
-              <v-col
-                class="pa-2"
-                cols="12"
-                md="6"
+      <!-- Criteria Selection --->
+      <div v-if="layersReadyToCompare.length >= 2" class="scenario_box">
+        <h2>CRITERIA SELECTION</h2>
+
+        <v-container>
+        <v-row class="mb-2">
+          <v-col cols="10">
+            <v-card
+              class="pa-0"
+              tile
+              dark
+              style="background-color: transparent; margin-top: 5px;"
+            >
+              <h2>{{ topic_1 }}</h2>
+            </v-card>
+          </v-col>
+          <v-col cols="2">
+            <v-icon v-if="!showSubSelection_1" color="white" @click="showSubSelection_1 = !showSubSelection_1">mdi-eye</v-icon>
+            <v-icon v-if="showSubSelection_1" color="white" @click="showSubSelection_1 = !showSubSelection_1">mdi-eye-off</v-icon>
+          </v-col>
+        </v-row>
+        <v-row align="center">
+          <v-select
+            :items="index_Options_1"
+            v-model="indexChoice_1"
+            @change="inputChanged()"
+            item-text="label"
+            item-value="label"
+            :hint="`${indexChoice_1.unit}` || ''"
+            :label="indexChoice_1.label"
+            solo
+            persistent-hint
+            return-object
+            single-line
+            dark
+          ></v-select>
+        </v-row>
+        <v-row align="center">
+          <v-col style="margin-top: -25px">
+            <v-range-slider
+              @dragstart="_ => null"
+              @dragend="_ => null"
+              @mousedown.native.stop="_ => null"
+              @mousemove.native.stop="_ => null"
+              @change="inputChanged()"
+              v-model="sliderValues_1"
+              :step="indexChoice_1.step"
+              :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
+              label=""
+              persistent-hint
+              thumb-label="always"
+              thumb-size="1"
+              tick-size="50"
+              :min="indexChoice_1.range[0]"
+              :max="indexChoice_1.range[1]"
+              dark
+              flat
+            ></v-range-slider>
+          </v-col>
+        </v-row>
+
+
+          <v-row class="mb-2">
+            <v-col cols="10">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: transparent; margin-top: 5px;"
               >
-                <v-select
-                  :items="select_Options_1"
-                  v-model="selectValue_1"
-                  @change="inputChanged()"
-                  item-text="label"
-                  item-value="label"
-                  :hint="`${selectValue_1.unit}` || ''"
-                  solo
-                  label=""
-                  persistent-hint
-                  return-object
-                  single-line
-                  dark
-                ></v-select>
-              </v-col>
-              <v-col
-                class="d-flex"
-                cols="12"
-              >
-                <v-select
-                  :items="select_Options_2"
-                  v-model="selectValue_2"
-                  @change="inputChanged()"
-                  item-text="label"
-                  item-value="label"
-                  :hint="`${selectValue_2.unit}` || ''"
-                  solo
-                  label=""
-                  persistent-hint
-                  return-object
-                  single-line
-                  dark
-                ></v-select>
-              </v-col>
-            </v-row>
-            <v-row align="center">
-              <v-col style="margin-top: -25px">
-                <v-range-slider
-                  @dragstart="_ => null"
-                  @dragend="_ => null"
-                  @mousedown.native.stop="_ => null"
-                  @mousemove.native.stop="_ => null"
-                  @change="inputChanged()"
-                  v-model="sliderValues_1"
-                  :step="selectValue_1.step"
-                  :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
-                  persistent-hint
-                  thumb-label="always"
-                  label=""
-                  thumb-size="1"
-                  tick-size="50"
-                  :min="selectValue_1.range[0]"
-                  :max="selectValue_1.range[1]"
-                  dark
-                  flat
-                ></v-range-slider>
-              </v-col>
-              <v-col style="margin-top: -25px;">
-                <v-range-slider
-                  @dragstart="_ => null"
-                  @dragend="_ => null"
-                  @mousedown.native.stop="_ => null"
-                  @mousemove.native.stop="_ => null"
-                  @change="inputChanged()"
-                  v-model="sliderValues_2"
-                  :step="selectValue_2.step"
-                  :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
-                  persistent-hint
-                  thumb-label="always"
-                  label=""
-                  thumb-size="1"
-                  tick-size="50"
-                  :min="selectValue_2.range[0]"
-                  :max="selectValue_2.range[1]"
-                  dark
-                  flat
-                ></v-range-slider>
-              </v-col>
-            </v-row>
+                <h2>{{ topic_2 }}</h2>
+              </v-card>
+            </v-col>
+            <v-col cols="2">
+              <v-icon v-if="!showSubSelection_2" color="white" @click="showSubSelection_2 = !showSubSelection_2">mdi-eye</v-icon>
+              <v-icon v-if="showSubSelection_2" color="white" @click="showSubSelection_2 = !showSubSelection_2">mdi-eye-off</v-icon>
+            </v-col>
+          </v-row>
+          <v-row align="center">
+            <v-col style="margin-top: -25px;">
+              <v-range-slider
+                @dragstart="_ => null"
+                @dragend="_ => null"
+                @mousedown.native.stop="_ => null"
+                @mousemove.native.stop="_ => null"
+                @change="inputChanged()"
+                v-model="sliderValues_2"
+                :step="indexChoice_2.step"
+                :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
+                persistent-hint
+                thumb-label="always"
+                label=""
+                thumb-size="1"
+                tick-size="50"
+                :min="indexChoice_2.range[0]"
+                :max="indexChoice_2.range[1]"
+                dark
+                flat
+              ></v-range-slider>
+            </v-col>
+          </v-row>
+
+
 
 
           <!-- exclude logic options for now - too complicated
@@ -540,7 +610,6 @@ export default {
             ></v-select>
           </v-row>
           -->
-          </v-container>
           <p v-if="showError" class="warning">Invalid selection</p>
           <p v-if="emptyDataWarning" class="warning">No data to show!</p>
           <v-btn
@@ -551,7 +620,10 @@ export default {
           >
            Visualize Selection
           </v-btn>
+        </v-container>
         </div> <!-- v-if="allDataProvided" end -->
+
+
         <v-overlay :value="resultLoading">
           <div>Loading results</div>
           <v-progress-linear>...</v-progress-linear>
