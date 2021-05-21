@@ -179,7 +179,7 @@ export default {
   async calculateStatsForMultiLayerAnalysis({state, commit, dispatch, rootState}) {
     commit('resultLoading', true)
     commit('loader', true);
-    commit("loaderTxt", 'Calculating statistics for each focus area')
+    commit("loaderTxt", 'Calculating statistics for each focus area (slow)')
 
     // the timeout just gives time for the commits above to persist and the app to be rerendered
     await new Promise(resolve => setTimeout(resolve, 500));
