@@ -58,44 +58,48 @@
     "icon": "mdi-circle",
     "categories": [
       {
+        "label": "< 1.2 h/day",
+        "color": "#2c7bb6"
+      },
+      {
         "label": "1.2 h/day",
-        "color": "#B8D6D1"
+        "color": "#bae0e2"
       },
       {
         "label": "2.4 h/day",
-        "color": "#CEE4CC"
+        "color": "#dcefd1"
       },
       {
         "label": "3.6 h/day",
-        "color": "#E2F2BF"
+        "color": "#fdfec0"
       },
       {
         "label": "4.8 h/day",
-        "color": "#F3C683"
+        "color": "#ffeeab"
       },
       {
         "label": "6 h/day",
-        "color": "#E87E4D"
+        "color": "#ffdb95"
       },
       {
         "label": "7.2 h/day",
-        "color": "#CD463E"
+        "color": "#fec87f"
       },
       {
         "label": "8.4 h/day",
-        "color": "#A11A4D"
+        "color": "#feb569"
       },
       {
         "label": "9.6 h/day",
-        "color": "#75085C"
+        "color": "#fea464"
       },
       {
         "label": "10.8 h/day",
-        "color": "red"
+        "color": "#fe9469"
       },
       {
         "label": "12 h/day",
-        "color": "violet"
+        "color": "#ff836e"
       }
     ]
   },

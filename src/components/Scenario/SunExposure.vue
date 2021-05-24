@@ -129,11 +129,23 @@ export default {
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Sun Exposure | About</h2>
         <Legend v-bind:topic="'sunExposure'"></Legend>
-        <!-- todo disclaimer - info stuff -->
-        <div class="disclaimer">
-          <h2>Disclaimer</h2>
-          <p>Results provided by InfraredCity @ AIT <br>
-            The model was trained on the solar characteristics of Vienna, AT</p>
+        <div class="info_text">
+          <h4>
+            INFRARED SUNLIGHT HOURS SIMULATION
+          </h4>
+          <p>
+          The sunlight hours simulation is a yearly
+          average. The InFraRed model is trained
+          using machine learning on data for the
+          region of Vienna, Austria. “Training” a
+          simulation model makes it possible to run
+          near real-time simulations using web-based
+          applications. However, because the model
+          is trained on the conditions in Vienna,
+          the result maps for Hamburg are inaccurate.
+          We have included them here for
+          demonstration purposes.
+          </p>
         </div>
       </div><!--component_content end-->
     </div>

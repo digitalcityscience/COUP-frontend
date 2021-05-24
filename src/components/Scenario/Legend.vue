@@ -25,14 +25,14 @@ export default {
     <v-row
       no-gutters
       class="mb-2"
-      style="background-color: rgba(0,0,0,0.6);"
+      style="background-color: inherit;"
     >
       <v-col cols="2">
         <v-card
           class="pa-0"
           tile
           dark
-          style="background-color: rgba(0,0,0,0.6); margin-top: 5px;"
+          style="background-color: inherit;"
         >
           <v-icon style="color: #FFD529;">{{ icon }}</v-icon>
         </v-card>
@@ -42,7 +42,7 @@ export default {
           class="pa-0"
           tile
           dark
-          style="background-color: rgba(0,0,0,0.6);"
+          style="background-color: inherit;"
         >
           <p style="font-weight: bold">{{ legendHeadline }} </p>
         </v-card>
@@ -60,7 +60,7 @@ export default {
           class="pa-0"
           tile
           dark
-          style="background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px) saturate(140%); margin-top: 5px;"
+          style="background-color: inherit"
         >
           <v-icon :color="item.color">mdi-square</v-icon>
         </v-card>
@@ -70,7 +70,7 @@ export default {
           class="pa-0"
           tile
           dark
-          style="background-color: rgba(0,0,0,0.8);"
+          style="background-color: inherit"
         >
           {{ item.label }}<br>
           <span v-if="item.detail">{{item.detail }} </span>
