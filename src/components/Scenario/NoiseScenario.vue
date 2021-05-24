@@ -148,7 +148,7 @@ export default {
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
               TRAFFIC VOLUME <br>
-              On the kl. Grasbrook Peninsula
+              In project area
             </header>
             <v-slider
               v-model="trafficPercent"
@@ -168,7 +168,7 @@ export default {
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
               SPEED LIMIT <br>
-              IOn the kl. Grasbrook Peninsula
+              In project area
             </header>
             <v-radio-group v-model="maxSpeed">
               <v-radio
@@ -283,23 +283,8 @@ export default {
           <p>The composition of the eleven-class scheme for the presentation of noise immission, e.g. the combined use of colors that are similar to the presented colors according to visual assessment or due to their color codes, by Beate Tomio is licensed under a Creative Commons Attribution – NonCommercial – NoDerivatives 4.0 International License.
           Used with permission.
             Find out more: https://www.coloringnoise.com/</p>
-
-          <h2>DISCLAIMER</h2>
-          <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
-            The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
-            Scientific validity of the results cannot be guaranteed in the testing phases.
-          </p>
-
         </div>
-        <div v-if="(restrictedAccess && activeDivision !== 'info')" class="disclaimer">
-          <h2>Disclaimer</h2>
-          <p>The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.
-            The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.
-            Scientific validity of the results cannot be guaranteed in the testing phases.
-            <br>
-          </p>
-          The model is a simplified implementation of the French national method NMPB-08. Model by IFSTTAR.
-        </div>
+
       </div><!--component_content end-->
     </div>
     <!--division end-->
