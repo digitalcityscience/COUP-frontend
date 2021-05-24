@@ -207,6 +207,10 @@ body, html {
             text-align:left;
         }
 
+        .v-card {
+            box-shadow: none;
+        }
+
         .v-select {
             font-size: 10px;
             overflow: visible;
@@ -317,29 +321,6 @@ body, html {
         .info_text {
             color:$bright1;
             text-align: left;
-        }
-
-
-        .disclaimer {
-            position: absolute;
-            display: block;
-            bottom: 20px;
-            right: 10px;
-            color:$bright1;
-            background-color: black;
-            border-color: $bright1;
-            border-width: 2px;
-
-            h2 {
-                text-align: center;
-            }
-
-            @media(max-device-width:1024px) {
-               position: relative;
-            }
-            @media(max-device-height:700px) {
-                display: none;
-            }
         }
     }
 }
