@@ -8,9 +8,10 @@ export default {
     data() {
         return {
           images: {
-            logoAIT: require('@/assets/AIT_Logo.png'),
-            logoCIL: require('@/assets/cil_logo.png'),
-            logoInfrared: require('@/assets/infrared_logo.png'),
+
+            logoAIT: require('@/assets/AIT_Logo_new.png'),
+            logoCIL: require('@/assets/cil_logo_new.png'),
+            logoInfrared: require('@/assets/infrared_logo_new.png')
           },
           windowWidth: window.innerWidth,
         }
@@ -18,7 +19,6 @@ export default {
     mounted(){
     },
     updated(){
-        //this.renderTimeGraph();
     },
     created(){
         document.onkeydown = this.onkeydown
@@ -46,12 +46,12 @@ export default {
         <div v-if="activeMenuComponent == 'SunExposureResults' || activeMenuComponent == 'WindScenario'" id="logos_ait">
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div>
-            <v-row align="center">
+            <v-row align="end" no-gutters>
               <v-col
                 cols="6"
                 sm="4"
               >
-                <v-img :src="images.logoAIT "height="200" contain>
+                <v-img :src="images.logoAIT "height="105" contain>
                 </v-img>
               </v-col>
 
@@ -59,17 +59,18 @@ export default {
                 cols="6"
                 sm="4"
               >
-                <v-img :src="images.logoCIL" height="150" contain>
+                <v-img :src="images.logoCIL" height="105" contain>
                 </v-img>
               </v-col>
 
               <v-col
                 cols="6"
                 sm="4"
-                align-self="center"
+                align-self="end"
               >
                 <v-img
-                  height="50"
+                  style="margin-left: -10%;"
+                  height="105"
                   contain
                   :src="images.logoInfrared">
                 </v-img>
@@ -88,7 +89,7 @@ export default {
       right: 350px;
       width: auto;
       height: auto;
-      max-width: 500px;
+      max-width: 750px;
       max-height: 150px;
       padding: 10px;
 
