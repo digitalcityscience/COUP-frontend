@@ -24,32 +24,32 @@
       {
         "label": "Sitting Long",
         "detail": "0.0 - 2.5m/s",
-        "color": "#B8D6D1"
+        "color": "#6971b4"
       },
       {
         "label": "Sitting Short",
         "detail": "2.5 - 4.0m/s",
-        "color": "#CEE4CC"
+        "color": "#95d3e0"
       },
       {
         "label": "Walking Slow",
         "detail": "4.0 - 6.0m/s",
-        "color": "#F3C683"
+        "color": "#90c363"
       },
       {
         "label": "Walking Fast",
         "detail": "6.0 - 8.0 m/s",
-        "color": "#E87E4D"
+        "color": "#f4ec7d"
       },
       {
         "label": "Uncomfortable",
         "detail": "8.0 - 10.0 m/s",
-        "color": "#A11A4D"
+        "color": "#fbc46f"
       },
       {
         "label": "Dangerous",
         "detail": ">10.0m/s",
-        "color": "#75085C"
+        "color": "#ee7679"
       }
     ]
   },
