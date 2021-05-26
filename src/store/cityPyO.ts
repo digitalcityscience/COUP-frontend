@@ -11,6 +11,9 @@ export default class CityPyO {
     }
 
     async login (userdata: {username: string, password: string}) {
+        // log login request on cityPyo only if in production
+        userdata["log_this_request"] =  !(process.env.NODE_ENV === 'development')
+
         const res = await fetch(this.url + 'login', {
             method: 'POST',
             mode: 'cors',
@@ -31,6 +34,26 @@ export default class CityPyO {
         }
     }
 
+   async isUserRestricted() {
+     const res = await fetch(this.url + 'isRestrictedUser', {
+       method: 'POST',
+       mode: 'cors',
+       headers: {
+         'Content-Type': 'application/json'
+       },
+       body: JSON.stringify({"username" : this.userid})
+     })
+
+     if (res.status === 200) {
+       const json = await res.json()
+       return json.restricted
+     }
+     else {
+       console.warn(res.status, res.statusText)
+       return true
+     }
+   }
+
   async performRequest(layerId, requestUrl, body) {
 
     const res = await fetch(requestUrl, {
@@ -47,25 +70,6 @@ export default class CityPyO {
     }
 
     return await res
-  }
-
-  /**
-   * @param fileName | without the .json ending
-   * @param propPath | path to property that should be updated (inside the file)
-   * @param payload | new value of the property to be updated
-   */
-  addLayerData(fileName:string, propPath: Array<string>, payload) {
-    let requestUrl = this.url + 'addLayerData/' + fileName
-
-    for (let prop of propPath) {
-      requestUrl += '/' + prop
-    }
-
-    const body = {
-      "userid": this.userid,
-      "data": payload
-    }
-    this.performRequest(fileName, requestUrl, body)
   }
 
     async getLayer (id: string, formattedAsSource: boolean = true) {
@@ -87,10 +91,29 @@ export default class CityPyO {
           return this.formatResponse(id, responseJson)
         }
 
-        return responseJson
+        return await responseJson
       }
 
-      return response.status
+      return await response.status
+    }
+
+    /**
+     * @param fileName | without the .json ending
+     * @param propPath | path to property that should be updated (inside the file)
+     * @param payload | new value of the property to be updated
+     */
+    async addLayerData(fileName:string, propPath: Array<string>, payload) {
+      let requestUrl = this.url + 'addLayerData/' + fileName
+
+      for (let prop of propPath) {
+        requestUrl += '/' + prop
+      }
+
+      const body = {
+        "userid": this.userid,
+        "data": payload
+      }
+      await this.performRequest(fileName, requestUrl, body)
     }
 
     async getAbmResultLayer (id: string, scenario: AbmScenario) {
@@ -117,8 +140,60 @@ export default class CityPyO {
       }
     }
 
-    // the amenities layer is dependent on the chosen scenario
-    async getAbmAmenitiesLayer (id: string, scenario: AbmScenario) {
+  /**
+   * fetch scenario result for the scenarioHash
+   * This function will wait for the backend to provide a simulation result file as simType_SCENARIO_HASH.json
+   *
+   * If the result file cannot be found after trying for 10seconds the function throws an error and exits
+   *
+   * @param simType | e.g. wind or stormwater
+   * @param scenarioHash
+   */
+  async getSimulationResultForScenario(simType, scenarioHash) {
+    const sleepTime = 2000
+    const maxTries = 90000 / sleepTime  // give up after 90 seconds
+    let requestCount = 0
+    let noResultReceived = true
+
+    // try to get simulation result until maxTries is reached
+    while (requestCount <= maxTries && noResultReceived) {
+      let result;
+
+      try {
+        result = await this.getLayer(simType + "_" + scenarioHash, false)
+      } catch (e) {
+        console.log(e)
+        result = null
+      }
+
+      // result has been found
+      if (typeof result === 'object' && result !== null) {
+        // return the result
+        return {"complete": result["complete"], "source": await this.formatResponse(simType, result["results"]) }
+      }
+
+      // result has not been found. check if error code is expected for non-existent files
+      if (typeof result === "number") {
+        // unexpected error occurred
+        if (!(result === 404 || 400)) {
+          console.log("Still waiting on result for ", simType, " Hash, httpRespsone", scenarioHash, result)
+        }
+      }
+
+      // result not found yet. wait until result available.
+      await new Promise(resolve => setTimeout(resolve, sleepTime)).then(() => {
+        console.log("request count", requestCount)
+        requestCount += 1
+      });
+    }
+
+    // too many tries. backend did not provide result file in reasonable time.
+    console.error("Could not fetch result for ", simType, scenarioHash, "because of timeout")
+    return
+  }
+
+  // the amenities layer is dependent on the chosen scenario
+  async getAbmAmenitiesLayer (id: string, scenario: AbmScenario) {
       // fetch predefined workshop scenario layer
       if (workshopScenarioNames.includes(id)) {
         let responseJson = await this.getLayer("amenities_" + id)
@@ -141,47 +216,6 @@ export default class CityPyO {
         return this.formatResponse(id, responseJson.data)
       }
     }
-
-  /**
-   * fetch stormwater scenario result for the scenario_hash
-   * This function will wait for the backend to provide a stormwater result file as SCENARIO_HASH.json
-   *
-   * If the result file cannot be found after trying for 10seconds the function throws an error and exits
-   *
-   * @param scenario_hash
-   */
-  async getStormwaterResultLayerSource(scenario_hash) {
-    const sleepTime = 500
-    const maxTries = 10000 / sleepTime  // give up after 10seconds
-    let requestCount = 0
-
-    // try to get stormwater result until maxTries is reached
-    while (requestCount <= maxTries) {
-      const result = await this.getLayer(scenario_hash, true)
-
-      // result has been found
-      if (typeof result === 'object' && result !== null) {
-        return result
-      }
-
-      // result has not been found. check if error code is expected for non-existent files
-      if (typeof result === "number") {
-        // unexpected error occurred
-        if (!(result === 404 || 400)) {
-          console.error("Could not fetch result for stormwater, Hash, httpRespsone", scenario_hash, result)
-          return null
-        }
-      }
-
-      // result not found yet. wait until result available.
-      await new Promise(resolve => setTimeout(resolve, sleepTime)).then(() => {
-        requestCount += 1
-      });
-    }
-
-    // too many tries. backend did not provide result file in reasonable time.
-    console.error("Could not fetch result for stormwater", scenario_hash, "because of timeout")
-  }
 
     getLayerData(query: string) {
     }

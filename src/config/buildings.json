@@ -16,7 +16,7 @@
       "source": "upperfloor",
       "paint": {
         "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFD529", "commercialOffice", "#ab0124", "industrial", "#ff75cf", "daycare", "#1380AB", "public", "#1380AB", "specialUse", "#1380AB", "#cdcdcd"], "#f5f5f5"],
-        "fill-extrusion-height": ["get", "building_height"],
+        "fill-extrusion-height": ["to-number",  ["get", "building_height"]],
         "fill-extrusion-base": 5,
         "fill-extrusion-opacity": 0.8
       }
@@ -27,8 +27,8 @@
       "source": "rooftops",
       "paint": {
         "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFD529", "commercialOffice", "#ab0124", "industrial", "#ff75cf", "daycare", "#1380AB", "public", "#1380AB", "specialUse", "#1380AB", "#cdcdcd"], "#f5f5f5"],
-        "fill-extrusion-height": ["get", "additional_roof_height"],
-        "fill-extrusion-base": ["get", "building_height"],
+        "fill-extrusion-height": ["to-number",  ["get", "additional_roof_height"]],
+        "fill-extrusion-base": ["to-number",  ["get", "building_height"]],
         "fill-extrusion-opacity": 0.8
       }
     }

@@ -3,16 +3,44 @@ import store from '@/store'
 import GrasbrookGeoJson from '@/assets/grasbrookArea.json'
 
 
-export async function calculateAbmStatsForAllAreas() {
+export async function calcAbmStatsForMultiLayer() {
+  let multiLayerStats = store.state.scenario.abmStatsMultiLayer || {}
+
   const focusAreaIds = store.state.focusAreasGeoJson["features"].map(feat => {
     return feat.id
   })
 
   for (const focusAreaId of focusAreaIds) {
-    if (!store.state.scenario.abmStats[focusAreaId]) {
-      await calculateAbmStatsForFocusArea(focusAreaId)
+    if (!store.state.scenario.abmStatsMultiLayer[focusAreaId]) {
+      multiLayerStats[focusAreaId] = {}
+      let focusArea = getFocusAreaAsTurfObject(focusAreaId)
+      let hourlyActivity = hourlyAgentActivityForRegion(focusArea)
+      let pedestrianCountsPerHour = hourlyActivity["agentCounts"]
+
+      // calculate pedestrian density
+      let pedestrianSum = calculatePedestrianSumPerDay(pedestrianCountsPerHour)
+      multiLayerStats[focusAreaId]["pedestrianDensity"] = calculatePedestrianDensity(pedestrianSum, focusArea)
     }
   }
+
+  store.commit("scenario/abmStatsMultiLayer", multiLayerStats)
+}
+
+
+function getFocusAreaAsTurfObject(focusAreaId?: number) {
+  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
+
+  if (focusAreaId) {
+    focusAreas.features = focusAreas.features.filter(feature => {
+      return feature.id == focusAreaId
+    })
+  } else {
+    // take the entire grasbrook
+    const grasbrook = GrasbrookGeoJson as turf.GeoJSONObject
+    focusAreas.features = grasbrook["features"]
+  }
+
+  return focusAreas
 }
 
 /**
@@ -28,19 +56,11 @@ export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
     console.log("cannot calc abmStats without abmData. No abmData in store.")
   }
 
-  let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
+  let focusAreas = getFocusAreaAsTurfObject(focusAreaId)
 
-  if (focusAreaId) {
-    focusAreas.features = focusAreas.features.filter(feature => {
-      return feature.id == focusAreaId
-    })
-  } else {
-    // take the entire grasbrook
-    const grasbrook = GrasbrookGeoJson as turf.GeoJSONObject
-    focusAreas.features = grasbrook["features"]
-  }
+  let hourlyActivity = hourlyAgentActivityForRegion(focusAreas)
+  let results = calculatePedestrianIndices(focusAreas, hourlyActivity)
 
-  let results = calculatePedestrianIndices(focusAreas)
   let abmStats = store.state.scenario.abmStats || {}
 
   const id = focusAreaId || "grasbrook"
@@ -52,13 +72,7 @@ export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
   store.commit("scenario/updateAbmStatsChart", true)
 }
 
-
-/*
- * Filter timePaths for all path-points within the region
- * Compute stats based on pedestrian counts in region (hour for hour)
- */
-function calculatePedestrianIndices(forRegion) {
-  console.log("calculating pedestrian indices")
+function hourlyAgentActivityForRegion(forRegion) {
   let pedestrianCountsPerHour = {}
   let matchedPointsPerHour = {}  // collection of Points with active agents within the investigation region
 
@@ -74,17 +88,35 @@ function calculatePedestrianIndices(forRegion) {
     pedestrianCountsPerHour[hour] = currentPedCount
   }
 
-  console.log("pedestrianCountsPerHour")
-  console.log(pedestrianCountsPerHour)
+  return {
+    "activePoints": matchedPointsPerHour,
+    "agentCounts": pedestrianCountsPerHour
+  }
+}
 
-  // calculate pedestrian density
-  let pedestrianSum = (Object.values(pedestrianCountsPerHour).reduce((result: number, value: number) => {
+
+function calculatePedestrianSumPerDay(pedestrianCountsPerHour) {
+  return (Object.values(pedestrianCountsPerHour).reduce((result: number, value: number) => {
     return result + value
   }, 0) as number)
+}
 
-  let pedestrianDensity = Math.round((pedestrianSum / turf.area(forRegion)) * 1000) / 1000
-  console.log("pedestrianSum", pedestrianSum)
-  console.log("pedestrianDensity in people / m²", pedestrianDensity)
+function calculatePedestrianDensity(pedestrianSum, forRegion) {
+  return Math.round((pedestrianSum / turf.area(forRegion)) * 1000) / 1000
+}
+
+/*
+ * Filter timePaths for all path-points within the region
+ * Compute stats based on pedestrian counts in region (hour for hour)
+ */
+function calculatePedestrianIndices(forRegion, hourlyActivity) {
+
+  let matchedPointsPerHour = hourlyActivity["activePoints"]
+  let pedestrianCountsPerHour = hourlyActivity["agentCounts"]
+
+  // calculate pedestrian density
+  let pedestrianSum = calculatePedestrianSumPerDay(pedestrianCountsPerHour)
+  let pedestrianDensity = calculatePedestrianDensity(pedestrianSum, forRegion)
 
   /*
    * calculate the Shannon Index as temporal entropy

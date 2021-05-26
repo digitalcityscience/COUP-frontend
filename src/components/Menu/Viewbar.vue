@@ -1,13 +1,14 @@
 <script>
 import { mapState } from 'vuex'
 import {generateStoreGetterSetter} from "@/store/utils/generators";
-import UseTypesLegend from "@/components/Menu/UseTypesLegend.vue";
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
+import {filterAndScaleLayerData} from "@/store/scenario/multiLayerAnalysis";
+import legends from '@/config/legends.json'
 
 export default {
     name: 'Viewbar',
-    components: { UseTypesLegend },
+    components: { },
     props: {
       restrictedAccess: Boolean
     },
@@ -18,25 +19,18 @@ export default {
             showUi: true,
             visibility: {
                 layers: false,
+                legends: false,
                 buildings: false,
                 slider: false,
-            },
-            visibleLayers: {
-                focusAreas: false,
-                abm: true,
-                heat: true,
-                noise: true,
-                stormwater: true,
-                microclimate: true,
-                multiLayerAnalysis: true,
             },
             visibleBuildings: {
                 show: true,
                 highlight: false,
                 amenities: true,
             },
-            legendVisible: false,
             presentationRunning: false,
+            legendVisible: false,
+            buildingUses: legends.buildingUses
         }
     },
     computed: {
@@ -51,7 +45,8 @@ export default {
         ]),
       ...generateStoreGetterSetter([
         ['allFeaturesHighlighted', 'allFeaturesHighlighted' ],
-        ['showLegend', 'showLegend' ],
+        ['visibleLayers', 'visibleLayers' ],
+        // todo is this used somewhre ??['showLegend', 'showLegend' ],
         ['focusAreasShown', 'focusAreasShown' ]
       ]),
       layerIds() {
@@ -72,8 +67,11 @@ export default {
       stormWater(){
           return this.$store.state.scenario.stormWater;
       },
-      microClimate(){
-          return this.$store.state.scenario.microClimate;
+      wind(){
+          return this.$store.state.scenario.windLayer;
+      },
+      sunExposure(){
+          return this.$store.state.scenario.sunExposureLayer;
       },
       multiLayerAnalysis(){
           return this.$store.state.scenario.multiLayerAnalysisMap;
@@ -86,10 +84,22 @@ export default {
         },
         noiseMap(){},
         stormWater(){},
-        microClimate(){},
+        wind(newVal, oldVal){
+          this.visibleLayers.wind = newVal
+        },
         focusAreasShown(newVal, oldVal){
           this.visibleLayers.focusAreas = newVal
         },
+        legendVisible(newVale, oldVal) {
+          console.log("legendVisible", newVale)
+        },
+        visibleLayers: {
+            deep: true,
+            handler() {
+            console.warn("visible layers watched")
+            this.updateLayerVisibility()
+          }
+        }
     },
   methods:{
         toggleUi(){
@@ -104,12 +114,7 @@ export default {
                 pitch: this.view.pitch,
             });
         },
-        changeBrightness(){
-            const mapCanvas = document.querySelector(".mapboxgl-canvas");
-            let brightnessValue = 1 + this.brightness/100;
-            let satureateValue = 1 + this.brightness/500;
-            mapCanvas.style.filter = "brightness(" + brightnessValue + ") saturate("+ satureateValue +")";
-        },
+        /** TODO completely unused ??
         openUseTypesLegend(){
           this.showLegend = true
           this.$modal.show(
@@ -117,9 +122,8 @@ export default {
             {},
             {draggable: true, width:200, adaptive: true, clickToClose: true,  shiftX: 0.025, shiftY: 0.1}
           )
-        },
-        highlightAllFeatures(){
-
+        }, */
+        colorizeBuildingsByUseType(){
             this.$store.commit("scenario/loader", true);
             console.log(this.loader)
 
@@ -177,6 +181,12 @@ export default {
                 this.map.setLayoutProperty("abmAmenities", 'visibility', 'visible');
             }
         },
+        showBuildingUses() {
+          this.legendVisible = !this.legendVisible
+          this.colorizeBuildingsByUseType()
+        },
+
+        // todo this really needs to be refactored to use a central function which takes layers as arguments
         updateLayerVisibility(){
             console.log(this.layerIds);
             if(this.layerIds.indexOf("abmTrips") > -1){
@@ -199,6 +209,19 @@ export default {
                 //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
             }
 
+            if(this.layerIds.indexOf("abmAmenities") > -1){
+              if(this.visibleLayers.amenities){
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'visible');
+                //this.$store.commit("scenario/heatMapVisible", true);
+              } else {
+                this.map.setLayoutProperty("abmAmenities", 'visibility', 'none');
+                //this.$store.commit("scenario/heatMapVisible", false);
+              }
+
+              //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
+            }
+
+
             if(this.layerIds.indexOf("noise") > -1){
                 if(this.visibleLayers.noise){
                     this.map.setLayoutProperty("noise", 'visibility', 'visible');
@@ -206,6 +229,21 @@ export default {
                 } else {
                     this.map.setLayoutProperty("noise", 'visibility', 'none');
                     this.map.setLayoutProperty("trafficCounts", 'visibility', 'none');
+                }
+            }
+
+            if(this.layerIds.indexOf("wind") > -1){
+                if(this.visibleLayers.wind){
+                    this.map.setLayoutProperty("wind", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("wind", 'visibility', 'none');
+                }
+            }
+            if(this.layerIds.indexOf("sun_exposure") > -1){
+                if(this.visibleLayers.sunExposure){
+                    this.map.setLayoutProperty("sun_exposure", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("sun_exposure", 'visibility', 'none');
                 }
             }
             if(this.layerIds.indexOf("focusAreas") > -1){
@@ -270,20 +308,27 @@ export default {
 <template>
    <div id="viewbar">
        <div class="button_bar">
-         <v-btn v-if="restrictedAccess" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
-         <!--<v-btn v-if="allFeaturesHighlighted"  @click="openUseTypesLegend" v-bind:class="{ circleObject: showLegend }"><v-tooltip right>
-             <template v-slot:activator="{ on, attrs }">
-               <v-icon
-                 v-bind="attrs"
-                 v-on="on"
-               >mdi-map-legend</v-icon>
-             </template>
-             <span>Use Types Legend</span>
-           </v-tooltip>
-           </v-btn>-->
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-city</v-icon> <div class="infobox"><p>Residential</p></div></v-btn>
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #ab0124;">mdi-city</v-icon> <div class="infobox"><p>Commercial</p></div></v-btn>
-        <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Special Use</p></div></v-btn>
+         <!-- show BIM version -->
+         <v-btn v-if="restrictedAccess && !legendVisible" class="legend"><v-icon style="color: #1380AB;">mdi-city</v-icon> <div class="infobox"><p>Version Oct. 2020</p></div></v-btn>
+         <!-- LEGENDS -->
+         <!-- Headline -->
+         <v-btn v-if="legendVisible" class="legend"><v-icon style="color: #FFD529;">mdi-map-legend</v-icon> <div class="infobox"><p>{{ buildingUses.headline }}</p></div></v-btn>
+         <!-- iterate over all items in legendCategories and display icon and label for each -->
+         <v-data-iterator v-if="legendVisible"
+                          :items="buildingUses.categories"
+                          :hide-default-footer="true"
+         >
+           <template v-slot:default="{ items }">
+             <!-- Each legend category has an icon, color and a label to display -->
+             <v-flex v-for="(item, index) in items" :key="index">
+               <v-btn v-if="legendVisible" class="legend">
+                 <v-icon :color="item.color">{{ buildingUses.icon }}</v-icon>
+                 <div class="infobox"><p>{{ item.label }}</p></div>
+               </v-btn>
+             </v-flex>
+           </template>
+         </v-data-iterator>
+         <!-- BUILDING MENU -->
          <v-btn v-if="!restrictedAccess" v-bind:class="{ highlight: visibility.buildings }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
             <span @click="checkHighlights('buildings')">
@@ -293,7 +338,7 @@ export default {
              >mdi-city</v-icon>
              </span>
            </template>
-           <span>Highlight All Buildings</span>
+           <span>Buildings</span>
          </v-tooltip>
          <div v-if="visibility.buildings" class="view_popup buildings">
              <v-checkbox
@@ -304,14 +349,6 @@ export default {
                 hide-details
              ></v-checkbox>
              <v-checkbox
-                v-model="visibleBuildings.highlight"
-                label="Highlight All Buildings"
-                @change="highlightAllFeatures"
-                dark
-                hide-details
-                :disabled="visibleBuildings.show == false"
-             ></v-checkbox>
-             <v-checkbox
                 v-model="visibleBuildings.amenities"
                 label="Show Amenities"
                 @change="updateBuildingVisibility"
@@ -319,15 +356,16 @@ export default {
                 hide-details
                 :disabled="activeAbmSet == null"
              ></v-checkbox>
-             <v-btn class="legendbutton" @click="legendVisible = !legendVisible">
+             <v-btn class="legendbutton" @click="showBuildingUses">
                  <v-icon>mdi-map-legend</v-icon>
                 <template v-if="legendVisible">Hide Use Type Legend</template>
                 <template v-else>Show Use Type Legend</template>
              </v-btn>
          </div>
          </v-btn>
-         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
 
+         <!-- Layer Visibility Menu -->
+         <v-btn v-bind:class="{ highlight: visibility.layers }"><v-tooltip right>
            <template v-slot:activator="{ on, attrs }">
                <span  @click="checkHighlights('layers')">
              <v-icon
@@ -371,12 +409,21 @@ export default {
                     hide-details
                     :disabled="!heatMap"
                  ></v-checkbox>
+               <v-checkbox
+                    v-model="visibleLayers.amenities"
+                    label="ABM Amenities"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="activeAbmSet == null"
+                 ></v-checkbox>
              </div>
              <div class="layers">
                  <h3>Noise Layers</h3>
                  <v-checkbox
                     v-model="visibleLayers.noise"
-                    label="Noise Polution"
+                    label="Traffic Noise"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
@@ -397,15 +444,24 @@ export default {
                  ></v-checkbox>
              </div>
              <div class="layers">
-                 <h3>Microclimate Layers</h3>
+                 <h3>Climate Layers</h3>
                  <v-checkbox
-                    v-model="visibleLayers.microclimate"
-                    label="Microclimate Layer"
+                    v-model="visibleLayers.wind"
+                    label="Wind Layer"
                     color="white"
                     dark
                     @change="updateLayerVisibility"
                     hide-details
-                    :disabled="!microClimate"
+                    :disabled="!wind"
+                 ></v-checkbox>
+               <v-checkbox
+                    v-model="visibleLayers.sunExposure"
+                    label="Sun Exposure"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!sunExposure"
                  ></v-checkbox>
              </div>
            <div class="layers">
@@ -422,37 +478,7 @@ export default {
              </div>
          </div>
          </v-btn>
-         <v-btn class="light_view" v-bind:class="{ highlight: visibility.slider }" @click="checkHighlights('slider')"> <v-tooltip right>
-                 <template v-slot:activator="{ on, attrs }">
-                   <v-icon
-                     v-bind="attrs"
-                     v-on="on"
-                   >mdi-lightbulb-on-outline</v-icon>
-                 </template>
-                 <span>Adjust Brightness</span>
-               </v-tooltip>
-                <div class="popup_cnt" v-if="visibility.slider">
-                    <p>Adjust Map Lighting</p>
-                    <v-slider
-                        dark
-                        min="1"
-                        max="100"
-                        v-model="brightness"
-                        @change="changeBrightness"
-                    >
-                    <template v-slot:append>
-                        <v-text-field
-                            :value="brightness"
-                            class="mt-0 pt-0"
-                            single-line
-                            readonly
-                            type="number"
-                        ></v-text-field>
-                    </template>
-                    </v-slider>
-                </div>
-           </v-btn>
-           <v-btn class="reset_view" @click="resetView">
+         <v-btn class="reset_view" @click="resetView" style="margin-top: 30px;">
              <v-tooltip right>
                <template v-slot:activator="{ on, attrs }">
                  <v-icon
@@ -481,15 +507,6 @@ export default {
              </v-tooltip>
            </v-btn>
         </div>
-
-        <!--<div class="building_legend" v-if="legendVisible">
-            <h3>Building Use Types</h3>
-            <ul>
-                <li><v-icon class="yellow">mdi-city</v-icon><p>Residential</p></li>
-                <li><v-icon class="red">mdi-city</v-icon><p>Commercial</p></li>
-                <li><v-icon class="blue">mdi-city</v-icon><p>Special Use</p></li>
-            </ul>
-        </div>-->
         <div class="rogue_btn" v-if="!showUi" :class="{ toggled: presentationRunning }">
             <v-btn @click="presentationMode">
                 <v-tooltip left>
@@ -509,6 +526,10 @@ export default {
 <style scoped lang='scss'>
     @import "../../style.main.scss";
 
+    .v-tooltip__content--fixed {
+      margin-left: 10px;
+    }
+
     #viewbar {
         position:fixed;
         left:10px;
@@ -517,18 +538,37 @@ export default {
         width:auto;
         background:transparent;
 
+
         .button_bar {
             display:flex;
             flex-flow:column wrap;
             width:40px;
 
-            .v-btn {
-                width:40px;
-                min-width:0px;
-                height:30px;
-                margin:2px;
-                background:rgba(255,255,255,0.9);
-                @include drop_shadow;
+
+
+          .legend {
+            display: block;
+            position: relative;
+            width:150px;
+            //min-height:200px;
+            background: rgba(0, 0, 0, 0.9);
+            max-width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            @include drop_shadow;
+          }
+
+
+
+
+          .v-btn {
+            width:40px;
+            min-width:0px;
+            height:30px;
+            margin:2px;
+            background:rgba(255,255,255,0.9);
+            @include drop_shadow;
+
 
                 &.legend {
                     pointer-events:none;
@@ -550,34 +590,35 @@ export default {
                         }
                     }*/
 
-                    .infobox {
-                        width:115px;
-                        height:28px;
-                        position:absolute;
-                        top:0;
-                        left:34px;
-                        background:rgba(0,0,0,0.75);
-                        @include drop_shadow;
-
-                        p {
-                            text-transform: none;
-                            color:whitesmoke;
-                            line-height:28px;
-                            font-size:90%;
-                            font-weight:300;
-                        }
+                  .infobox {
+                    width:115px;
+                    height:28px;
+                    position:absolute;
+                    top:-1;
+                    left:40px;
+                    background:rgba(0,0,0,0.75);
+                    @include drop_shadow;
+                    p {
+                      text-transform: none;
+                      color:whitesmoke;
+                      line-height:28px;
+                      font-size:90%;
+                      font-weight:300;
                     }
+                  }
                 }
 
                 .v-icon {
                     font-size:18px;
                 }
 
+                // the element that folds out
+                //  if button in button bar is clicked
                 .view_popup {
                     position:absolute;
-                    left:34px;
+                    left:45px;
                     top:50%;
-                    transform:translateY(-50%);
+                    transform:translateY(-25%);
                     width:200px;
                     background:rgba(0,0,0,0.8);
                     @include drop_shadow;
@@ -601,10 +642,12 @@ export default {
                         }
                     }
 
-                    .v-input--checkbox {
+                  // checkboxes
+                    .v-input--checkbox{
                         margin:5px 5px 5px 20px;
 
                         ::v-deep.v-input__control {
+
                             label {
                                 text-transform:none;
                                 color:white;
@@ -614,26 +657,46 @@ export default {
                         }
                     }
 
-                    .legendbutton {
-                        width:calc(100% - 20px);
-                        background:$reversed;
-                        color:whitesmoke;
-                        font-size:85%;
-                        font-weight:300;
-                        text-transform:none;
-                        border-radius:0px;
-                        margin:10px auto;
+                  .v-radio {
+                    margin:5px 5px 5px 20px;
+                  }
 
-                        .v-icon {
-                            margin-right:5px;
-                        }
+
+                  // radio buttons
+                  .v-input--selection-controls {
+                    color: rgba(211,211,211,0.5); // lightgrey, 50%
+
+                    ::v-deep.v-input__control {
+                      label {
+                        text-transform:none;
+                        color:white;
+                        font-size:90%;
+                        font-weight:200;
+                      }
+
                     }
+                  }
+
+                  .legendbutton {
+                      width:calc(100% - 20px);
+                      background:$reversed;
+                      color:whitesmoke;
+                      font-size:85%;
+                      font-weight:300;
+                      text-transform:none;
+                      border-radius:0px;
+                      margin:10px auto;
+
+                      .v-icon {
+                          margin-right:5px;
+                      }
+                  }
                 }
 
                 .popup_cnt {
                     position:absolute;
                     left:34px;
-                    top:0x;
+                    top:0;
                     width:200px;
                     background:rgba(0,0,0,0.8);
                     @include drop_shadow;

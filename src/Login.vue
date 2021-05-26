@@ -2,6 +2,7 @@
 import { mapActions } from "vuex";
 import App from './App.vue'
 import CityPyoDefaultUser from '@/config/cityPyoDefaultUser.json'
+import xlImage from '@/assets/login_background_1900.png'
 
 export default {
   name: "Login",
@@ -21,8 +22,11 @@ export default {
         username: "",
         password: "",
       },
-      showError: false
-    };
+      passwordFieldType: "password",
+      passwordIcon: "mdi-eye",
+      showError: false,
+      backgroundImage: xlImage
+    }
   },
   mounted(){
     if (process.env.NODE_ENV === 'development') {
@@ -36,6 +40,10 @@ export default {
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
+    switchVisibility() {
+      this.passwordFieldType = this.passwordFieldType === "password" ? "text" : "password";
+      this.passwordIcon = this.passwordFieldType === "password" ? "mdi-eye" : "mdi-eye-off";
+    },
     async submit() {
       this.authenticated = false;
 
@@ -48,85 +56,163 @@ export default {
       this.authenticated =  loginResult.authenticated
       if (this.authenticated) {
         this.restrictedAccess = loginResult.restricted
+        this.applyCustomMapSettings()
+
+        if (this.restrictedAccess) {
+          alert(
+            "Disclaimer \n" +
+            "The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.\n" +
+            "The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.\n" +
+            "Scientific validity of the results cannot be guaranteed in the testing phases.\n"
+            )
+        }
+
       }
       this.showError = !this.authenticated
     },
-  },
+    // see if the user has a custom map center specified on cityPyo - if not - continue using app default
+    async applyCustomMapSettings() {
+      let customMapSettings = await this.$store.state.cityPyO.getLayer('mapSettings', false)
+
+      if (typeof customMapSettings === 'object' && customMapSettings !== null) {
+        this.$store.state.map?.setCenter(customMapSettings["mapCenter"])
+        this.$store.state.map?.setBearing(customMapSettings["bearing"])
+      }
+    }
+  }
 };
 </script>
 
 <template>
   <v-app>
-      <div class="login" v-if="!authenticated" :style="{ backgroundImage: 'url(' + require('@/assets/grasbrook.png')}">
-        <div>
-          <form @submit.prevent="submit">
+        <div v-if="!authenticated" class="login_background" :style="{backgroundImage: `url(${backgroundImage})`}">
             <div>
-              <label for="username">Username:</label>
-              <input type="text" name="username" v-model="form.username" />
+              <form @submit.prevent="submit" class="submit_form" >
+                <div>
+                  <label for="username">Username</label>
+                  <input id="input_field_user" type="text" name="username" v-model="form.username" />
+                </div>
+                <label for="password">Password <v-icon color="white" @click="switchVisibility">
+                  {{ passwordIcon }}</v-icon></label>
+                <input id="input_field_pw" :type="passwordFieldType" name="password" v-model="form.password">
+                <!-- submit button -->
+                <div>
+                <v-btn class="submit_button" type="submit">Access</v-btn>
+                <p v-if="showError" id="error">Username or Password is incorrect</p>
+                </div>
+              </form>
             </div>
-            <div>
-              <label for="password">Password:</label>
-              <input type="password" name="password" v-model="form.password" />
-            </div>
-            <button type="submit">Access</button>
-            <p v-if="showError" id="error">Username or Password is incorrect</p>
-          </form>
-        </div>
-      </div>
+    </div>
     <template v-if="authenticated">
       <App :restrictedAccess="restrictedAccess" />
     </template>
   </v-app>
 </template>
 
-<style scoped>
+<style scoped lang='scss'>
+   @import "style.main.scss";
 
-.public_teaser {
-  padding: 20px;
-}
+  .login_background {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    transition:0.3s;
+    background-color: rgba(0,0,0,1);
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
 
-.login {
-  width: 100%;
-  height: 100%;
-  background-position: center 0;
-  opacity: 0.7;
-}
+  .submit_form {
+    width: 250px;
+    padding:10px;
+    box-sizing: border-box;
+    color: whitesmoke;
+    font-family: 'Tajawal', sans-serif;
+    background: rgb(41,66,82, 0.5);
+    border:1px solid #888;
+    margin:300px auto;
 
-* {
-  box-sizing: border-box;
-}
+    @media(min-device-width:600px) {
+      margin: 300px auto;
+    }
+    @media(max-device-height:800px) {
+      margin: 100px auto;
+    }
+  }
 
-form {
-  margin-top: 40vh;
-  margin-left: 40vw;
-  color: white;
-}
+  .submit_button{
+    background: #0176AC !important;
+    color: whitesmoke;
+    box-shadow: 0px 15px 25px -10px rgb(0 0 0 / 75%);
+    border-radius: 0;
+    text-shadow: none;
+    width: calc(100% - 30px);
+    margin-top: 20px;
+  }
 
-label {
-  font-weight: bolder;
-  padding: 12px 12px 12px 0;
-  display: inline-block;
-}
-button[type=submit] {
-  background-color: #4CAF50;
-  color: white;
-  padding: 12px 20px;
-  cursor: pointer;
-  border-radius:30px;
-}
-button[type=submit]:hover {
-  background-color: #45a049;
-}
-input {
-  margin: 5px;
-  box-shadow:0 0 15px 4px rgba(0,0,0,0.06);
-  padding:10px;
-  border-radius:30px;
-  background-color: #E8F0FE !important;
-  color: black;
-}
-#error {
-  margin-top: 20px;
-  color: red;
-}
+  #input_field_user {
+    width: calc(100% - 30px);
+    max-height: 30px;
+    margin:0;
+    background-color: #444444;
+    opacity: 0.5;
+    color: whitesmoke;
+    border-color: rgb(111, 111, 111);
+    border-width: 2px !important;
+    border-top-width: 4px;
+    border-style: solid;
+  }
+
+  #input_field_pw {
+      width: calc(100% - 30px);
+      max-height: 30px;
+      margin:0;
+      background-color: #444444;
+      opacity: 0.5;
+      color: whitesmoke;
+      border-color: rgb(111, 111, 111);
+      border-width: 2px !important;
+      border-top-width: 4px;
+      border-style: solid;
+
+    .textarea {
+      color: white !important;
+    }
+    }
+
+  form {
+    margin-top: 20vh;
+    margin-left: 60vw;
+    color: white;
+    position: relative;
+  }
+
+  label {
+    font-weight: bold;
+    display: block;
+    color: white;
+    text-align: left !important;
+    margin-top: 10px;
+    margin-left: 15px;
+  }
+
+  input {
+    margin: 10px;
+    padding:10px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: whitesmoke !important;
+  }
+
+   .v-icon {
+     font-size:18px;
+     display: inline-block;
+   }
+
+  #error {
+    margin-top: 20px;
+    color: red;
+  }
 </style>

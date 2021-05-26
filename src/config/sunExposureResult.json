@@ -1,44 +1,48 @@
 {
   "layer": {
-    "id": "noise",
+    "id": "sun_exposure",
     "type": "fill-extrusion",
-    "source": "noise",
+    "source": "sun_exposure",
     "paint": {
       "fill-extrusion-height": 0.2,
       "fill-extrusion-base": 0.25,
       "fill-extrusion-opacity": 0.8,
       "fill-extrusion-color": [
         "match",
-        [
-          "get",
-          "idiso"
-        ],
+
+         ["*", ["get", "value"], 10],
         0,
-        "#B8D6D1",
+        "#2c7bb6",
         1,
-        "#CEE4CC",
+        "#bae0e2",
         2,
-        "#E2F2BF",
+        "#dcefd1",
         3,
-        "#F3C683",
+        "#fdfec0",
         4,
-        "#E87E4D",
+        "#ffeeab",
         5,
-        "#CD463E",
+        "#ffdb95",
         6,
-        "#A11A4D",
+        "#fec87f",
         7,
-        "#75085C",
+        "#feb569",
+        8,
+        "#fea464",
+        9,
+        "#fe9469",
+        10,
+        "#ff836e",
         "black"
       ]
     }
   },
   "mapSource": {
-    "id": "noise",
+    "id": "sun_exposure",
     "type": "geojson",
     "data": {
       "from": "cityPyO",
-      "id": "noise"
+      "id": "sun_exposure"
     }
   }
 }

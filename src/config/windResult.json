@@ -1,44 +1,38 @@
 {
   "layer": {
-    "id": "noise",
+    "id": "wind",
     "type": "fill-extrusion",
-    "source": "noise",
+    "source": "wind",
     "paint": {
       "fill-extrusion-height": 0.2,
       "fill-extrusion-base": 0.25,
       "fill-extrusion-opacity": 0.8,
       "fill-extrusion-color": [
         "match",
-        [
-          "get",
-          "idiso"
-        ],
+
+         ["*", ["get", "value"], 10],
         0,
-        "#B8D6D1",
-        1,
-        "#CEE4CC",
+        "#6971b4",
         2,
-        "#E2F2BF",
-        3,
-        "#F3C683",
+        "#95d3e0",
         4,
-        "#E87E4D",
-        5,
-        "#CD463E",
+        "#90c363",
         6,
-        "#A11A4D",
-        7,
-        "#75085C",
+        "#f4ec7d",
+        8,
+        "#fbc46f",
+        10,
+        "#ee7679",
         "black"
       ]
     }
   },
   "mapSource": {
-    "id": "noise",
+    "id": "wind",
     "type": "geojson",
     "data": {
       "from": "cityPyO",
-      "id": "noise"
+      "id": "wind"
     }
   }
 }
