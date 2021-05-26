@@ -8,7 +8,6 @@ export default {
     data() {
         return {
           images: {
-
             logoAIT: require('@/assets/AIT_Logo_new.png'),
             logoCIL: require('@/assets/cil_logo_new.png'),
             logoInfrared: require('@/assets/infrared_logo_new.png')
@@ -86,15 +85,15 @@ export default {
     #logos_ait {
       position: fixed;
       bottom: 10px;
-      right: 350px;
+      right: 300px;
       width: auto;
       height: auto;
-      max-width: 750px;
+      max-width: 500px;
       max-height: 150px;
       padding: 10px;
 
       @media(max-device-width: 720px) {
-        max-width: 50vw;
+        max-width: 30vw;
       }
     }
 
