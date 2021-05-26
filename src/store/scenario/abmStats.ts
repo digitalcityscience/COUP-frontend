@@ -4,15 +4,15 @@ import GrasbrookGeoJson from '@/assets/grasbrookArea.json'
 
 
 export async function calcAbmStatsForMultiLayer() {
-  let multiLayerStats = {}
+  let multiLayerStats = store.state.scenario.abmStatsMultiLayer || {}
 
   const focusAreaIds = store.state.focusAreasGeoJson["features"].map(feat => {
     return feat.id
   })
 
   for (const focusAreaId of focusAreaIds) {
-    multiLayerStats[focusAreaId] = {}
     if (!store.state.scenario.abmStatsMultiLayer[focusAreaId]) {
+      multiLayerStats[focusAreaId] = {}
       let focusArea = getFocusAreaAsTurfObject(focusAreaId)
       let hourlyActivity = hourlyAgentActivityForRegion(focusArea)
       let pedestrianCountsPerHour = hourlyActivity["agentCounts"]

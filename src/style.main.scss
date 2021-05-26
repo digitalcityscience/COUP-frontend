@@ -207,6 +207,10 @@ body, html {
             text-align:left;
         }
 
+        .v-card {
+            box-shadow: none;
+        }
+
         .v-select {
             font-size: 10px;
             overflow: visible;
@@ -314,23 +318,9 @@ body, html {
                 cursor:pointer;
             }
         }
-        .disclaimer {
-            position: absolute;
-            display: block;
-            bottom: 20px;
-            right: 10px;
+        .info_text {
             color:$bright1;
-
-            h2 {
-                text-align: center;
-            }
-
-            @media(max-device-width:1024px) {
-               position: relative;
-            }
-            @media(max-device-height:700px) {
-                display: none;
-            }
+            text-align: left;
         }
     }
 }

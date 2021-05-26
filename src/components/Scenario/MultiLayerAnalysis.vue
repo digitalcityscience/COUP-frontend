@@ -14,38 +14,97 @@ export default {
     components: {},
     data () {
         return {
-            activeDivision:null,
-            componentDivisions: [],
-            showError: false,
-            allDataProvided: false,
-            selectValue_1: null,
-            selectValue_2: null,
-            sliderValues_1: [],
-            sliderValues_2: [],
-            showSubSelection_1: false,
-            showSubSelection_2: false,
-            subSelectionLayer_1: null,
-            subSelectionLayer_2: null,
-            emptyDataWarning: false,
-            resultOutdated: false,
-            availableResultLayers: [
-              // TODO adjust ranges for amenity stats!??
-              // add corresponding result file source in multiLayerAnalysis.ts  -> layerLookup()
-              {"label": 'Traffic Noise', "value": "noise", "unit": "dB", "range": [45,80], "step": 5},
-              {"label": 'Amenity Types', "value": "Amenity Types", "unit": "unique place types", "range": [0, 20], "step": 1},
-              {"label": 'Amenity Density', "value": "Density", "unit": "places/km²", "range": [0,850], "step": 1},
-              {"label": 'Pedestrian Density', "value": "pedestrianDensity", "unit": "pedestrians/m²", "range": [0,0.3], "step": 0.01},
-              {"label": 'Wind Speed', "value": "wind", "unit": "Lawson Criteria", "range": [0,1], "step": 0.2},
-              {"label": 'Sun Exposure', "value": "sun", "unit": "h/day", "range": [0,1], "step": 0.1},
-            ],
-            select_Options_1: [],
-            select_Options_2: [],
-            logicOptions: [
+          activeDivision: null,
+          componentDivisions: [],
+          showError: false,
+          missingInputScenarios: [],
+          showMissingScenarios: false,
+          layersReadyToCompare: [],
+          layerChoice_1: null,
+          layerChoice_2: null,
+          criteriaChoice_1: null,
+          criteriaChoice_2: null,
+          sliderValues_1: [],
+          sliderValues_2: [],
+          criteriaLayer_1: null,
+          criteriaLayer_2: null,
+          enableCriteriaLayer_1: false,
+          enableCriteriaLayer_2: false,
+          emptyDataWarning: false,
+          resultOutdated: false,
+          allResultCriteria: [
+            // TODO adjust ranges for amenity stats!??
+            // add corresponding result file source in multiLayerAnalysis.ts  -> layerLookup()
+            {
+              "layerName": "Noise",
+              "label": "Traffic Noise",
+              "value": "noise",
+              "unit": "dB",
+              "range": [45, 80],
+              "step": 5
+            },
+            {
+              "layerName": "Abm",
+              "label": "Pedestrian Density",
+              "value": "pedestrianDensity",
+              "unit": "pedestrians/m²",
+              "range": [0, 0.3],
+              "step": 0.01
+            },
+            {
+              "layerName": "Abm",
+              "label": "Amenity Types",
+              "value": "Amenity Types",
+              "unit": "unique place types",
+              "range": [0, 20],
+              "step": 1
+            },
+            {
+              "layerName": "Abm",
+              "label": "Amenity Density",
+              "value": "Density",
+              "unit": "places/km²",
+              "range": [0, 850],
+              "step": 1
+            },
+            {
+              "layerName": "Wind",
+              "label": "Wind Speed",
+              "value": "wind",
+              "unit": "Lawson Criteria",
+              "range": [0, 1],
+              "step": 0.2
+            },
+            {
+              "layerName": "Sun",
+              "label": "Sun Exposure",
+              "value": "sun",
+              "unit": "h/day",
+              "range": [0, 1],
+              "step": 0.1
+            },
+          ],
+          availableResultCriteria: [],
+          criteriaOptions_1: [],
+          criteriaOptions_2: [],
+          presetOptions: {
+            "Custom": [0,100],
+            "Very Low": [0,10],
+            "Low": [0,33],
+            "Medium": [33,66],
+            "High": [66,100],
+            "Very High": [90,100]
+          },
+          preset_1: "High",
+          preset_2: "High",
+          logicOptions: [
               {"label": "AND", "value": "and"},
               {"label": "AND NOT", "value": "and_not"},
             ],
-            logicOperator: null,
-            resultLookups: {}
+          logicOperator: null,
+          resultLookups: {},
+          allSimulationResults: null,
+          combinedLayers: null
         }
     },
   computed: {
@@ -54,29 +113,87 @@ export default {
       ...generateStoreGetterSetter([
       ['activeMenuComponent', 'activeMenuComponent'],
       ['visibleLayers', 'visibleLayers'],
-      ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
-      ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
+      ['noiseScenario', 'scenario/noiseScenario'],
+      ['currentWindScenario', 'scenario/currentWindScenario'],
+      ['windScenarioHash', 'scenario/windScenarioHash'],
+      ['abmSettings', 'scenario/moduleSettings'],
     ]),
-    activeAbmSet(){
+    currentAbmResult(){
       return this.$store.state.scenario.activeAbmSet;
     },
     currentNoiseResult(){
       return this.$store.state.scenario.currentNoiseGeoJson;
     },
+    currentWindResult(){
+      return this.$store.state.scenario.windResultGeoJson;
+    },
+    currentSunResult(){
+      return this.$store.state.scenario.sunExposureGeoJson;
+    },
     },
     watch: {
+      layerChoice_1(newVal, oldVal) {
+        // update options for selectable indexes (to be combined to new layer)
+        console.warn("topic 1 changed")
+
+        this.criteriaOptions_1 = this.availableResultCriteria.filter(option => {
+          return option.layerName === this.layerChoice_1
+        })
+        this.criteriaChoice_1 = this.criteriaOptions_1[0]
+        this.sliderValues_1 = this.criteriaChoice_1.range
+      },
+      layerChoice_2(newVal, oldVal) {
+        this.criteriaOptions_2 = this.availableResultCriteria.filter(option => {
+          return option.layerName === this.layerChoice_2
+        })
+        this.criteriaChoice_2 = this.criteriaOptions_2[0]
+        this.sliderValues_2 = this.criteriaChoice_2.range
+      },
+      criteriaChoice_1: {
+        deep: true,
+        handler() {
+          console.warn("criteria layer 1 changed", this.criteriaChoice_1)
+          if (this.criteriaChoice_1.label === this.criteriaChoice_2.label) {
+            this.showError = true
+          } else {
+            this.sliderValues_1 = this.getValueForPreset(this.preset_1, this.criteriaChoice_1.range)
+            const request = {
+              "layerName": this.criteriaChoice_1.value,
+              "layerRange": this.criteriaChoice_1.range,
+              "layerConstraints": this.sliderValues_1,
+            }
+            this.criteriaLayer_1 = filterAndScaleLayerData(request)
+          }
+        }
+      },
+      criteriaChoice_2: {
+        deep: true,
+        handler() {
+          if (this.criteriaChoice_1.label === this.criteriaChoice_2.label) {
+            this.showError = true
+          } else {
+            this.sliderValues_2 = this.getValueForPreset(this.preset_2, this.criteriaChoice_2.range)
+            const request = {
+              "layerName": this.criteriaChoice_2.value,
+              "layerRange": this.criteriaChoice_2.range,
+              "layerConstraints": this.sliderValues_2,
+            }
+            this.criteriaLayer_2 = filterAndScaleLayerData(request)
+          }
+        }
+      },
       sliderValues_1: {
         deep: true,
         handler() {
           const request = {
-            "layerName": this.selectValue_1.value,
-            "layerRange": this.selectValue_1.range,
+            "layerName": this.criteriaChoice_1.value,
+            "layerRange": this.criteriaChoice_1.range,
             "layerConstraints": this.sliderValues_1,
           }
-          this.subSelectionLayer_1 = filterAndScaleLayerData(request)
-          this.emptyDataWarning = this.subSelectionLayer_1.features.length === 0;
-          if (this.showSubSelection_1) {
-            this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_1.features)
+          this.criteriaLayer_1 = filterAndScaleLayerData(request)
+          this.emptyDataWarning = this.criteriaLayer_1.features.length === 0;
+          if (this.enableCriteriaLayer_1) {
+            this.$store.dispatch("scenario/addSubSelectionLayer", this.criteriaLayer_1.features)
           }
         }
       },
@@ -84,98 +201,99 @@ export default {
         deep: true,
         handler() {
           const request = {
-            "layerName": this.selectValue_2.value,
-            "layerRange": this.selectValue_2.range,
+            "layerName": this.criteriaChoice_2.value,
+            "layerRange": this.criteriaChoice_2.range,
             "layerConstraints": this.sliderValues_2,
           }
-          this.subSelectionLayer_2 = filterAndScaleLayerData(request)
-          this.emptyDataWarning = this.subSelectionLayer_2.features.length === 0;
-          if (this.showSubSelection_2) {
-            this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_2.features)
+          this.criteriaLayer_2 = filterAndScaleLayerData(request)
+          this.emptyDataWarning = this.criteriaLayer_2.features.length === 0;
+          if (this.enableCriteriaLayer_2) {
+            this.$store.dispatch("scenario/addSubSelectionLayer", this.criteriaLayer_2.features)
           }
         }
       },
-      selectValue_1: {
-        deep: true,
-        handler() {
-          this.showSubSelection_1 = false
-          if (this.selectValue_1.label === this.selectValue_2.label) {
-            this.showError = true
-          } else {
-            this.sliderValues_1 = this.selectValue_1.range
-            const request = {
-              "layerName": this.selectValue_1.value,
-              "layerRange": this.selectValue_1.range,
-              "layerConstraints": this.sliderValues_1,
-            }
-            this.subSelectionLayer_1 = filterAndScaleLayerData(request)
+      enableCriteriaLayer_1(showLayer, old) {
+        if (showLayer) {
+          if (this.enableCriteriaLayer_2) {
+            this.enableCriteriaLayer_2 = false
           }
-        }
-      },
-      selectValue_2: {
-        deep: true,
-        handler() {
-          this.showSubSelection_2 = false
-          if (this.selectValue_1.label === this.selectValue_2.label) {
-            this.showError = true
-          } else {
-            this.sliderValues_2 = this.selectValue_2.range
-            const request = {
-              "layerName": this.selectValue_2.value,
-              "layerRange": this.selectValue_2.range,
-              "layerConstraints": this.sliderValues_2,
-            }
-            this.subSelectionLayer_2 = filterAndScaleLayerData(request)
-          }
-        }
-      },
-      showSubSelection_1(newVal, old) {
-        if (newVal) {
-          if (this.showSubSelection_2) {
-            this.showSubSelection_2 = false
-          }
-          this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_1.features)
+          this.$store.dispatch("scenario/addSubSelectionLayer", this.criteriaLayer_1.features)
           this.$store.dispatch("hideAllLayersButThese",[SubSelectionLayerConfig.layer.id])
         } else {
           // hide subSelectionLayer, if subSelection is not to be shown
-          if (!this.showSubSelection_2) {
+          if (!this.enableCriteriaLayer_2) {
             this.$store.state.map?.setLayoutProperty(SubSelectionLayerConfig.layer.id, 'visibility', 'none');
+            if (this.combinedLayers) {
+              // show the combined layer if available
+              this.$store.dispatch("hideAllLayersButThese", [
+                CombinedLayersConfig.layer.id,
+                PerformanceInfoLayerConfig.layer.id
+              ])
+            }
           }
         }
       },
-      showSubSelection_2(newVal, old) {
-        if (newVal) {
-          if (this.showSubSelection_1) {
-            this.showSubSelection_1 = false
+      enableCriteriaLayer_2(showLayer, old) {
+        if (showLayer) {
+          if (this.enableCriteriaLayer_1) {
+            this.enableCriteriaLayer_1 = false
           }
-          this.$store.dispatch("scenario/addSubSelectionLayer", this.subSelectionLayer_2.features)
+          this.$store.dispatch("scenario/addSubSelectionLayer", this.criteriaLayer_2.features)
           this.$store.dispatch("hideAllLayersButThese",[SubSelectionLayerConfig.layer.id])
         } else {
           // hide subSelectionLayer, if subSelection is not to be shown
-          if (!this.showSubSelection_1) {
+          if (!this.enableCriteriaLayer_1) {
             this.$store.state.map?.setLayoutProperty(SubSelectionLayerConfig.layer.id, 'visibility', 'none');
+            if (this.combinedLayers) {
+              // show the combined layer if available
+              this.$store.dispatch("hideAllLayersButThese", [
+                CombinedLayersConfig.layer.id,
+                PerformanceInfoLayerConfig.layer.id
+              ])
+            }
+          }
+        }
+      },
+      layersReadyToCompare: {
+        deep: true,
+        handler() {
+
+          console.warn("layers ready to compare changed")
+
+          // check if at least to layers are available for analysis
+          if (!(this.layersReadyToCompare.length >= 2)) {
+            console.warn("need at least 2 input layers to combine")
+            this.showMissingScenarios = true
+            return
+          }
+          this.showMissingScenarios = false
+
+          // filter layer options for actually available layers
+          this.availableResultCriteria = this.allResultCriteria.filter(option => {
+            return this.missingInputScenarios.indexOf(option.layerName) === -1
+          })
+
+          // set initial UI settings if not set yet
+          if (!this.layerChoice_1) {
+            this.layerChoice_1 = this.layersReadyToCompare[0]
+            this.layerChoice_2 = this.layersReadyToCompare[1]
           }
         }
       }
     },
     async beforeMount() {
-      // add image to map if necessary
-      if (! $store.state.map.hasImage("mdi-information")) {
-        const map = this.$store.state.map
-        map.loadImage(
-          mdiInformationPng,
-          function (error, image) {
-            if (error) throw error;
-            map.addImage('mdi-information', image);
-          }
-        )
-      }
+      this.addImageToMap()
+      this.getResultsFromStore()
+      this.determineMissingScenarios()
+      this.updateLayerSelectionDropdowns()
     },
     mounted:
         function() {
+          this.logicOperator = this.logicOptions[0]
+
           // calc input statistics, if all scenarios chosen
-          if (this.activeAbmSet && this.currentNoiseResult) {
-            this.calculateStats()
+          if (this.currentAbmResult) {
+            this.$store.dispatch('scenario/calculateStatsForMultiLayerAnalysis')
           }
 
           // hide all layers
@@ -195,59 +313,155 @@ export default {
           console.log("active divisoin is", this.activeDivision)
         },
     methods: {
-      switchToAbm() {
-        this.activeMenuComponent = 'AbmScenario'
+      addImageToMap() {
+        // add image to map if necessary . For result annotation layer.
+        if (!$store.state.map.hasImage("mdi-information")) {
+          const map = this.$store.state.map
+          map.loadImage(
+            mdiInformationPng,
+            function (error, image) {
+              if (error) throw error;
+              map.addImage('mdi-information', image);
+            }
+          )
+        }
       },
-      switchToNoise() {
-        this.activeMenuComponent = 'NoiseScenario'
+      getResultsFromStore() {
+        this.allSimulationResults = {
+          "Noise": this.currentNoiseResult,
+          "Abm": this.currentAbmResult,
+          "Wind": this.currentWindResult,
+          "Sun": this.currentSunResult
+        }
       },
-      async calculateStats() {
-        this.$store.dispatch('scenario/calculateStatsForMultiLayerAnalysis').then(() => {
-          this.setInitialUiSettings()
-          this.allDataProvided = true
+      determineMissingScenarios() {
+        // iterate over scenario results, if a result is empty add the topic to missing Input scenarios
+        this.getResultsFromStore()
+        this.missingInputScenarios = []
+        this.layersReadyToCompare = []
+        for (const [key, value] of Object.entries(this.allSimulationResults)) {
+          if (!value) {
+            this.missingInputScenarios.push(key)
+          } else {
+            this.layersReadyToCompare.push(key)
+          }
+        }
+        console.warn("missing these scenarios", this.missingInputScenarios)
+        console.warn("scenarios ready to compare", this.layersReadyToCompare)
+      },
+      async loadDefaultResultFor(layerName) {
+        console.warn("loading default for", layerName)
+
+        switch (layerName) {
+          case "Sun":
+            await this.$store.dispatch('scenario/addSunExposureLayer')
+            break;
+          case "Wind":
+            this.windScenarioHash = "158d2b824886d908440da5c5f6c4dc4f815cdeba"
+            this.currentWindScenario = { "wind_speed": 5, "wind_direction": 270 }
+            await this.$store.dispatch('scenario/updateWindLayer')
+            break;
+          case "Noise":
+            await this.$store.dispatch('scenario/updateNoiseScenario')
+            break;
+          case "Abm":
+            await this.$store.dispatch('scenario/updateAbmDesignScenario')
+            this.$store.dispatch('hideAllLayersButThese')
+            this.$store.dispatch('scenario/calculateStatsForMultiLayerAnalysis')
+            break;
+          default:
+            console.error("cannot load default result for unknown layer", layerName)
+            this.updateLayerSelectionDropdowns()
+        }
+        // then update missing scenarios and hide result layers
+        this.determineMissingScenarios()
+        // this.updateLayerSelectionDropdowns()
+        this.$store.dispatch('hideAllLayersButThese')
+      },
+      updateLayerSelectionDropdowns() {
+        // check if at least to layers are available for analysis
+        if (!(this.layersReadyToCompare.length >= 2)) {
+          console.warn("need at least 2 input layers to combine")
+          return
+        }
+
+        // filter layer options for actually available layers
+        this.availableResultCriteria = this.allResultCriteria.filter(option => {
+          return this.missingInputScenarios.indexOf(option.layerName) === -1
         })
-      },
-      setInitialUiSettings() {
-        // set initial UI settings
-        this.select_Options_1 = this.availableResultLayers
-        this.selectValue_1 = this.availableResultLayers[0]
-        this.sliderValues_1 = this.selectValue_1.range
 
-        this.select_Options_2 = this.availableResultLayers
-        this.selectValue_2 = this.availableResultLayers[1]
-        this.sliderValues_2 = this.selectValue_2.range
-
-        this.logicOperator = this.logicOptions[0]
+        // set initial UI settings if not set yet
+        if (!this.layerChoice_1) {
+          // layer Selection
+          this.layerChoice_1 = this.layersReadyToCompare[0]
+          this.layerChoice_2 = this.layersReadyToCompare[1]
+          this.enableCriteriaLayer_1 = true
+        }
       },
       inputChanged() {
-        this.resultOutdated = true;
+        if (this.combinedLayers) {
+          this.resultOutdated = true;
+        }
         this.showError = false;
       },
-     async showCombinedLayers () {
-         this.$store.commit('scenario/resultLoading', true)
-         this.$store.commit("scenario/loader", true);
-         this.$store.commit("scenario/loaderTxt", "Combining Layers");
-         await new Promise(resolve => setTimeout(resolve, 500));
+      getValueForPreset(presetChoice, range) {
+        console.warn("my input" , range, presetChoice)
+        const minPercent = this.presetOptions[presetChoice][0] / 100
+        const maxPercent = this.presetOptions[presetChoice][1] / 100
+        const maxValue = range[1]
 
-        this.resultOutdated = false
-        const combinedLayers = showMultiLayerAnalysis(
-          this.subSelectionLayer_1,
-          this.subSelectionLayer_2,
-          this.logicOperator.value
-        );
+        return [maxValue * minPercent, maxValue * maxPercent]
+      },
+      getScenarioDescriptionFor(layerName) {
 
-        if (combinedLayers.length === 0) {
+        console.warn("getting scenario description")
+
+        switch (layerName) {
+          case "Sun":
+            return "DEFAULT SCENARIO"
+          case "Wind":
+            return "DIRECTION: " + this.currentWindScenario["wind_direction"] +
+              " | " + "SPEED: " +  this.currentWindScenario["wind_speed"] + "km/h"
+          case "Noise":
+            return "VOLUME: " + this.noiseScenario["traffic_percent"] * 100 + "%"
+              + " | " + "SPEED: " +  this.noiseScenario["max_speed"] + "km/h"
+          case "Abm":
+            return "Scenario 1"
+
+          default:
+            console.error("cannot create description for unknown layer", layerName)
+        }
+      },
+      async showCombinedLayers() {
+        this.$store.commit('scenario/resultLoading', true)
+        this.$store.commit("scenario/loader", true);
+        this.$store.commit("scenario/loaderTxt", "Combining Layers (slow)");
+        this.enableCriteriaLayer_1 = this.enableCriteriaLayer_2 = false;
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        if (!this.combinedLayers || this.resultOutdated) {
+          // recombine layers if input options have changed
+          this.resultOutdated = false
+          this.combinedLayers = showMultiLayerAnalysis(
+            this.criteriaLayer_1,
+            this.criteriaLayer_2,
+            this.logicOperator.value
+          );
+        }
+
+        if (this.combinedLayers.length === 0) {
           this.emptyDataWarning = true
         } else {
           this.$store.commit("scenario/multiLayerAnalysisMap", true);
         }
+
         this.$store.commit('scenario/resultLoading', false)
         this.$store.commit("scenario/loader", false);
-        this.$store.dispatch("hideAllLayersButThese",[
+        this.$store.dispatch("hideAllLayersButThese", [
           CombinedLayersConfig.layer.id,
           PerformanceInfoLayerConfig.layer.id
         ])
-     }
+      }
     }
 }
 
@@ -273,165 +487,293 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <div  v-if="!allDataProvided">
-          <h2 v-if="!activeAbmSet && !currentNoiseResult">Choose input data first</h2>
-          <v-btn v-if="!activeAbmSet" style="margin: 20px;"
-            @click="switchToAbm"
-            class="confirm_btn"
-            :class="{ changesMade : resultOutdated }"
-          >Choose ABM Scenario
-          </v-btn>
-          <v-btn v-if="!currentNoiseResult" style="margin: 20px;"
-            @click="switchToNoise"
-            class="confirm_btn"
-            :class="{ changesMade : resultOutdated }"
-          >Choose Noise Scenario
-          </v-btn>
+      <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+        <!-- Choose Layers to combine -->
+
+        <h2>LAYER SELECTION</h2>
+        <v-container fluid>
+          <!-- per row: check button. AND/OR selector. slider per v-select -->
+          <!-- set slider min max dynamically -->
+          <div v-if="layersReadyToCompare.length >= 2">
+            <v-row align="center" class="mb-0">
+                <v-select
+                  :items="layersReadyToCompare"
+                  v-model="layerChoice_1"
+                  @change="inputChanged()"
+                  item-text="label"
+                  item-value="label"
+                  solo
+                  persistent-hint
+                  return-object
+                  single-line
+                  dark
+                  hide-details
+                ></v-select>
+            </v-row>
+            <v-row>
+                <v-select
+                  :items="layersReadyToCompare"
+                  v-model="layerChoice_2"
+                  @change="inputChanged()"
+                  item-text="label"
+                  item-value="label"
+                  solo
+                  persistent-hint
+                  return-object
+                  single-line
+                  dark
+                  hide-details
+                ></v-select>
+            </v-row>
+          </div>
+        <!-- Layers not available?? Load defaults! -->
+        <div v-if="missingInputScenarios.length">
+          <v-row class="mb-0">
+            <v-col cols="10">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: transparent; margin-top: 5px;"
+              >
+                <h2>Layer Not Available?</h2>
+              </v-card>
+            </v-col>
+            <v-col cols="2">
+                <v-icon v-if="!showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-270</v-icon>
+                <v-icon v-if="showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-180</v-icon>
+            </v-col>
+          </v-row>
+          <!-- Legend categories as v-for -->
+          <v-row v-if="showMissingScenarios" no-gutters
+                 v-for="layerName in missingInputScenarios"
+                 class="mb-2 ml-0"
+                 style=""
+          >
+            <v-col cols="2" xs="3">
+              <v-card
+                class="mr-2"
+                tile
+                dark
+                style=""
+              >
+                <v-icon :color="'white'">mdi-close</v-icon>
+              </v-card>
+            </v-col>
+            <v-col cols="3" xs="9">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: inherit"
+              >
+                {{ layerName }}
+              </v-card>
+            </v-col>
+            <v-col cols="7" xs="12">
+              <v-card
+                class="pa-0"
+                tile
+                dark
+                style="background-color: inherit"
+              >
+                <v-btn
+                  @click="loadDefaultResultFor(layerName)"
+                  class="confirm_btn"
+                  :class="{ changesMade : resultOutdated }"
+                  :disabled="resultLoading"
+                  style="min-width: 100%;"
+                >Load Default
+                </v-btn>
+              </v-card>
+            </v-col>
+          </v-row>
         </div>
-        <div  v-if="allDataProvided">
-          <h2>Choose Indexes</h2>
-          <v-container fluid>
+      </v-container>
+      </div>
 
 
-            <v-row align="center">
-              <v-col>
-                <v-btn
-                  @click="showSubSelection_1 = !showSubSelection_1"
-                  dark>
-                  <v-icon v-if="!showSubSelection_1" style="color: #1380AB;">mdi-eye</v-icon>
-                  <v-icon v-if="showSubSelection_1" style="color: #1380AB;">mdi-eye-off</v-icon>
-                </v-btn>
-              </v-col>
-              <v-col>
-                <v-btn
-                  @click="showSubSelection_2 = !showSubSelection_2"
-                  dark>
-                  <v-icon v-if="!showSubSelection_2" style="color: #1380AB;">mdi-eye</v-icon>
-                  <v-icon v-if="showSubSelection_2" style="color: #1380AB;">mdi-eye-off</v-icon>
-                </v-btn>
-              </v-col>
-            </v-row>
+      <!-- Criteria Selection --->
+      <div v-if="layersReadyToCompare.length >= 2" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+        <h2>CRITERIA SELECTION</h2>
 
-            <!-- per row: check button. AND/OR selector. slider per v-select -->
-            <!-- set slider min max dynamically -->
-            <v-row align="center">
-              <v-col
-                class="d-flex"
-                cols="12"
-                sm="6"
-              >
-                <v-select
-                  :items="select_Options_1"
-                  v-model="selectValue_1"
-                  @change="inputChanged()"
-                  item-text="label"
-                  item-value="label"
-                  :hint="`${selectValue_1.unit}` || ''"
-                  solo
-                  label=""
-                  persistent-hint
-                  return-object
-                  single-line
-                  dark
-                ></v-select>
-              </v-col>
-              <v-col
-                class="d-flex"
-                cols="12"
-                sm="6"
-              >
-                <v-select
-                  :items="select_Options_2"
-                  v-model="selectValue_2"
-                  @change="inputChanged()"
-                  item-text="label"
-                  item-value="label"
-                  :hint="`${selectValue_2.unit}` || ''"
-                  solo
-                  label=""
-                  persistent-hint
-                  return-object
-                  single-line
-                  dark
-                ></v-select>
-              </v-col>
-            </v-row>
-            <v-row align="center">
-              <v-col style="margin-top: -25px">
-                <v-range-slider
-                  @dragstart="_ => null"
-                  @dragend="_ => null"
-                  @mousedown.native.stop="_ => null"
-                  @mousemove.native.stop="_ => null"
-                  @change="inputChanged()"
-                  v-model="sliderValues_1"
-                  :step="selectValue_1.step"
-                  :hint="'Subselection has ' + subSelectionLayer_1.features.length + ' features'"
-                  persistent-hint
-                  thumb-label="always"
-                  label=""
-                  thumb-size="1"
-                  tick-size="50"
-                  :min="selectValue_1.range[0]"
-                  :max="selectValue_1.range[1]"
-                  dark
-                  flat
-                ></v-range-slider>
-              </v-col>
-              <v-col style="margin-top: -25px;">
-                <v-range-slider
-                  @dragstart="_ => null"
-                  @dragend="_ => null"
-                  @mousedown.native.stop="_ => null"
-                  @mousemove.native.stop="_ => null"
-                  @change="inputChanged()"
-                  v-model="sliderValues_2"
-                  :step="selectValue_2.step"
-                  :hint="'Subselection has ' + subSelectionLayer_2.features.length + ' features'"
-                  persistent-hint
-                  thumb-label="always"
-                  label=""
-                  thumb-size="1"
-                  tick-size="50"
-                  :min="selectValue_2.range[0]"
-                  :max="selectValue_2.range[1]"
-                  dark
-                  flat
-                ></v-range-slider>
-              </v-col>
-            </v-row>
+        <v-container>
+        <v-row>
+          <v-col cols="10">
+            <v-card
+              class="pa-0"
+              tile
+              dark
+              style="background-color: transparent; margin-top: 5px;"
+            >
+              <h2 v-bind:class="enableCriteriaLayer_1 ? '' : 'disabled'">{{ layerChoice_1 }}</h2>
+              <p style="float: left; font-size:12px;">{{ getScenarioDescriptionFor(layerChoice_1) }}</p>
 
-
-          <!-- exclude logic options for now - too complicated
-          <v-row align="center">
-            <v-select
-              :items="logicOptions"
-              v-model="logicOperator"
+            </v-card>
+          </v-col>
+          <v-col cols="2">
+            <v-icon v-if="!enableCriteriaLayer_1" color="grey" @click="enableCriteriaLayer_1 = !enableCriteriaLayer_1">mdi-eye-off</v-icon>
+            <v-icon v-if="enableCriteriaLayer_1" color="white" @click="enableCriteriaLayer_1 = !enableCriteriaLayer_1">mdi-eye</v-icon>
+          </v-col>
+        </v-row>
+        <!-- criteria 1 select -->
+        <v-row no-gutters align="center">
+          <v-select
+            :disabled="!enableCriteriaLayer_1"
+            :items="criteriaOptions_1"
+            v-model="criteriaChoice_1"
+            @change="inputChanged()"
+            item-text="label"
+            item-value="label"
+            :hint="`${criteriaChoice_1.unit}` || ''"
+            :label="criteriaChoice_1.label"
+            solo
+            persistent-hint
+            return-object
+            single-line
+            dark
+            hide-details
+            ></v-select>
+        </v-row>
+        <!--- criteria 1 - preset select -->
+        <v-row no-gutters>
+          <v-select
+            :disabled="!enableCriteriaLayer_1"
+            :items="Object.keys(presetOptions)"
+            v-model="preset_1"
+            @change="sliderValues_1 = getValueForPreset(preset_1, criteriaChoice_1.range)"
+            item-text="label"
+            item-value="label"
+            solo
+            persistent-hint
+            :hint="`${criteriaChoice_1.unit}` || ''"
+            return-object
+            single-line
+            dark
+          ></v-select>
+        </v-row>
+        <!-- criteria 1 - slider -->
+        <v-row no-gutters align="center">
+          <v-col style="margin-top: -25px">
+            <v-range-slider
+              :disabled="!enableCriteriaLayer_1 || this.preset_1 !== 'Custom'"
+              @dragstart="_ => null"
+              @dragend="_ => null"
+              @mousedown.native.stop="_ => null"
+              @mousemove.native.stop="_ => null"
               @change="inputChanged()"
+              v-model="sliderValues_1"
+              :step="criteriaChoice_1.step"
+              :hint="'Subselection has ' + criteriaLayer_1.features.length + ' features'"
+              label=""
+              persistent-hint
+              thumb-label="always"
+              thumb-size="1"
+              tick-size="50"
+              :min="criteriaChoice_1.range[0]"
+              :max="criteriaChoice_1.range[1]"
+              dark
+              flat
+            ></v-range-slider>
+          </v-col>
+        </v-row>
+
+        <!-- second criteria --->
+        <!-- criteria 2 - headline -->
+        <v-row no-gutters class="mt-12">
+          <v-col cols="10">
+            <v-card
+              class="pa-0"
+              tile
+              dark
+              style="background-color: transparent; margin-top: 5px;"
+            >
+              <h2 v-bind:class="enableCriteriaLayer_2 ? '' : 'disabled'">{{ layerChoice_2 }}</h2>
+              <p style="float: left; font-size:12px;">{{ getScenarioDescriptionFor(layerChoice_2) }}</p>
+            </v-card>
+          </v-col>
+          <v-col cols="2">
+            <v-icon v-if="!enableCriteriaLayer_2" color="grey" @click="enableCriteriaLayer_2 = !enableCriteriaLayer_2">mdi-eye-off</v-icon>
+            <v-icon v-if="enableCriteriaLayer_2" color="white" @click="enableCriteriaLayer_2 = !enableCriteriaLayer_2">mdi-eye</v-icon>
+          </v-col>
+        </v-row>
+        <!-- criteria 2 - select -->
+        <v-row no-gutters align="center">
+          <v-select
+            :disabled="!enableCriteriaLayer_2"
+            :items="criteriaOptions_2"
+            v-model="criteriaChoice_2"
+            @change="inputChanged()"
+            item-text="label"
+            item-value="label"
+            :label="criteriaChoice_2.label"
+            solo
+            persistent-hint
+            return-object
+            single-line
+            dark
+            hide-details
+          ></v-select>
+        </v-row>
+        <!-- criteria 2 - preset select -->
+          <v-row no-gutters align="center">
+            <v-select
+              :disabled="!enableCriteriaLayer_2"
+              :items="Object.keys(presetOptions)"
+              v-model="preset_2"
+              @change="sliderValues_2 = getValueForPreset(preset_2, criteriaChoice_2.range)"
               item-text="label"
               item-value="label"
-              hint="Combine layers by"
               solo
-              label="Logic Layer Connection"
               persistent-hint
               return-object
               single-line
               dark
+              :hint="`${criteriaChoice_2.unit}` || ''"
             ></v-select>
+        <!-- criteria 2 - slider -->
+          <v-row no-gutters align="center">
+            <v-col style="margin-top: -25px;">
+              <v-range-slider
+                :disabled="!enableCriteriaLayer_2 || this.preset_2 !== 'Custom'"
+                @dragstart="_ => null"
+                @dragend="_ => null"
+                @mousedown.native.stop="_ => null"
+                @mousemove.native.stop="_ => null"
+                @change="inputChanged()"
+                v-model="sliderValues_2"
+                :step="criteriaChoice_2.step"
+                :hint="'Subselection has ' + criteriaLayer_2.features.length + ' features'"
+                persistent-hint
+                thumb-label="always"
+                label=""
+                thumb-size="1"
+                tick-size="50"
+                :min="criteriaChoice_2.range[0]"
+                :max="criteriaChoice_2.range[1]"
+                dark
+                flat
+              ></v-range-slider>
+            </v-col>
           </v-row>
-          -->
-          </v-container>
-          <p v-if="showError" class="warning">Invalid selection</p>
-          <p v-if="emptyDataWarning" class="warning">No data to show!</p>
-          <v-btn
-            @click="showCombinedLayers"
-            class="confirm_btn"
-            :class="{ changesMade : resultOutdated }"
-            :disabled="emptyDataWarning || showError"
-          >
-           Visualize Selection
-          </v-btn>
+
+          </v-row>
+          <v-row align="center" class="mt-12">
+            <p v-if="showError" class="warning">Invalid selection</p>
+            <p v-if="emptyDataWarning" class="warning">No data to show!</p>
+            <v-btn
+              @click="showCombinedLayers"
+              class="confirm_btn"
+              :class="{ changesMade : resultOutdated }"
+              :disabled="emptyDataWarning || showError"
+            >
+             Visualize Selection
+            </v-btn>
+          </v-row>
+        </v-container>
         </div> <!-- v-if="allDataProvided" end -->
+
+
         <v-overlay :value="resultLoading">
           <div>Loading results</div>
           <v-progress-linear>...</v-progress-linear>
@@ -448,4 +790,12 @@ export default {
     p.warning {
       color: darkred;
     }
+
+
+    h2.disabled {
+      color: gray !important;
+    }
+
+
+
 </style>

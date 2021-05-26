@@ -57,6 +57,16 @@ export default {
       if (this.authenticated) {
         this.restrictedAccess = loginResult.restricted
         this.applyCustomMapSettings()
+
+        if (this.restrictedAccess) {
+          alert(
+            "Disclaimer \n" +
+            "The tool focusses on providing rapid analyses of urban design iterations based on a simplified input. Results provided do not substitute in-depth analyses.\n" +
+            "The platform and its analysis modules are currently in the testing phases and are subject to ongoing development.\n" +
+            "Scientific validity of the results cannot be guaranteed in the testing phases.\n"
+            )
+        }
+
       }
       this.showError = !this.authenticated
     },

@@ -1,131 +1,123 @@
 {
   "buildingUses": {
     "headline": "Building Use Types",
+    "icon": "mdi-city",
     "categories": [
       {
         "label": "Residential",
-        "color": "#FFB121",
-        "icon": "mdi-city"
+        "color": "#FFB121"
       },
       {
         "label": "Commercial | Office",
-        "color": "#F76A6A",
-        "icon": "mdi-city"
+        "color": "#F76A6A"
       },
       {
         "label": "Public | Daycare",
-        "color": "#4EBFFC",
-        "icon": "mdi-city"
+        "color": "#4EBFFC"
       }
     ]
   },
   "wind": {
     "headline": "Lawson Criteria categories",
+    "icon": "mdi-windsock",
     "categories": [
       {
         "label": "Sitting Long",
-        "color": "#B8D6D1",
-        "icon": "mdi-windsock"
+        "detail": "0.0 - 2.5m/s",
+        "color": "#6971b4"
       },
       {
         "label": "Sitting Short",
-        "color": "#CEE4CC",
-        "icon": "mdi-windsock"
+        "detail": "2.5 - 4.0m/s",
+        "color": "#95d3e0"
       },
       {
         "label": "Walking Slow",
-        "color": "#F3C683",
-        "icon": "mdi-windsock"
+        "detail": "4.0 - 6.0m/s",
+        "color": "#90c363"
       },
       {
         "label": "Walking Fast",
-        "color": "#E87E4D",
-        "icon": "mdi-windsock"
+        "detail": "6.0 - 8.0 m/s",
+        "color": "#f4ec7d"
       },
       {
         "label": "Uncomfortable",
-        "color": "#A11A4D",
-        "icon": "mdi-windsock"
+        "detail": "8.0 - 10.0 m/s",
+        "color": "#fbc46f"
       },
       {
         "label": "Dangerous",
-        "color": "#75085C",
-        "icon": "mdi-windsock"
+        "detail": ">10.0m/s",
+        "color": "#ee7679"
       }
     ]
   },
   "sunExposure": {
     "headline": "Hours of sunlight per day averaged over a year",
+    "icon": "mdi-circle",
     "categories": [
       {
+        "label": "< 1.2 h/day",
+        "color": "#2c7bb6"
+      },
+      {
         "label": "1.2 h/day",
-        "color": "#B8D6D1",
-        "icon": "mdi-circle"
+        "color": "#bae0e2"
       },
       {
         "label": "2.4 h/day",
-        "color": "#CEE4CC",
-        "icon": "mdi-circle"
+        "color": "#dcefd1"
       },
       {
         "label": "3.6 h/day",
-        "color": "#E2F2BF",
-        "icon": "mdi-circle"
+        "color": "#fdfec0"
       },
       {
         "label": "4.8 h/day",
-        "color": "#F3C683",
-        "icon": "mdi-circle"
+        "color": "#ffeeab"
       },
       {
         "label": "6 h/day",
-        "color": "#E87E4D",
-        "icon": "mdi-circle"
+        "color": "#ffdb95"
       },
       {
         "label": "7.2 h/day",
-        "color": "#CD463E",
-        "icon": "mdi-circle"
+        "color": "#fec87f"
       },
       {
         "label": "8.4 h/day",
-        "color": "#A11A4D",
-        "icon": "mdi-circle"
+        "color": "#feb569"
       },
       {
         "label": "9.6 h/day",
-        "color": "#75085C",
-        "icon": "mdi-circle"
+        "color": "#fea464"
       },
       {
         "label": "10.8 h/day",
-        "color": "red",
-        "icon": "mdi-circle"
+        "color": "#fe9469"
       },
       {
         "label": "12 h/day",
-        "color": "violet",
-        "icon": "mdi-circle"
+        "color": "#ff836e"
       }
     ]
   },
   "noise": {
     "headline": "Noise Results in dB [LDEN]",
+    "icon": "mdi-bullhorn",
     "categories": [
       {
         "label": "<45dB (A)",
-        "color": "#B8D6D1",
-        "icon": "mdi-circle"
+        "color": "#B8D6D1"
       },
       {
         "label": "45-50dB (A)",
-        "color": "#CEE4CC",
-        "icon": "mdi-circle"
+        "color": "#CEE4CC"
       },
       {
         "label": "50-55dB (A)",
-        "color": "#E2F2BF",
-        "icon": "mdi-circle"
+        "color": "#E2F2BF"
       },
       {
         "label": "55-60dB (A)",
@@ -134,22 +126,18 @@
       },
       {
         "label": "60-65dB (A)",
-        "color": "#E87E4D",
-        "icon": "mdi-circle"
+        "color": "#E87E4D"
       },
       {
         "label": "65-70dB (A)",
-        "color": "#CD463E",
-        "icon": "mdi-circle"
+        "color": "#CD463E"
       },{
         "label": "70-75dB (A)",
-        "color": "#A11A4D",
-        "icon": "mdi-circle"
+        "color": "#A11A4D"
       },
       {
         "label": ">75dB (A)",
-        "color": "#75085C",
-        "icon": "mdi-circle"
+        "color": "#75085C"
       }
     ]
   }

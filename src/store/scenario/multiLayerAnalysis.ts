@@ -9,12 +9,13 @@ import store from '@/store'
  * @param request
  */
 export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
+
+  console.warn(" filter and scale data layerName, Range", request)
+
   let layerData = createLayerData(request.layerName)
   let constraints = request.layerConstraints
   let range = request.layerRange
 
-
-  console.log("layerName, Range", request)
 
   layerData.features = layerData.features.filter(feature => {
       return constraints[0] <= feature.properties.value
