@@ -492,10 +492,50 @@ export default {
                     </template>
                </v-range-slider>
                <div class="heatmap_buttons">
-                   <v-btn @click="setHeatMapTimes(8,23)"><v-icon>mdi-av-timer</v-icon></v-btn>
-                   <v-btn @click="setHeatMapTimes(8,10)"><v-icon>mdi-weather-sunset-up</v-icon></v-btn>
-                   <v-btn @click="setHeatMapTimes(11,15)"><v-icon>mdi-weather-sunny</v-icon></v-btn>
-                   <v-btn @click="setHeatMapTimes(17,20)"><v-icon>mdi-weather-sunset-down</v-icon></v-btn>
+                    <v-tooltip bottom>
+                       <template v-slot:activator="{ on, attrs }">
+                            <v-btn 
+                                @click="setHeatMapTimes(8,23)"
+                                v-bind="attrs"
+                                v-on="on">
+                            <v-icon>mdi-av-timer</v-icon>
+                        </v-btn>
+                        </template>
+                            <span>All Day</span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                       <template v-slot:activator="{ on, attrs }">
+                            <v-btn 
+                                @click="setHeatMapTimes(8,10)"
+                                v-bind="attrs"
+                                v-on="on">
+                            <v-icon>mdi-weather-sunset-up</v-icon>
+                        </v-btn>
+                        </template>
+                            <span>Morning</span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                       <template v-slot:activator="{ on, attrs }">
+                            <v-btn 
+                                @click="setHeatMapTimes(11,15)"
+                                v-bind="attrs"
+                                v-on="on">
+                            <v-icon>mdi-weather-sunny</v-icon>
+                        </v-btn>
+                        </template>
+                            <span>Mid-Day</span>
+                    </v-tooltip> 
+                    <v-tooltip bottom>
+                       <template v-slot:activator="{ on, attrs }">
+                            <v-btn 
+                                @click="setHeatMapTimes(17,20)"
+                                v-bind="attrs"
+                                v-on="on">
+                            <v-icon>mdi-weather-sunset-down</v-icon>
+                        </v-btn>
+                        </template>
+                            <span>Evening</span>
+                    </v-tooltip>     
                </div>
                <p>{{datamsg}}</p>
                <!--<v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>-->
