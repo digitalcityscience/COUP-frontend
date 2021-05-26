@@ -41,9 +41,7 @@ export default {
 </script>
 
 <template>
-    <!--<div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">-->
         <div v-if="activeMenuComponent == 'SunExposureResults' || activeMenuComponent == 'WindScenario'" id="logos_ait">
-        <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div>
             <v-row align="end" no-gutters>
               <v-col
@@ -84,7 +82,7 @@ export default {
 
     #logos_ait {
       position: fixed;
-      bottom: 10px;
+      bottom: 0px;
       right: 300px;
       width: auto;
       height: auto;
