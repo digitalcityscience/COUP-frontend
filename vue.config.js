@@ -1,5 +1,6 @@
 
   module.exports = {
+  publicPath: '/dev/',
   runtimeCompiler: true,
   transpileDependencies: [
       'vuetify'

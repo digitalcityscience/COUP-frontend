@@ -4,6 +4,7 @@ import GFI from './components/GFI/GFI.vue';
 import Menu from "./components/Menu/Menu.vue";
 import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
+import LogosAIT from "./components/Scenario/LogosAIT.vue";
 import Loader from "./components/Loader/Loader.vue";
 
 export default {
@@ -14,7 +15,8 @@ export default {
         TimeSheet,
         Menu,
         Viewbar,
-        Loader
+        Loader,
+        LogosAIT
     },
     props: {
       restrictedAccess: Boolean
@@ -37,6 +39,7 @@ export default {
     <TimeSheet />
     <Viewbar :restrictedAccess="restrictedAccess"/>
     <Loader />
+    <LogosAIT />
     <div id="line_canvas"></div>
   </v-app>
 </template>

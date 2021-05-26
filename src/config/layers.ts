@@ -7,7 +7,6 @@ import CircledFeatures from '@/config/circledFeatures.json'
 import FocusAreasConfig from '@/config/focusAreas.json'
 import Noise from '@/config/noise.json'
 import WindResult from '@/config/windResult.json'
-import SolarRadiation from '@/config/solarRadiationResult.json'
 import SunExposure from '@/config/sunExposureResult.json'
 import TrafficCounts from '@/config/trafficCounts.json'
 import DesignConfigs from '@/config/buildings.json'
@@ -18,7 +17,6 @@ import {abmArcLayerName,abmTripsLayerName, abmAggregationLayerName} from '@/stor
 const addedLayersIds = [
   LayerSubselectionConfig.layer.id,
   WindResult.layer.id,
-  SolarRadiation.layer.id,
   SunExposure.layer.id,
   Noise.layer.id,
   TrafficCounts.layer.id,
@@ -52,6 +50,15 @@ export function getLayerOrder() {
   console.log("layerOrder", layerOrder)
 
   return layerOrder
+}
+
+export function getAbmLayerIds() {
+  let abmLayers = []
+  abmLayers = abmLayers.concat(buildingLayerIds)
+  abmLayers = abmLayers.concat([abmAggregationLayerName, abmTripsLayerName, abmArcLayerName])
+  abmLayers.push(AmenitiesConfig.layer.id)
+
+  return abmLayers
 }
 
 

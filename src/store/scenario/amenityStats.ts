@@ -4,26 +4,34 @@ import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
 import {calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
 
 
-export async function calculateAmenityStatsForAllAreas() {
+/** calculates stats for all focus areas individually **/
+export async function calculateAmenityStatsForMultiLayerAnalysis() {
+  let amenityStats = {}
+
   const focusAreaIds = store.state.focusAreasGeoJson["features"].map(feat => {
     return feat.id
   })
 
   for (const focusAreaId of focusAreaIds) {
+    amenityStats[focusAreaId] = {}
     if (!store.state.scenario.amenityStats[focusAreaId]) {
-      await calculateAmenityStatsForFocusArea(focusAreaId)
+      let focusArea = getFocusAreaAsTurfObject(focusAreaId)
+      let amenitiesFeatures = getFeatureCollectionOfNonResidentialAmenities()
+      let amenitiesWithin = turf.pointsWithinPolygon(amenitiesFeatures, focusArea); // amenities within focus area
+      amenityStats[focusAreaId]["Density"] = calculateDensityOfAmenities(amenitiesWithin, focusArea)
+      amenityStats[focusAreaId]["Amenity Types"] = getAmenityTypes(amenitiesWithin).length
+
+    } else {
+      amenityStats[focusAreaId]["Density"] = store.state.scenario.amenityStats[focusAreaId]["Density"]
+      amenityStats[focusAreaId]["Amenity Types"] = store.state.scenario.amenityStats[focusAreaId]["Amenity Types"]
     }
   }
+
+  store.commit("scenario/amenityStatsMultiLayer", amenityStats)
+
 }
 
-export async function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
-  if (!store.state.scenario.amenitiesGeoJson) {
-    console.log("cannot calc amenity stats - no amenityGeoJson in store!")
-    return
-  }
-
-  console.log("calc amenity stats")
-  //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
+function getFocusAreaAsTurfObject(focusAreaId?: number) {
   let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
 
   if (focusAreaId) {
@@ -36,6 +44,19 @@ export async function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
     focusAreas.features = grasbrook["features"]
   }
 
+  return focusAreas
+}
+
+/** calculates stats for 1 focus area or entire grasbrook as a single big area **/
+export async function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
+  if (!store.state.scenario.amenitiesGeoJson) {
+    console.log("cannot calc amenity stats - no amenityGeoJson in store!")
+    return
+  }
+
+  console.log("calc amenity stats")
+  //let focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"])
+  let focusAreas = getFocusAreaAsTurfObject(focusAreaId)
   let amenitiesFeatures = getFeatureCollectionOfNonResidentialAmenities()
   let amenitiesWithin = turf.pointsWithinPolygon(amenitiesFeatures, focusAreas); // amenities within focus area
 

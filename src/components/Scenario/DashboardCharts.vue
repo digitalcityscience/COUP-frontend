@@ -231,6 +231,7 @@ export default {
             datasets: datasets,
           },
           options: {
+
             legend: {
               display: false
             },
@@ -239,7 +240,8 @@ export default {
             },
             scale: {
               pointLabels: {
-                fontStyle: "bolder",
+                display: false
+                //fontStyle: "bolder",
               },
               gridLines: {
                 display: true,

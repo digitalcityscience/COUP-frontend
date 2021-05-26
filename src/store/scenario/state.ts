@@ -16,7 +16,9 @@ export default {
   abmSimpleTimes:null,
   abmWeightCount:null,
   abmStats: {},
+  abmStatsMultiLayer: {},
   amenityStats: {},
+  amenityStatsMultiLayer: {},
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
   filterActive: false,
@@ -24,7 +26,7 @@ export default {
   noiseResults: [],
   trafficCounts: null,
   noiseScenario:{
-    traffic_percent: 0.5,
+    traffic_percent: 1,
     max_speed: 50,
   },
   currentNoiseGeoJson: null,
@@ -62,17 +64,26 @@ export default {
   stormWater: false,
   windLayer: false,
   sunExposureLayer: false,
-  solarRadiationLayer: false,
   multiLayerAnalysisMap: false,
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
   amenitiesGeoJson: null,
   selectedFocusAreas: [],
-  windScenarioHash: '',
-  savedWindScenarios: [],
+  windScenarioHash: '158d2b824886d908440da5c5f6c4dc4f815cdeba',  // hash for annual average setting
+  currentWindScenario: {
+    "wind_speed": 5,
+    "wind_direction": 270
+  },  // only gets used to create a description string in "Combine Layers" menu so far.
+  savedWindScenarios: [
+    {
+      "wind_speed": 5,
+      "wind_direction": 270,
+      "label": "ANNUAL AVERAGE"
+    }
+  ],
+  savedNoiseScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,
-  solarRadiationGeoJson: null,
 }
 
