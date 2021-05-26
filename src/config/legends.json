@@ -140,5 +140,43 @@
         "color": "#75085C"
       }
     ]
+  },
+  "stormwater": {
+    "headline": "Run Off Times",
+    "icon": "mdi-bullhorn",
+    "categories": [
+      {
+        "label": "<45dB (A)",
+        "color": "#B8D6D1"
+      },
+      {
+        "label": "45-50dB (A)",
+        "color": "#CEE4CC"
+      },
+      {
+        "label": "50-55dB (A)",
+        "color": "#E2F2BF"
+      },
+      {
+        "label": "55-60dB (A)",
+        "color": "#F3C683",
+        "icon": "mdi-circle"
+      },
+      {
+        "label": "60-65dB (A)",
+        "color": "#E87E4D"
+      },
+      {
+        "label": "65-70dB (A)",
+        "color": "#CD463E"
+      },{
+        "label": "70-75dB (A)",
+        "color": "#A11A4D"
+      },
+      {
+        "label": ">75dB (A)",
+        "color": "#75085C"
+      }
+    ]
   }
 }

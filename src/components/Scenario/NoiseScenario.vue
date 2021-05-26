@@ -286,8 +286,7 @@ export default {
         </div>
 
       </div><!--component_content end-->
-    </div>
-    <!--division end-->
+    </div>   <!--division end-->
   </div>
 </template>
 

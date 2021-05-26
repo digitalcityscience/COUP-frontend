@@ -8,12 +8,21 @@ import Pipes from '@/config/links.json'
 import Rain from '@/config/rain.json'
 import { swLayerName } from "@/store/deck-layers";
 import CityPyo from "@/store/cityPyO";
+import Legend from "@/components/Scenario/Legend";
 
 export default {
-    name: 'AbmScenario',
-    components: {},
+    name: 'StormwaterScenario',
+    components: {
+      Legend: Legend
+    },
     data () {
         return {
+          activeDivision:null,
+          componentDivisions: [],
+          resultOutdated: false,
+          resultLoading: false,
+
+            // bird
             dummyObject: {},
             rainAmount: "2yr",
             rainTime:"test",
@@ -40,6 +49,30 @@ export default {
             this.$store.dispatch('scenario/addSWLayer',  this.swData);
         },
     },
+    beforeMount() {
+      // todo remove this
+      this.activateStormWater()
+    },
+    mounted:
+        function() {
+          // hide all other layers
+          this.$store.dispatch(
+            'hideAllLayersButThese',
+            ['stormwater']
+          )
+          /*autogenerationg Sub Menu for all divs of Class "division"*/
+          var divisions = document.getElementsByClassName("division");
+          for (var i = 0; i < divisions.length; i++) {
+            let divInstance = {
+              title: divisions[i].getAttribute('data-title'),
+              pic: divisions[i].getAttribute('data-pic'),
+            };
+            this.componentDivisions.push(divInstance);
+          }
+
+          this.activeDivision = divisions[0].getAttribute('data-title');
+          console.log("active divisoin is", this.activeDivision)
+        },
     methods: {
         async getStormWaterResult() {
           // todo create an action for this
@@ -113,6 +146,8 @@ export default {
             this.rainAmount = rain;
             this.generateDummyData(rain);
             this.$store.commit("scenario/rainAmount", Rain[rain]);
+            //this.sendScenarioToCityPyo()
+            //this.getStormWaterResult()
         },
     },
 }
@@ -120,24 +155,104 @@ export default {
 </script>
 
 <template>
-    <div class="component_body">
-        <p>Display Stormwater Scenarios</p>
-        <div v-if="!stormWater" class="sw_button" @click="activateStormWater">
-            Load SW Data
-        </div>
-        <div v-if="stormWater" class="sw_dashboard">
-            <div class="storm_selection">
-                <v-btn @click="changeRain('2yr')" :class="{ disabled: rainAmount == '2yr' }">2 year Event</v-btn>
-                <v-btn @click="changeRain('10yr')" :class="{ disabled: rainAmount == '10yr'}">10 year Event</v-btn>
-                <v-btn @click="changeRain('100yr')" :class="{ disabled: rainAmount == '100yr'}">100 year Event</v-btn>
+  <div id="scenario" ref="scenario">
+    <div class="component_divisions">
+      <ul>
+        <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
+        <li v-for="division in componentDivisions" :key="division.title" v-bind:class="{ highlight: activeDivision === division.title }">
+          <div class="component_link" @click="activeDivision = division.title">
+            <v-icon>{{division.pic}}</v-icon>
+          </div>
+          <div class="toHover">{{division.title}}</div>
+        </li>
+      </ul>
+    </div>
+
+    <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+    <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+    <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
+      <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
+        <v-container fluid>
+          <h2>Stormwater Scenario Settings</h2>
+            <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+              <header class="text-sm-left">
+                RAIN TYPE
+              </header>
+              <v-radio-group v-model="rainAmount">
+                <v-radio
+                  :value="'2yr'"
+                  flat
+                  label="2yr Event"
+                  dark
+                />
+                <v-radio
+                  :value="'10yr'"
+                  flat
+                  label="10yr Event"
+                  dark
+                />
+                <v-radio
+                  :value="'100yr'"
+                  flat
+                  label="100yr Event"
+                  dark
+                />
+              </v-radio-group>
             </div>
-        </div>
-        <div>
-          <v-btn @click="sendScenarioToCityPyo()" :class="{ disabled: false}">Save Scenario | Calculate</v-btn>
-          <v-btn @click="getStormWaterResult()" :class="{ disabled: false}">GET RESULT</v-btn>
+            <v-btn @click="changeRain(rainAmount)"
+                   class="confirm_btn"
+                   :class="{ changesMade : resultOutdated }"
+                   :disabled="resultLoading"
+            >
+              Run Scenario
+            </v-btn>
+        </v-container>
+
+        <v-overlay :value="resultLoading">
+          <div>Loading results</div>
+          <v-progress-linear>...</v-progress-linear>
+        </v-overlay>
+      </div>  <!--component content end -->
+    </div> <!-- division end -->
+
+    <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+    <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+    <div class="division" data-title='Dashboard' data-pic='mdi-view-dashboard'>
+      <!--v-if needs to be set to data-title to make switch between divisions possible-->
+      <div v-if="activeDivision === 'Dashboard'" class="component_content">
+        <h2>Stormwater | Dashboard</h2>
+        <p>To be developed</p>
+      </div><!--component_content end-->
+    </div> <!--division end-->
+
+    <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+    <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+    <div class="division" data-title='info' data-pic='mdi-information-variant'>
+      <!--v-if needs to be set to data-title to make switch between divisions possible-->
+      <div v-if="activeDivision === 'info'" class="component_content">
+        <h2>Stormwater | About</h2>
+        <Legend v-bind:topic="'stormwater'"></Legend>
+
+        <!-- text block with subtext blocks, fade out to end to hint for scrolling -->
+        <!-- legend color same as background! -->
+        <div class="info_text">
+          <h4>WHAT IS STORMWATER</h4>
+          <p>
+            LOREM IPSUM
+          <h4>SIMULATION</h4>
+          <p>
+            SWMMMMMMM?
+          </p>
+
+          <h4>COLOR SCHEME</h4>
+          <p>
+            scheme
+          </p>
         </div>
 
-    </div>
+      </div><!--component_content end-->
+    </div>   <!--division end-->
+  </div>
 </template>
 
 
