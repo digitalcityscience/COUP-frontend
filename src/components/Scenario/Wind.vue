@@ -18,9 +18,8 @@ export default {
         return {
             activeDivision:null,
             componentDivisions: [],
-            windSpeed: 10,
-            windDirection: 240,
-            currentScenario: {},
+            windSpeed: 5,
+            windDirection: 270,
             resultOutdated: true,
             showError: false,
             scenarioAlreadySaved: false
@@ -34,6 +33,7 @@ export default {
         ['windScenarioHash', 'scenario/' + 'windScenarioHash'],  // todo wind store
         ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
         ['savedWindScenarios', 'scenario/' + 'savedWindScenarios'],  // todo manage stores
+        ['currentScenario', 'scenario/' + 'currentWindScenario'],  // todo manage stores
       ])
     },
     watch: {
@@ -222,8 +222,6 @@ export default {
             Save
           </v-btn>
         </v-container>
-
-
         <!--saved scenarios -->
         <div class="saved_scenarios" style="margin-top: 5vh;">
           <h2>Reload a saved scenario</h2>
@@ -251,7 +249,6 @@ export default {
             </template>
           </v-data-iterator>
         </div>
-
         <v-overlay :value="resultLoading">
           <div>Loading results</div>
           <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>

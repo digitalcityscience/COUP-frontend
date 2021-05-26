@@ -113,8 +113,10 @@ export default {
       ...generateStoreGetterSetter([
       ['activeMenuComponent', 'activeMenuComponent'],
       ['visibleLayers', 'visibleLayers'],
-      ['traffic_percent', 'scenario/noiseScenario/' + noiseSettingsNames.traffic_percent],
-      ['max_speed', 'scenario/noiseScenario/' + noiseSettingsNames.max_speed],
+      ['noiseScenario', 'scenario/noiseScenario'],
+      ['currentWindScenario', 'scenario/currentWindScenario'],
+      ['windScenarioHash', 'scenario/windScenarioHash'],
+      ['abmSettings', 'scenario/moduleSettings'],
     ]),
     currentAbmResult(){
       return this.$store.state.scenario.activeAbmSet;
@@ -355,6 +357,8 @@ export default {
             await this.$store.dispatch('scenario/addSunExposureLayer')
             break;
           case "Wind":
+            this.windScenarioHash = "158d2b824886d908440da5c5f6c4dc4f815cdeba"
+            this.currentWindScenario = { "wind_speed": 5, "wind_direction": 270 }
             await this.$store.dispatch('scenario/updateWindLayer')
             break;
           case "Noise":
@@ -400,11 +404,6 @@ export default {
         }
         this.showError = false;
       },
-      presetChange(layer) {
-        if (layer === 1) {
-
-        }
-      },
       getValueForPreset(presetChoice, range) {
         console.warn("my input" , range, presetChoice)
         const minPercent = this.presetOptions[presetChoice][0] / 100
@@ -412,6 +411,26 @@ export default {
         const maxValue = range[1]
 
         return [maxValue * minPercent, maxValue * maxPercent]
+      },
+      getScenarioDescriptionFor(layerName) {
+
+        console.warn("getting scenario description")
+
+        switch (layerName) {
+          case "Sun":
+            return "DEFAULT SCENARIO"
+          case "Wind":
+            return "DIRECTION: " + this.currentWindScenario["wind_direction"] +
+              " | " + "SPEED: " +  this.currentWindScenario["wind_speed"] + "km/h"
+          case "Noise":
+            return "VOLUME: " + this.noiseScenario["traffic_percent"] * 100 + "%"
+              + " | " + "SPEED: " +  this.noiseScenario["max_speed"] + "km/h"
+          case "Abm":
+            return "Scenario 1"
+
+          default:
+            console.error("cannot create description for unknown layer", layerName)
+        }
       },
       async showCombinedLayers() {
         this.$store.commit('scenario/resultLoading', true)
@@ -562,7 +581,7 @@ export default {
                   @click="loadDefaultResultFor(layerName)"
                   class="confirm_btn"
                   :class="{ changesMade : resultOutdated }"
-                  :disabled="resultLoading || showError"
+                  :disabled="resultLoading"
                   style="min-width: 100%;"
                 >Load Default
                 </v-btn>
@@ -588,6 +607,8 @@ export default {
               style="background-color: transparent; margin-top: 5px;"
             >
               <h2 v-bind:class="enableCriteriaLayer_1 ? '' : 'disabled'">{{ layerChoice_1 }}</h2>
+              <p style="float: left; font-size:12px;">{{ getScenarioDescriptionFor(layerChoice_1) }}</p>
+
             </v-card>
           </v-col>
           <v-col cols="2">
@@ -668,6 +689,7 @@ export default {
               style="background-color: transparent; margin-top: 5px;"
             >
               <h2 v-bind:class="enableCriteriaLayer_2 ? '' : 'disabled'">{{ layerChoice_2 }}</h2>
+              <p style="float: left; font-size:12px;">{{ getScenarioDescriptionFor(layerChoice_2) }}</p>
             </v-card>
           </v-col>
           <v-col cols="2">
