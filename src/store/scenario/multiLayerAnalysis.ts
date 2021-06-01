@@ -1,5 +1,6 @@
 import * as turf from '@turf/turf'
 import store from '@/store'
+import cityPyO from "@/store/cityPyO";
 
 
 /**
@@ -39,13 +40,20 @@ export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
  * @param layer_2
  */
 export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
-  const combinedLayerFeatures = combineLayers(layer_1, layer_2, logicOperator)
-  store.dispatch("scenario/addMultiLayerAnalysisLayer", combinedLayerFeatures)
+  return store.state.cityPyO.combineLayers(layer_1, layer_2).then(combinedGeoJson => {
 
-  const performanceInfos = createPerformanceInfos(combinedLayerFeatures)
-  store.dispatch("scenario/addMultiLayerPerformanceInfos", performanceInfos)
+    if (!combinedGeoJson) {
+      return null
+    }
 
-  return combinedLayerFeatures;
+    const combinedLayerFeatures = combinedGeoJson["features"]
+    store.dispatch("scenario/addMultiLayerAnalysisLayer", combinedLayerFeatures)
+    const performanceInfos = createPerformanceInfos(combinedLayerFeatures)
+    store.dispatch("scenario/addMultiLayerPerformanceInfos", performanceInfos)
+
+    return combinedLayerFeatures;
+    }
+  )
 }
 
 /**
@@ -71,63 +79,42 @@ function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon
     })
 
     return turf.featureCollection(baseDataSet["features"])
-  }
-
-  /** get layer data from abmStats or amenityStats*/
-  // create featureCollection with focusAreas polygons and selected value
-  let layerData = []
-  for (const [focusAreaId, values] of Object.entries(baseDataSet)) {
-    if (isNaN(parseInt(focusAreaId))) {
-      continue
+  } else {
+    /** get layer data from abmStats or amenityStats*/
+      // create featureCollection with focusAreas polygons and selected value
+    let layerData = []
+    for (const [focusAreaId, values] of Object.entries(baseDataSet)) {
+      if (isNaN(parseInt(focusAreaId))) {
+        continue
+      }
+      let feature = getGeometryForFocusArea(focusAreaId)
+      // TODO refactor structure of abm results
+      feature.properties = {"value": values[layerName]};
+      feature.properties["layerName"] = layerName
+      feature.properties["id"] = focusAreaId
+      layerData.push(feature)
     }
-    let feature = getGeometryForFocusArea(focusAreaId)
-    // TODO refactor structure of abm results
-    feature.properties = {"value": values[layerName]};
-    feature.properties["layerName"] = layerName
-    feature.properties["id"] = focusAreaId
-    layerData.push(feature)
+
+    return turf.featureCollection(layerData)
   }
-
-  return turf.featureCollection(layerData)
-}
-
-
-/**
- * Combines 2 input layers
- * If logic operator == "and_not" ; the returned object includes all intersections of layer_1 and all polygons that
- * did not match the filter for layer_2
- *
- * @param layer_1
- * @param layer_2
- * @param logicOperator
- */
-function combineLayers(layer_1, layer_2, logicOperator): turf.Feature[] {
-  if (logicOperator === "and_not") {
-    layer_2 = invertLayerFilter(layer_2)
-  }
-
-  const flattenedFeatures_1 = flattenFeatureCollection(layer_1)
-  const flattenedFeatures_2 = flattenFeatureCollection(layer_2)
-
-  return createLayerOfIntersections(flattenedFeatures_1, flattenedFeatures_2)
 }
 
 function createPerformanceInfos(combinedFeatures: turf.Feature[]) {
   let infos = []
   combinedFeatures.forEach(feat => {
-    const lowOrHigh_1 = isLowOrHighValue(feat.properties.layer1)
-    const lowOrHigh_2 = isLowOrHighValue(feat.properties.layer2)
+    const lowOrHigh_1 = isLowOrHighValue(feat.properties.scaledValue_1)
+    const lowOrHigh_2 = isLowOrHighValue(feat.properties.scaledValue_2)
 
     if (lowOrHigh_1 && lowOrHigh_2) {
       let info = turf.centroid(feat,
         {
           "shortInfoText":
-           feat.properties.layer1.layerName + " level: " + lowOrHigh_1 + " \n"
-           + feat.properties.layer2.layerName + " level: " + lowOrHigh_2
+           feat.properties.layerName_1 + " level: " + lowOrHigh_1 + " \n"
+           + feat.properties.layerName_2 + " level: " + lowOrHigh_2
           ,
           "infoText":
-          "This area has a " + lowOrHigh_1 + " " + feat.properties.layer1.layerName + " level " +
-          "combined with a " + lowOrHigh_2 + " " + feat.properties.layer2.layerName + " level"
+          "This area has a " + lowOrHigh_1 + " " + feat.properties.layerName_1 + " level " +
+          "combined with a " + lowOrHigh_2 + " " + feat.properties.layerName_2 + " level"
         }
       )
       infos.push(info)
@@ -144,11 +131,11 @@ function createPerformanceInfos(combinedFeatures: turf.Feature[]) {
  * Returns "high" , "low" or null , depending on the scaled value (always scaled to 0-100)
  * @param props
  */
-function isLowOrHighValue(props): string | null {
-  if (props.scaledValue >= 64) {
+function isLowOrHighValue(scaledValue): string | null {
+  if (scaledValue >= 64) {
     return "high"
   }
-  if (props.scaledValue <= 20) {
+  if (scaledValue <= 20) {
     return "low"
   }
 
@@ -176,59 +163,6 @@ function invertLayerFilter(layerToInvert) {
   })
 
   return turf.featureCollection(invertedData)
-}
-
-
-/**
- * Creates a layer of all intersecting areas between the 2 input layers
- * Each intersection polygon has a property with a mean scaled value, calculated from the 2 input layers
- *
- * @param layer_1_features
- * @param layer_2_features
- */
-function createLayerOfIntersections(layer_1_features, layer_2_features) {
-  let combinedFeatures = []
-  for (const feat_1 of layer_1_features) {
-    for (const feat_2 of layer_2_features) {
-      const featureIntersection = findFeatureIntersection(feat_1, feat_2)
-      if (featureIntersection) {
-        const meanValue = (feat_1.properties["scaledValue"] + feat_2.properties["scaledValue"]) / 2
-        // try creating new feature from intersection and meanValue
-        featureIntersection.properties = {
-          "meanScaledValue": meanValue,
-          "layer1": feat_1.properties,
-          "layer2": feat_2.properties,
-        }
-        combinedFeatures.push(featureIntersection)
-      }
-    }
-  }
-  return combinedFeatures
-}
-
-/**
- * Creates a simplified version of the features and looks for an intersection
- * If simplified features intersect return a turf.Feature for the intersection area.
- *
- * @param feat_1
- * @param feat_2
- */
-function findFeatureIntersection(feat_1, feat_2): turf.Feature | null {
-  const simplifyingOptions = {tolerance:0.02, highQuality: false};
-  const simplifiedFeatures = [
-    turf.buffer(turf.simplify(JSON.parse(JSON.stringify(feat_1)), simplifyingOptions), 0.2, {"steps": 8} ),
-    turf.buffer(turf.simplify(JSON.parse(JSON.stringify(feat_2)), simplifyingOptions), 0.2, {"steps": 8})
-  ]
-
-  // if the simplified features overlap, take a closer look and return if the real features overlap
-  if (turf.booleanOverlap(simplifiedFeatures[0], simplifiedFeatures[1])) {
-    try {
-      return turf.intersect(feat_1, feat_2)
-    } catch (e) {
-      console.warn("Error for one of layer intersections", e, feat_1, feat_2)
-    }
-  }
-  return null
 }
 
 /**

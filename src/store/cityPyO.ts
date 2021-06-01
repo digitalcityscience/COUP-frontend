@@ -217,6 +217,25 @@ export default class CityPyO {
       }
     }
 
+    async combineLayers(layer1, layer2) {
+      let requestUrl = this.url + 'combineLayers'
+
+      const body = {
+        "userid": this.userid,
+        "layer_1": layer1,
+        "layer_2": layer2
+      }
+      const response = await this.performRequest('', requestUrl, body)
+
+      if (response.status === 200) {
+        const responseJson = await response.json()
+        return await responseJson
+      } else {
+        return null
+      }
+    }
+
+
     getLayerData(query: string) {
     }
 

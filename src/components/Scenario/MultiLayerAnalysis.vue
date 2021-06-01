@@ -121,6 +121,9 @@ export default {
     currentAbmResult(){
       return this.$store.state.scenario.activeAbmSet;
     },
+    abmStatsMultiLayerAnalysis() {
+      return this.$store.state.scenario.abmStatsMultiLayer;
+    },
     currentNoiseResult(){
       return this.$store.state.scenario.currentNoiseGeoJson;
     },
@@ -134,8 +137,6 @@ export default {
     watch: {
       layerChoice_1(newVal, oldVal) {
         // update options for selectable indexes (to be combined to new layer)
-        console.warn("topic 1 changed")
-
         this.criteriaOptions_1 = this.availableResultCriteria.filter(option => {
           return option.layerName === this.layerChoice_1
         })
@@ -152,7 +153,6 @@ export default {
       criteriaChoice_1: {
         deep: true,
         handler() {
-          console.warn("criteria layer 1 changed", this.criteriaChoice_1)
           if (this.criteriaChoice_1.label === this.criteriaChoice_2.label) {
             this.showError = true
           } else {
@@ -257,12 +257,8 @@ export default {
       layersReadyToCompare: {
         deep: true,
         handler() {
-
-          console.warn("layers ready to compare changed")
-
           // check if at least to layers are available for analysis
           if (!(this.layersReadyToCompare.length >= 2)) {
-            console.warn("need at least 2 input layers to combine")
             this.showMissingScenarios = true
             return
           }
@@ -277,6 +273,30 @@ export default {
           if (!this.layerChoice_1) {
             this.layerChoice_1 = this.layersReadyToCompare[0]
             this.layerChoice_2 = this.layersReadyToCompare[1]
+          }
+        }
+      },
+      abmStatsMultiLayerAnalysis: {
+        // update criteria layers , if abmStats change. They take a while to calculate,
+        // so displayed data might be missing or outdated.
+        deep: true,
+        handler() {
+          // check if at least to layers are available for analysis
+          if (this.layerChoice_1 === "Abm") {
+            const request = {
+              "layerName": this.criteriaChoice_1.value,
+              "layerRange": this.criteriaChoice_1.range,
+              "layerConstraints": this.sliderValues_1,
+            }
+            this.criteriaLayer_1 = filterAndScaleLayerData(request)
+          }
+          if (this.layerChoice_2 === "Abm") {
+            const request = {
+              "layerName": this.criteriaChoice_2.value,
+              "layerRange": this.criteriaChoice_2.range,
+              "layerConstraints": this.sliderValues_2,
+            }
+            this.criteriaLayer_2 = filterAndScaleLayerData(request)
           }
         }
       }
@@ -346,12 +366,8 @@ export default {
             this.layersReadyToCompare.push(key)
           }
         }
-        console.warn("missing these scenarios", this.missingInputScenarios)
-        console.warn("scenarios ready to compare", this.layersReadyToCompare)
       },
       async loadDefaultResultFor(layerName) {
-        console.warn("loading default for", layerName)
-
         switch (layerName) {
           case "Sun":
             await this.$store.dispatch('scenario/addSunExposureLayer')
@@ -375,13 +391,12 @@ export default {
         }
         // then update missing scenarios and hide result layers
         this.determineMissingScenarios()
-        // this.updateLayerSelectionDropdowns()
+        //this.updateLayerSelectionDropdowns()
         this.$store.dispatch('hideAllLayersButThese')
       },
       updateLayerSelectionDropdowns() {
         // check if at least to layers are available for analysis
         if (!(this.layersReadyToCompare.length >= 2)) {
-          console.warn("need at least 2 input layers to combine")
           return
         }
 
@@ -402,10 +417,10 @@ export default {
         if (this.combinedLayers) {
           this.resultOutdated = true;
         }
+
         this.showError = false;
       },
       getValueForPreset(presetChoice, range) {
-        console.warn("my input" , range, presetChoice)
         const minPercent = this.presetOptions[presetChoice][0] / 100
         const maxPercent = this.presetOptions[presetChoice][1] / 100
         const maxValue = range[1]
@@ -413,9 +428,6 @@ export default {
         return [maxValue * minPercent, maxValue * maxPercent]
       },
       getScenarioDescriptionFor(layerName) {
-
-        console.warn("getting scenario description")
-
         switch (layerName) {
           case "Sun":
             return "DEFAULT SCENARIO"
@@ -435,21 +447,23 @@ export default {
       async showCombinedLayers() {
         this.$store.commit('scenario/resultLoading', true)
         this.$store.commit("scenario/loader", true);
-        this.$store.commit("scenario/loaderTxt", "Combining Layers (slow)");
+        this.$store.commit("scenario/loaderTxt", "Combining Layers");
+
+        // disable editing of layer criteria
         this.enableCriteriaLayer_1 = this.enableCriteriaLayer_2 = false;
         await new Promise(resolve => setTimeout(resolve, 500));
 
         if (!this.combinedLayers || this.resultOutdated) {
           // recombine layers if input options have changed
           this.resultOutdated = false
-          this.combinedLayers = showMultiLayerAnalysis(
+          this.combinedLayers = await showMultiLayerAnalysis(
             this.criteriaLayer_1,
             this.criteriaLayer_2,
             this.logicOperator.value
-          );
+          )
         }
 
-        if (this.combinedLayers.length === 0) {
+        if (!this.combinedLayers || this.combinedLayers.length === 0) {
           this.emptyDataWarning = true
         } else {
           this.$store.commit("scenario/multiLayerAnalysisMap", true);
@@ -641,7 +655,7 @@ export default {
             :disabled="!enableCriteriaLayer_1"
             :items="Object.keys(presetOptions)"
             v-model="preset_1"
-            @change="sliderValues_1 = getValueForPreset(preset_1, criteriaChoice_1.range)"
+            @change="inputChanged(); sliderValues_1 = getValueForPreset(preset_1, criteriaChoice_1.range)"
             item-text="label"
             item-value="label"
             solo
@@ -721,7 +735,7 @@ export default {
               :disabled="!enableCriteriaLayer_2"
               :items="Object.keys(presetOptions)"
               v-model="preset_2"
-              @change="sliderValues_2 = getValueForPreset(preset_2, criteriaChoice_2.range)"
+              @change="inputChanged(); sliderValues_2 = getValueForPreset(preset_2, criteriaChoice_2.range)"
               item-text="label"
               item-value="label"
               solo
