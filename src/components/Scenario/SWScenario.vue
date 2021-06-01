@@ -116,12 +116,12 @@ export default {
         generateDummyData(storm){
             this.dummyObject = {};
             Subcatchments.features.forEach(feature => {
-                if(feature.properties.city_scope != null){
-                    this.dummyObject[feature.properties.city_scope] = {};
-                    this.dummyObject[feature.properties.city_scope].type = feature.properties.S_Type;
-                    this.dummyObject[feature.properties.city_scope].roof = feature.properties.Roof_Type;
-                    this.dummyObject[feature.properties.city_scope].geometry = feature.geometry.coordinates.flat(1);
-                    this.dummyObject[feature.properties.city_scope].runoff =[];
+                if(feature.properties.sub_id != null){
+                    this.dummyObject[feature.properties.sub_id] = {};
+                    this.dummyObject[feature.properties.sub_id].type = feature.properties.S_Type;
+                    this.dummyObject[feature.properties.sub_id].roof = feature.properties.Roof_Type;
+                    this.dummyObject[feature.properties.sub_id].geometry = feature.geometry.coordinates.flat(1);
+                    this.dummyObject[feature.properties.sub_id].runoff =[];
 
                     for(var i = 0; i < 288; i++){
                         let hour;
@@ -129,7 +129,7 @@ export default {
                         i != 0 ? hour = Math.floor(i/12) : hour = 0;
                         let runoff = this.getRandomDummyValue(prev, Rain[storm][hour]);
                         var prev = runoff;
-                        this.dummyObject[feature.properties.city_scope].runoff.push(runoff);
+                        this.dummyObject[feature.properties.sub_id].runoff.push(runoff);
                     }
                 }
             });
