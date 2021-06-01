@@ -237,13 +237,20 @@ export default {
             })
         }
   },
+  combineLayers({state, commit, dispatch, rootState}, layer1, layer2) {
+    return rootState.cityPyO.combineLayers(layer1, layer2).then(
+      combinedGeoJson => {
+        console.log("got combined geojson", combinedGeoJson)
+        return dispatch('addMultiLayerAnalysisLayer', combinedGeoJson["features"])
+      })
+  },
   addMultiLayerAnalysisLayer({state, commit, dispatch, rootState}, features) {
     // update layer on map
     let source = MultiLayerAnalysisConfig.mapSource
     source.options.data.features = features
-    dispatch('addSourceToMap', source, {root: true})
+    return dispatch('addSourceToMap', source, {root: true})
       .then(source => {
-        dispatch('addLayerToMap', MultiLayerAnalysisConfig.layer, {root: true})
+        return dispatch('addLayerToMap', MultiLayerAnalysisConfig.layer, {root: true})
       })
   },
   addSubSelectionLayer({state, commit, dispatch, rootState}, features) {
@@ -553,7 +560,7 @@ export default {
       commit('addLayerId', swLayerName, {root: true});
     });
 
-   
+
     /*var swLayer = rootState.map.getLayer(swLayerName);
     swLayer.implementation.setProps({ swTime: state.rainTime});
     console.log(swLayer);*/
