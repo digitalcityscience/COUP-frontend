@@ -21,7 +21,7 @@ export default {
           activeDivision:null,
           componentDivisions: [],
           resultOutdated: false,
-          returnPeriod: 10,
+          returnPeriod: 2,
           returnPeriodOptions: [
             {
               "value": 2,
