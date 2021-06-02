@@ -80,6 +80,16 @@ export default {
       "wind_speed": 5,
       "wind_direction": 270,
       "label": "ANNUAL AVERAGE"
+    },
+    {
+      "wind_speed": 25,
+      "wind_direction": 270,
+      "label": "LIGHT BREEZE"
+    },
+    {
+      "wind_speed": 45,
+      "wind_direction": 270,
+      "label": "STRONG BREEZE"
     }
   ],
   savedNoiseScenarios: [],
