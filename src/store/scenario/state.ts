@@ -100,5 +100,8 @@ export default {
   swData: {},
   rainAmount: [],
   rainTime:0,
+  stormWaterScenarioHash: '',
+  savedStormWaterScenarios: [],
+  stormWaterScenario: null
 }
 

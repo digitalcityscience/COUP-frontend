@@ -9,6 +9,7 @@ import Rain from '@/config/rain.json'
 import { swLayerName } from "@/store/deck-layers";
 import CityPyo from "@/store/cityPyO";
 import Legend from "@/components/Scenario/Legend";
+import hash from 'object-hash'
 
 export default {
     name: 'StormwaterScenario',
@@ -20,8 +21,56 @@ export default {
           activeDivision:null,
           componentDivisions: [],
           resultOutdated: false,
-          resultLoading: false,
-
+          returnPeriod: 10,
+          returnPeriodOptions: [
+            {
+              "value": 2,
+              "label": "2yr Event"
+            },
+            {
+              "value": 10,
+              "label": "10yr Event"
+            },
+            {
+              "value": 100,
+              "label": "100yr Event"
+            },
+          ],
+          flowPath: "building_block_park",
+          flowPathOptions: [
+            {
+              "value": "building_block_park",
+              "label": "Building > Block > Park"
+            },
+            {
+              "value": "building_block_street",
+              "label": "Building > Block > Street"
+            }
+          ],
+          greenRoofs: "extensive",
+          greenRoofOptions: [
+            {
+              "value": "extensive",
+              "label": "Extensive Green Roofs"
+            },
+            {
+              "value": "intensive",
+              "label": "Intensive Green Roofs"
+            },
+          ],
+          /*
+          improvedTreePits: true,
+          treePitOptions: [
+            {
+              "value": true,
+              "label": "Improved Tree Pits"
+            },
+            {
+              "value": false,
+              "label": "Other Trees"
+            }
+          ],
+          */
             // bird
             dummyObject: {},
             rainAmount: "2yr",
@@ -36,6 +85,12 @@ export default {
             'map',
             'layers',
             'layerIds',
+        ]),
+        ...generateStoreGetterSetter([
+          ['stormWaterScenarioHash', 'scenario/' + 'stormWaterScenarioHash'],  // todo stormWater store
+          ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
+          ['savedStormWaterScenarios', 'scenario/' + 'savedStormWaterScenarios'],  // todo manage stores
+          ['stormWaterScenario', 'scenario/' + 'stormWaterScenario'],  // todo manage stores
         ]),
         stormWater(){
             return this.$store.state.scenario.stormWater;
@@ -149,6 +204,39 @@ export default {
             //this.sendScenarioToCityPyo()
             //this.getStormWaterResult()
         },
+        runScenario() {
+          this.updateStormWaterScenario()
+
+          // this is just showing fake results
+          const returnPeriodString = this.returnPeriod.toString() + "yr"
+          this.changeRain(returnPeriodString)
+
+          // TODO get and display results
+
+        },
+        updateStormWaterScenario() {
+          this.stormWaterScenario = {
+            "returnPeriod": this.returnPeriod,
+            "flowPath": this.flowPath,
+            "greenRoofs": this.greenRoofs,
+            // "treePits": this.treePits
+          }
+          this.stormWaterScenarioHash = hash(this.stormWaterScenario)  // todo use store variable
+          this.stormWaterScenario["hash"] = this.stormWaterScenarioHash
+        },
+        isResultOutdated() {
+          console.warn("input changed")
+          if (!this.stormWaterScenario) {
+            this.resultOutdated = false;
+          } else {
+            this.resultOutdated = (
+              this.returnPeriod !== this.stormWaterScenario["returnPeriod"]
+              || this.flowPath !== this.stormWaterScenario["flowPath"]
+              || this.greenRoofs !== this.stormWaterScenario["greenRoofs"]
+              // || this.treePitzs !== this.stormWaterScenario["treePits"]
+            )
+          }
+          }
     },
 }
 
@@ -176,30 +264,89 @@ export default {
           <h2>Stormwater Scenario Settings</h2>
             <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
               <header class="text-sm-left">
-                RAIN TYPE
+                TIMESERIES
               </header>
-              <v-radio-group v-model="rainAmount">
+              <v-radio-group v-model="returnPeriod" @change="isResultOutdated()">
                 <v-radio
-                  :value="'2yr'"
+                  :value="returnPeriodOptions[0].value"
                   flat
-                  label="2yr Event"
+                  :label="returnPeriodOptions[0].label"
                   dark
                 />
                 <v-radio
-                  :value="'10yr'"
+                  :value="returnPeriodOptions[1].value"
                   flat
-                  label="10yr Event"
+                  :label="returnPeriodOptions[1].label"
                   dark
                 />
                 <v-radio
-                  :value="'100yr'"
+                  :value="returnPeriodOptions[2].value"
                   flat
-                  label="100yr Event"
+                  :label="returnPeriodOptions[2].label"
                   dark
                 />
               </v-radio-group>
             </div>
-            <v-btn @click="changeRain(rainAmount)"
+            <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+              <header class="text-sm-left">
+                FLOW PATH
+              </header>
+              <v-radio-group v-model="flowPath" @change="isResultOutdated()">
+                <v-radio
+                  :value="flowPathOptions[0].value"
+                  flat
+                  :label="flowPathOptions[0].label"
+                  dark
+                />
+                <v-radio
+                  :value="flowPathOptions[1].value"
+                  flat
+                  :label="flowPathOptions[1].label"
+                  dark
+                />
+              </v-radio-group>
+            </div>
+          <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+              <header class="text-sm-left">
+                ROOFS
+              </header>
+              <v-radio-group v-model="greenRoofs" @change="isResultOutdated()">
+                <v-radio
+                  :value="greenRoofOptions[0].value"
+                  flat
+                  :label="greenRoofOptions[0].label"
+                  dark
+                />
+                <v-radio
+                  :value="greenRoofOptions[1].value"
+                  flat
+                  :label="greenRoofOptions[1].label"
+                  dark
+                />
+              </v-radio-group>
+            </div>
+            <!-- hidden for now
+            <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+              <header class="text-sm-left">
+                TREES
+              </header>
+              <v-radio-group v-model="improvedTreePits" @change="isResultOutdated()">
+                <v-radio
+                  :value="treePitOptions[0].value"
+                  flat
+                  :label="treePitOptions[0].label"
+                  dark
+                />
+                <v-radio
+                  :value="treePitOptions[1].value"
+                  flat
+                  :label="treePitOptions[1].label"
+                  dark
+                  />
+              </v-radio-group>
+
+            </div>   TREE PITS DIV -->
+            <v-btn @click="runScenario()"
                    class="confirm_btn"
                    :class="{ changesMade : resultOutdated }"
                    :disabled="resultLoading"
