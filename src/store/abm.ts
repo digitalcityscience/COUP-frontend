@@ -1,12 +1,12 @@
 export const bridges = {
   bridge_hafencity: "bridge_hafencity",
   bridge_veddel_horizontal: "bridge_veddel_horizontal",
-  bridge_veddel_diagonal: "bridge_veddel_diagonal",
+  underpass_veddel_north: "underpass_veddel_north",
 }
 
 export const moduleSettingNames = {
   bridge_hafencity: "bridge_hafencity",
-  bridge_veddel: "bridge_veddel",
+  underpass_veddel_north: "underpass_veddel_north",
   roofAmenities: "roof_amenities",
   blocks: "blocks",
   mainStreetOrientation: "main_street_orientation"

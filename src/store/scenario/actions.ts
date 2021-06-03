@@ -136,6 +136,7 @@ export default {
       dispatch("updateWindLayer")
       }
   },
+  // TODO: adapt to new abm model with underpass_veddel_north and new results!
   loadWorkshopScenario({state, commit, dispatch, rootState}, scenarioId) {
     let bridges = updateBridges(
       bridgeNames.bridge_hafencity,
@@ -152,7 +153,7 @@ export default {
 
     let bridges = updateBridges(
       state.moduleSettings.bridge_hafencity,
-      state.moduleSettings.bridge_veddel
+      state.moduleSettings.underpass_veddel_north
     )
 
     commit('bridges', bridges)
@@ -568,17 +569,14 @@ export default {
   }
 }
 
-function updateBridges(bridge_hafencity, bridge_veddel) {
-  let bridges = []
+function updateBridges(bridge_hafencity, underpass_veddel) {
+  let bridges = [bridgeNames.bridge_veddel_horizontal] // always there
 
   if (bridge_hafencity) {
     bridges.push(bridgeNames.bridge_hafencity)
   }
-  if (bridge_veddel == bridgeVeddelOptions.horizontal) {
-    bridges.push(bridgeNames.bridge_veddel_horizontal)
-  }
-  if (bridge_veddel == bridgeVeddelOptions.diagonal) {
-    bridges.push(bridgeNames.bridge_veddel_diagonal)
+  if (underpass_veddel) {
+    bridges.push(bridgeNames.underpass_veddel_north)
   }
 
   return bridges

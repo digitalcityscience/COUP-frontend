@@ -64,7 +64,7 @@ export default {
             ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
             ['currentlyShownScenarioSettings', 'scenario/currentlyShownScenarioSettings'],
             ['bridge_hafencity', 'scenario/moduleSettings/' + moduleSettingNames.bridge_hafencity],
-            ['bridge_veddel', 'scenario/moduleSettings/' + moduleSettingNames.bridge_veddel],
+            ['underpass_veddel_north', 'scenario/moduleSettings/' + moduleSettingNames.underpass_veddel_north],
             ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
             ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
             ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
@@ -223,7 +223,7 @@ export default {
            <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
                <h2>ABM Scenario Settings</h2>
                 <v-container fluid>
-                    <div class="scenario_box" :class="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? 'highlight' : 'na'">
+                    <div class="scenario_box" :class="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                             BRIDGES
                         </header>
@@ -236,12 +236,12 @@ export default {
                             :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
                         />
                        <v-switch
-                            v-model="bridge_veddel"
+                            v-model="underpass_veddel_north"
                             flat
-                            label="Underpass to Veddel"
+                            label="Underpass to Veddel North"
                             dark
-                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#fff' : '#888'"
-                            :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
+                            :color="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? '#fff' : '#888'"
+                            :class="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? 'switched' : 'na'"
                         />
                      </div>
                     <div class="scenario_box" :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'highlight' : 'na'">
