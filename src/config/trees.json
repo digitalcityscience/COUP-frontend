@@ -1,9 +1,9 @@
 {
   "layer":
     {
-      "id": "abmAmenities",
+      "id": "trees",
       "type": "circle",
-      "source": "abmAmenities",
+      "source": "trees",
       "paint": {
         "circle-radius": [
           "interpolate", ["linear"], ["zoom"],
@@ -12,27 +12,16 @@
           25, 12
         ],
         "circle-opacity": 0.8,
-        "circle-color":  [
-          "case",
-          ["<=", ["get", "GFK"], 1024],
-          "#ffb121",
-          ["<=", ["get", "GFK"], 2100],
-          "#f76a6a",
-          ["<=", ["get", "GFK"], 2200],
-          "#ff75cf",
-          [">=", ["get", "GFK"], 3000],
-          "#4ebffc",
-          "lightgrey"
-        ]
+        "circle-color":  "green"
       }
     },
-  "mapSource":
+  "source":
     {
-      "id": "abmAmenities",
+      "id": "trees",
       "type": "geojson",
       "data": {
         "from": "cityPyO",
-        "id": "abmAmenities"
+        "id": "trees"
       }
     }
 }
