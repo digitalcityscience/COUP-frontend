@@ -34,7 +34,7 @@ export default {
   resultOutdated: true,  // in the beginning no results are shown. Trigger user to request results.
   moduleSettings: {
     bridge_hafencity: true,
-    bridge_veddel: "horizontal",
+    bridge_veddel: false,
     roof_amenities: roofAmenitiesOptions.random,
     blocks: "open",
     main_street_orientation: "vertical"

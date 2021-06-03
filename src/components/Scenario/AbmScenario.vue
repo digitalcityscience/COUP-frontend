@@ -31,7 +31,6 @@ export default {
             componentDivisions: [],
             designScenarioNames: bridges,
             moduleSettingOptions: moduleSettingNames,
-            bridgeVeddelOptions: bridgeVeddelOptions,
             mainStreetOrientationOptions: mainStreetOrientationOptions,
             blockOptions: blockPermeabilityOptions,
             roofAmenitiesOptions: roofAmenitiesOptions,
@@ -236,22 +235,14 @@ export default {
                             :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#fff' : '#888'"
                             :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
                         />
-                        <v-radio-group v-model="bridge_veddel" :class="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? 'switched' : 'na'">
-                            <v-radio
-                                :value="bridgeVeddelOptions.diagonal"
-                                flat
-                                label="Bridge to S Veddel (North)"
-                                dark
-                                :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#fff' : '#888'"
-                            />
-                          <v-radio
-                            :value="bridgeVeddelOptions.horizontal"
+                       <v-switch
+                            v-model="bridge_veddel"
                             flat
-                            label="Bridge to S Veddel (South)"
+                            label="Underpass to Veddel"
                             dark
-                            :color="currentlyShownScenarioSettings.bridge_veddel != bridge_veddel ? '#fff' : '#888'"
-                          />
-                        </v-radio-group>
+                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#fff' : '#888'"
+                            :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
+                        />
                      </div>
                     <div class="scenario_box" :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'highlight' : 'na'">
                         <header class="text-sm-left">
@@ -494,7 +485,7 @@ export default {
                <div class="heatmap_buttons">
                     <v-tooltip bottom>
                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn 
+                            <v-btn
                                 @click="setHeatMapTimes(8,23)"
                                 v-bind="attrs"
                                 v-on="on">
@@ -505,7 +496,7 @@ export default {
                     </v-tooltip>
                     <v-tooltip bottom>
                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn 
+                            <v-btn
                                 @click="setHeatMapTimes(8,10)"
                                 v-bind="attrs"
                                 v-on="on">
@@ -516,7 +507,7 @@ export default {
                     </v-tooltip>
                     <v-tooltip bottom>
                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn 
+                            <v-btn
                                 @click="setHeatMapTimes(11,15)"
                                 v-bind="attrs"
                                 v-on="on">
@@ -524,10 +515,10 @@ export default {
                         </v-btn>
                         </template>
                             <span>Mid-Day</span>
-                    </v-tooltip> 
+                    </v-tooltip>
                     <v-tooltip bottom>
                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn 
+                            <v-btn
                                 @click="setHeatMapTimes(17,20)"
                                 v-bind="attrs"
                                 v-on="on">
@@ -535,7 +526,7 @@ export default {
                         </v-btn>
                         </template>
                             <span>Evening</span>
-                    </v-tooltip>     
+                    </v-tooltip>
                </div>
                <p>{{datamsg}}</p>
                <!--<v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>-->
