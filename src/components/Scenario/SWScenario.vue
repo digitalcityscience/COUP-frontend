@@ -383,17 +383,23 @@ export default {
         <!-- text block with subtext blocks, fade out to end to hint for scrolling -->
         <!-- legend color same as background! -->
         <div class="info_text">
-          <h4>WHAT IS STORMWATER</h4>
+          <h4>SWMM SIMULATION ENGINE</h4>
           <p>
-            LOREM IPSUM
-          <h4>SIMULATION</h4>
+            The Stormwater Module uses EPA SWMM as the engine to simulate stormwater runoff. EPA SWMM is an open source software developed and maintained by the United States Environmental Protection Agency.
+            Simulations are carried out using Version 5.1.015. SWMM can be downloaded from the US EPA website: https://www.epa.gov/water-research/storm-water-management-model-swmm.
+          <h4>LENGTH OF SIMULATION</h4>
           <p>
-            SWMMMMMMM?
+          SWMM can be used for single event or long-term simulations. The Stormwater Module models only event storms. To model event storm precipitation, we use KOSTRA-DWD-2010R data for the Grasbrook site and apply Euler II for the rainfall distribution curve.
+          <br>
           </p>
-
-          <h4>COLOR SCHEME</h4>
+          <h4>RESULTS DISPLAYED - RUNOFF</h4>
           <p>
-            scheme
+            SWMM can output a varied of indicators and time series (see SWMM User Manual). In the current version of the Stormwater Module, we display only the results for stormwater runoff.
+          </p>
+          <h4>MODEL PARAMETERS</h4>
+          <p>
+            Default values from the SWMM User’s Manual were used to set up the model. The surfaces type categories used in the model are adapted from the BIM buildings and spaces files.
+            Validation of the model has not been performed, however, due to lack of data (e.g. long-term monitoring data of of a comparable watershed).
           </p>
         </div>
 
