@@ -113,7 +113,7 @@ export default {
           // hide all other layers
           this.$store.dispatch(
             'hideAllLayersButThese',
-            ['stormwater', 'trees']
+            ['stormwater']
           )
           /*autogenerationg Sub Menu for all divs of Class "division"*/
           var divisions = document.getElementsByClassName("division");

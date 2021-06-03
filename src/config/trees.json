@@ -11,8 +11,8 @@
           15, 2.4,
           25, 12
         ],
-        "circle-opacity": 0.8,
-        "circle-color":  "green"
+        "circle-opacity": 0.6,
+        "circle-color":  "#0a5a0a"
       }
     },
   "source":
