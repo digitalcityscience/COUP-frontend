@@ -1,4 +1,5 @@
 import Amenities from "@/config/amenities.json";
+import Trees from "@/config/trees.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import WindResult from "@/config/windResult.json";
@@ -545,8 +546,17 @@ export default {
         rootState.map?.addLayer(deckLayer);
         commit('addLayerId', swLayerName, {root: true});
       });
+
+    console.warn("adding trees", Trees.source, Trees.layer)
+    rootState.cityPyO.getLayer(Trees.source.data.id)
+      .then(source => {
+        console.warn("source of trees", source)
+        dispatch("addSourceToMap", source, {root: true}).then(() => {
+          dispatch("addLayerToMap", Trees.layer, {root: true} )
+        })
+      })
   },
-  updateSWLayerTime({state, commit, dispatch, rootState}){
+  updateSWLayerTime({state, commit, dispatch, rootState}) {
     var swLayerData = state.swData;
     var transformSWLayerData = Object.values(swLayerData);
 
@@ -560,7 +570,7 @@ export default {
       commit('addLayerId', swLayerName, {root: true});
     });
 
-   
+
     /*var swLayer = rootState.map.getLayer(swLayerName);
     swLayer.implementation.setProps({ swTime: state.rainTime});
     console.log(swLayer);*/

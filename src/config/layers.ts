@@ -5,6 +5,7 @@ import AmenitiesConfig from '@/config/amenities.json'
 import BridgesConfig from '@/config/bridges.json'
 import CircledFeatures from '@/config/circledFeatures.json'
 import FocusAreasConfig from '@/config/focusAreas.json'
+import Trees from '@/config/trees.json'
 import Noise from '@/config/noise.json'
 import WindResult from '@/config/windResult.json'
 import SunExposure from '@/config/sunExposureResult.json'
@@ -24,6 +25,7 @@ const addedLayersIds = [
   abmTripsLayerName,
   abmArcLayerName,
   swLayerName,
+  Trees.layer.id,
   MultiLayerAnalysisConfig.layer.id,
   PerformanceInfosConfig.layer.id,
   CircledFeatures.layer.id,
