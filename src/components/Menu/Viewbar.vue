@@ -246,6 +246,20 @@ export default {
                     this.map.setLayoutProperty("sun_exposure", 'visibility', 'none');
                 }
             }
+            if(this.layerIds.indexOf("stormwater") > -1){
+                if(this.visibleLayers.stormwater){
+                    this.map.setLayoutProperty("stormwater", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("stormwater", 'visibility', 'none');
+                }
+            }
+            if(this.layerIds.indexOf("trees") > -1){
+                if(this.visibleLayers.trees){
+                    this.map.setLayoutProperty("trees", 'visibility', 'visible');
+                } else {
+                    this.map.setLayoutProperty("trees", 'visibility', 'none');
+                }
+            }
             if(this.layerIds.indexOf("focusAreas") > -1){
               console.log("visible layers", this.visibleLayers)
                 if(this.visibleLayers.focusAreas){
@@ -433,18 +447,6 @@ export default {
                  ></v-checkbox>
              </div>
              <div class="layers">
-                 <h3>Stormwater Layers</h3>
-                 <v-checkbox
-                    v-model="visibleLayers.stormwater"
-                    label="Stormwater"
-                    color="white"
-                    dark
-                    @change="updateLayerVisibility"
-                    hide-details
-                    :disabled="!stormWater"
-                 ></v-checkbox>
-             </div>
-             <div class="layers">
                  <h3>Climate Layers</h3>
                  <v-checkbox
                     v-model="visibleLayers.wind"
@@ -463,6 +465,27 @@ export default {
                     @change="updateLayerVisibility"
                     hide-details
                     :disabled="!sunExposure"
+                 ></v-checkbox>
+             </div>
+             <div class="layers">
+                 <h3>Stormwater Layers</h3>
+                 <v-checkbox
+                    v-model="visibleLayers.stormwater"
+                    label="Stormwater"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!stormWater"
+                 ></v-checkbox>
+               <v-checkbox
+                    v-model="visibleLayers.trees"
+                    label="Trees"
+                    color="white"
+                    dark
+                    @change="updateLayerVisibility"
+                    hide-details
+                    :disabled="!stormWater"
                  ></v-checkbox>
              </div>
            <div class="layers">
