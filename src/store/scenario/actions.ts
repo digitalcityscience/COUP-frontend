@@ -1,10 +1,11 @@
 import Amenities from "@/config/amenities.json";
+import Trees from "@/config/trees.json";
 import Bridges from "@/config/bridges.json";
 import NoiseLayer from "@/config/noise.json";
 import WindResult from "@/config/windResult.json";
 import SunExposure from "@/config/sunExposureResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
-import {abmTripsLayerName, animate, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, abmArcLayerName} from "@/store/deck-layers";
+import {abmTripsLayerName, animate, getPolygonColor, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, buildSWLayer, abmArcLayerName, swLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
 import { mdiControllerClassicOutline } from '@mdi/js';
@@ -531,6 +532,58 @@ export default {
         })
         rootState.map?.flyTo({"zoom": 15, "pitch": 45, "speed": 0.2})
       });
+  },
+  addSWLayer({state, commit, dispatch, rootState}, swLayerData){
+    var timeStamp = 0;
+    var transformSWLayerData = Object.values(swLayerData);
+    buildSWLayer(transformSWLayerData, state.rainTime).then(
+      deckLayer => {
+        if (rootState.map?.getLayer(swLayerName)) {
+          rootState.map?.removeLayer(swLayerName)
+        }
+        console.log("stormwater layer loaded");
+        rootState.map?.addLayer(deckLayer);
+        commit('addLayerId', swLayerName, {root: true});
+      });
+
+    console.warn("adding trees", Trees.source, Trees.layer)
+    rootState.cityPyO.getLayer(Trees.source.data.id)
+      .then(source => {
+        console.warn("source of trees", source)
+        dispatch("addSourceToMap", source, {root: true}).then(() => {
+          dispatch("addLayerToMap", Trees.layer, {root: true} ).then(() => {
+           // hide tree layer for now
+           dispatch("hideAllLayersButThese", [swLayerName], {root: true} )
+           })
+        })
+      })
+  },
+  updateSWLayerTime({state, commit, dispatch, rootState}) {
+    var swLayerData = state.swData;
+    var transformSWLayerData = Object.values(swLayerData);
+
+    buildSWLayer(transformSWLayerData, state.rainTime).then(
+      deckLayer => {
+        if (rootState.map?.getLayer(swLayerName)) {
+        rootState.map?.removeLayer(swLayerName)
+      }
+
+      rootState.map?.addLayer(deckLayer);
+      commit('addLayerId', swLayerName, {root: true});
+    });
+
+
+    /*var swLayer = rootState.map.getLayer(swLayerName);
+    swLayer.implementation.setProps({ swTime: state.rainTime});
+    console.log(swLayer);*/
+
+
+    //swLayer.implementation.setProps({ getFillColor: });
+
+    //swLayer.implementation.props.getFillColor();
+
+    /*var swLayer = buildSWLayer(transformSWLayerData);
+    swLayer.setProps({ getElevation: 40 })*/
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
       const abmData = state.activeAbmSet;

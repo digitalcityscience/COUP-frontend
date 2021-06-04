@@ -29,6 +29,7 @@ const initialState: StoreState = {
       amenities: false,
       noise: false,
       stormwater: false,
+      trees: false,
       wind: false,
       sunExposure: false,
       multiLayerAnalysis: false

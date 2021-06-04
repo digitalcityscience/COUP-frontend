@@ -110,7 +110,7 @@ export default {
                 this.$store.commit('scenario/lastClick', this.lastClicked);
         },
         onMapClicked (evt) {
-          console.log("click!")
+          console.log("click!", this.map)
 
           const bbox = [
               [evt.point.x - 10, evt.point.y - 10],

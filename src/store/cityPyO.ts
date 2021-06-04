@@ -66,7 +66,7 @@ export default class CityPyO {
     })
 
     if (res.status !== 200) {
-      console.warn("could not get ressource from cityPyo ", layerId, res.status, res.statusText)
+      console.warn("could not get/update ressource from cityPyo ", layerId, res.status, res.statusText)
     }
 
     return await res

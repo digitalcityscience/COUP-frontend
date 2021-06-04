@@ -95,5 +95,13 @@ export default {
   savedNoiseScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,
+  junctions:{},
+  selectGraph: 'abm',
+  swData: {},
+  rainAmount: [],
+  rainTime:0,
+  stormWaterScenarioHash: '',
+  savedStormWaterScenarios: [],
+  stormWaterScenario: null
 }
 
