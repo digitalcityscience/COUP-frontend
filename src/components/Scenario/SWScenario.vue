@@ -36,14 +36,14 @@ export default {
               "label": "100yr Event"
             },
           ],
-          flowPath: "building_block_park",
+          flowPath: "blockToPark",
           flowPathOptions: [
             {
-              "value": "building_block_park",
+              "value": "blockToPark",
               "label": "Building > Block > Park"
             },
             {
-              "value": "building_block_street",
+              "value": "blockToStreet",
               "label": "Building > Block > Street"
             }
           ],
@@ -132,10 +132,14 @@ export default {
         async getStormWaterResult() {
           // todo create an action for this
           const scenario_hash = "xyz123"
-          const resultLayer = await this.$store.state.cityPyO.getStormwaterResultLayerSource(scenario_hash)
+          const resultLayer = await this.$store.state.cityPyO.getSimulationResultForScenario(
+            "stormwater",
+            this.stormWaterScenarioHash
+          )
           console.log("got stormwater result layer source")
           console.log("add me to the map")
           console.log(resultLayer)
+          // this.generateGraphData(resultLayer)
         },
         sendScenarioToCityPyo() {
           const fileName = "stormwater_scenario"
@@ -167,6 +171,28 @@ export default {
             this.$store.commit("scenario/rainAmount", Rain['2yr']);
             this.$store.commit("scenario/stormWater", true);
             this.$store.commit("scenario/selectGraph", "sw");
+        },
+        generateGraphData(resultLayer) {
+          const features = resultLayer.source.options.data.features
+          console.log("features", features)
+
+          // each point in time calculate total runoff
+          let totalRunOffs = {}
+          features.forEach(feature => {
+            if (feature.properties["runoff_results"]) {
+              console.warn("feature timestamps", feature.properties["runoff_results"]["timestamps"])
+              const timestamps = feature.properties["runoff_results"]["timestamps"]
+              timestamps.forEach(timestamp => {
+                if (!totalRunOffs[timestamp]) {
+                  totalRunOffs[timestamp] = 0
+                }
+                totalRunOffs[timestamp] += feature.properties["runoff_results"]["runoff_value"][timestamp]
+              })
+            }
+          })
+          console.warn("total runoffs", totalRunOffs)
+
+          // TODO rebuild birds dummyObject, but now with real values
         },
         generateDummyData(storm){
             this.dummyObject = {};
@@ -204,14 +230,22 @@ export default {
             //this.sendScenarioToCityPyo()
             //this.getStormWaterResult()
         },
+        getRoofTypeString() {
+          if (this.greenRoofs === "extensive") {
+            return "GR-EX1"
+          }
+          return "GR-IN1"
+        },
         runScenario() {
           this.updateStormWaterScenario()
 
           // this is just showing fake results
           const returnPeriodString = this.returnPeriod.toString() + "yr"
           this.changeRain(returnPeriodString)
+          // end of fake results */
 
           // TODO get and display results
+          // this.getStormWaterResult()
 
         },
         updateStormWaterScenario() {
@@ -221,7 +255,8 @@ export default {
             "greenRoofs": this.greenRoofs,
             // "treePits": this.treePits
           }
-          this.stormWaterScenarioHash = hash(this.stormWaterScenario)  // todo use store variable
+          // this.stormWaterScenarioHash = hash(this.stormWaterScenario)
+          this.stormWaterScenarioHash = this.flowPath + "_" + this.greenRoofs + "_" + this.returnPeriod
           this.stormWaterScenario["hash"] = this.stormWaterScenarioHash
         },
         isResultOutdated() {

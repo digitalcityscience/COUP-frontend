@@ -169,6 +169,10 @@ export default class CityPyO {
       // result has been found
       if (typeof result === 'object' && result !== null) {
         // return the result
+        // todo hotfix
+        if (simType === "stormwater") {
+          return {"complete": true, "source": await this.formatResponse(simType, result) }
+        }
         return {"complete": result["complete"], "source": await this.formatResponse(simType, result["results"]) }
       }
 
