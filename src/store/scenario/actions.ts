@@ -541,7 +541,6 @@ export default {
         if (rootState.map?.getLayer(swLayerName)) {
           rootState.map?.removeLayer(swLayerName)
         }
-
         console.log("stormwater layer loaded");
         rootState.map?.addLayer(deckLayer);
         commit('addLayerId', swLayerName, {root: true});
@@ -552,7 +551,10 @@ export default {
       .then(source => {
         console.warn("source of trees", source)
         dispatch("addSourceToMap", source, {root: true}).then(() => {
-          dispatch("addLayerToMap", Trees.layer, {root: true} )
+          dispatch("addLayerToMap", Trees.layer, {root: true} ).then(() => {
+           // hide tree layer for now
+           dispatch("hideAllLayersButThese", [swLayerName], {root: true} )
+           })
         })
       })
   },
