@@ -1,5 +1,6 @@
 
   module.exports = {
+  publicPath: '/jss/',
   runtimeCompiler: true,
   transpileDependencies: [
       'vuetify'
