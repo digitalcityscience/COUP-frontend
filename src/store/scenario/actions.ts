@@ -569,6 +569,7 @@ export default {
   }
 }
 
+
 function updateBridges(bridge_hafencity, underpass_veddel) {
   let bridges = [bridgeNames.bridge_veddel_horizontal] // always there
 
