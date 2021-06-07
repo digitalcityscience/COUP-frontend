@@ -101,32 +101,34 @@ export default {
             this.renderTimeGraph();
         },
         calculateSWDataSets(){
-            this.swBValues = {"n": 0, "r": []};
-            this.swPTValues = {"n": 0, "r": []};
-            this.swTValues = {"n": 0, "r": []};
+            this.swBValues = {"n": 0, "r": []}; // buildings
+            this.swPTValues = {"n": 0, "r": []};  // parks and plazas
+            this.swTValues = {"n": 0, "r": []};  // streets
             Object.entries(this.swData).forEach(([key, value]) => {
+                // these are buildings: B_C -> Building commercial
                 if(value.type == "B_C" || value.type == "B_R" || value.type == "B_S") {
+                    // what is n and r???
                     this.swBValues.n = this.swBValues.n +1;
                     this.swBValues.r.length > 0 ? this.swBValues.r = this.swBValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swBValues.r = value.runoff;
                 }
-                
+
                 if(value.type == "PT_park" || value.type == "PT_promenade" || value.type == "PT_plaza") {
                     this.swPTValues.n = this.swPTValues.n +1;
                     this.swPTValues.r.length > 0 ? this.swPTValues.r = this.swPTValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swPTValues.r = value.runoff;
                 }
-                
+
                 if(value.type == "T_street") {
                     this.swTValues.n = this.swTValues.n +1;
                     this.swTValues.r.length > 0 ? this.swTValues.r = this.swTValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swTValues.r = value.runoff;
                 };
             });
-            
+
             this.swBValues.r = this.swBValues.r.map(num => Math.round((num/this.swBValues.n)*0.75) );
             this.swPTValues.r = this.swPTValues.r.map(num => Math.round((num/this.swPTValues.n)*1.1) );
             this.swTValues.r = this.swTValues.r.map(num => Math.round((num/this.swTValues.n)*0.98) );
 
             this.swTimeStamps = Array.from(Array(288).keys());
-            this.swTimeStamps = this.swTimeStamps.map(num => Math.floor(num/12) + ":00");
+            this.swTimeStamps = this.swTimeStamps.map(num => Math.floor(num/12) + ":00");  // make hours like "8:00"
             this.renderSWGraphRO();
             this.renderSWGraphRain();
         },
@@ -197,6 +199,7 @@ export default {
                 }
                 });
         },
+       // runOff graph
         renderSWGraphRO(){
             var ctxSW = document.getElementById('swChart').getContext('2d');
 
@@ -386,7 +389,7 @@ export default {
         autoLoopAnimation(){
             var animationSpeed = 1;
             var max = 288;
-            
+
             if(this.swAnimationRunning){
                 if (this.rainTime + animationSpeed >= max) { this.rainTime = 0 }
                 else { this.rainTime = this.rainTime + animationSpeed};
@@ -778,7 +781,7 @@ export default {
                     transform:scale(1,-1);
                 }
 
-                
+
                 .sw_slider {
                     position:relative;
                     width: 260px;

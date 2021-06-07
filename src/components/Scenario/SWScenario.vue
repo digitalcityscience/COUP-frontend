@@ -176,21 +176,30 @@ export default {
           const features = resultLayer.source.options.data.features
           console.log("features", features)
 
-          // each point in time calculate total runoff
+          // calculate total runoff for each point in time
           let totalRunOffs = {}
+          // iterate over every feature
           features.forEach(feature => {
+            const subcatchmentType =  feature.properties.S_Type  // e.g. park
             if (feature.properties["runoff_results"]) {
               console.warn("feature timestamps", feature.properties["runoff_results"]["timestamps"])
               const timestamps = feature.properties["runoff_results"]["timestamps"]
+              // iterate over every time stamp
               timestamps.forEach(timestamp => {
-                if (!totalRunOffs[timestamp]) {
-                  totalRunOffs[timestamp] = 0
+                if (!totalRunOffs[subcatchmentType][timestamp]) {
+                  totalRunOffs[subcatchmentType][timestamp] = 0  // 0 if no runOff Total yet
                 }
-                totalRunOffs[timestamp] += feature.properties["runoff_results"]["runoff_value"][timestamp]
+                // todo : potentially we need to convert runoff value into another unit
+
+                // sum up the run off value for each feature at a point in time
+                totalRunOffs[subcatchmentType][timestamp] += feature.properties["runoff_results"]["runoff_value"][timestamp]
               })
             }
           })
           console.warn("total runoffs", totalRunOffs)
+
+          // todo make object in store for total runOffs
+          // todo make object in store for geojson with timeseries (result from cityPyo)
 
           // TODO rebuild birds dummyObject, but now with real values
         },
@@ -204,6 +213,7 @@ export default {
                     this.dummyObject[feature.properties.sub_id].geometry = feature.geometry.coordinates.flat(1);
                     this.dummyObject[feature.properties.sub_id].runoff =[];
 
+                    // i is a timestamp in minutes
                     for(var i = 0; i < 288; i++){
                         let hour;
                         prev ? prev = prev : prev = 1;
