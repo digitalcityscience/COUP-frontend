@@ -11,13 +11,13 @@ export default {
             timeChart: null,
             swChart: null,
             rainChart: null,
-            swBValues: {"n": 0, "r":[]},
-            swPTValues: {"n": 0, "r":[]},
-            swTValues: {"n": 0, "r":[]},
+            buildingsRunOffResults: [],
+            parksRunOffResults: [],
+            streetsRunOffResults: [],
             currentTimeSet: 0,
             animationSpeed: 21,
             timeArray: {},
-            swTimeStamps: Array.from(Array(288).keys()),
+            swTimeStamps: [],
             timeStamps: [],
             timeCoords: [],
             timeHours: [],
@@ -37,7 +37,7 @@ export default {
             loopSetter:false,
             windowWidth: window.innerWidth,
             mobileTimePanel: false,
-            rainTime:0,
+            rainTime:0,  // time in slider for stormwater
             swAnimationRunning:false,
         }
     },
@@ -66,6 +66,7 @@ export default {
                 animate(deckLayer.implementation, null, null, this.currentTimeStamp);
             }
         },
+        // update the time-dependend stormwater deck.gl layer, if the time in the slider changes.
         updateSWLayer(){
             this.$store.commit("scenario/rainTime", this.rainTime);
             this.$store.dispatch('scenario/updateSWLayerTime');
@@ -100,37 +101,56 @@ export default {
             });
             this.renderTimeGraph();
         },
-        calculateSWDataSets(){
-            this.swBValues = {"n": 0, "r": []}; // buildings
-            this.swPTValues = {"n": 0, "r": []};  // parks and plazas
-            this.swTValues = {"n": 0, "r": []};  // streets
-            Object.entries(this.swData).forEach(([key, value]) => {
-                // these are buildings: B_C -> Building commercial
-                if(value.type == "B_C" || value.type == "B_R" || value.type == "B_S") {
-                    // what is n and r???
-                    this.swBValues.n = this.swBValues.n +1;
-                    this.swBValues.r.length > 0 ? this.swBValues.r = this.swBValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swBValues.r = value.runoff;
-                }
+        async prepareDataForRunOffGraph() {
+          this.buildingsRunOffResults = []
+          this.streetsRunOffResults = []
+          this.parksRunOffResults = []
 
-                if(value.type == "PT_park" || value.type == "PT_promenade" || value.type == "PT_plaza") {
-                    this.swPTValues.n = this.swPTValues.n +1;
-                    this.swPTValues.r.length > 0 ? this.swPTValues.r = this.swPTValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swPTValues.r = value.runoff;
-                }
+          // make time stamps and run off results
+          const features = this.swResultGeoJson.features
 
-                if(value.type == "T_street") {
-                    this.swTValues.n = this.swTValues.n +1;
-                    this.swTValues.r.length > 0 ? this.swTValues.r = this.swTValues.r.map(function (num, i) { return num + value.runoff[i]; }) : this.swTValues.r = value.runoff;
-                };
-            });
-
-            this.swBValues.r = this.swBValues.r.map(num => Math.round((num/this.swBValues.n)*0.75) );
-            this.swPTValues.r = this.swPTValues.r.map(num => Math.round((num/this.swPTValues.n)*1.1) );
-            this.swTValues.r = this.swTValues.r.map(num => Math.round((num/this.swTValues.n)*0.98) );
-
-            this.swTimeStamps = Array.from(Array(288).keys());
-            this.swTimeStamps = this.swTimeStamps.map(num => Math.floor(num/12) + ":00");  // make hours like "8:00"
-            this.renderSWGraphRO();
-            this.renderSWGraphRain();
+          // calculate total runoff for each point in time
+          // iterate over every subcatchment result and add the results to the accumulated up values for the subcatchment type
+          features.forEach(subcatchmentResult => {
+            const subcatchmentType = subcatchmentResult.properties["type_sub"]  // e.g. park
+            if (subcatchmentResult.properties["runoff_results"]) {
+              switch (subcatchmentType) {
+                case "B_C": // building commercial
+                case "B_R": // building residential
+                case "B_S": // building special
+                  this.addSubcatchmentResultToAccumulatedRunOffs(this.buildingsRunOffResults, subcatchmentResult)
+                  break;
+                case "PT_park":
+                case "PT_promenade":
+                case "PT_plaza":
+                case "S_playground":
+                  this.addSubcatchmentResultToAccumulatedRunOffs(this.parksRunOffResults, subcatchmentResult)
+                  break;
+                case "T_street":  // streets
+                  this.addSubcatchmentResultToAccumulatedRunOffs(this.streetsRunOffResults, subcatchmentResult)
+                  break;
+                default:
+                  console.error("got an unknown subcatchment type in stormwater result: ", subcatchmentType)
+              }
+            }
+          })
+          return true
+        },
+        addSubcatchmentResultToAccumulatedRunOffs(totalRunOff, subCatchmentResult) {
+          const timestamps = subCatchmentResult.properties["runoff_results"]["timestamps"]
+          // iterate over every time stamp and add the result to runOffTotal at that time
+          timestamps.forEach(timestamp => {
+            if (timestamp > 120) {
+              // ignore all timestamps > 120, to display only relevant data.
+              return
+            }
+            if (!totalRunOff[timestamp]) {
+              totalRunOff[timestamp] = 0  // 0 if no runOff Total yet
+            }
+            // TODO potentially we need to convert runoff value into another unit
+            // sum up the run off value for each feature at a point in time
+            totalRunOff[timestamp] += subCatchmentResult.properties["runoff_results"]["runoff_value"][timestamp]
+          })
         },
         renderTimeGraph(){
             /*render graph via chart.js*/
@@ -200,12 +220,41 @@ export default {
                 });
         },
        // runOff graph
-        renderSWGraphRO(){
+        renderSWGraphRunOff(){
+
             var ctxSW = document.getElementById('swChart').getContext('2d');
 
             if (this.swChart) {
               this.swChart.destroy();
             }
+
+          // make strings like "2:30" to show elapsed time in hours
+          this.swTimeStamps = Array.from(Array(this.buildingsRunOffResults.length).keys());
+          this.swTimeStamps = this.swTimeStamps.map(
+            num => Math.floor(num/60)  // full hours
+              + ":"
+              + ((num % 60) >= 30 ? "30" : "00")   // group to 30min bits.
+          );
+
+        /* debugging info
+
+          console.warn("accumulated runoff values buildings",
+           this.buildingsRunOffResults
+          )
+          console.warn("accumulated runoff values streets",             this.streetsRunOffResults
+          )
+          console.warn("accumulated runoff values parks",
+            this.parksRunOffResults
+         )
+
+          console.warn("max runoff values",
+            Math.max(...this.buildingsRunOffResults),
+            Math.max(...this.streetsRunOffResults),
+            Math.max(...this.parksRunOffResults)
+          )
+        */
+
+          const yAxixMax = 600 // for now this seems to be max. aggregated runoff for 1 space type.
 
             this.swChart = new Chart(ctxSW, {
                 type: 'line',
@@ -213,7 +262,7 @@ export default {
                     labels: this.swTimeStamps,
                     datasets: [
                     {
-                        data: this.swBValues.r,
+                        data: this.buildingsRunOffResults,
                         //borderColor: 'rgba(253, 128, 93, 1)',
                         borderColor: 'rgba(16,245,229,1)',
                         backgroundColor: 'rgba(0,0,0,0.75)',
@@ -221,13 +270,13 @@ export default {
                         fill: false,
                         label: 'Buildings',
                     },{
-                        data: this.swPTValues.r,
+                        data: this.parksRunOffResults,
                         label: 'Plazas & Parks',
                         borderColor: 'rgba(81,209,252,0.85)',
                         borderWidth:1,
                         fill:true,
                     },{
-                        data: this.swTValues.r,
+                        data: this.streetsRunOffResults,
                         label: 'Streets',
                         borderColor: 'rgba(10,171,135,0.85)',
                         borderWidth:1,
@@ -241,26 +290,26 @@ export default {
                         /*ticks: {
                         beginAtZero: true
                         },*/
-                        max: "350",
+                        max: yAxixMax,
                         scaleLabel: {
                             display: true,
-                            labelString: 'Runoff'
+                            labelString: 'Runoff (LPS)'
                         },
                         gridLines: {
                             color: "rgba(49,48,73,0.35)",
                         },
                         ticks: {
                             beginAtZero: true,
-                            stepSize:35,
+                            stepSize:yAxixMax / 10,
                             maxTicksLimit:10,
-                            suggestedMax:350,
+                            suggestedMax:yAxixMax,
                             display: false
                         }
                     }],
                     xAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'hours'
+                            labelString: 'storm duration in hours'
                         },
                         gridLines: {
                             color: "rgba(49,48,73,0.35)",
@@ -286,8 +335,7 @@ export default {
                 });
         },
         renderSWGraphRain(){
-           console.warn("rain amount", this.rainAmount)
-
+           console.log("rain gage", this.rainAmount)
 
             var ctxR = document.getElementById('rainChart').getContext('2d');
 
@@ -298,6 +346,7 @@ export default {
             this.rainChart = new Chart(ctxR, {
                 type: 'bar',
                 data: {
+                    //labels: Array.from(Array(rainDataMinutes.length).keys()),
                     labels: Array.from(Array(this.rainAmount.length).keys()),
                     datasets: [
                     {
@@ -305,7 +354,7 @@ export default {
                         //borderColor: 'rgba(16,245,229,1)',
                         backgroundColor: 'rgba(255,255,255,0.5)',
                         fill: true,
-                        label: 'mm/m²',
+                        //label: 'mm/m²',
                     }
                     ]
                 },
@@ -327,7 +376,8 @@ export default {
                         max: "20",
                         scaleLabel: {
                             display: true,
-                            labelString: 'mm/m²'
+                            //position: "right",
+                            labelString: ''  // just so the graph is rendered in the same place as the runoff graph..
                         },
                         gridLines: {
                             display:false,
@@ -335,7 +385,7 @@ export default {
                         },
                         ticks: {
                             stepSize:1,
-                            maxTicksLimit:20,
+                            maxTicksLimit:48,
                             suggestedMax:20,
                             display: false
                     }
@@ -343,9 +393,6 @@ export default {
                 }
                 }
             })
-        },
-        functionFollowsForm(){
-            alert("now function yet. come up with one :) ")
         },
         pauseAnimation(){
             this.$store.commit("scenario/animationRunning", false);
@@ -410,7 +457,8 @@ export default {
           'activeMenuComponent',
         ]),
         ...generateStoreGetterSetter([
-            ['currentTimeStamp', 'scenario/currentTimeStamp']
+            ['currentTimeStamp', 'scenario/currentTimeStamp'],
+            ['rerenderSwGraph', 'scenario/rerenderSwGraph']
           ]
         ),
         selectedRange(){
@@ -455,11 +503,15 @@ export default {
         stormWater(){
             return this.$store.state.scenario.stormWater;
         },
+        // TODO hand prop to component in order to decide which graph to show
         selectGraph(){
             return this.$store.state.scenario.selectGraph;
         },
         swData(){
             return this.$store.state.scenario.swData;
+        },
+        swResultGeoJson(){
+            return this.$store.state.scenario.swResultGeoJson;
         },
         rainAmount(){
             return this.$store.state.scenario.rainAmount;
@@ -484,9 +536,16 @@ export default {
             this.heatMapRange.left = (leftVal * 100)/57600 + "%";
             this.heatMapRange.width = ((rightVal - leftVal) * 100)/57600 + "%";
         },
-        swData(){
-            this.$store.commit("scenario/selectGraph", "sw");
-            this.calculateSWDataSets();
+        rerenderSwGraph(){
+         if (this.rerenderSwGraph) {
+           this.$store.commit("scenario/selectGraph", "sw");
+           this.prepareDataForRunOffGraph().then(() => {
+             this.renderSWGraphRunOff()
+             this.renderSWGraphRain()
+           });
+         }
+
+        this.rerenderSwGraph = false
         },
         swAnimationRunning(){
             if(this.swAnimationRunning){this.autoLoopAnimation()};
@@ -544,7 +603,7 @@ export default {
                     <div id="rain_slider">
                         <v-slider
                         v-model="rainTime"
-                        max="287"
+                        :max="buildingsRunOffResults.length"
                         min="0"
                         hide-details
                         dark
@@ -562,7 +621,9 @@ export default {
                 </v-btn>
             </div>
             -->
-            <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
+
+          <!-- TODO this doesnt work and looks confusing
+          <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
               <v-tooltip right>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
@@ -576,9 +637,9 @@ export default {
               </v-tooltip>
                 <div class="filterMenu" v-bind:class="{ visible: checkState }">
                     <div class="wrapper">
-                        <!--<div class="hint">
+                        <! --<div class="hint">
                             <p>Select a dataset to compare</p>
-                        </div>-->
+                        </div> -- >
                         <v-select
                             :items="filterLabels"
                             label="Select"
@@ -591,6 +652,7 @@ export default {
                     </div>
                 </div>
             </div>
+            -->
             <div class="btn_wrapper">
                   <v-tooltip right>
                     <template v-slot:activator="{ on, attrs }">

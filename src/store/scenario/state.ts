@@ -98,8 +98,11 @@ export default {
   junctions:{},
   selectGraph: 'abm',
   swData: {},
+  swResultGeoJson: {},
+  swTotalRunOffs: {},
   rainAmount: [],
   rainTime:0,
+  rerenderSwGraph: false,
   stormWaterScenarioHash: '',
   savedStormWaterScenarios: [],
   stormWaterScenario: null

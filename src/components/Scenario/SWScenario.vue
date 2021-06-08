@@ -2,12 +2,7 @@
 
 import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
-import Junctions from '@/config/nodes.json'
-import Subcatchments from '@/config/subcatchments.json'
-import Pipes from '@/config/links.json'
 import Rain from '@/config/rain.json'
-import { swLayerName } from "@/store/deck-layers";
-import CityPyo from "@/store/cityPyO";
 import Legend from "@/components/Scenario/Legend";
 import hash from 'object-hash'
 
@@ -58,7 +53,7 @@ export default {
               "label": "Intensive Green Roofs"
             },
           ],
-          /*
+          /* feature not enabled yet
           improvedTreePits: true,
           treePitOptions: [
             {
@@ -71,8 +66,7 @@ export default {
             }
           ],
           */
-            // bird
-            dummyObject: {},
+            // bird's variables that i dont understand
             rainAmount: "2yr",
             rainTime:"test",
         }
@@ -87,7 +81,7 @@ export default {
             'layerIds',
         ]),
         ...generateStoreGetterSetter([
-          ['stormWaterScenarioHash', 'scenario/' + 'stormWaterScenarioHash'],  // todo stormWater store
+          ['stormWaterScenarioHash', 'scenario/' + 'stormWaterScenarioHash'],  // todo create a stormWater store
           ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
           ['savedStormWaterScenarios', 'scenario/' + 'savedStormWaterScenarios'],  // todo manage stores
           ['stormWaterScenario', 'scenario/' + 'stormWaterScenario'],  // todo manage stores
@@ -101,7 +95,7 @@ export default {
     },
     watch: {
         swData(){
-            this.$store.dispatch('scenario/addSWLayer',  this.swData);
+            // this.$store.dispatch('scenario/addSWLayer',  this.swData);
         },
     },
     beforeMount() {
@@ -131,16 +125,16 @@ export default {
     methods: {
         async getStormWaterResult() {
           // todo create an action for this
-          const scenario_hash = "xyz123"
           const resultLayer = await this.$store.state.cityPyO.getSimulationResultForScenario(
             "stormwater",
             this.stormWaterScenarioHash
           )
-          console.log("got stormwater result layer source")
-          console.log("add me to the map")
-          console.log(resultLayer)
-          // this.generateGraphData(resultLayer)
+          this.$store.commit("scenario/swResultGeoJson", resultLayer.source.options.data);
+          this.$store.dispatch('scenario/addSWLayer');
+          this.$store.commit("scenario/rerenderSwGraph", true);
         },
+        /*
+        // placeholder in case we do enable user input on subcatchment outlets one day
         sendScenarioToCityPyo() {
           const fileName = "stormwater_scenario"
           // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
@@ -166,79 +160,11 @@ export default {
           }
           this.$store.state.cityPyO.addLayerData(fileName, propPath, payload)
         },
-        activateStormWater(){
-            this.generateDummyData("2yr");
-            this.$store.commit("scenario/rainAmount", Rain['2yr']);
-            this.$store.commit("scenario/stormWater", true);
-            this.$store.commit("scenario/selectGraph", "sw");
-        },
-        generateGraphData(resultLayer) {
-          const features = resultLayer.source.options.data.features
-          console.log("features", features)
-
-          // calculate total runoff for each point in time
-          let totalRunOffs = {}
-          // iterate over every feature
-          features.forEach(feature => {
-            const subcatchmentType =  feature.properties.S_Type  // e.g. park
-            if (feature.properties["runoff_results"]) {
-              console.warn("feature timestamps", feature.properties["runoff_results"]["timestamps"])
-              const timestamps = feature.properties["runoff_results"]["timestamps"]
-              // iterate over every time stamp
-              timestamps.forEach(timestamp => {
-                if (!totalRunOffs[subcatchmentType][timestamp]) {
-                  totalRunOffs[subcatchmentType][timestamp] = 0  // 0 if no runOff Total yet
-                }
-                // todo : potentially we need to convert runoff value into another unit
-
-                // sum up the run off value for each feature at a point in time
-                totalRunOffs[subcatchmentType][timestamp] += feature.properties["runoff_results"]["runoff_value"][timestamp]
-              })
-            }
-          })
-          console.warn("total runoffs", totalRunOffs)
-
-          // todo make object in store for total runOffs
-          // todo make object in store for geojson with timeseries (result from cityPyo)
-
-          // TODO rebuild birds dummyObject, but now with real values
-        },
-        generateDummyData(storm){
-            this.dummyObject = {};
-            Subcatchments.features.forEach(feature => {
-                if(feature.properties.sub_id != null){
-                    this.dummyObject[feature.properties.sub_id] = {};
-                    this.dummyObject[feature.properties.sub_id].type = feature.properties.S_Type;
-                    this.dummyObject[feature.properties.sub_id].roof = feature.properties.Roof_Type;
-                    this.dummyObject[feature.properties.sub_id].geometry = feature.geometry.coordinates.flat(1);
-                    this.dummyObject[feature.properties.sub_id].runoff =[];
-
-                    // i is a timestamp in minutes
-                    for(var i = 0; i < 288; i++){
-                        let hour;
-                        prev ? prev = prev : prev = 1;
-                        i != 0 ? hour = Math.floor(i/12) : hour = 0;
-                        let runoff = this.getRandomDummyValue(prev, Rain[storm][hour]);
-                        var prev = runoff;
-                        this.dummyObject[feature.properties.sub_id].runoff.push(runoff);
-                    }
-                }
-            });
-
-            console.log(this.dummyObject);
-            this.$store.commit("scenario/swData", this.dummyObject);
-        },
-        getRandomDummyValue(min,max){
-            let maxR; let minR;
-            if(min > max){ maxR = min; minR = max } else { maxR = max; minR = min };
-            return Math.floor(Math.random() * (maxR - minR + 1) + minR);
-        },
+        */
         changeRain(rain){
-            this.rainAmount = rain;
-            this.generateDummyData(rain);
-            this.$store.commit("scenario/rainAmount", Rain[rain]);
-            //this.sendScenarioToCityPyo()
-            //this.getStormWaterResult()
+          // TODO rain Amount sometimes is a string and sometimes array. gets used in different contexts. Refactor
+          this.rainAmount = rain;
+          this.$store.commit("scenario/rainAmount", Rain[rain]);
         },
         getRoofTypeString() {
           if (this.greenRoofs === "extensive") {
@@ -247,24 +173,25 @@ export default {
           return "GR-IN1"
         },
         runScenario() {
-          this.updateStormWaterScenario()
+          // update stormwater scenario in store
+          this.makeStormWaterScenario()
 
-          // this is just showing fake results
+          // update selected rain gage (for TimeSheet only??)
           const returnPeriodString = this.returnPeriod.toString() + "yr"
           this.changeRain(returnPeriodString)
-          // end of fake results */
 
-          // TODO get and display results
-          // this.getStormWaterResult()
+          // get stormwater result from cityPyo
+          this.getStormWaterResult()
 
         },
-        updateStormWaterScenario() {
+        makeStormWaterScenario() {
           this.stormWaterScenario = {
             "returnPeriod": this.returnPeriod,
             "flowPath": this.flowPath,
             "greenRoofs": this.greenRoofs,
             // "treePits": this.treePits
           }
+          // TODO use real hash once we stop using pre-cooked results
           // this.stormWaterScenarioHash = hash(this.stormWaterScenario)
           this.stormWaterScenarioHash = this.flowPath + "_" + this.greenRoofs + "_" + this.returnPeriod
           this.stormWaterScenario["hash"] = this.stormWaterScenarioHash
@@ -278,7 +205,7 @@ export default {
               this.returnPeriod !== this.stormWaterScenario["returnPeriod"]
               || this.flowPath !== this.stormWaterScenario["flowPath"]
               || this.greenRoofs !== this.stormWaterScenario["greenRoofs"]
-              // || this.treePitzs !== this.stormWaterScenario["treePits"]
+              // || this.treePits !== this.stormWaterScenario["treePits"]  // feature not enabled yet
             )
           }
           }

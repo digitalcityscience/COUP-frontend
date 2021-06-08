@@ -512,7 +512,6 @@ export default {
             rootState.map?.removeLayer(abmAggregationLayerName)
           }
           console.log("new aggregation layer loaded");
-          console.warn("putting new aggregation layer")
           dispatch('addLayerToMap', deckLayer, {root: true}).then(() => {
             commit('addLayerId', abmAggregationLayerName, {root: true})
           })
@@ -533,10 +532,8 @@ export default {
         rootState.map?.flyTo({"zoom": 15, "pitch": 45, "speed": 0.2})
       });
   },
-  addSWLayer({state, commit, dispatch, rootState}, swLayerData){
-    var timeStamp = 0;
-    var transformSWLayerData = Object.values(swLayerData);
-    buildSWLayer(transformSWLayerData, state.rainTime).then(
+  addSWLayer({state, commit, dispatch, rootState}){
+    buildSWLayer(state.swResultGeoJson, state.rainTime).then(
       deckLayer => {
         if (rootState.map?.getLayer(swLayerName)) {
           rootState.map?.removeLayer(swLayerName)
@@ -547,10 +544,9 @@ export default {
         commit('addLayerId', swLayerName, {root: true});
       });
 
-    console.warn("adding trees", Trees.source, Trees.layer)
+    console.log("adding trees", Trees.source, Trees.layer)
     rootState.cityPyO.getLayer(Trees.source.data.id)
       .then(source => {
-        console.warn("source of trees", source)
         dispatch("addSourceToMap", source, {root: true}).then(() => {
           dispatch("addLayerToMap", Trees.layer, {root: true} ).then(() => {
             // hide tree layer for now
@@ -560,10 +556,7 @@ export default {
       })
   },
   updateSWLayerTime({state, commit, dispatch, rootState}) {
-    var swLayerData = state.swData;
-    var transformSWLayerData = Object.values(swLayerData);
-
-    buildSWLayer(transformSWLayerData, state.rainTime).then(
+    buildSWLayer(state.swResultGeoJson, state.rainTime).then(
       deckLayer => {
         if (rootState.map?.getLayer(swLayerName)) {
         rootState.map?.removeLayer(swLayerName)
