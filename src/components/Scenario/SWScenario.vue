@@ -88,9 +88,6 @@ export default {
         ]),
         stormWater(){
             return this.$store.state.scenario.stormWater;
-        },
-        swData(){
-            return this.$store.state.scenario.swData;
         }
     },
     watch: {

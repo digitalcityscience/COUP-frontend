@@ -507,9 +507,6 @@ export default {
         selectGraph(){
             return this.$store.state.scenario.selectGraph;
         },
-        swData(){
-            return this.$store.state.scenario.swData;
-        },
         swResultGeoJson(){
             return this.$store.state.scenario.swResultGeoJson;
         },
