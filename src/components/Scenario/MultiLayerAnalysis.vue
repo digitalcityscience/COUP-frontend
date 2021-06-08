@@ -48,7 +48,7 @@ export default {
               "label": "Pedestrian Density",
               "value": "pedestrianDensity",
               "unit": "pedestrians/m²",
-              "range": [0, 1.5],
+              "range": [0, 0.6],
               "step": 0.01
             },
             {

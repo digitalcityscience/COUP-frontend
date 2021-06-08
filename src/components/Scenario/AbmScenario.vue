@@ -150,6 +150,7 @@ export default {
         this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
         this.changesMade = false
         this.resultOutdated = false
+        this.$store.commit("scenario/activeAbmSet", null)
         this.$store.dispatch(
           'scenario/updateAbmDesignScenario'
         )

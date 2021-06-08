@@ -149,7 +149,22 @@ export default {
     dispatch('updateAmenitiesLayer', scenarioId)
   },
   updateAbmDesignScenario({state, commit, dispatch, rootState}) {
-    // update scenario name
+/*    // reset all abm data
+    commit("abmData", null)
+    commit("abmTrips", null)
+    commit("agentIndexes", null)
+    commit("clusteredAbmData", null)
+    commit("activeAbmSet", null)   // same as abmDat}
+    commit("abmObject", null)
+    commit("abmTimePaths", null)
+    commit("activeTimePaths", null)
+    commit("abmS  impleTimes", null)
+    commit("abmWeightCount", null)
+    commit("updateAbmStatsChart", false)
+    commit("updateAmenityStatsChart", false)
+    commit("filterActive", false)
+    commit("filterSettings", null)*/
+
 
     let bridges = updateBridges(
       state.moduleSettings.bridge_hafencity,
@@ -166,6 +181,7 @@ export default {
       commit("abmMultiLayerStats", {}) // reset abmStats
       commit("amenityStatsMultiLayer", {}) // reset amenityStats
     }
+
     dispatch('updateAmenitiesLayer')
 
     return dispatch('initialAbmComputing')
