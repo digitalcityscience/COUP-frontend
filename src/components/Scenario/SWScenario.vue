@@ -91,9 +91,7 @@ export default {
         }
     },
     watch: {
-        swData(){
-            // this.$store.dispatch('scenario/addSWLayer',  this.swData);
-        },
+
     },
     beforeMount() {
       // todo remove this
