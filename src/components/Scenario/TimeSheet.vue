@@ -286,6 +286,9 @@ export default {
                 });
         },
         renderSWGraphRain(){
+           console.warn("rain amount", this.rainAmount)
+
+
             var ctxR = document.getElementById('rainChart').getContext('2d');
 
             if (this.rainChart) {
@@ -295,7 +298,7 @@ export default {
             this.rainChart = new Chart(ctxR, {
                 type: 'bar',
                 data: {
-                    labels: Array.from(Array(24).keys()),
+                    labels: Array.from(Array(this.rainAmount.length).keys()),
                     datasets: [
                     {
                         data: this.rainAmount,
@@ -321,7 +324,7 @@ export default {
                         }
                     }],
                     yAxes: [{
-                        max: "260",
+                        max: "20",
                         scaleLabel: {
                             display: true,
                             labelString: 'mm/m²'
@@ -331,9 +334,9 @@ export default {
                             color: "rgba(49,48,73,0.35)",
                         },
                         ticks: {
-                            stepSize:26,
-                            maxTicksLimit:10,
-                            suggestedMax:260,
+                            stepSize:1,
+                            maxTicksLimit:20,
+                            suggestedMax:20,
                             display: false
                     }
                     }],
