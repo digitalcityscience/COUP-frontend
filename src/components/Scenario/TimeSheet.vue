@@ -71,6 +71,9 @@ export default {
             this.$store.dispatch('scenario/updateSWLayerTime');
         },
         getDataForTimeChart(){
+            this.timeStamps = []
+            this.timeCoords = []
+
             Object.entries(this.abmSimpleTimes).forEach(entry =>{
                 const [key, value] = entry;
                 let label = Math.floor(key/3600) + 8 + ":00";

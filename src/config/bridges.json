@@ -50,7 +50,7 @@
       ]
     },
     {
-      "id": "bridge_veddel_diagonal",
+      "id": "underpass_veddel_north",
       "type": "line",
       "source": "bridges",
       "paint": {
@@ -64,7 +64,7 @@
       "filter": [
         "==",
         "id",
-        "bridge_veddel_diagonal"
+        "underpass_veddel_north"
       ]
     }
   ],
