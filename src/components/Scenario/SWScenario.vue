@@ -233,7 +233,7 @@ export default {
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
         <v-container fluid>
           <h2>Stormwater Scenario Settings</h2>
-            <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+            <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
               <header class="text-sm-left">
                 TIMESERIES
               </header>
@@ -258,7 +258,7 @@ export default {
                 />
               </v-radio-group>
             </div>
-            <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+            <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
               <header class="text-sm-left">
                 FLOW PATH
               </header>
@@ -277,7 +277,7 @@ export default {
                 />
               </v-radio-group>
             </div>
-          <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
               <header class="text-sm-left">
                 ROOFS
               </header>
@@ -297,7 +297,7 @@ export default {
               </v-radio-group>
             </div>
             <!-- hidden for now
-            <div v-if="stormWater" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+            <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
               <header class="text-sm-left">
                 TREES
               </header>
