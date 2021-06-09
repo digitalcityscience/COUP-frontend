@@ -131,6 +131,7 @@ export default {
     mounted: function() {
         // hide all other layers
         this.$store.dispatch('hideAllLayersButThese', getAbmLayerIds())
+        // switch time graph to ABM
         this.$store.commit("scenario/selectGraph", "abm");
 
       /*autogenerationg Sub Menu for all divs of Class "division"*/
