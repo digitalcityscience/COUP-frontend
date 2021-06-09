@@ -118,6 +118,10 @@ export default {
           console.log("active divisoin is", this.activeDivision)
         },
     methods: {
+        activateStormWater() {
+          this.$store.commit("scenario/stormWater", true);
+          this.$store.commit("scenario/selectGraph", "sw");
+        },
         async getStormWaterResult() {
           // todo create an action for this
           const resultLayer = await this.$store.state.cityPyO.getSimulationResultForScenario(
