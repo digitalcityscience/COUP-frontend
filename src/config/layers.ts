@@ -21,8 +21,6 @@ const addedLayersIds = [
   SunExposure.layer.id,
   Noise.layer.id,
   TrafficCounts.layer.id,
-  abmAggregationLayerName,
-  abmTripsLayerName,
   abmArcLayerName,
   swLayerName,
   Trees.layer.id,
@@ -47,6 +45,7 @@ export function getLayerOrder() {
   ]
 
   layerOrder = layerOrder.concat(bridgeLayerIds)
+  layerOrder = layerOrder.concat([abmAggregationLayerName, abmTripsLayerName])
   layerOrder = layerOrder.concat(buildingLayerIds)
   layerOrder = layerOrder.concat(addedLayersIds)
 
