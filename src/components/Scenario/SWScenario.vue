@@ -345,7 +345,9 @@ export default {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Stormwater | About</h2>
+        <!-- Legend
         <Legend v-bind:topic="'stormwater'"></Legend>
+        -->
 
         <!-- text block with subtext blocks, fade out to end to hint for scrolling -->
         <!-- legend color same as background! -->

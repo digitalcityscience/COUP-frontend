@@ -24,7 +24,7 @@
       {
         "label": "Sitting Long",
         "detail": "0.0 - 2.5m/s",
-        "color": "#6971b4"
+        "color": "#458cbf"
       },
       {
         "label": "Sitting Short",
@@ -59,47 +59,47 @@
     "categories": [
       {
         "label": "< 1.2 h/day",
-        "color": "#2c7bb6"
+        "color": "#0571b0"
       },
       {
         "label": "1.2 h/day",
-        "color": "#bae0e2"
+        "color": "#6aaed1"
       },
       {
         "label": "2.4 h/day",
-        "color": "#dcefd1"
+        "color": "#b2d5e6"
       },
       {
         "label": "3.6 h/day",
-        "color": "#fdfec0"
+        "color": "#e7eff3"
       },
       {
         "label": "4.8 h/day",
-        "color": "#ffeeab"
+        "color": "#f7ece7"
       },
       {
         "label": "6 h/day",
-        "color": "#ffdb95"
+        "color": "#f6dbcf"
       },
       {
         "label": "7.2 h/day",
-        "color": "#fec87f"
+        "color": "#f6cbb7"
       },
       {
         "label": "8.4 h/day",
-        "color": "#feb569"
+        "color": "#f5baa0"
       },
       {
         "label": "9.6 h/day",
-        "color": "#fea464"
+        "color": "#f5a988"
       },
       {
         "label": "10.8 h/day",
-        "color": "#fe9469"
+        "color": "#e97867"
       },
       {
         "label": "12 h/day",
-        "color": "#ff836e"
+        "color": "#da3c43"
       }
     ]
   },
