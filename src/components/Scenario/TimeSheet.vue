@@ -569,10 +569,13 @@ export default {
 <template>
     <!--<div v-if="activeMenuComponent === 'AbmScenario'" id="timesheet" :class="{ ui_hide: !showUi || abmData == null }">-->
         <div id="timesheet" :class="{ ui_hide: !showUi || (activeAbmSet == null && stormWater == false)}">
+
+        <!--
         <div class="graph_selection" v-if="activeAbmSet != null && stormWater != false">
             <v-btn>Show ABM Results</v-btn>
             <v-btn>Show Storm Water Results</v-btn>
         </div>
+        -->
         <!-- <h3><strong>Operating grade</strong> /over time</h3> -->
         <div class="time_panel panel" :class="{ show: mobileTimePanel, dismiss: selectGraph != 'abm' }">
             <div class="time_graph">
@@ -622,7 +625,6 @@ export default {
             </div>
             -->
 
-          <!-- TODO this doesnt work and looks confusing
           <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
               <v-tooltip right>
                 <template v-slot:activator="{ on, attrs }">
@@ -652,7 +654,6 @@ export default {
                     </div>
                 </div>
             </div>
-            -->
             <div class="btn_wrapper">
                   <v-tooltip right>
                     <template v-slot:activator="{ on, attrs }">
@@ -706,6 +707,7 @@ export default {
                 </v-btn>
             </div>
             -->
+            <!-- i have no idea what this does -->
             <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
               <v-tooltip right>
                 <template v-slot:activator="{ on, attrs }">
