@@ -8,7 +8,7 @@ export default {
   },
   data() {
     return {
-      legendHeadline: legends[this.topic]["headline"],
+      legendExplanation: legends[this.topic]["headline"],
       legendCategories: legends[this.topic]["categories"],
       icon: legends[this.topic]["icon"]
     }
@@ -20,40 +20,17 @@ export default {
 
 <template>
   <div>
-  <v-container class="component_content">
-    <!-- LEGEND headline -->
-    <v-row
-      no-gutters
-      class="mb-2"
-      style="background-color: inherit;"
-    >
-      <v-col cols="2">
-        <v-card
-          class="pa-0"
-          tile
-          dark
-          style="background-color: inherit;"
-        >
-          <v-icon style="color: #FFD529;">{{ icon }}</v-icon>
-        </v-card>
-      </v-col>
-      <v-col cols="10">
-        <v-card
-          class="pa-0"
-          tile
-          dark
-          style="background-color: inherit;"
-        >
-          <p style="font-weight: bold">{{ legendHeadline }} </p>
-        </v-card>
-      </v-col>
-    </v-row>
+  <v-container class="component_content info_section">
+    <p class="legend_headline">LEGEND</p>
+
+    <p class="legend_explanation">{{ legendExplanation }}</p>
 
     <!-- Legend categories as v-for -->
     <v-row no-gutters
       v-for="item in legendCategories"
-      class="mb-2 ml-0"
-      style="background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px) saturate(140%);"
+      class="mb-0 ml-0"
+      align="center"
+      justify="space-in-between"
     >
       <v-col cols="2">
         <v-card
@@ -65,6 +42,8 @@ export default {
           <v-icon :color="item.color">mdi-square</v-icon>
         </v-card>
       </v-col>
+      <!-- this will be wrapped as a new line into the same col as above,
+      as the column width sum up to more than 12. -->
       <v-col cols="9">
         <v-card
           class="pa-0"
@@ -72,8 +51,22 @@ export default {
           dark
           style="background-color: inherit"
         >
-          {{ item.label }}<br>
-          <span v-if="item.detail">{{item.detail }} </span>
+          {{ item.label }}
+        </v-card>
+      </v-col>
+      <v-col
+        v-if="item.detail"
+        cols="12"
+        class="mb-2 ml-11"
+        style="line-height: 0.7"
+      >
+        <v-card
+          class="pa-0"
+          tile
+          dark
+          style="background-color: inherit"
+        >
+          {{ item.detail }}
         </v-card>
       </v-col>
     </v-row>
@@ -84,25 +77,14 @@ export default {
 <style scoped lang="scss">
   @import "../../style.main.scss";
 
-
-    .andre-legend {
-      background-color: rgba(0,0,0,0.8) !important;
-      color: white;
-
-      .v-col {
-        background-color: red !important;
-      }
+    .legend_headline {
+      margin-left: -20px;
+      font-weight: bold;
     }
 
-    .legend {
-      display: block;
-      position: relative;
-      width: 30px;
-      //min-height:200px;
-      max-width: 100%;
-      padding: 5px;
-      box-sizing: border-box;
-      @include drop_shadow;
+    .legend_explanation {
+      margin-left: -20px;
+      margin-top: -15px;
     }
 
     .v-btn {

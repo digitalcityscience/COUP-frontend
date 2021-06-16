@@ -498,12 +498,11 @@ export default {
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
-      <div v-if="activeDivision === 'Scenario'" class="component_content">
-      <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+      <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
+       <v-container fluid>
+        <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
         <!-- Choose Layers to combine -->
-
-        <h2>LAYER SELECTION</h2>
-        <v-container fluid>
+          <header class="text-sm-left">LAYER SELECTION</header>
           <!-- per row: check button. AND/OR selector. slider per v-select -->
           <!-- set slider min max dynamically -->
           <div v-if="layersReadyToCompare.length >= 2">
@@ -538,89 +537,89 @@ export default {
                 ></v-select>
             </v-row>
           </div>
-        <!-- Layers not available?? Load defaults! -->
-        <div v-if="missingInputScenarios.length">
-          <v-row class="mb-0">
-            <v-col cols="10">
-              <v-card
-                class="pa-0"
-                tile
-                dark
-                style="background-color: transparent; margin-top: 5px;"
-              >
-                <h2>Layer Not Available?</h2>
-              </v-card>
-            </v-col>
-            <v-col cols="2">
-                <v-icon v-if="!showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-270</v-icon>
-                <v-icon v-if="showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-180</v-icon>
-            </v-col>
-          </v-row>
-          <!-- Legend categories as v-for -->
-          <v-row v-if="showMissingScenarios" no-gutters
-                 v-for="layerName in missingInputScenarios"
-                 class="mb-2 ml-0"
-                 style=""
-          >
-            <v-col cols="2" xs="3">
-              <v-card
-                class="mr-2"
-                tile
-                dark
-                style=""
-              >
-                <v-icon :color="'white'">mdi-close</v-icon>
-              </v-card>
-            </v-col>
-            <v-col cols="3" xs="9">
-              <v-card
-                class="pa-0"
-                tile
-                dark
-                style="background-color: inherit"
-              >
-                {{ layerName }}
-              </v-card>
-            </v-col>
-            <v-col cols="7" xs="12">
-              <v-card
-                class="pa-0"
-                tile
-                dark
-                style="background-color: inherit"
-              >
-                <v-btn
-                  @click="loadDefaultResultFor(layerName)"
-                  class="confirm_btn"
-                  :class="{ changesMade : resultOutdated }"
-                  :disabled="resultLoading"
-                  style="min-width: 100%;"
-                >Load Default
-                </v-btn>
-              </v-card>
-            </v-col>
-          </v-row>
-        </div>
-      </v-container>
-      </div>
-
+          <!-- Layers not available?? Load defaults! -->
+          <div v-if="missingInputScenarios.length">
+            <v-row class="mb-0" align="start">
+              <v-col cols="10">
+                <v-card
+                  class="pa-0"
+                  tile
+                  dark
+                  style="background-color: transparent;"
+                >
+                  <header class="text-sm-left">Layer Not Available?</header>
+                </v-card>
+              </v-col>
+              <v-col cols="2">
+                  <v-icon v-if="!showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-270</v-icon>
+                  <v-icon v-if="showMissingScenarios" size="10" color="white" @click="showMissingScenarios = !showMissingScenarios">mdi-triangle mdi-rotate-180</v-icon>
+              </v-col>
+            </v-row>
+            <!-- Legend categories as v-for -->
+            <v-row v-if="showMissingScenarios" no-gutters
+                   v-for="layerName in missingInputScenarios"
+                   class="mb-2 ml-0"
+                   style=""
+            >
+              <v-col cols="2" xs="3">
+                <v-card
+                  class="mr-2"
+                  tile
+                  dark
+                  style=""
+                >
+                  <v-icon :color="'white'">mdi-close</v-icon>
+                </v-card>
+              </v-col>
+              <v-col cols="3" xs="9">
+                <v-card
+                  class="pa-0"
+                  tile
+                  dark
+                  style="background-color: inherit"
+                >
+                  {{ layerName }}
+                </v-card>
+              </v-col>
+              <v-col cols="7" xs="12">
+                <v-card
+                  class="pa-0"
+                  tile
+                  dark
+                  style="background-color: inherit"
+                >
+                  <v-btn
+                    @click="loadDefaultResultFor(layerName)"
+                    class="confirm_btn"
+                    :class="{ changesMade : resultOutdated }"
+                    :disabled="resultLoading"
+                    style="min-width: 100%;"
+                  >Load Default
+                  </v-btn>
+                </v-card>
+              </v-col>
+            </v-row>
+          </div> <!-- end of missing scenarios -->
+        </div> <!-- scenario box -->
 
       <!-- Criteria Selection --->
       <div v-if="layersReadyToCompare.length >= 2" class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
-        <h2>CRITERIA SELECTION</h2>
-
-        <v-container>
-        <v-row>
+        <header class="text-sm-left">CRITERIA SELECTION</header>
+        <v-row style="margin-bottom: -10px;">
           <v-col cols="10">
             <v-card
               class="pa-0"
               tile
               dark
-              style="background-color: transparent; margin-top: 5px;"
+              style="background-color: transparent;"
             >
-              <h2 v-bind:class="enableCriteriaLayer_1 ? '' : 'disabled'">{{ layerChoice_1 }}</h2>
-              <p style="float: left; font-size:12px;">{{ getScenarioDescriptionFor(layerChoice_1) }}</p>
-
+              <header
+                class="text-sm-left"
+                v-bind:class="enableCriteriaLayer_1 ? '' : 'disabled'"
+                style="font-weight: bold;">
+                {{ layerChoice_1 }}
+              </header>
+              <p style="float: left; font-size:11px;">{{ getScenarioDescriptionFor(layerChoice_1) }}</p>
             </v-card>
           </v-col>
           <v-col cols="2">
@@ -629,7 +628,7 @@ export default {
           </v-col>
         </v-row>
         <!-- criteria 1 select -->
-        <v-row no-gutters align="center">
+        <v-row no-gutters align="start">
           <v-select
             :disabled="!enableCriteriaLayer_1"
             :items="criteriaOptions_1"
@@ -666,7 +665,7 @@ export default {
         </v-row>
         <!-- criteria 1 - slider -->
         <v-row no-gutters align="center">
-          <v-col style="margin-top: -25px">
+          <v-col style="margin-top: -35px;">
             <v-range-slider
               :disabled="!enableCriteriaLayer_1 || this.preset_1 !== 'Custom'"
               @dragstart="_ => null"
@@ -692,16 +691,22 @@ export default {
 
         <!-- second criteria --->
         <!-- criteria 2 - headline -->
-        <v-row no-gutters class="mt-12">
+        <v-row no-gutters class="mt-5">
           <v-col cols="10">
             <v-card
               class="pa-0"
               tile
               dark
-              style="background-color: transparent; margin-top: 5px;"
+              style="background-color: transparent;"
             >
-              <h2 v-bind:class="enableCriteriaLayer_2 ? '' : 'disabled'">{{ layerChoice_2 }}</h2>
-              <p style="float: left; font-size:12px;">{{ getScenarioDescriptionFor(layerChoice_2) }}</p>
+              <header
+                class="text-sm-left"
+                v-bind:class="enableCriteriaLayer_2 ? '' : 'disabled'"
+                style="font-weight: bold;"
+              >
+                {{ layerChoice_2 }}
+              </header>
+              <p style="float: left; font-size:11px;">{{ getScenarioDescriptionFor(layerChoice_2) }}</p>
             </v-card>
           </v-col>
           <v-col cols="2">
@@ -710,7 +715,7 @@ export default {
           </v-col>
         </v-row>
         <!-- criteria 2 - select -->
-        <v-row no-gutters align="center">
+        <v-row no-gutters align="start">
           <v-select
             :disabled="!enableCriteriaLayer_2"
             :items="criteriaOptions_2"
@@ -728,7 +733,7 @@ export default {
           ></v-select>
         </v-row>
         <!-- criteria 2 - preset select -->
-          <v-row no-gutters align="center">
+          <v-row no-gutters align="start">
             <v-select
               :disabled="!enableCriteriaLayer_2"
               :items="Object.keys(presetOptions)"
@@ -745,7 +750,7 @@ export default {
             ></v-select>
         <!-- criteria 2 - slider -->
           <v-row no-gutters align="center">
-            <v-col style="margin-top: -25px;">
+            <v-col style="margin-top: -35px;">
               <v-range-slider
                 :disabled="!enableCriteriaLayer_2 || this.preset_2 !== 'Custom'"
                 @dragstart="_ => null"
@@ -770,7 +775,7 @@ export default {
           </v-row>
 
           </v-row>
-          <v-row align="center" class="mt-12">
+          <v-row align="center" class="mt-8">
             <p v-if="showError" class="warning">Invalid selection</p>
             <p v-if="emptyDataWarning" class="warning">No data to show!</p>
             <v-btn
@@ -782,17 +787,17 @@ export default {
              Visualize Selection
             </v-btn>
           </v-row>
-        </v-container>
         </div> <!-- v-if="allDataProvided" end -->
 
+       </v-container>
 
+        </div>
         <v-overlay :value="resultLoading">
           <div>Loading results</div>
           <v-progress-linear>...</v-progress-linear>
         </v-overlay>
       </div>  <!--component_content end-->
     </div><!--division end-->
-  </div>
 </template>
 
 
@@ -801,6 +806,7 @@ export default {
     @import "../../style.main.scss";
     p.warning {
       color: darkred;
+      margin: auto;
     }
 
 

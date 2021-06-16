@@ -10,9 +10,11 @@ export default {
           images: {
             logoAIT: require('@/assets/AIT_Logo_new.png'),
             logoCIL: require('@/assets/cil_logo_new.png'),
-            logoInfrared: require('@/assets/infrared_logo_new.png')
-          },
-          windowWidth: window.innerWidth,
+            logoInfrared: require('@/assets/infrared_logo_new.png'),
+            logoAitMobile: require('@/assets/AIT_Logo_mobile.png'),
+            logoCilMobile: require('@/assets/cil_logo_mobile.png'),
+            logoInfraredMobile: require('@/assets/infrared_logo_mobile.png')
+          }
         }
     },
     mounted(){
@@ -32,7 +34,10 @@ export default {
         ]),
         ...generateStoreGetterSetter([
           ]
-        )
+        ),
+        windowWidth() {
+          return this.$vuetify.breakpoint.width
+        },
     },
     watch: {
     }
@@ -42,38 +47,77 @@ export default {
 
 <template>
         <div v-if="activeMenuComponent == 'SunExposureResults' || activeMenuComponent == 'WindScenario'" id="logos_ait">
-        <div>
-            <v-row align="end" no-gutters>
+          <div v-if="windowWidth >= 600">
+            <v-row>
               <v-col
                 cols="6"
                 sm="4"
-              >
-                <v-img :src="images.logoAIT "height="105" contain>
-                </v-img>
-              </v-col>
-
-              <v-col
-                cols="6"
-                sm="4"
-              >
-                <v-img :src="images.logoCIL" height="105" contain>
-                </v-img>
-              </v-col>
-
-              <v-col
-                cols="6"
-                sm="4"
-                align-self="end"
               >
                 <v-img
-                  style="margin-left: -10%;"
-                  height="105"
-                  contain
+                  :src="images.logoAIT"
+                ></v-img>
+              </v-col>
+
+              <v-col
+                cols="6"
+                sm="4"
+              >
+                <v-img
+                  :src="images.logoCIL">
+                </v-img>
+              </v-col>
+
+              <v-col
+                cols="6"
+                sm="4"
+              >
+                <v-img
                   :src="images.logoInfrared">
                 </v-img>
               </v-col>
             </v-row>
-        </div>
+          </div>
+          <!-- MOBILE IMAGE VERSIONS -->
+          <div v-else>
+            <v-row>
+              <v-col
+                cols="4"
+                sm="2"
+              >
+                <v-img
+                  :src="images.logoAitMobile"
+                  contain
+                  height="20"
+                  self-align="end"
+                ></v-img>
+              </v-col>
+
+              <v-col
+                cols="4"
+                sm="2"
+              >
+                <v-img
+                  :src="images.logoCilMobile"
+                  contain
+                  height="20"
+                  self-align="end"
+                ></v-img>
+              </v-col>
+
+              <v-col
+                cols="4"
+                sm="2"
+              >
+                <v-img
+                  :src="images.logoInfraredMobile"
+                  contain
+                  height="20"
+                  self-align="end"
+                  style="margin-left: -15px;"
+                ></v-img>
+              </v-col>
+            </v-row>
+          </div>
         </div>
 </template>
 
@@ -90,8 +134,15 @@ export default {
       max-height: 150px;
       padding: 10px;
 
-      @media(max-device-width: 720px) {
-        max-width: 30vw;
+      @media(max-device-width: 1023px) {
+        //display: none;
+        right: 20px;
+        width: 50vw;
+      }
+
+      @media(max-device-width: 600px) {
+        bottom: -10px;
+        width: 30vh;
       }
     }
 

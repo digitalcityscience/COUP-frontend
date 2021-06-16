@@ -224,9 +224,9 @@ export default {
         <div v-if="!restrictedAccess" class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
             <!--v-if needs to be set to data-title to make switch between divisions possible-->
            <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
-               <h2>ABM Scenario Settings</h2>
                 <v-container fluid>
-                    <div class="scenario_box" :class="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? 'highlight' : 'na'">
+                  <h2>ABM | Scenario Settings</h2>
+                  <div class="scenario_box" :class="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? 'highlight' : 'na'">
                         <header class="text-sm-left">
                             BRIDGES
                         </header>

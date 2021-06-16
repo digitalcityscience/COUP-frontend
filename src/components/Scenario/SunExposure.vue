@@ -87,7 +87,7 @@ export default {
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
         <v-container fluid>
         <!--- SUN EXPOSURE -->
-        <h2>Sun Exposure</h2>
+        <h2>Sun Exposure | Scenario Settings</h2>
 
         <div class="scenario_box" :class="!sunExposureLoaded ? 'highlight' : ''">
             <header class="text-sm-left">
@@ -129,7 +129,7 @@ export default {
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Sun Exposure | About</h2>
         <Legend v-bind:topic="'sunExposure'"></Legend>
-        <div class="info_text">
+        <div class="info_section">
           <h4>
             INFRARED SUNLIGHT HOURS SIMULATION
           </h4>

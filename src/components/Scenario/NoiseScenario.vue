@@ -142,8 +142,8 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
-        <h2>Noise Scenario Settings</h2>
         <v-container fluid>
+          <h2>Traffic Noise | Scenario Settings</h2>
           <!-- Traffic Percentage -->
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
@@ -200,12 +200,13 @@ export default {
           >
             Save
           </v-btn>
-        </v-container>
+
 
 
         <!--saved scenarios -->
-        <div class="saved_scenarios" style="margin-top: 5vh;">
-          <h2>Reload a saved scenario</h2>
+        <div class="saved_scenarios" style="margin-top: 10vh;">
+          <!-- todo : make this the same as headers of info section! -->
+          <h4>RELOAD A SAVED SCENARIO </h4>
           <v-data-iterator
             :items="savedNoiseScenarios"
             :hide-default-footer="true"
@@ -230,6 +231,7 @@ export default {
             </template>
           </v-data-iterator>
         </div>
+        </v-container>
 
       <v-overlay :value="resultLoading">
         <div>Loading results</div>
@@ -255,11 +257,12 @@ export default {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Traffic Noise | About</h2>
+        <div class="info_section">
+
         <Legend v-bind:topic="'noise'"></Legend>
 
         <!-- text block with subtext blocks, fade out to end to hint for scrolling -->
         <!-- legend color same as background! -->
-        <div class="info_text">
           <h4>TRAFFIC VOLUME</h4>
           <p>
           Volume of motorized traffic (cars, trucks).
@@ -293,4 +296,5 @@ export default {
 
 <style scoped lang="scss">
     @import "../../style.main.scss";
+
 </style>
