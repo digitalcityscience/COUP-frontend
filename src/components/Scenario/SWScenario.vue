@@ -232,7 +232,7 @@ export default {
     <div class="division" data-title='Scenario' data-pic='mdi-map-marker-radius'>
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
         <v-container fluid>
-          <h2>Stormwater Scenario Settings</h2>
+          <h2>Stormwater | Scenario Settings</h2>
             <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
               <header class="text-sm-left">
                 TIMESERIES
@@ -355,7 +355,7 @@ export default {
 
         <!-- text block with subtext blocks, fade out to end to hint for scrolling -->
         <!-- legend color same as background! -->
-        <div class="info_text">
+        <div class="info_section">
           <h4>SWMM SIMULATION ENGINE</h4>
           <p>
             The Stormwater Module uses EPA SWMM as the engine to simulate stormwater runoff. EPA SWMM is an open source software developed and maintained by the United States Environmental Protection Agency.

@@ -164,7 +164,7 @@ export default {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content scenario">
         <v-container fluid>
-          <h2>Wind Scenario Settings</h2>
+          <h2>Wind Comfort | Scenario Settings</h2>
           <!-- Wind Direction -->
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
@@ -187,7 +187,7 @@ export default {
           </div>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">
-              Wind Speed
+              WIND SPEED
               {{ windSpeed }} km/h
             </header>
             <v-slider
@@ -221,34 +221,35 @@ export default {
           >
             Save
           </v-btn>
+
+          <!--saved scenarios -->
+          <div class="saved_scenarios" style="margin-top: 5vh;">
+            <h4>RELOAD A SAVED SCENARIO </h4>
+            <v-data-iterator
+              :items="savedWindScenarios"
+              :hide-default-footer="true"
+            >
+              <template v-slot:default="{ items }">
+                {{/* Use the items to iterate */}}
+                <v-flex v-for="(scenario, index) in items" :key="index">
+                  <v-btn v-if="index <= 2" style="margin: 1vh auto;"
+                    @click="loadSavedScenario(scenario)"
+                    outlined
+                    dark
+                    small
+                  >
+                    <span v-if="scenario.label">
+                      {{ scenario.label }}
+                    </span>
+                    <span v-if="!scenario.label">
+                      Direction: {{ scenario.wind_direction }} | Speed: {{ scenario.wind_speed }}
+                    </span>
+                  </v-btn>
+                </v-flex>
+              </template>
+            </v-data-iterator>
+          </div>
         </v-container>
-        <!--saved scenarios -->
-        <div class="saved_scenarios" style="margin-top: 5vh;">
-          <h2>Reload a saved scenario</h2>
-          <v-data-iterator
-            :items="savedWindScenarios"
-            :hide-default-footer="true"
-          >
-            <template v-slot:default="{ items }">
-              {{/* Use the items to iterate */}}
-              <v-flex v-for="(scenario, index) in items" :key="index">
-                <v-btn v-if="index <= 2" style="margin: 1vh auto;"
-                  @click="loadSavedScenario(scenario)"
-                  outlined
-                  dark
-                  small
-                >
-                  <span v-if="scenario.label">
-                    {{ scenario.label }}
-                  </span>
-                  <span v-if="!scenario.label">
-                    Direction: {{ scenario.wind_direction }} | Speed: {{ scenario.wind_speed }}
-                  </span>
-                </v-btn>
-              </v-flex>
-            </template>
-          </v-data-iterator>
-        </div>
         <v-overlay :value="resultLoading">
           <div>Loading results</div>
           <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>
@@ -261,7 +262,7 @@ export default {
       <div class="division" data-title='Dashboard' data-pic='mdi-view-dashboard'>
         <!--v-if needs to be set to data-title to make switch between divisions possible-->
         <div v-if="activeDivision === 'Dashboard'" class="component_content">
-          <h2>Wind | Dashboard</h2>
+          <h2>Wind Comfort | Dashboard</h2>
           <p>To be developed</p>
         </div><!--component_content end-->
       </div>
@@ -271,10 +272,10 @@ export default {
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div class="division" data-title='info' data-pic='mdi-information-variant'>
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
-      <div v-if="activeDivision === 'info'" class="component_content">
-        <h2>Wind | About</h2>
+      <div v-if="activeDivision === 'info'" class="component_content" style="margin-top: 0;">
+        <h2>Wind Comfort | About</h2>
         <Legend v-bind:topic="'wind'"></Legend>
-        <div class="info_text">
+        <div class="info_section">
           <h4>WHAT IS WIND COMFORT?</h4>
           <p> Wind comfort is a categorization of wind speed at pedestrian level (1.75 meters above ground level) according to activities that can comfortably be performed. For example, low wind speed are preferable when sitting in a park bench. Higher wind speeds, on the other hand, are acceptable when going out for a run.
             The wind speed results are grouped into categories according to the Lawson Criteria for wind comfort.

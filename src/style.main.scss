@@ -220,6 +220,14 @@ body, html {
             }
         }
 
+        .saved_scenarios h4 {
+            margin-left: 10px;
+            color:whitesmoke;
+            text-align: left;
+            font-size: 13px;
+            line-height: normal;
+        }
+
         .scenario_box {
             position:relative;
             padding:10px;
@@ -318,9 +326,12 @@ body, html {
                 cursor:pointer;
             }
         }
-        .info_text {
+        .info_section {
             color:$bright1;
             text-align: left;
+            font-weight: normal;
+            font-size: 13px;
+            line-height: normal;
         }
     }
 }
