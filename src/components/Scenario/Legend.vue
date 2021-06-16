@@ -21,16 +21,14 @@ export default {
 <template>
   <div>
   <v-container class="component_content info_section">
-    <p class="legend_headline">LEGEND</p>
-
-    <p class="legend_explanation">{{ legendExplanation }}</p>
+    <div class="legend_headline">LEGEND</div>
+    <div class="legend_explanation">{{ legendExplanation }}</div>
 
     <!-- Legend categories as v-for -->
     <v-row no-gutters
       v-for="item in legendCategories"
       class="mb-0 ml-0"
       align="center"
-      justify="space-in-between"
     >
       <v-col cols="2">
         <v-card
@@ -84,7 +82,7 @@ export default {
 
     .legend_explanation {
       margin-left: -20px;
-      margin-top: -15px;
+      margin-bottom: 16px;
     }
 
     .v-btn {

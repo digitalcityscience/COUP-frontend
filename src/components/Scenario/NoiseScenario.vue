@@ -264,28 +264,31 @@ export default {
         <!-- text block with subtext blocks, fade out to end to hint for scrolling -->
         <!-- legend color same as background! -->
           <h4>TRAFFIC VOLUME</h4>
-          <p>
+          <div class="info_text">
           Volume of motorized traffic (cars, trucks).
           Selecting 100% shows the traffic volume
           according to current planning assumptions
           (predicted traffic volume).
           Selecting 25%, for example, shows 25% of the
-            predicted traffic volume. This is concerning traffic on the Grasbrook peninsula only.</p>
-
+          predicted traffic volume. This is concerning traffic on the Grasbrook peninsula only.
+          </div>
           <h4>SIMULATION</h4>
-          <p>
+          <div class="info_text">
           The noise simulation is adapted from the software NoiseModelling
           (https://noise-planet.org/noisemodelling.html),
           a free and open-source tool for producing environmental noise maps using a simplified implementation of the French national method NMPB-08,
           The calculation method is almost compliant with the CNOSSOS-EU standard method for noise
           emission (only road traffic) and noise propagation.
           The software is developed by the French Institute of Science and Technology for Transport,
-          Development and Networks (Ifsttar).</p>
+          Development and Networks (Ifsttar).
+          </div>
 
           <h4>COLOR SCHEME</h4>
-          <p>The composition of the eleven-class scheme for the presentation of noise immission, e.g. the combined use of colors that are similar to the presented colors according to visual assessment or due to their color codes, by Beate Tomio is licensed under a Creative Commons Attribution – NonCommercial – NoDerivatives 4.0 International License.
-          Used with permission.
-            Find out more: https://www.coloringnoise.com/</p>
+          <div class="info_text">
+            The composition of the eleven-class scheme for the presentation of noise immission, e.g. the combined use of colors that are similar to the presented colors according to visual assessment or due to their color codes, by Beate Tomio is licensed under a Creative Commons Attribution – NonCommercial – NoDerivatives 4.0 International License.
+            Used with permission.
+            Find out more: https://www.coloringnoise.com
+          </div>
         </div>
 
       </div><!--component_content end-->

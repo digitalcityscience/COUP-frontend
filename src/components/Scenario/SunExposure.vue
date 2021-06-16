@@ -128,25 +128,25 @@ export default {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Sun Exposure | About</h2>
-        <Legend v-bind:topic="'sunExposure'"></Legend>
         <div class="info_section">
-          <h4>
-            INFRARED SUNLIGHT HOURS SIMULATION
-          </h4>
-          <p>
-          The sunlight hours simulation is a yearly
-          average. The InFraRed model is trained
-          using machine learning on data for the
-          region of Vienna, Austria. “Training” a
-          simulation model makes it possible to run
-          near real-time simulations using web-based
-          applications. However, because the model
-          is trained on the conditions in Vienna,
-          the result maps for Hamburg are inaccurate.
-          We have included them here for
-          demonstration purposes.
-          </p>
-        </div>
+          <Legend v-bind:topic="'sunExposure'"></Legend>
+            <h4>
+              INFRARED SUNLIGHT HOURS SIMULATION
+            </h4>
+            <div class="info_text">
+            The sunlight hours simulation is a yearly
+            average. The InFraRed model is trained
+            using machine learning on data for the
+            region of Vienna, Austria. “Training” a
+            simulation model makes it possible to run
+            near real-time simulations using web-based
+            applications. However, because the model
+            is trained on the conditions in Vienna,
+            the result maps for Hamburg are inaccurate.
+            We have included them here for
+            demonstration purposes.
+            </div>
+          </div>
       </div><!--component_content end-->
     </div>
     <!--division end-->

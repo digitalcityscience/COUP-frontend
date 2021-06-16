@@ -330,8 +330,12 @@ body, html {
             color:$bright1;
             text-align: left;
             font-weight: normal;
-            font-size: 13px;
+            font-size: 14px;
             line-height: normal;
+
+            .info_text {
+                margin-bottom: 16px;
+            }
         }
     }
 }

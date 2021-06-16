@@ -277,25 +277,23 @@ export default {
         <Legend v-bind:topic="'wind'"></Legend>
         <div class="info_section">
           <h4>WHAT IS WIND COMFORT?</h4>
-          <p> Wind comfort is a categorization of wind speed at pedestrian level (1.75 meters above ground level) according to activities that can comfortably be performed. For example, low wind speed are preferable when sitting in a park bench. Higher wind speeds, on the other hand, are acceptable when going out for a run.
+          <div class="info_text"> Wind comfort is a categorization of wind speed at pedestrian level (1.75 meters above ground level) according to activities that can comfortably be performed. For example, low wind speed are preferable when sitting in a park bench. Higher wind speeds, on the other hand, are acceptable when going out for a run.
             The wind speed results are grouped into categories according to the Lawson Criteria for wind comfort.
             Understanding wind comfort is important for informing design decisions about urban morphology and open space design, and for determining appropriate uses of open space.
-            <br>
-          </p>
+          </div>
           <h4>FAST CALCULATION TIMES—ML AND CFD</h4>
-          <p>
+          <div class="info_text">
             The wind comfort calculation is a prediction of a computational fluid dynamic (CFD) simulation for the given wind speed and direction. The InFraRed model is trained using machine learning on 3D CFD data. “Training” a simulation model makes it possible to run near real-time simulations using web-based applications. The accuracy of the model ranges between 80 and 95%.
             The InFraRed wind comfort model was developed by the City Intelligence Lab at the Austrian Institute of Technology.
-            <br>
-          </p>
+          </div>
           <h4>
             WHY DO THE RESULTS APPEAR AS TILES?
           </h4>
-          <p>
+          <div class="info_text">
             The results displayed in the Grasbrook CityScope are carried out in real-time. Despite significant time savings enabled by the ML-trained model, the calculation is still computationally intense. For this reason, the InFraRed server performs calculations in batches of up to 500x500m square tiles.
             Information about the building location and height is sent as geospatial data from the Grasbrook CityScope database, CityPyO, to the InFraRed API. The calculation results are then sent back and displayed on the Grasbrook CityScope frontend.
             <br>
-          </p>
+          </div>
         </div>
         </div><!--component_content end-->
     </div>
