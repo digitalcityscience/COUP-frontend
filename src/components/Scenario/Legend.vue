@@ -30,8 +30,7 @@ export default {
                v-for="item in legendCategories"
                class="pa-0 ml-1"
                align="center"
-               cols="2"
-               xm="1"
+               cols="1"
                :style="'background-color:' + item.color"
         >
          </v-col>
@@ -98,20 +97,14 @@ export default {
 
     #bottom-legend {
       position: absolute !important;
-      bottom: 10vh;
+      bottom: 25px !important;
       height: 20px;
       width: 100%;
       right: 70vw;
       float:left;
       color: whitesmoke;
 
-      @media(max-device-height: 1600px) {
-       bottom: 120px;
-      }
-      @media(max-device-width: 1023px) {
-       right: 90vw;
-      }
-      @media(max-device-width: 900px) {
+      @media(max-device-width: 1600px) {
        display: none;
       }
     }
