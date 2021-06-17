@@ -125,6 +125,10 @@ export default {
 
 <template>
   <div id="scenario" ref="scenario">
+
+    <!-- google maps style legend at bottom -->
+    <Legend :topic="'noise'" :showAtBottom="true"></Legend>
+
     <div class="component_divisions">
       <ul>
         <!-- This will create a menu item from each div of class "division" (scroll down for example) -->

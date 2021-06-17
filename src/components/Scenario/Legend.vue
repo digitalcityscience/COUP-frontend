@@ -4,22 +4,43 @@ import legends from '@/config/legends.json'
 export default {
   name: "Legend",
   props: {
-    topic: String
+    topic: String,
+    showAtBottom: Boolean
   },
   data() {
     return {
       legendExplanation: legends[this.topic]["headline"],
       legendCategories: legends[this.topic]["categories"],
-      icon: legends[this.topic]["icon"]
+      labelLowValues: legends[this.topic]["labelLowValues"],
+      labelHighValues: legends[this.topic]["labelHighValues"]
     }
   },
   mounted(){
+    console.log("test", this.showAtBottom)
   },
 }
 </script>
 
 <template>
-  <div>
+  <div v-if="showAtBottom" id="bottom-legend">
+    <v-container>
+      <v-row class="flex-nowrap">
+        <v-col style="background-color: rgba(0,0,0,0.5);">{{ labelLowValues}}</v-col>
+        <v-col no-gutters
+               v-for="item in legendCategories"
+               class="pa-0 ml-1"
+               align="center"
+               cols="2"
+               xm="1"
+               :style="'background-color:' + item.color"
+        >
+         </v-col>
+        <v-col style="background-color: rgba(0,0,0,0.5);">{{ labelHighValues}}</v-col>
+      </v-row>
+    </v-container>
+  </div>
+
+  <div v-else>
   <v-container class="component_content info_section">
     <div class="legend_headline">LEGEND</div>
     <div class="legend_explanation">{{ legendExplanation }}</div>
@@ -74,6 +95,26 @@ export default {
 
 <style scoped lang="scss">
   @import "../../style.main.scss";
+
+    #bottom-legend {
+      position: absolute !important;
+      bottom: 10vh;
+      height: 20px;
+      width: 100%;
+      right: 70vw;
+      float:left;
+      color: whitesmoke;
+
+      @media(max-device-height: 1600px) {
+       bottom: 120px;
+      }
+      @media(max-device-width: 1023px) {
+       right: 90vw;
+      }
+      @media(max-device-width: 900px) {
+       display: none;
+      }
+    }
 
     .legend_headline {
       margin-left: -20px;

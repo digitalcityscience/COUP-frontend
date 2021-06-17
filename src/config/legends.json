@@ -20,6 +20,8 @@
   "wind": {
     "headline": "Lawson Criteria categories",
     "icon": "mdi-windsock",
+    "labelLowValues": "Comfortable",
+    "labelHighValues": "Uncomfortable",
     "categories": [
       {
         "label": "Sitting Long",
@@ -56,6 +58,8 @@
   "sunExposure": {
     "headline": "Hours of sunlight per day averaged over a year",
     "icon": "mdi-circle",
+    "labelLowValues": "Shady",
+    "labelHighValues": "Sunny",
     "categories": [
       {
         "label": "< 1.2 h/day",
@@ -105,6 +109,8 @@
   },
   "noise": {
     "headline": "Noise Results in dB [LDEN]",
+    "labelLowValues": "Quiet",
+    "labelHighValues": "Noisy",
     "icon": "mdi-bullhorn",
     "categories": [
       {
