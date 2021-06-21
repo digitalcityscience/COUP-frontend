@@ -46,79 +46,79 @@ export default {
 </script>
 
 <template>
-        <div v-if="activeMenuComponent == 'SunExposureResults' || activeMenuComponent == 'WindScenario'" id="logos_ait">
-          <div v-if="windowWidth >= 600">
-            <v-row>
-              <v-col
-                cols="6"
-                sm="4"
-              >
-                <v-img
-                  :src="images.logoAIT"
-                ></v-img>
-              </v-col>
+    <div v-if="activeMenuComponent == 'SunExposureResults' || activeMenuComponent == 'WindScenario'" id="logos_ait">
+      <div v-if="windowWidth >= 600">
+        <v-row>
+          <v-col
+            cols="6"
+            sm="4"
+          >
+            <v-img
+              :src="images.logoAIT"
+            ></v-img>
+          </v-col>
 
-              <v-col
-                cols="6"
-                sm="4"
-              >
-                <v-img
-                  :src="images.logoCIL">
-                </v-img>
-              </v-col>
+          <v-col
+            cols="6"
+            sm="4"
+          >
+            <v-img
+              :src="images.logoCIL">
+            </v-img>
+          </v-col>
 
-              <v-col
-                cols="6"
-                sm="4"
-              >
-                <v-img
-                  :src="images.logoInfrared">
-                </v-img>
-              </v-col>
-            </v-row>
-          </div>
-          <!-- MOBILE IMAGE VERSIONS -->
-          <div v-else>
-            <v-row>
-              <v-col
-                cols="4"
-                sm="2"
-              >
-                <v-img
-                  :src="images.logoAitMobile"
-                  contain
-                  height="20"
-                  self-align="end"
-                ></v-img>
-              </v-col>
+          <v-col
+            cols="6"
+            sm="4"
+          >
+            <v-img
+              :src="images.logoInfrared">
+            </v-img>
+          </v-col>
+        </v-row>
+      </div>
+      <!-- MOBILE IMAGE VERSIONS -->
+      <div v-else>
+        <v-row>
+          <v-col
+            cols="4"
+            sm="2"
+          >
+            <v-img
+              :src="images.logoAitMobile"
+              contain
+              height="20"
+              self-align="end"
+            ></v-img>
+          </v-col>
 
-              <v-col
-                cols="4"
-                sm="2"
-              >
-                <v-img
-                  :src="images.logoCilMobile"
-                  contain
-                  height="20"
-                  self-align="end"
-                ></v-img>
-              </v-col>
+          <v-col
+            cols="4"
+            sm="2"
+          >
+            <v-img
+              :src="images.logoCilMobile"
+              contain
+              height="20"
+              self-align="end"
+            ></v-img>
+          </v-col>
 
-              <v-col
-                cols="4"
-                sm="2"
-              >
-                <v-img
-                  :src="images.logoInfraredMobile"
-                  contain
-                  height="20"
-                  self-align="end"
-                  style="margin-left: -15px;"
-                ></v-img>
-              </v-col>
-            </v-row>
-          </div>
-        </div>
+          <v-col
+            cols="4"
+            sm="2"
+          >
+            <v-img
+              :src="images.logoInfraredMobile"
+              contain
+              height="20"
+              self-align="end"
+              style="margin-left: -15px;"
+            ></v-img>
+          </v-col>
+        </v-row>
+      </div>
+    </div>
 </template>
 
 <style scoped lang="scss">

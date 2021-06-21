@@ -68,6 +68,9 @@ export default {
 
 <template>
   <div id="scenario" ref="scenario">
+    <!-- google maps style legend at bottom -->
+    <Legend :topic="'sunExposure'" :showAtBottom="true"></Legend>
+
     <div class="component_divisions">
       <ul>
         <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
@@ -129,7 +132,7 @@ export default {
       <div v-if="activeDivision === 'info'" class="component_content">
         <h2>Sun Exposure | About</h2>
         <div class="info_section">
-          <Legend v-bind:topic="'sunExposure'"></Legend>
+          <Legend :topic="'sunExposure'" :showAtBottom="false"></Legend>
             <h4>
               INFRARED SUNLIGHT HOURS SIMULATION
             </h4>
