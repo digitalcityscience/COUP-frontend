@@ -254,13 +254,6 @@ export default {
             })
         }
   },
-  combineLayers({state, commit, dispatch, rootState}, layer1, layer2) {
-    return rootState.cityPyO.combineLayers(layer1, layer2).then(
-      combinedGeoJson => {
-        console.log("got combined geojson", combinedGeoJson)
-        return dispatch('addMultiLayerAnalysisLayer', combinedGeoJson["features"])
-      })
-  },
   addMultiLayerAnalysisLayer({state, commit, dispatch, rootState}, features) {
     // update layer on map
     let source = MultiLayerAnalysisConfig.mapSource
