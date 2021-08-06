@@ -8,8 +8,8 @@ const scenario: Module<any, any> = {
   namespaced: true,
   state,
   getters,
-  mutations,
-  actions
+  actions,
+  mutations
 }
 
 export default scenario
