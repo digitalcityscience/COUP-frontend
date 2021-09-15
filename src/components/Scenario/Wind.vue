@@ -94,14 +94,15 @@ export default {
         console.log(hash)
         console.log("saved scenari", this.currentScenario)
 
+        this.getWindResults()
         // update scenario add cityPyo
-        this.$store.state.cityPyO.addLayerData(fileName, propPath, this.currentScenario).then(() => this.getWindResults())
+        //this.$store.state.cityPyO.addLayerData(fileName, propPath, this.currentScenario).then(() => this.getWindResults())
       },
       async getWindResults() {
         this.resultLoading = true
         this.$store.dispatch('removeSourceFromMap', "wind", {root: true})
         this.$store.commit('scenario/windResultGeoJson', null)
-        this.$store.dispatch("scenario/updateWindLayer").then(() => {
+        this.$store.dispatch("scenario/updateWindLayer", this.currentScenario).then(() => {
           // success
           this.$store.commit("scenario/windLayer", true);
           this.resultLoading = false

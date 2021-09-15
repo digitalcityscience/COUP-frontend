@@ -17,6 +17,7 @@ import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import PerformanceInfosConfig from "@/config/performanceInfos.json";
 import {ActionContext} from "vuex";
+import {request_calculation, getSimulationResultForScenario} from "@/store/scenario/calculationModules";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import vue from 'vue'
 
@@ -107,11 +108,22 @@ export default {
   },
   // load layer source from cityPyo and add the layer to the map
   // Todo : isnt there a way to update the source data without reinstanciating the entire layer?
-  async updateWindLayer({state, commit, dispatch, rootState}) {
+  async updateWindLayer({state, commit, dispatch, rootState}, wind_scenario) {
+
+    console.log("updating wind!")
+    wind_scenario["city_pyo_user"] = rootState.cityPyO.userid
 
     // fetch results, add to map and return boolean whether results are complete or not
-    const completed = await rootState.cityPyO.getSimulationResultForScenario("wind", state.windScenarioHash).then(
+    const windResultUuid = request_calculation("wind", wind_scenario).then(windResultUuid => {
+      console.log("wind result uuid", windResultUuid)
+      return windResultUuid
+    })
+
+    const completed = await getSimulationResultForScenario("wind", await windResultUuid).then(
       resultInfo => {
+
+        console.log("end result", resultInfo)
+
         const receivedCompleteResult = resultInfo.complete || false  // was the result complete?
         const source = resultInfo.source
 
@@ -134,7 +146,7 @@ export default {
     if (!completed) {
       // keep fetching new results until the results are complete
       await new Promise(resolve => setTimeout(resolve, 1000));
-      dispatch("updateWindLayer")
+      dispatch("updateWindLayer", wind_scenario)
       }
   },
   // TODO: adapt to new abm model with underpass_veddel_north and new results!
