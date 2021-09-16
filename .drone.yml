@@ -1,0 +1,36 @@
+---
+kind: pipeline
+type: docker
+name: web
+steps:
+- name: publish web
+  image: plugins/docker
+  settings:
+    repo:
+      from_secret: docker_repository
+    tags:
+      - functionalscope-${DRONE_BRANCH}
+    dockerfile: Dockerfile.prod
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+  when:
+    status: [ success ]
+    branch: [ develop ]
+
+- name: deploy web
+  image: quving/drone-rancher-cicd:latest
+  settings:
+    stamp: ${DRONE_COMMIT}
+    kubernetes_deployment: jobby-web
+    kubernetes_namespace: apps
+    rancher_url:
+      from_secret: rancher_url
+    rancher_token:
+      from_secret: rancher_token
+    rancher_context:
+      from_secret: rancher_context
+  when:
+    status: [ success ]
+    branch: [ master ]
