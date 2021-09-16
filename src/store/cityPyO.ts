@@ -149,7 +149,7 @@ export default class CityPyO {
    * @param simType | e.g. wind or stormwater
    * @param scenarioHash
    */
-  async getSimulationResultForScenario(simType, scenarioHash) {
+  async __getSimulationResultForScenario(simType, scenarioHash) {
     const sleepTime = 2000
     const maxTries = 90000 / sleepTime  // give up after 90 seconds
     let requestCount = 0
