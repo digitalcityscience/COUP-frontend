@@ -24,7 +24,7 @@ steps:
   settings:
     stamp: ${DRONE_COMMIT}
     kubernetes_deployment: functionalscope
-    kubernetes_namespace: ${DRONE_BRANCH}
+    kubernetes_namespace: master
     rancher_url:
       from_secret: rancher_url
     rancher_token:
