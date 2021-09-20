@@ -140,61 +140,6 @@ export default class CityPyO {
       }
     }
 
-  /**
-   * fetch scenario result for the scenarioHash
-   * This function will wait for the backend to provide a simulation result file as simType_SCENARIO_HASH.json
-   *
-   * If the result file cannot be found after trying for 10seconds the function throws an error and exits
-   *
-   * @param simType | e.g. wind or stormwater
-   * @param scenarioHash
-   */
-  async __getSimulationResultForScenario(simType, scenarioHash) {
-    const sleepTime = 2000
-    const maxTries = 90000 / sleepTime  // give up after 90 seconds
-    let requestCount = 0
-    let noResultReceived = true
-
-    // try to get simulation result until maxTries is reached
-    while (requestCount <= maxTries && noResultReceived) {
-      let result;
-
-      try {
-        result = await this.getLayer(simType + "_" + scenarioHash, false)
-      } catch (e) {
-        console.log(e)
-        result = null
-      }
-
-      // result has been found
-      if (typeof result === 'object' && result !== null) {
-        // return the result
-        // todo hotfix
-        if (simType === "stormwater") {
-          return {"complete": true, "source": await this.formatResponse(simType, result) }
-        }
-        return {"complete": result["complete"], "source": await this.formatResponse(simType, result["results"]) }
-      }
-
-      // result has not been found. check if error code is expected for non-existent files
-      if (typeof result === "number") {
-        // unexpected error occurred
-        if (!(result === 404 || 400)) {
-          console.log("Still waiting on result for ", simType, " Hash, httpRespsone", scenarioHash, result)
-        }
-      }
-
-      // result not found yet. wait until result available.
-      await new Promise(resolve => setTimeout(resolve, sleepTime)).then(() => {
-        console.log("request count", requestCount)
-        requestCount += 1
-      });
-    }
-
-    // too many tries. backend did not provide result file in reasonable time.
-    console.error("Could not fetch result for ", simType, scenarioHash, "because of timeout")
-    return
-  }
 
   // the amenities layer is dependent on the chosen scenario
   async getAbmAmenitiesLayer (id: string, scenario: AbmScenario) {
