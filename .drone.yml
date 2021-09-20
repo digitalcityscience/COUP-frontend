@@ -3,7 +3,7 @@ kind: pipeline
 type: docker
 name: web
 steps:
-- name: publish web
+- name: build and publish
   image: plugins/docker
   settings:
     repo:
@@ -19,12 +19,12 @@ steps:
     status: [ success ]
     branch: [ develop ]
 
-- name: deploy web
+- name: deploy
   image: quving/drone-rancher-cicd:latest
   settings:
     stamp: ${DRONE_COMMIT}
-    kubernetes_deployment: jobby-web
-    kubernetes_namespace: apps
+    kubernetes_deployment: functionalscope
+    kubernetes_namespace: ${DRONE_BRANCH}
     rancher_url:
       from_secret: rancher_url
     rancher_token:
@@ -33,4 +33,4 @@ steps:
       from_secret: rancher_context
   when:
     status: [ success ]
-    branch: [ master ]
+    branch: [ develop ]
