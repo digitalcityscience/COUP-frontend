@@ -8,13 +8,12 @@ export async function request_calculation(simType, scenario) {
 
   switch (simType) {
     case "wind":
-      //url = 'http://wind-api:5000/windtask'
-      url = 'http://localhost:5003/windtask'
+      url = 'https://api.hcu-dev.de/wind/windtask'
+      // url = 'http://localhost:5003/windtask'
       break;
     case "noise":
-      // todo should not be triggered as group task
-      //url = 'https://api.hcu-dev.de/noise/task'
-      url = 'http://localhost:5001/task'
+      url = 'https://api.hcu-dev.de/noise/task'
+      //url = 'http://localhost:5001/task'
       break;
     case "stormwater":
       // todo should not be triggered as group task
@@ -46,13 +45,13 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
   let url = ''
   switch (simType) {
     case "wind":
-      //url = 'https://wind-api:5000/windtask'  // TODO update url. ideally get from env variables.
-      url = 'http://localhost:5003/tasks/'
+      url = 'https://api.hcu-dev.de/wind/tasks'  // TODO update url. ideally get from env variables.
+      //url = 'http://localhost:5003/tasks/'
       task_uuid = task_uuid["taskId"]
       break;
     case "noise":
-      //url = 'http://noise-api:5000/grouptask'
-      url = 'http://localhost:5001/tasks/'
+      url = 'https://api.hcu-dev.de/noise/tasks/'
+      //url = 'http://localhost:5001/tasks/'
       task_uuid = task_uuid["taskId"]
       break;
     case "stormwater":
