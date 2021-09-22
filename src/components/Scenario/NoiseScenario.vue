@@ -79,12 +79,14 @@ export default {
             || this.maxSpeed !== this.noiseScenario["max_speed"];
         },
         loadNoiseMap () {
+          this.$store.dispatch("removeSourceFromMap", "noise").then(() => {
             this.$store.dispatch(
-                'scenario/updateNoiseScenario', this.noiseScenario
+              'scenario/updateNoiseScenario', this.noiseScenario
             ).then(() => {
               this.$store.commit("scenario/noiseMap", true);
             })
             this.resultOutdated = false;
+            })
         },
         loadNoiseResults () {
           this.$store.commit("scenario/noiseScenario", {
