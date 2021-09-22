@@ -433,7 +433,7 @@ export default {
             return "DIRECTION: " + this.currentWindScenario["wind_direction"] +
               " | " + "SPEED: " +  this.currentWindScenario["wind_speed"] + "km/h"
           case "Noise":
-            return "VOLUME: " + this.noiseScenario["traffic_percent"] * 100 + "%"
+            return "VOLUME: " + this.noiseScenario["traffic_quota"] * 100 + "%"
               + " | " + "SPEED: " +  this.noiseScenario["max_speed"] + "km/h"
           case "Abm":
             return "Scenario 1"

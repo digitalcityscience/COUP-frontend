@@ -75,7 +75,7 @@ export default {
           },
     methods: {
        isResultOutdated() {
-          return this.trafficPercent !== this.noiseScenario["traffic_percent"]
+          return this.trafficPercent !== this.noiseScenario["traffic_quota"]
             || this.maxSpeed !== this.noiseScenario["max_speed"];
         },
         loadNoiseMap () {
@@ -90,13 +90,13 @@ export default {
         },
         loadNoiseResults () {
           this.$store.commit("scenario/noiseScenario", {
-            traffic_percent: this.trafficPercent,
+            traffic_quota: this.trafficPercent,
             max_speed: this.maxSpeed,
           });
           this.loadNoiseMap()
         },
         loadSavedScenario(savedScenario) {
-          this.trafficPercent = savedScenario["traffic_percent"]
+          this.trafficPercent = savedScenario["traffic_quota"]
           this.maxSpeed = savedScenario["max_speed"]
           this.loadNoiseResults()
         },
@@ -229,7 +229,7 @@ export default {
                             {{ scenario.label }}
                          </span>
                          <span v-if="!scenario.label">
-                            VOLUME: {{ 100 * scenario.traffic_percent }} % | SPEED: {{ scenario.max_speed }}
+                            VOLUME: {{ 100 * scenario.traffic_quota }} % | SPEED: {{ scenario.max_speed }}
                          </span>
                 </v-btn>
               </v-flex>

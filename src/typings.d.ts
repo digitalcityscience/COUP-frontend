@@ -49,7 +49,7 @@ declare global {
       }
 
       interface NoiseScenario {
-          traffic_percent: number
+          traffic_quota: number
           max_speed: number
       }
 

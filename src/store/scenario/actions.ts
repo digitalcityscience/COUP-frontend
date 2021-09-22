@@ -48,7 +48,7 @@ export default {
           return JSON.parse(JSON.stringify(trafficData))
         })
     
-    const trafficPercent = state.noiseScenario.traffic_percent
+    const trafficPercent = state.noiseScenario.traffic_quota
     scenarioTraffic["features"].forEach(point => {
       const carTrafficDaily = Math.floor(point["properties"]["car_traffic_daily"] * trafficPercent)
       const truckTrafficDaily = Math.floor(point["properties"]["truck_traffic_daily"] * trafficPercent)
@@ -624,6 +624,6 @@ function updateBridges(bridge_hafencity, underpass_veddel) {
 }
 
 function isNoiseScenarioMatching(noiseDataSet,noiseScenario) {
-  return noiseDataSet["noise_scenario"]["traffic_percent"] == noiseScenario.traffic_percent
+  return noiseDataSet["noise_scenario"]["traffic_quota"] == noiseScenario.traffic_quota
     && noiseDataSet["noise_scenario"]["max_speed"] == noiseScenario.max_speed;
 }
