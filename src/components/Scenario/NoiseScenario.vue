@@ -32,12 +32,13 @@ export default {
         }
     },
   computed: {
-      ...mapState('scenario', ['resultLoading']), // getter only
+      //...mapState('scenario', ['resultLoading']), // getter only
       // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
       ...generateStoreGetterSetter([
       ['noiseMap', 'scenario/' + 'noiseMap'],
       ['noiseScenario', 'scenario/noiseScenario'],
       ['savedNoiseScenarios', 'scenario/' + 'savedNoiseScenarios'],  // todo manage stores
+      ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
         //['trafficPercent', 'scenario/noiseScenario/' + noiseSettingsNames.trafficPercent],
       //['maxSpeed', 'scenario/noiseScenario/' + noiseSettingsNames.maxSpeed],
     ])
@@ -78,14 +79,20 @@ export default {
           return this.trafficPercent !== this.noiseScenario["traffic_quota"]
             || this.maxSpeed !== this.noiseScenario["max_speed"];
         },
-        loadNoiseMap () {
-          this.$store.dispatch("removeSourceFromMap", "noise").then(() => {
-            this.$store.dispatch(
-              'scenario/updateNoiseScenario', this.noiseScenario
-            ).then(() => {
+        async loadNoiseMap () {
+          this.resultLoading = true
+          this.$store.dispatch('removeSourceFromMap', "noise", {root: true})
+          this.$store.commit('scenario/currentNoiseGeoJson', null)
+          this.$store.dispatch('scenario/updateNoiseScenario', this.noiseScenario).then(() => {
+              // success
               this.$store.commit("scenario/noiseMap", true);
-            })
-            this.resultOutdated = false;
+              this.resultLoading = false
+              this.resultOutdated = this.isResultOutdated()
+              this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
+            }).catch(() => {
+              this.$store.commit("scenario/windLayer", false);
+              this.resultLoading = false
+              this.showError = true
             })
         },
         loadNoiseResults () {
@@ -112,7 +119,7 @@ export default {
         },
         isScenarioAlreadySaved() {
           const isSaved = this.savedNoiseScenarios.filter(savedScen => {
-              return JSON.stringify(savedScen) === JSON.stringify(this.currentScenario)
+              return JSON.stringify(savedScen) === JSON.stringify(this.noiseScenario)
             }
           ).length > 0
 
@@ -241,7 +248,7 @@ export default {
 
       <v-overlay :value="resultLoading">
         <div>Loading results</div>
-        <v-progress-linear>...</v-progress-linear>
+          <v-progress-linear style="margin-top: 50px;">...</v-progress-linear>
       </v-overlay>
       </div> <!--component_content end-->
     </div><!--division end-->
