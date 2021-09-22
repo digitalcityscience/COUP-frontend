@@ -80,7 +80,7 @@ export default {
         },
         loadNoiseMap () {
             this.$store.dispatch(
-                'scenario/updateNoiseScenario'
+                'scenario/updateNoiseScenario', this.noiseScenario
             ).then(() => {
               this.$store.commit("scenario/noiseMap", true);
             })

@@ -8,7 +8,7 @@ import TrafficCountLayer from "@/config/trafficCounts.json";
 import {abmTripsLayerName, animate, getPolygonColor, buildTripsLayer, abmAggregationLayerName, buildAggregationLayer, buildArcLayer, buildSWLayer, abmArcLayerName, swLayerName} from "@/store/deck-layers";
 import {bridges as bridgeNames, bridgeVeddelOptions} from "@/store/abm";
 import {getFormattedTrafficCounts, noiseLayerName} from "@/store/noise";
-import { mdiControllerClassicOutline } from '@mdi/js';
+import { mdiConsoleNetwork, mdiControllerClassicOutline } from '@mdi/js';
 import { VCarouselReverseTransition } from 'vuetify/lib';
 
 import {calcAbmStatsForMultiLayer, calculateAbmStatsForFocusArea} from "@/store/scenario/abmStats";
@@ -22,67 +22,40 @@ import FocusAreasLayer from "@/config/focusAreas.json";
 import vue from 'vue'
 
 export default {
-  updateNoiseScenario({state, commit, dispatch, rootState}) {
-    // check if traffic counts already in store, otherwise load them from cityPyo
-    if (!state.trafficCounts) {
-      rootState.cityPyO.getLayer("trafficCounts", false).then(
-        trafficData => {
-          commit('trafficCounts', trafficData)
-        })
-    }
-    // check if the requested noise result is already in store
-    if (state.noiseResults.length > 0) {
-      const noiseResult = state.noiseResults.filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
-      const geoJsonData = noiseResult['geojson_result']
-      commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
-      return dispatch('addNoiseMapLayer', geoJsonData)
-        .then(
+  async updateNoiseScenario({state, commit, dispatch, rootState}, noiseScenario) {
+    noiseScenario["city_pyo_user"] = rootState.cityPyO.userid
+
+    // request calculation and fetch results
+    request_calculation("noise", noiseScenario).then(noiseResultUuid => {
+      return getSimulationResultForScenario("noise", noiseResultUuid)
+    }).then(noiseResult => {
+      // adding result to store
+      commit('currentNoiseGeoJson', Object.freeze(noiseResult.source.options.data))
+      // adding result to map
+      dispatch('addSourceToMap', noiseResult.source, {root: true})
+        .then(noiseResultSource => {
+          dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
           dispatch('addTrafficCountLayer')
-      )
-    } else {
-      // load noise data from cityPyo and add it to the store
-      // gets one file containing all noise scenario result
-      commit('resultLoading', true)
-      return rootState.cityPyO.getLayer("noiseScenarios", false).then(
-        noiseData => {
-          commit('noiseResults', Object.freeze(noiseData["noise_results"]))
-          // select matching result for current scenario and add it to the map
-          const noiseResult = noiseData["noise_results"].filter(d => isNoiseScenarioMatching(d, state.noiseScenario))[0]
-          const geoJsonData =  noiseResult['geojson_result']
-          commit('currentNoiseGeoJson', Object.freeze(geoJsonData))
-          return dispatch('addNoiseMapLayer', geoJsonData)
-            .then(
-              dispatch('addTrafficCountLayer'),
-              commit('resultLoading', false)
-          )
-      })
-    }
-  },
-  addNoiseMapLayer({state, commit, dispatch, rootState}, geoJsonData) {
-    const source = {
-      id: NoiseLayer.mapSource.data.id,
-      options: {
-        type: 'geojson',
-        data: geoJsonData
-      }
-    }
-    return dispatch('addSourceToMap', source, {root: true})
-      .then(source => {
-        dispatch('addLayerToMap', NoiseLayer.layer, {root: true})
-      }).then(source => {
+        })
     })
   },
-  addTrafficCountLayer({state, commit, dispatch, rootState}) {
-      //const scenarioTraffic = getFormattedTrafficCounts(state.trafficCountPoints, state.noiseScenario.traffic_percent)
-      const scenarioTraffic = JSON.parse(JSON.stringify(state.trafficCounts))
-      const trafficPercent = state.noiseScenario.traffic_percent
-      scenarioTraffic["features"].forEach(point => {
-        const carTrafficDaily = Math.floor(point["properties"]["car_traffic_daily"] * trafficPercent)
-        const truckTrafficDaily = Math.floor(point["properties"]["truck_traffic_daily"] * trafficPercent)
-        point["properties"]["car_traffic_daily"] = carTrafficDaily
-        point["properties"]["truck_traffic_daily"] = truckTrafficDaily
-        point["properties"]["description"] = "Cars: " + carTrafficDaily + " Trucks: " + truckTrafficDaily
-      });
+  async addTrafficCountLayer({state, commit, dispatch, rootState}) {
+    // check if traffic counts already in store, otherwise load them from cityPyo
+    const scenarioTraffic = JSON.parse(JSON.stringify(state.trafficCounts)) || 
+     await rootState.cityPyO.getLayer("trafficCounts", false).then(
+        trafficData => {
+          commit('trafficCounts', trafficData)
+          return JSON.parse(JSON.stringify(trafficData))
+        })
+    
+    const trafficPercent = state.noiseScenario.traffic_percent
+    scenarioTraffic["features"].forEach(point => {
+      const carTrafficDaily = Math.floor(point["properties"]["car_traffic_daily"] * trafficPercent)
+      const truckTrafficDaily = Math.floor(point["properties"]["truck_traffic_daily"] * trafficPercent)
+      point["properties"]["car_traffic_daily"] = carTrafficDaily
+      point["properties"]["truck_traffic_daily"] = truckTrafficDaily
+      point["properties"]["description"] = "Cars: " + carTrafficDaily + " Trucks: " + truckTrafficDaily
+    });
 
     const source = {
       id: TrafficCountLayer.mapSource.data.id,

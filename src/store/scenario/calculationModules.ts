@@ -1,6 +1,7 @@
 // returns the result uuids of the result
 export async function request_calculation(simType, scenario) {
   let url = ''
+  scenario["result_format"] = "geojson"  // mapbox front-end always needs geojson results
 
   console.log("simtype", simType)
   console.log("scenaro", scenario)
@@ -12,9 +13,8 @@ export async function request_calculation(simType, scenario) {
       break;
     case "noise":
       // todo should not be triggered as group task
-      //url = 'http://noise-api:5000/grouptask'
-      url = 'http://localhost:5001/grouptask'
-      scenario = { "tasks": [scenario] }
+      //url = 'https://api.hcu-dev.de/noise/task'
+      url = 'http://localhost:5001/task'
       break;
     case "stormwater":
       // todo should not be triggered as group task
@@ -46,14 +46,14 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
   let url = ''
   switch (simType) {
     case "wind":
-      //url = 'http://wind-api:5000/windtask'
+      //url = 'https://wind-api:5000/windtask'  // TODO update url. ideally get from env variables.
       url = 'http://localhost:5003/tasks/'
       task_uuid = task_uuid["taskId"]
       break;
     case "noise":
       //url = 'http://noise-api:5000/grouptask'
-      url = 'http://localhost:5001/grouptasks/'
-      task_uuid = task_uuid["taskIds"][0]  // todo should not be triggered as group task
+      url = 'http://localhost:5001/tasks/'
+      task_uuid = task_uuid["taskId"]
       break;
     case "stormwater":
       //url = 'http://swimdock-api:5000/grouptask'
@@ -83,7 +83,7 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
     return { "complete": result["complete"], "source": await formatResultAsMapSource(simType, await result["results"]) }
   }
 
-  return { "complete": true, "source": await formatResultAsMapSource(simType, await result["results"]) }
+  return { "complete": true, "source": await formatResultAsMapSource(simType, await result) }
 }
 
 async function getResultForTask(url, taskUuid) {
@@ -130,6 +130,9 @@ async function getResultsForSubGroupTask(url, groupTaskUuid) {
 
 
 async function performRequest(requestUrl, scenario, method) {
+
+
+  console.log("performing request with scneario ", scenario)
 
   const res = await fetch(requestUrl, {
     method: method,

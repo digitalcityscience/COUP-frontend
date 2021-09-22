@@ -354,7 +354,7 @@ export default {
             await this.$store.dispatch('scenario/updateWindLayer')
             break;
           case "Noise":
-            await this.$store.dispatch('scenario/updateNoiseScenario')
+            await this.$store.dispatch('scenario/updateNoiseScenario', this.$store.state.scenario.noiseScenario)
             break;
           case "Abm":
             await this.$store.dispatch('scenario/updateAbmDesignScenario')
