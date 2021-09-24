@@ -1,16 +1,15 @@
----
 kind: pipeline
-type: docker
-name: web
+name: pipeline
 steps:
 - name: build and publish
   image: plugins/docker
   settings:
+    dockerfile: Dockerfile.prod
     repo:
       from_secret: docker_repository
-    tags:
-      - functionalscope-${DRONE_BRANCH}
-    dockerfile: Dockerfile.prod
+    tags: ${DRONE_BRANCH}
+    registry:
+      from_secret: docker_registry
     username:
       from_secret: docker_username
     password:
@@ -18,6 +17,23 @@ steps:
   when:
     status: [ success ]
     branch: [ develop ]
+
+- name: tag
+  image: plugins/docker
+  settings:
+    repo:
+      from_secret: docker_repository
+    tags: ${DRONE_TAG}
+    registry:
+      from_secret: docker_registry
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+  when:
+    status: [ success ]
+    event:
+      - tag
 
 - name: deploy
   image: quving/drone-rancher-cicd:latest
