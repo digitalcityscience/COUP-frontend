@@ -1,11 +1,10 @@
-<script>
+<script lang="ts">
 
 import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import {
     bridges,
     moduleSettingNames,
-    bridgeVeddelOptions,
     mainStreetOrientationOptions,
     blockPermeabilityOptions,
     roofAmenitiesOptions,
@@ -13,7 +12,8 @@ import {
     filterOptions,
     workshopScenarioNames
 } from '@/store/abm.ts'
-import DashboardCharts from "./DashboardCharts";
+import { ViewConfiguration } from '@/components/Scenario/ViewConfiguration'
+import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import {getAbmLayerIds} from "@/config/layers";
 
@@ -95,6 +95,9 @@ export default {
         },
         showUi(){
             return this.$store.state.scenario.showUi;
+        },
+        viewConfig(): ViewConfiguration {
+            return { filter: false }
         }
     },
     watch: {
@@ -349,7 +352,12 @@ export default {
            </div><!--component_content end-->
         </div><!--division end-->
 
-        <div class="division" data-title='Filter' data-pic='mdi-filter'>
+        <div
+            v-if="viewConfig.filter"
+            class="division"
+            data-title="Filter"
+            data-pic="mdi-filter"
+        >
             <div v-if="activeDivision === 'Filter'" class="component_content">
 
             <h2>ABM Scenario Filters</h2>
