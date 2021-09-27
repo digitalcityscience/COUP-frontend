@@ -1,45 +1,38 @@
 import Amenities from "@/config/amenities.json";
-import Trees from "@/config/trees.json";
 import Bridges from "@/config/bridges.json";
+import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import NoiseLayer from "@/config/noise.json";
-import WindResult from "@/config/windResult.json";
+import PerformanceInfosConfig from "@/config/performanceInfos.json";
 import SunExposure from "@/config/sunExposureResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
+import Trees from "@/config/trees.json";
+import WindResult from "@/config/windResult.json";
+import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
 import {
+  abmAggregationLayerName,
+  abmArcLayerName,
   abmTripsLayerName,
   animate,
-  getPolygonColor,
-  buildTripsLayer,
-  abmAggregationLayerName,
   buildAggregationLayer,
   buildArcLayer,
   buildSWLayer,
-  abmArcLayerName,
+  buildTripsLayer,
   swLayerName,
 } from "@/store/deck-layers";
-import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
-import { getFormattedTrafficCounts, noiseLayerName } from "@/store/noise";
-import { mdiConsoleNetwork, mdiControllerClassicOutline } from "@mdi/js";
-import { VCarouselReverseTransition } from "vuetify/lib";
-
 import {
   calcAbmStatsForMultiLayer,
   calculateAbmStatsForFocusArea,
 } from "@/store/scenario/abmStats";
 import {
-  calculateAmenityStatsForMultiLayerAnalysis,
   calculateAmenityStatsForFocusArea,
+  calculateAmenityStatsForMultiLayerAnalysis,
 } from "@/store/scenario/amenityStats";
-import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
-import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
-import PerformanceInfosConfig from "@/config/performanceInfos.json";
-import { ActionContext } from "vuex";
 import {
-  request_calculation,
   getSimulationResultForScenario,
+  request_calculation,
 } from "@/store/scenario/calculationModules";
-import FocusAreasLayer from "@/config/focusAreas.json";
-import vue from "vue";
+import { ActionContext } from "vuex";
 
 export default {
   async updateNoiseScenario(

@@ -1,4 +1,4 @@
-import { workshopScenarioNames } from "@/store/abm.ts";
+import { workshopScenarioNames } from "@/store/abm";
 import Amenities from "@/config/amenities.json";
 
 export default class CityPyO {
@@ -187,10 +187,6 @@ export default class CityPyO {
       return null;
     }
   }
-
-  getLayerData(query: string) {}
-
-  updateLayerData(query: string) {}
 
   async formatResponse(id, responseJson) {
     return {

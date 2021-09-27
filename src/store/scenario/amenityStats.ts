@@ -1,7 +1,6 @@
+import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
 import store from "@/store";
 import * as turf from "@turf/turf";
-import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
-import { calculateAbmStatsForFocusArea } from "@/store/scenario/abmStats";
 
 /** calculates stats for all focus areas individually **/
 export async function calculateAmenityStatsForMultiLayerAnalysis() {

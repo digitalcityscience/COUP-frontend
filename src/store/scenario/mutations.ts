@@ -1,8 +1,5 @@
+import { generateMutations } from "@/store/utils/generators";
 import state from "./state";
-import {
-  generateMutations,
-  generateSimpleMutations,
-} from "@/store/utils/generators";
 
 export default {
   ...generateMutations(state),

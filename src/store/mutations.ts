@@ -1,7 +1,3 @@
-import { Layer } from "mapbox-gl";
-import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
-import Config from "@/config/config.json";
-
 export default {
   addLayerId(state: StoreState, id: string) {
     if (!state.layerIds.includes(id)) {

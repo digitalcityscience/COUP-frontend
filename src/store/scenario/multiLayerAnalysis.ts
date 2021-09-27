@@ -1,6 +1,5 @@
-import * as turf from "@turf/turf";
 import store from "@/store";
-import cityPyO from "@/store/cityPyO";
+import * as turf from "@turf/turf";
 
 /**
  * Filters the original dataset according to request

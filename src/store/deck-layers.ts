@@ -1,13 +1,11 @@
-import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-import { ArcLayer } from "@deck.gl/layers";
-import { TripsLayer } from "@deck.gl/geo-layers";
-import { PolygonLayer } from "@deck.gl/layers";
-import GL from "@luma.gl/constants";
-import store from "../store/index";
 // @ts-ignore
 import { DataSet } from "@deck.gl/core/lib/layer";
-import { mdiConsoleNetworkOutline } from "@mdi/js";
+import { TripsLayer } from "@deck.gl/geo-layers";
+import { ArcLayer, PolygonLayer } from "@deck.gl/layers";
+import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
+import GL from "@luma.gl/constants";
+import store from "../store/index";
 
 export const abmTripsLayerName = "abmTrips";
 export const abmAggregationLayerName = "abmHeat";

@@ -1,7 +1,5 @@
 import {
-  abmTripsLayerName,
-  buildTripsLayer,
-  animate,
+  abmTripsLayerName
 } from "@/store/deck-layers";
 
 export default {

@@ -1,6 +1,5 @@
-import Defaults from "@/defaults";
 import Config from "@/config/config.json";
-import { bridges, mainStreetOrientationOptions } from "@/store/abm.ts";
+import Defaults from "@/defaults";
 
 const initialState: StoreState = {
   map: null,

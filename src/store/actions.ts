@@ -1,12 +1,11 @@
 import Buildings from "@/config/buildings.json";
+import CircledFeatures from "@/config/circledFeatures.json";
+import FocusAreasLayer from "@/config/focusAreas.json";
+import { getLayerOrder } from "@/config/layers";
 import Spaces from "@/config/spaces.json";
 import CityPyO from "@/store/cityPyO";
-import { ActionContext } from "vuex";
 import { Layer } from "mapbox-gl";
-import CityPyODefaultUser from "@/config/cityPyoDefaultUser.json";
-import FocusAreasLayer from "@/config/focusAreas.json";
-import CircledFeatures from "@/config/circledFeatures.json";
-import { getLayerOrder } from "@/config/layers.ts";
+import { ActionContext } from "vuex";
 
 export default {
   async createDesignLayers({
