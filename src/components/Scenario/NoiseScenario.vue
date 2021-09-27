@@ -90,7 +90,7 @@ export default {
               this.resultOutdated = this.isResultOutdated()
               this.scenarioAlreadySaved = this.isScenarioAlreadySaved()
             }).catch(() => {
-              this.$store.commit("scenario/windLayer", false);
+              this.$store.commit("scenario/noiseMap", false);
               this.resultLoading = false
               this.showError = true
             })
