@@ -21,6 +21,7 @@ export default {
       maxSpeed: 50,
       resultOutdated: true,
       showError: false,
+      errMsg: '',
       scenarioAlreadySaved: false,
     };
   },
@@ -83,10 +84,11 @@ export default {
           this.resultOutdated = this.isResultOutdated();
           this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
         })
-        .catch(() => {
+        .catch((err) => {
           this.$store.commit("scenario/noiseMap", false);
           this.resultLoading = false;
           this.showError = true;
+          this.errMsg = err
         });
     },
     loadNoiseResults() {
@@ -192,6 +194,7 @@ export default {
               <v-radio :value="50" flat label="50 kmh/h" dark />
             </v-radio-group>
           </div>
+          <p v-if="showError" class="warning">{{ errMsg }}</p>
           <v-btn
             @click="loadNoiseResults"
             class="confirm_btn"
@@ -214,7 +217,6 @@ export default {
           >
             Save
           </v-btn>
-
           <!--saved scenarios -->
           <div class="saved_scenarios" style="margin-top: 10vh">
             <!-- todo : make this the same as headers of info section! -->

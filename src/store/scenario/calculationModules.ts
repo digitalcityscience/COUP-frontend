@@ -112,8 +112,8 @@ async function getResultForTask(url, taskUuid) {
     });
   }
 
-  console.error("could not get result for url, uuid", url, taskUuid);
-  return null;
+  console.error("could not get result for url, uuid", url, taskUuid)
+  throw new Error("Could not get result from server")
 }
 
 // gets the results of a wind group task
@@ -145,12 +145,8 @@ async function performRequest(requestUrl, scenario, method) {
   });
 
   if (res.status !== 200) {
-    console.warn(
-      "could not get/update ressource from cityPyo ",
-      scenario,
-      res.status,
-      res.statusText
-    );
+    console.warn("could not get/update ressource from cityPyo ", scenario, res.status, res.statusText)
+    throw new Error("Calculation request failed, " +  res.status)
   }
 
   return await res.json();
