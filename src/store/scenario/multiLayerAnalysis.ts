@@ -1,7 +1,6 @@
-import * as turf from '@turf/turf'
-import store from '@/store'
+import * as turf from "@turf/turf";
+import store from "@/store";
 import cityPyO from "@/store/cityPyO";
-
 
 /**
  * Filters the original dataset according to request
@@ -10,29 +9,28 @@ import cityPyO from "@/store/cityPyO";
  * @param request
  */
 export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
+  console.warn(" filter and scale data layerName, Range", request);
 
-  console.warn(" filter and scale data layerName, Range", request)
+  const layerData = createLayerData(request.layerName);
+  const constraints = request.layerConstraints;
+  const range = request.layerRange;
 
-  let layerData = createLayerData(request.layerName)
-  let constraints = request.layerConstraints
-  let range = request.layerRange
+  layerData.features = layerData.features.filter((feature) => {
+    return (
+      constraints[0] <= feature.properties.value &&
+      feature.properties.value <= constraints[1]
+    );
+  });
 
+  turf.featureEach(layerData, function (feature) {
+    const value = feature.properties.value;
+    feature.properties["scaledValue"] =
+      ((value - range[0]) / (range[1] - range[0])) * 100;
+  });
 
-  layerData.features = layerData.features.filter(feature => {
-      return constraints[0] <= feature.properties.value
-        && feature.properties.value <= constraints[1]
-    }
-  )
+  console.log("layerdata", layerData);
 
-  turf.featureEach(layerData, function(feature) {
-    const value = feature.properties.value
-    feature.properties["scaledValue"] = ((value - range[0]) / (range[1] - range[0])) * 100
-  })
-
-
-  console.log("layerdata", layerData)
-
-  return layerData
+  return layerData;
 }
 
 /**
@@ -40,20 +38,26 @@ export function filterAndScaleLayerData(request: LayerAnalysisRequest) {
  * @param layer_2
  */
 export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
-  return store.state.cityPyO.combineLayers(layer_1, layer_2).then(combinedGeoJson => {
+  return store.state.cityPyO
+    .combineLayers(layer_1, layer_2)
+    .then((combinedGeoJson) => {
+      if (!combinedGeoJson) {
+        return null;
+      }
 
-    if (!combinedGeoJson) {
-      return null
-    }
+      const combinedLayerFeatures = combinedGeoJson["features"];
+      store.dispatch(
+        "scenario/addMultiLayerAnalysisLayer",
+        combinedLayerFeatures
+      );
+      const performanceInfos = createPerformanceInfos(combinedLayerFeatures);
+      store.dispatch(
+        "scenario/addMultiLayerPerformanceInfos",
+        performanceInfos
+      );
 
-    const combinedLayerFeatures = combinedGeoJson["features"]
-    store.dispatch("scenario/addMultiLayerAnalysisLayer", combinedLayerFeatures)
-    const performanceInfos = createPerformanceInfos(combinedLayerFeatures)
-    store.dispatch("scenario/addMultiLayerPerformanceInfos", performanceInfos)
-
-    return combinedLayerFeatures;
-    }
-  )
+      return combinedLayerFeatures;
+    });
 }
 
 /**
@@ -61,69 +65,80 @@ export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
  *
  * @param layerName
  */
-function createLayerData(layerName: string): turf.FeatureCollection<turf.Polygon | turf.MultiPolygon> {
-  let baseDataSet = layerLookup(layerName)
+function createLayerData(
+  layerName: string
+): turf.FeatureCollection<turf.Polygon | turf.MultiPolygon> {
+  const baseDataSet = layerLookup(layerName);
 
   /** get layer data from geojson layers*/
   if (baseDataSet["type"] === "FeatureCollection") {
     // map properties to standard featureCollection for multiLayerAnalysis
     baseDataSet["features"].forEach((feature, featureId) => {
-      if (layerName === 'noise') {
-        feature.properties["value"] = noiseLookup[feature.properties["idiso"]]
+      if (layerName === "noise") {
+        feature.properties["value"] = noiseLookup[feature.properties["idiso"]];
       } else {
         // wind and sun result value has key "value"
-        feature.properties["value"] = feature.properties["value"]
+        feature.properties["value"] = feature.properties["value"];
       }
-      feature.properties["layerName"] = layerName
-      feature.properties["id"] = featureId
-    })
+      feature.properties["layerName"] = layerName;
+      feature.properties["id"] = featureId;
+    });
 
-    return turf.featureCollection(baseDataSet["features"])
+    return turf.featureCollection(baseDataSet["features"]);
   } else {
     /** get layer data from abmStats or amenityStats*/
-      // create featureCollection with focusAreas polygons and selected value
-    let layerData = []
+    // create featureCollection with focusAreas polygons and selected value
+    const layerData = [];
     for (const [focusAreaId, values] of Object.entries(baseDataSet)) {
       if (isNaN(parseInt(focusAreaId))) {
-        continue
+        continue;
       }
-      let feature = getGeometryForFocusArea(focusAreaId)
+      const feature = getGeometryForFocusArea(focusAreaId);
       // TODO refactor structure of abm results
-      feature.properties = {"value": values[layerName]};
-      feature.properties["layerName"] = layerName
-      feature.properties["id"] = focusAreaId
-      layerData.push(feature)
+      feature.properties = { value: values[layerName] };
+      feature.properties["layerName"] = layerName;
+      feature.properties["id"] = focusAreaId;
+      layerData.push(feature);
     }
 
-    return turf.featureCollection(layerData)
+    return turf.featureCollection(layerData);
   }
 }
 
 function createPerformanceInfos(combinedFeatures: turf.Feature[]) {
-  let infos = []
-  combinedFeatures.forEach(feat => {
-    const lowOrHigh_1 = isLowOrHighValue(feat.properties.scaledValue_1)
-    const lowOrHigh_2 = isLowOrHighValue(feat.properties.scaledValue_2)
+  const infos = [];
+  combinedFeatures.forEach((feat) => {
+    const lowOrHigh_1 = isLowOrHighValue(feat.properties.scaledValue_1);
+    const lowOrHigh_2 = isLowOrHighValue(feat.properties.scaledValue_2);
 
     if (lowOrHigh_1 && lowOrHigh_2) {
-      let info = turf.centroid(feat,
-        {
-          "shortInfoText":
-           feat.properties.layerName_1 + " level: " + lowOrHigh_1 + " \n"
-           + feat.properties.layerName_2 + " level: " + lowOrHigh_2
-          ,
-          "infoText":
-          "This area has a " + lowOrHigh_1 + " " + feat.properties.layerName_1 + " level " +
-          "combined with a " + lowOrHigh_2 + " " + feat.properties.layerName_2 + " level"
-        }
-      )
-      infos.push(info)
+      const info = turf.centroid(feat, {
+        shortInfoText:
+          feat.properties.layerName_1 +
+          " level: " +
+          lowOrHigh_1 +
+          " \n" +
+          feat.properties.layerName_2 +
+          " level: " +
+          lowOrHigh_2,
+        infoText:
+          "This area has a " +
+          lowOrHigh_1 +
+          " " +
+          feat.properties.layerName_1 +
+          " level " +
+          "combined with a " +
+          lowOrHigh_2 +
+          " " +
+          feat.properties.layerName_2 +
+          " level",
+      });
+      infos.push(info);
     }
-  })
+  });
 
-  return infos
+  return infos;
 }
-
 
 /**
  * TODO - statistical high/lows
@@ -133,15 +148,14 @@ function createPerformanceInfos(combinedFeatures: turf.Feature[]) {
  */
 function isLowOrHighValue(scaledValue): string | null {
   if (scaledValue >= 64) {
-    return "high"
+    return "high";
   }
   if (scaledValue <= 20) {
-    return "low"
+    return "low";
   }
 
-  return null
+  return null;
 }
-
 
 /**
  * iterate over unfiltered features
@@ -149,39 +163,51 @@ function isLowOrHighValue(scaledValue): string | null {
  * @param layerToInvert
  */
 function invertLayerFilter(layerToInvert) {
-  const layerName = layerToInvert.features[0].properties.layerName
-  let unfilteredData = createLayerData(layerName)
-  let invertedData = []
+  const layerName = layerToInvert.features[0].properties.layerName;
+  const unfilteredData = createLayerData(layerName);
+  const invertedData = [];
 
   // iterate over unfiltered features and keep all features that are not in the layerToInvert
-  unfilteredData.features.forEach(unfilteredFeature => {
-    if (!layerToInvert.features.some(featureToIgnore => {
-      return featureToIgnore.properties.id === unfilteredFeature.properties.id
-    })) {
-      invertedData.push(unfilteredFeature)
+  unfilteredData.features.forEach((unfilteredFeature) => {
+    if (
+      !layerToInvert.features.some((featureToIgnore) => {
+        return (
+          featureToIgnore.properties.id === unfilteredFeature.properties.id
+        );
+      })
+    ) {
+      invertedData.push(unfilteredFeature);
     }
-  })
+  });
 
-  return turf.featureCollection(invertedData)
+  return turf.featureCollection(invertedData);
 }
 
 /**
  * Returns a MultiPolygon or Polygon that represents the Geometry of the focus area
  * @param focusAreaId
  */
-function getGeometryForFocusArea(focusAreaId): turf.Feature<turf.Polygon> | turf.Feature<turf.MultiPolygon> {
-  const focusAreas = turf.featureCollection(store.state.focusAreasGeoJson["features"]) as turf.FeatureCollection<turf.Polygon>
-  const polygons = focusAreas.features.filter(feature => {
-    return feature.id == focusAreaId
-  })
+function getGeometryForFocusArea(
+  focusAreaId
+): turf.Feature<turf.Polygon> | turf.Feature<turf.MultiPolygon> {
+  const focusAreas = turf.featureCollection(
+    store.state.focusAreasGeoJson["features"]
+  ) as turf.FeatureCollection<turf.Polygon>;
+  const polygons = focusAreas.features.filter((feature) => {
+    return feature.id == focusAreaId;
+  });
 
-  console.log("polygons for focus area", focusAreaId, polygons)
+  console.log("polygons for focus area", focusAreaId, polygons);
 
-  if (polygons.length ===1) {
-    return turf.feature(polygons[0].geometry, {})
+  if (polygons.length === 1) {
+    return turf.feature(polygons[0].geometry, {});
   }
 
-  return turf.multiPolygon(polygons.map(polygon => {return polygon.geometry.coordinates}))
+  return turf.multiPolygon(
+    polygons.map((polygon) => {
+      return polygon.geometry.coordinates;
+    })
+  );
 }
 
 /**
@@ -191,41 +217,45 @@ function getGeometryForFocusArea(focusAreaId): turf.Feature<turf.Polygon> | turf
  * @param featureCollection
  */
 function flattenFeatureCollection(featureCollection) {
-  let flattenedFeatures = []
-  featureCollection.features.forEach(feature => {
+  const flattenedFeatures = [];
+  featureCollection.features.forEach((feature) => {
     if (feature.geometry.type == "MultiPolygon") {
-      turf.flatten(feature).features.forEach(flatFeat => {
-        flattenedFeatures.push(flatFeat)
-      })
+      turf.flatten(feature).features.forEach((flatFeat) => {
+        flattenedFeatures.push(flatFeat);
+      });
     } else {
-      flattenedFeatures.push(feature)
+      flattenedFeatures.push(feature);
     }
-  })
+  });
 
-  return flattenedFeatures
+  return flattenedFeatures;
 }
 
-const noiseLookup = [45,50,55,60,65,70,75,80]
+const noiseLookup = [45, 50, 55, 60, 65, 70, 75, 80];
 
 /**
  * return dataset for layer
  * @param layerName
  */
-function layerLookup(layerName:string) {
+function layerLookup(layerName: string) {
   switch (layerName) {
-    case 'wind':
-      return store.state.scenario.windResultGeoJson
-    case 'sun':
-      return store.state.scenario.sunExposureGeoJson
-    case 'noise':
-      return store.state.scenario.currentNoiseGeoJson
-    case 'Density':
-    case 'Amenity Types':
-      return store.state.scenario.amenityStatsMultiLayer
-    case 'pedestrianDensity':
-      return store.state.scenario.abmStatsMultiLayer
+    case "wind":
+      return store.state.scenario.windResultGeoJson;
+    case "sun":
+      return store.state.scenario.sunExposureGeoJson;
+    case "noise":
+      return store.state.scenario.currentNoiseGeoJson;
+    case "Density":
+    case "Amenity Types":
+      return store.state.scenario.amenityStatsMultiLayer;
+    case "pedestrianDensity":
+      return store.state.scenario.abmStatsMultiLayer;
     default:
-        console.warn("could not find baseDataSet for layerName", layerName, "in multiLayerAnalysis")
-        break;
+      console.warn(
+        "could not find baseDataSet for layerName",
+        layerName,
+        "in multiLayerAnalysis"
+      );
+      break;
   }
 }

@@ -1,28 +1,21 @@
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 export default {
-    name: 'GFI',
-    components: {
-    },
-    data () {
-        return {
-        }
-    },
-    computed: {
-        ...mapState([
-          'map'
-        ])
-    },
-    watch: {
-    },
-    methods: {
-    }
-}
+  name: "GFI",
+  components: {},
+  data() {
+    return {};
+  },
+  computed: {
+    ...mapState(["map"]),
+  },
+  watch: {},
+  methods: {},
+};
 </script>
 
 <template>
-    <div id="GFI" />
+  <div id="GFI" />
 </template>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>
