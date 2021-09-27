@@ -216,7 +216,9 @@ export default {
             { "upper floors count (excl. groundfloor)": upperFloorsCount },
             {
               "total floor area upperfloors":
-                Math.floor(upperFloorsCount * properties["floor_area"]) + "m²",
+                Math.floor(
+                  upperFloorsCount * feature.properties["floor_area"]
+                ) + "m²",
             }
           );
         }

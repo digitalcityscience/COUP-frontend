@@ -77,7 +77,6 @@ function createLayerData(
         feature.properties["value"] = noiseLookup[feature.properties["idiso"]];
       } else {
         // wind and sun result value has key "value"
-        feature.properties["value"] = feature.properties["value"];
       }
       feature.properties["layerName"] = layerName;
       feature.properties["id"] = featureId;

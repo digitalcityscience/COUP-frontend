@@ -78,12 +78,9 @@ export default {
     },
   },
   watch: {
-    activeAbmSet() {},
     heatMap(newVal, oldVal) {
       console.log(newVal, oldVal);
     },
-    noiseMap() {},
-    stormWater() {},
     wind(newVal, oldVal) {
       this.visibleLayers.wind = newVal;
     },

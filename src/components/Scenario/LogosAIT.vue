@@ -1,6 +1,5 @@
 <script>
 import { mapState } from "vuex";
-import Chart from "chart.js";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
 
 export default {
@@ -17,8 +16,6 @@ export default {
       },
     };
   },
-  mounted() {},
-  updated() {},
   created() {
     document.onkeydown = this.onkeydown;
   },

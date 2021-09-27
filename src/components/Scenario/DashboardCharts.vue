@@ -34,9 +34,6 @@ export default {
     this.renderBarChart();
     this.renderRadarChart();
   },
-  updated() {},
-  created() {},
-  components: {},
   methods: {
     renderBarChart() {
       this.barChartReady = false;
