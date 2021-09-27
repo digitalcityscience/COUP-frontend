@@ -69,6 +69,23 @@ export default {
           return dispatch('addLayerToMap', TrafficCountLayer.layer, {root: true})
         })
   },
+  async updateStormWaterLayer({state, commit, dispatch, rootState}, stormWaterScenario) {
+    stormWaterScenario["city_pyo_user"] = rootState.cityPyO.userid
+
+    // request calculation and fetch results
+    request_calculation("stormwater", stormWaterScenario).then(stormWaterResultUuid => {
+      return getSimulationResultForScenario("stormwater", stormWaterResultUuid)
+    }).then(stormwaterResult => {
+      // adding result to store
+      const swResultGeoJson = stormwaterResult.source.options.data;
+      commit('swResultGeoJson', Object.freeze(swResultGeoJson))
+    }).finally(() => {
+       // adding result to map
+       dispatch('addSWLayer')
+       // update time graph
+       commit("rerenderSwGraph", true);
+      })
+  },
   addSunExposureLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
     return rootState.cityPyO.getLayer("sun_exposure").then(source => {
         commit('sunExposureGeoJson', source.options.data)
@@ -548,30 +565,6 @@ export default {
           })
         })
       })
-  },
-  updateSWLayerTime({state, commit, dispatch, rootState}) {
-    buildSWLayer(state.swResultGeoJson, state.rainTime).then(
-      deckLayer => {
-        if (rootState.map?.getLayer(swLayerName)) {
-        rootState.map?.removeLayer(swLayerName)
-      }
-
-      rootState.map?.addLayer(deckLayer);
-      commit('addLayerId', swLayerName, {root: true});
-    });
-
-
-    /*var swLayer = rootState.map.getLayer(swLayerName);
-    swLayer.implementation.setProps({ swTime: state.rainTime});
-    console.log(swLayer);*/
-
-
-    //swLayer.implementation.setProps({ getFillColor: });
-
-    //swLayer.implementation.props.getFillColor();
-
-    /*var swLayer = buildSWLayer(transformSWLayerData);
-    swLayer.setProps({ getElevation: 40 })*/
   },
   filterAbmCore({state, commit, dispatch, rootState}, filterSettings){
       const abmData = state.activeAbmSet;

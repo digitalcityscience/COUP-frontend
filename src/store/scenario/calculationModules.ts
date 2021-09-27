@@ -16,10 +16,8 @@ export async function request_calculation(simType, scenario) {
       //url = 'http://localhost:5001/task'
       break;
     case "stormwater":
-      // todo should not be triggered as group task
-      //url = 'http://swimdock-api:5000/grouptask'
-      url = 'http://localhost:5002/grouptask'
-      scenario = { "tasks": [scenario] }
+      //url = 'https://api.hcu-dev.de/water/task'
+      url = 'http://localhost:5002/task'
       break;
     default:
       console.error("could not find calc url for simtype", simType)
@@ -55,9 +53,9 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
       task_uuid = task_uuid["taskId"]
       break;
     case "stormwater":
-      //url = 'http://swimdock-api:5000/grouptask'
-      url = 'http://localhost:5002/grouptasks/'
-      task_uuid = task_uuid["taskIds"][0] // // todo should not be triggered as group task
+      //url = 'https://api.hcu-dev.de/water/tasks/'
+      url = 'http://localhost:5002/tasks/'
+      task_uuid = task_uuid["taskId"]
       break;
     default:
       console.error("could not get result for simtype", simType)
@@ -74,7 +72,7 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
 
   // for wind the result is the uuid of a sub-group-task - then collect these results and return them.
   if (simType == "wind" && result) {
-    url = 'http://localhost:5003/grouptasks/'
+    url = 'http://localhost:5003/grouptasks/'   // TODO fix WIND URL HERE
     result = await getResultsForSubGroupTask(url, result).then(
       result => { return result }
     )

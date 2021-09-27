@@ -5,6 +5,8 @@ import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import Rain from '@/config/rain.json'
 import Legend from "@/components/Scenario/Legend";
 import hash from 'object-hash'
+import {swLayerName} from "@/store/deck-layers";
+
 
 export default {
     name: 'StormwaterScenario',
@@ -122,44 +124,21 @@ export default {
           this.$store.commit("scenario/stormWater", true);
           this.$store.commit("scenario/selectGraph", "sw");
         },
-        async getStormWaterResult() {
-          // todo create an action for this
-          const resultLayer = await this.$store.state.cityPyO.getSimulationResultForScenario(
-            "stormwater",
-            this.stormWaterScenarioHash
-          )
-          this.$store.commit("scenario/swResultGeoJson", resultLayer.source.options.data);
-          this.$store.dispatch('scenario/addSWLayer');
-          this.$store.commit("scenario/rerenderSwGraph", true);
+        async loadStormwaterMap () {
+          this.resultLoading = true
+          this.$store.dispatch('removeSourceFromMap', swLayerName, {root: true})
+          this.$store.commit('scenario/swResultGeoJson', null)
+          this.$store.dispatch('scenario/updateStormWaterLayer', this.stormWaterScenario).then(() => {
+              // success
+              this.$store.commit("scenario/stormWater", true);
+              this.resultLoading = false
+              this.resultOutdated = this.isResultOutdated()
+            }).catch(() => {
+              this.$store.commit("scenario/stormWater", false);
+              this.resultLoading = false
+              this.showError = true
+            })
         },
-        /*
-        // placeholder in case we do enable user input on subcatchment outlets one day
-        sendScenarioToCityPyo() {
-          const fileName = "stormwater_scenario"
-          // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
-          // for our scenario name "scenario_1"
-          const propPath = ["scenario_1"]   // we could imagine to let the user create multiple scenarios to compare...
-          const payload = {
-            "hash": "NEW HASH",
-            "model_updates":
-              [
-                {
-                  "subcatchment_id": "Sub000",
-                  "outlet_id": "J_out17"
-                },
-                {
-                  "subcatchment_id": "Sub001",
-                  "outlet_id": "J_out18"
-                }
-              ],
-            "rain_event" : {
-              "return_period": 100,
-              "duration": 120
-            }
-          }
-          this.$store.state.cityPyO.addLayerData(fileName, propPath, payload)
-        },
-        */
         changeRain(rain){
           // TODO rain Amount sometimes is a string and sometimes array. gets used in different contexts. Refactor
           this.rainAmount = rain;
@@ -180,14 +159,14 @@ export default {
           this.changeRain(returnPeriodString)
 
           // get stormwater result from cityPyo
-          this.getStormWaterResult()
+          this.loadStormwaterMap()
 
         },
         makeStormWaterScenario() {
           this.stormWaterScenario = {
-            "returnPeriod": this.returnPeriod,
-            "flowPath": this.flowPath,
-            "greenRoofs": this.greenRoofs,
+            "return_period": this.returnPeriod,
+            "flow_path": this.flowPath,
+            "roofs": this.greenRoofs,
             // "treePits": this.treePits
           }
           // TODO use real hash once we stop using pre-cooked results
@@ -201,9 +180,9 @@ export default {
             this.resultOutdated = false;
           } else {
             this.resultOutdated = (
-              this.returnPeriod !== this.stormWaterScenario["returnPeriod"]
-              || this.flowPath !== this.stormWaterScenario["flowPath"]
-              || this.greenRoofs !== this.stormWaterScenario["greenRoofs"]
+              this.returnPeriod !== this.stormWaterScenario["return_period"]
+              || this.flowPath !== this.stormWaterScenario["flow_path"]
+              || this.greenRoofs !== this.stormWaterScenario["roofs"]
               // || this.treePits !== this.stormWaterScenario["treePits"]  // feature not enabled yet
             )
           }
