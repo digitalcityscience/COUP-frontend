@@ -16,8 +16,8 @@ export async function request_calculation(simType, scenario) {
       //url = 'http://localhost:5001/task'
       break;
     case "stormwater":
-      //url = 'https://api.hcu-dev.de/water/task'
-      url = 'http://localhost:5002/task'
+      url = 'https://api.hcu-dev.de/water/task'
+      //url = 'http://localhost:5002/task'
       break;
     default:
       console.error("could not find calc url for simtype", simType)
