@@ -4,7 +4,6 @@ import { mapState } from 'vuex'
 import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
 import Rain from '@/config/rain.json'
 import Legend from "@/components/Scenario/Legend";
-import hash from 'object-hash'
 import {swLayerName} from "@/store/deck-layers";
 
 
@@ -17,6 +16,8 @@ export default {
         return {
           activeDivision:null,
           componentDivisions: [],
+          showError: false,
+          errMsg: '',
           resultOutdated: false,
           returnPeriod: 2,
           returnPeriodOptions: [
@@ -83,7 +84,6 @@ export default {
             'layerIds',
         ]),
         ...generateStoreGetterSetter([
-          ['stormWaterScenarioHash', 'scenario/' + 'stormWaterScenarioHash'],  // todo create a stormWater store
           ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
           ['savedStormWaterScenarios', 'scenario/' + 'savedStormWaterScenarios'],  // todo manage stores
           ['stormWaterScenario', 'scenario/' + 'stormWaterScenario'],  // todo manage stores
@@ -129,15 +129,18 @@ export default {
           this.$store.dispatch('removeSourceFromMap', swLayerName, {root: true})
           this.$store.commit('scenario/swResultGeoJson', null)
           this.$store.dispatch('scenario/updateStormWaterLayer', this.stormWaterScenario).then(() => {
-              // success
-              this.$store.commit("scenario/stormWater", true);
-              this.resultLoading = false
-              this.resultOutdated = this.isResultOutdated()
-            }).catch(() => {
-              this.$store.commit("scenario/stormWater", false);
-              this.resultLoading = false
-              this.showError = true
-            })
+            // success
+            this.$store.commit("scenario/stormWater", true);
+            this.resultLoading = false
+            this.showError = false
+            this.resultOutdated = this.isResultOutdated()
+          }).catch((err) => {
+            console.log("caught error", err)
+            this.$store.commit("scenario/stormWater", false);
+            this.resultLoading = false
+            this.showError = true
+            this.errorMsg = err
+          })
         },
         changeRain(rain){
           // TODO rain Amount sometimes is a string and sometimes array. gets used in different contexts. Refactor
@@ -169,10 +172,6 @@ export default {
             "roofs": this.greenRoofs,
             // "treePits": this.treePits
           }
-          // TODO use real hash once we stop using pre-cooked results
-          // this.stormWaterScenarioHash = hash(this.stormWaterScenario)
-          this.stormWaterScenarioHash = this.flowPath + "_" + this.greenRoofs + "_" + this.returnPeriod
-          this.stormWaterScenario["hash"] = this.stormWaterScenarioHash
         },
         isResultOutdated() {
           console.warn("input changed")
@@ -296,6 +295,7 @@ export default {
               </v-radio-group>
 
             </div>   TREE PITS DIV -->
+            <p v-if="showError" class="warning">{{ errorMsg }}</p>
             <v-btn @click="runScenario()"
                    class="confirm_btn"
                    :class="{ changesMade : resultOutdated }"

@@ -73,18 +73,26 @@ export default {
     stormWaterScenario["city_pyo_user"] = rootState.cityPyO.userid
 
     // request calculation and fetch results
-    request_calculation("stormwater", stormWaterScenario).then(stormWaterResultUuid => {
-      return getSimulationResultForScenario("stormwater", stormWaterResultUuid)
-    }).then(stormwaterResult => {
-      // adding result to store
-      const swResultGeoJson = stormwaterResult.source.options.data;
-      commit('swResultGeoJson', Object.freeze(swResultGeoJson))
-    }).finally(() => {
-       // adding result to map
-       dispatch('addSWLayer')
-       // update time graph
-       commit("rerenderSwGraph", true);
-      })
+    return new Promise((resolve, reject) => {
+      request_calculation("stormwater", stormWaterScenario).then(stormWaterResultUuid => {
+        return getSimulationResultForScenario("stormwater", stormWaterResultUuid)
+      }).then(stormwaterResult => {
+        // adding result to store
+        const swResultGeoJson = stormwaterResult.source.options.data;
+        commit('swResultGeoJson', Object.freeze(swResultGeoJson))
+      }).finally(() => {
+         // adding result to map
+         dispatch('addSWLayer')
+         // update time graph   
+         commit("rerenderSwGraph", true);
+        }).then((response) => {
+          return resolve(response)
+        })
+        .catch((error) => {
+          console.log("catching error")
+          return reject(error)
+        })
+    })
   },
   addSunExposureLayer({state, rootState, commit, dispatch}: ActionContext<StoreState, StoreState>){
     return rootState.cityPyO.getLayer("sun_exposure").then(source => {
