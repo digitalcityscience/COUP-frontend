@@ -101,7 +101,6 @@ export default {
   rainAmount: [],
   rainTime:0,
   rerenderSwGraph: false,
-  stormWaterScenarioHash: '',
   savedStormWaterScenarios: [],
   stormWaterScenario: null
 }
