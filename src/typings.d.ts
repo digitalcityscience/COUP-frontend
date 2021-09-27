@@ -24,8 +24,8 @@ declare global {
 
   interface ScenarioResult {
     designScenario: string;
-    moduleSettings: {};
-    scenarioViewFilters: {};
+    moduleSettings: Record<string, any>;
+    scenarioViewFilters: Record<string, any>;
   }
 
   interface AbmScenario extends ScenarioResult {

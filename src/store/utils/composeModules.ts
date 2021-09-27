@@ -7,7 +7,10 @@ function composeField(fieldName: string, modules: GenericObject[]) {
   return modules
     .map((m: GenericObject) => m[fieldName])
     .reduce(
-      (accumulator: object, field: object) => ({
+      (
+        accumulator: Record<string, unknown>,
+        field: Record<string, unknown>
+      ) => ({
         ...accumulator,
         ...field,
       }),
@@ -20,7 +23,7 @@ function composeField(fieldName: string, modules: GenericObject[]) {
  * @param {GenericObject[]} modules modules to compose; later appearing modules override
  * @returns {GenericObject} composed module
  */
-export default function (modules: object[]) {
+export default function (modules: Record<string, unknown>[]) {
   return {
     namespaced: true,
     state: composeField("state", modules),

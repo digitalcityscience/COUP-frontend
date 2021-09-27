@@ -1,6 +1,5 @@
 <script>
 import Map from "./components/Map/Map.vue";
-import GFI from "./components/GFI/GFI.vue";
 import Menu from "./components/Menu/Menu.vue";
 import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
@@ -11,7 +10,6 @@ export default {
   name: "App",
   components: {
     Map,
-    GFI,
     TimeSheet,
     Menu,
     Viewbar,

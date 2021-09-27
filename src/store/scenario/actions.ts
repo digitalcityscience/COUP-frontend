@@ -256,7 +256,9 @@ export default {
   showLoadingScreen(
     { state, commit, dispatch, rootState },
     message = "loading"
-  ) {},
+  ) {
+    // TODO: is this still needed?
+  },
   async calculateStatsForMultiLayerAnalysis({
     state,
     commit,
@@ -597,7 +599,6 @@ export default {
                   w: heatLayerData[key].values[subKey].length,
                 };
                 heatLayerFormed.push(coordinate);
-              } else {
               }
             }
           );

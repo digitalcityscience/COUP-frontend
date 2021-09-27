@@ -1,7 +1,11 @@
 import store from "@/store";
 import * as turf from "@turf/turf";
 
-export async function getOdArcData(objectData, modalInfo, asOrigin: boolean) {
+export async function getOdArcData(
+  objectData,
+  modalInfo,
+  asOrigin: boolean
+): Promise<any[]> {
   const amenityPoints = getAmenityPoints(objectData, modalInfo);
   const odPointCollection = getOdPointCollection(asOrigin);
   const arcLayerData = [];
@@ -11,8 +15,7 @@ export async function getOdArcData(objectData, modalInfo, asOrigin: boolean) {
     // filter odPoints for those that are adjacent to the amenity
     const filteredOdPoints = [];
     turf.featureEach(odPointCollection, function (odPoint) {
-      // @ts-ignore
-      if (turf.distance(amenityPoint, odPoint) < 0.01) {
+      if (turf.distance(amenityPoint as any, odPoint) < 0.01) {
         filteredOdPoints.push(odPoint);
       }
     });
