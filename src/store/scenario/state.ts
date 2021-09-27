@@ -1,20 +1,20 @@
-import {bridges, filterOptions, roofAmenitiesOptions} from "@/store/abm";
+import { bridges, filterOptions, roofAmenitiesOptions } from "@/store/abm";
 
 export default {
   bridges: [bridges.bridge_hafencity],
   resultLoading: false,
   loader: true,
-  loaderTxt: 'data is loading ... ',
+  loaderTxt: "data is loading ... ",
   abmData: null,
   abmTrips: null,
   agentIndexes: null,
   clusteredAbmData: null,
-  activeAbmSet: null,   // same as abmData
-  abmObject:{},
-  abmTimePaths:null,
-  activeTimePaths:null,
-  abmSimpleTimes:null,
-  abmWeightCount:null,
+  activeAbmSet: null, // same as abmData
+  abmObject: {},
+  abmTimePaths: null,
+  activeTimePaths: null,
+  abmSimpleTimes: null,
+  abmWeightCount: null,
   abmStats: {},
   abmStatsMultiLayer: {},
   amenityStats: {},
@@ -25,41 +25,41 @@ export default {
   filterSettings: null,
   noiseResults: [],
   trafficCounts: null,
-  noiseScenario:{
+  noiseScenario: {
     traffic_quota: 1,
     max_speed: 50,
   },
   currentNoiseGeoJson: null,
   currentlyShownScenarioSettings: {},
-  resultOutdated: true,  // in the beginning no results are shown. Trigger user to request results.
+  resultOutdated: true, // in the beginning no results are shown. Trigger user to request results.
   moduleSettings: {
     bridge_hafencity: true,
     underpass_veddel_north: true,
     roof_amenities: roofAmenitiesOptions.random,
     blocks: "open",
-    main_street_orientation: "vertical"
+    main_street_orientation: "vertical",
   },
   scenarioViewFilters: {
-    agent_age: ['0-6', '7-17', '18-35', '36-60', '61-100'],  // all ages activated
+    agent_age: ["0-6", "7-17", "18-35", "36-60", "61-100"], // all ages activated
     resident_or_visitor: filterOptions.any,
     modes: {
       bicycle: true,
       car: true,
       foot: true,
-      public_transport: true
-    }
+      public_transport: true,
+    },
   },
-  loop:false,
-  setLoop:false,
+  loop: false,
+  setLoop: false,
   currentTimeStamp: 0,
   animationRunning: false,
   animationSpeed: 7,
-  heatMapData:[],
+  heatMapData: [],
   heatMapAverage: [],
-  heatMapType:'default',
-  heatMap:false,
-  heatMapVisible:true,
-  selectedRange:[8,23],
+  heatMapType: "default",
+  heatMap: false,
+  heatMapVisible: true,
+  selectedRange: [8, 23],
   noiseMap: false,
   stormWater: false,
   windLayer: false,
@@ -70,38 +70,37 @@ export default {
   allFeaturesHighlighted: false,
   amenitiesGeoJson: null,
   selectedFocusAreas: [],
-  windScenarioHash: '158d2b824886d908440da5c5f6c4dc4f815cdeba',  // hash for annual average setting
+  windScenarioHash: "158d2b824886d908440da5c5f6c4dc4f815cdeba", // hash for annual average setting
   currentWindScenario: {
-    "wind_speed": 5,
-    "wind_direction": 270
-  },  // only gets used to create a description string in "Combine Layers" menu so far.
+    wind_speed: 5,
+    wind_direction: 270,
+  }, // only gets used to create a description string in "Combine Layers" menu so far.
   savedWindScenarios: [
     {
-      "wind_speed": 5,
-      "wind_direction": 270,
-      "label": "ANNUAL AVERAGE"
+      wind_speed: 5,
+      wind_direction: 270,
+      label: "ANNUAL AVERAGE",
     },
     {
-      "wind_speed": 25,
-      "wind_direction": 270,
-      "label": "LIGHT BREEZE"
+      wind_speed: 25,
+      wind_direction: 270,
+      label: "LIGHT BREEZE",
     },
     {
-      "wind_speed": 45,
-      "wind_direction": 270,
-      "label": "STRONG BREEZE"
-    }
+      wind_speed: 45,
+      wind_direction: 270,
+      label: "STRONG BREEZE",
+    },
   ],
   savedNoiseScenarios: [],
   windResultGeoJson: null,
   sunExposureGeoJson: null,
-  junctions:{},
-  selectGraph: 'abm',
+  junctions: {},
+  selectGraph: "abm",
   swResultGeoJson: {},
   rainAmount: [],
-  rainTime:0,
+  rainTime: 0,
   rerenderSwGraph: false,
   savedStormWaterScenarios: [],
-  stormWaterScenario: null
-}
-
+  stormWaterScenario: null,
+};

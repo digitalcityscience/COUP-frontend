@@ -4,9 +4,9 @@ export default {
     center: [83.3, 42.2],
     zoom: 13,
     pitch: 0,
-    bearing: 0
+    bearing: 0,
   },
   geoJsonOptions: {},
   minZoom: 0,
-  maxZoom: 22
-}
+  maxZoom: 22,
+};

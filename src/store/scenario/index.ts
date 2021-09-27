@@ -1,15 +1,15 @@
-import {Module} from "vuex";
+import { Module } from "vuex";
 import state from "./state";
 import actions from "./actions";
 import mutations from "./mutations";
-import getters from "./getters"
+import getters from "./getters";
 
 const scenario: Module<any, any> = {
   namespaced: true,
   state,
   getters,
   actions,
-  mutations
-}
+  mutations,
+};
 
-export default scenario
+export default scenario;
