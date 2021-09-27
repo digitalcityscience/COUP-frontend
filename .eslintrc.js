@@ -1,280 +1,31 @@
 module.exports = {
-    root: true,
-    env: {
-        node: true
+  root: true,
+  env: {
+    node: true,
+  },
+  extends: [
+    "plugin:vue/essential",
+    "eslint:recommended",
+    "@vue/typescript/recommended",
+    "@vue/prettier",
+    "@vue/prettier/@typescript-eslint",
+  ],
+  parserOptions: {
+    ecmaVersion: 2020,
+  },
+  rules: {
+    "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
+    "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
+  },
+  overrides: [
+    {
+      files: [
+        "**/__tests__/*.{j,t}s?(x)",
+        "**/tests/unit/**/*.spec.{j,t}s?(x)",
+      ],
+      env: {
+        jest: true,
+      },
     },
-    extends: [
-        'plugin:vue/essential',
-        '@vue/standard',
-        '@vue/typescript/recommended'
-    ],
-    parserOptions: {
-        ecmaVersion: 2020
-    },
-    rules: {
-    // Priority B: Strongly Recommended
-        'vue/attribute-hyphenation': ['error', 'always'],
-        'vue/html-closing-bracket-newline': ['error', {
-            singleline: 'never',
-            multiline: 'always'
-        }],
-        'vue/html-closing-bracket-spacing': ['error', {
-            startTag: 'never',
-            endTag: 'never',
-            selfClosingTag: 'always'
-        }],
-        'vue/html-end-tags': ['error'],
-        'vue/html-indent': ['error', 4],
-        'vue/html-quotes': ['error'],
-        'vue/html-self-closing': ['error', {
-            html: {
-                void: 'never',
-                normal: 'always',
-                component: 'always'
-            },
-            svg: 'always',
-            math: 'always'
-        }],
-        'vue/max-attributes-per-line': ['error', {
-            singleline: 1,
-            multiline: {
-                max: 1,
-                allowFirstLine: false
-            }
-        }],
-        'vue/multiline-html-element-content-newline': ['error', {
-            ignoreWhenEmpty: true,
-            ignores: ['pre', 'textarea', 'a', 'abbr', 'audio', 'b', 'bdi', 'bdo', 'canvas', 'cite', 'code', 'data', 'del', 'dfn', 'em', 'i', 'iframe', 'ins', 'kbd', 'label', 'map', 'mark', 'noscript', 'object', 'output', 'picture', 'q', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup', 'svg', 'time', 'u', 'var', 'video'],
-            allowEmptyLines: false
-        }],
-        'vue/mustache-interpolation-spacing': ['error', 'always'],
-        'vue/name-property-casing': ['error', 'PascalCase'],
-        'vue/no-multi-spaces': ['error', {
-            ignoreProperties: false
-        }],
-        'vue/no-spaces-around-equal-signs-in-attribute': ['error'],
-        'vue/no-template-shadow': ['error'],
-        'vue/prop-name-casing': ['error'],
-        'vue/require-default-prop': ['error'],
-        'vue/require-prop-types': ['error'],
-        'vue/singleline-html-element-content-newline': ['error', {
-            ignoreWhenNoAttributes: true,
-            ignoreWhenEmpty: true,
-            ignores: ['pre', 'textarea', 'a', 'abbr', 'audio', 'b', 'bdi', 'bdo', 'canvas', 'cite', 'code', 'data', 'del', 'dfn', 'em', 'i', 'iframe', 'ins', 'kbd', 'label', 'map', 'mark', 'noscript', 'object', 'output', 'picture', 'q', 'ruby', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup', 'svg', 'time', 'u', 'var', 'video']
-        }],
-        'vue/v-bind-style': ['error', 'shorthand'],
-        'vue/v-on-style': ['error', 'shorthand'],
-        // Priority C: Recommended
-        'vue/attributes-order': ['error', {
-            order: ['DEFINITION', 'LIST_RENDERING', 'CONDITIONALS', 'RENDER_MODIFIERS', 'GLOBAL', 'UNIQUE', 'TWO_WAY_BINDING', 'OTHER_DIRECTIVES', 'OTHER_ATTR', 'EVENTS', 'CONTENT']
-        }],
-        'vue/order-in-components': ['error', {
-            order: ['el', 'name', 'parent', 'functional', ['delimiters', 'comments'], ['components', 'directives', 'filters'], 'extends', 'mixins', 'inheritAttrs', 'model', ['props', 'propsData'], 'fetch', 'asyncData', 'data', 'computed', 'watch', 'LIFECYCLE_HOOKS', 'methods', 'head', ['template', 'render'], 'renderError']
-        }],
-        'vue/this-in-template': ['error', 'never'],
-        // Uncategorizied
-        'vue/array-bracket-spacing': ['error'],
-        'vue/component-definition-name-casing': ['error', 'PascalCase'],
-        'vue/component-name-in-template-casing': ['error', 'PascalCase', {
-            registeredComponentsOnly: true,
-            ignores: []
-        }],
-        'vue/component-tags-order': ['error', {
-            order: ['script', 'template', 'style']
-        }],
-        'vue/eqeqeq': ['error'],
-        'vue/match-component-file-name': ['error', {
-            extensions: ['vue'],
-            shouldMatchCase: false
-        }],
-        'vue/no-deprecated-scope-attribute': ['error'],
-        'vue/no-deprecated-slot-attribute': ['error'],
-        'vue/no-deprecated-slot-scope-attribute': ['error'],
-        'vue/no-static-inline-styles': ['error', {
-            allowBinding: false
-        }],
-        'vue/require-direct-export': ['error'],
-        'vue/require-name-property': ['error'],
-        'vue/valid-v-bind-sync': ['error'],
-        'vue/valid-v-slot': ['error'],
-        'vue/no-unused-components': 'off',
-        // Possible Errors - These rules relate to possible syntax or logic errors in JavaScript code
-        'for-direction': 'error',
-        'getter-return': 'error',
-        'no-compare-neg-zero': 'error',
-        'no-cond-assign': ['error', 'always'],
-        'no-console': ['error', { allow: ['warn', 'error'] }],
-        'no-constant-condition': 'error',
-        'no-debugger': 'error',
-        'no-dupe-args': 'error',
-        'no-dupe-keys': 'error',
-        'no-duplicate-case': 'error',
-        'no-empty': 'error',
-        'no-empty-character-class': 'error',
-        'no-ex-assign': 'error',
-        'no-extra-boolean-cast': 'error',
-        'no-extra-parens': ['error', 'all', { nestedBinaryExpressions: false }],
-        'no-extra-semi': 'error',
-        'no-func-assign': 'error',
-        'no-inner-declarations': 'error',
-        'no-invalid-regexp': 'error',
-        'no-irregular-whitespace': 'error',
-        'no-obj-calls': 'error',
-        'no-regex-spaces': 'error',
-        'no-sparse-arrays': 'error',
-        'no-unexpected-multiline': 'error',
-        'no-unreachable': 'error',
-        'no-unsafe-finally': 'error',
-        'no-unsafe-negation': 'error',
-        'use-isnan': 'error',
-        'valid-jsdoc': 'error',
-        'valid-typeof': 'error',
-        // Best Practices - These rules relate to better ways of doing things to help you avoid problems
-        'accessor-pairs': 'error',
-        'array-callback-return': 'error',
-        'block-scoped-var': 'error',
-        'consistent-return': 'error',
-        curly: 'error',
-        'default-case': 'error',
-        'dot-notation': 'off',
-        eqeqeq: 'error',
-        'no-alert': 'error',
-        'no-caller': 'error',
-        'no-case-declarations': 'error',
-        'no-div-regex': 'error',
-        'no-else-return': 'error',
-        'no-empty-function': 'error',
-        'no-empty-pattern': 'error',
-        'no-eq-null': 'error',
-        'no-eval': 'error',
-        'no-extra-bind': 'error',
-        'no-extra-label': 'error',
-        'no-fallthrough': 'error',
-        'no-floating-decimal': 'error',
-        'no-global-assign': 'error',
-        'no-implicit-coercion': 'error',
-        'no-implicit-globals': 'error',
-        'no-implied-eval': 'error',
-        'no-iterator': 'error',
-        'no-labels': 'error',
-        'no-lone-blocks': 'error',
-        'no-loop-func': 'error',
-        'no-multi-spaces': 'error',
-        'no-multi-str': 'error',
-        'no-new-func': 'error',
-        'no-new-wrappers': 'error',
-        'no-octal': 'error',
-        'no-octal-escape': 'error',
-        'no-param-reassign': 'error',
-        'no-proto': 'error',
-        'no-redeclare': 'error',
-        'no-restricted-properties': 'error',
-        'no-return-assign': 'error',
-        'no-return-await': 'error',
-        'no-script-url': 'error',
-        'no-self-assign': 'error',
-        'no-self-compare': 'error',
-        'no-sequences': 'error',
-        'no-throw-literal': 'error',
-        'no-unmodified-loop-condition': 'error',
-        'no-unused-expressions': 0,
-        // "chai-friendly/no-unused-expressions": 2,
-        'no-unused-labels': 'error',
-        'no-useless-call': 'error',
-        'no-useless-concat': 'error',
-        'no-useless-escape': 'error',
-        'no-useless-return': 'error',
-        'no-void': 'error',
-        'no-with': 'error',
-        radix: 'error',
-        'vars-on-top': 'error',
-        yoda: 'error',
-        'no-delete-var': 'error',
-        'no-label-var': 'error',
-        'no-shadow': 'error',
-        'no-shadow-restricted-names': 'error',
-        'no-undef': 'error',
-        'no-undef-init': 'error',
-        'no-unused-vars': 'warn',
-        "no-use-before-define": "error",
-        // Node.js and CommonJS - These rules relate to code running in Node.js, or in browsers with CommonJS
-        'callback-return': 'error',
-        'handle-callback-err': 'error',
-        'no-buffer-constructor': 'error',
-        'no-new-require': 'error',
-        'no-path-concat': 'error',
-        // 'no-process-env': 'error',
-        'no-process-exit': 'error',
-        'array-bracket-spacing': 'error',
-        'block-spacing': 'error',
-        'brace-style': ['error', 'stroustrup'],
-        'comma-dangle': 'off',
-        'comma-spacing': 'error',
-        'comma-style': 'error',
-        'computed-property-spacing': 'error',
-        'consistent-this': 'error',
-        'func-call-spacing': ['error', 'never'],
-        'func-style': ['error', 'declaration'],
-        'implicit-arrow-linebreak': 'error',
-        indent: ['error', 4, { SwitchCase: 1 }],
-        'jsx-quotes': 'error',
-        'key-spacing': 'error',
-        'keyword-spacing': 'error',
-        'max-depth': 'error',
-        'max-nested-callbacks': ['error', 10],
-        'max-params': ['warn', 9],
-        'max-statements-per-line': 'error',
-        'new-cap': 'error',
-        'new-parens': 'error',
-        'no-array-constructor': 'error',
-        'no-lonely-if': 'error',
-        'no-mixed-operators': 'off',
-        'no-mixed-spaces-and-tabs': 'error',
-        'no-multiple-empty-lines': ['error', { max: 2, maxBOF: 1 }],
-        'no-nested-ternary': 'error',
-        'no-new-object': 'error',
-        'no-tabs': 'error',
-        'no-trailing-spaces': 'error',
-        'no-unneeded-ternary': 'error',
-        'no-whitespace-before-property': 'error',
-        'object-curly-spacing': 'error',
-        'object-property-newline': 0,
-        'one-var': 'error',
-        'one-var-declaration-per-line': 'error',
-        quotes: 'error',
-        'require-jsdoc': ['error', {
-            require: {
-                FunctionDeclaration: true,
-                MethodDefinition: true,
-                ClassDeclaration: true,
-                ArrowFunctionExpression: true,
-                FunctionExpression: false
-            }
-        }],
-        semi: 'error',
-        'semi-spacing': 'error',
-        'semi-style': 'error',
-        'space-before-blocks': 'error',
-        // "space-before-function-paren": "error",
-        'space-in-parens': 'error',
-        'space-infix-ops': 'error',
-        'space-unary-ops': 'error',
-        'spaced-comment': 'error',
-        'switch-colon-spacing': 'error',
-        'wrap-regex': 'error',
-        'no-useless-computed-key': 'error',
-        'no-useless-constructor': 'error',
-        'no-useless-rename': 'error',
-        'prefer-const': 'error',
-        'prefer-numeric-literals': 'error',
-        'prefer-rest-params': 'error',
-        'padding-line-between-statements': [
-            'error',
-            { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
-            { blankLine: 'any', prev: ['const', 'let', 'var'], next: ['const', 'let', 'var'] }
-        ],
-        'backbone/no-native-jquery': [0, 'selector'],
-        'backbone/no-silent': 0,
-        'eol-last': ['error', 'always']
-    }
-}
+  ],
+};
