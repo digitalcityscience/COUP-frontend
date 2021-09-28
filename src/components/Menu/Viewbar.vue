@@ -1,117 +1,168 @@
-<script>
-import { mapState } from "vuex";
-import { generateStoreGetterSetter } from "@/store/utils/generators";
+<script lang="ts">
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
-import { filterAndScaleLayerData } from "@/store/scenario/multiLayerAnalysis";
+import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import legends from "@/config/legends.json";
 
-export default {
-  name: "Viewbar",
-  components: {},
-  props: {
-    restrictedAccess: Boolean,
-  },
-  data() {
-    return {
-      toggleFeatures: false,
-      brightness: 1,
-      showUi: true,
-      visibility: {
-        layers: false,
-        legends: false,
-        buildings: false,
-        slider: false,
-      },
-      visibleBuildings: {
-        show: true,
-        highlight: false,
-        amenities: true,
-      },
-      presentationRunning: false,
-      legendVisible: false,
-      buildingUses: legends.buildingUses,
-    };
-  },
-  computed: {
-    ...mapState([
-      "mapStyle",
-      "view",
-      "accessToken",
-      "map",
-      "activeMenuComponent",
-      "layers",
-      "selectedMultiFeatures",
-    ]),
-    ...generateStoreGetterSetter([
-      ["allFeaturesHighlighted", "allFeaturesHighlighted"],
-      ["visibleLayers", "visibleLayers"],
-      // todo is this used somewhre ??['showLegend', 'showLegend' ],
-      ["focusAreasShown", "focusAreasShown"],
-    ]),
-    layerIds() {
-      return this.$store.state.layerIds;
-    },
-    loader() {
-      return this.$store.state.scenario.loader;
-    },
-    activeAbmSet() {
-      return this.$store.state.scenario.activeAbmSet;
-    },
-    heatMap() {
-      return this.$store.state.scenario.heatMap;
-    },
-    noiseMap() {
-      return this.$store.state.scenario.noiseMap;
-    },
-    stormWater() {
-      return this.$store.state.scenario.stormWater;
-    },
-    wind() {
-      return this.$store.state.scenario.windLayer;
-    },
-    sunExposure() {
-      return this.$store.state.scenario.sunExposureLayer;
-    },
-    multiLayerAnalysis() {
-      return this.$store.state.scenario.multiLayerAnalysisMap;
-    },
-  },
-  watch: {
-    heatMap(newVal, oldVal) {
-      console.log(newVal, oldVal);
-    },
-    wind(newVal, oldVal) {
-      this.visibleLayers.wind = newVal;
-    },
-    focusAreasShown(newVal, oldVal) {
-      this.visibleLayers.focusAreas = newVal;
-    },
-    legendVisible(newVale, oldVal) {
-      console.log("legendVisible", newVale);
-    },
-    visibleLayers: {
-      deep: true,
-      handler() {
-        console.warn("visible layers watched");
-        this.updateLayerVisibility();
-      },
-    },
-  },
-  methods: {
-    toggleUi() {
-      this.showUi = !this.showUi;
-      this.$store.commit("scenario/showUi", this.showUi);
-    },
-    resetView() {
-      this.map.flyTo({
-        center: this.view.center,
-        zoom: this.view.zoom,
-        bearing: this.view.bearing,
-        pitch: this.view.pitch,
-      });
-    },
-    /** TODO completely unused ??
+export interface ViewbarVisibility {
+  layers: boolean;
+  legends: boolean;
+  buildings: boolean;
+  slider: boolean;
+}
+
+function defaultVisibility(): ViewbarVisibility {
+  return {
+    layers: false,
+    legends: false,
+    buildings: false,
+    slider: false,
+  };
+}
+
+@Component
+export default class Viewbar extends Vue {
+  @Prop()
+  restrictedAccess!: boolean;
+
+  toggleFeatures = false;
+  brightness = 1;
+  showUi = true;
+  visibility: ViewbarVisibility = defaultVisibility();
+
+  visibleBuildings = {
+    show: true,
+    highlight: false,
+    amenities: true,
+  };
+
+  presentationRunning = false;
+  legendVisible = false;
+  buildingUses = legends.buildingUses;
+
+  @Watch("wind")
+  onWind(newVal) {
+    this.visibleLayers.wind = newVal;
+  }
+
+  @Watch("focusAreasShown")
+  onFocusAreasShown(newVal) {
+    this.visibleLayers.focusAreas = newVal;
+  }
+
+  @Watch("visibleLayers", { deep: true })
+  onVisibleLayers() {
+    console.warn("visible layers watched");
+    this.updateLayerVisibility();
+  }
+
+  get storeState(): StoreState {
+    return this.$store.state;
+  }
+
+  get mapStyle() {
+    return this.storeState.mapStyle;
+  }
+
+  get view() {
+    return this.$store.state.view;
+  }
+
+  get accessToken() {
+    return this.$store.state.accessToken;
+  }
+
+  get map() {
+    return this.$store.state.map;
+  }
+
+  get activeMenuComponent() {
+    return this.$store.state.activeMenuComponent;
+  }
+
+  get layers() {
+    return this.$store.state.layers;
+  }
+
+  get selectedMultiFeatures() {
+    return this.$store.state.selectedMultiFeatures;
+  }
+
+  get allFeaturesHighlighted(): boolean {
+    return this.storeState.allFeaturesHighlighted;
+  }
+
+  set allFeaturesHighlighted(newValue: boolean) {
+    this.$store.commit("allFeaturesHighlighted", newValue);
+  }
+
+  get visibleLayers(): GenericObject {
+    return this.storeState.visibleLayers;
+  }
+
+  set visibleLayers(newLayers: GenericObject) {
+    this.$store.commit("visibleLayers", newLayers);
+  }
+
+  get focusAreasShown(): boolean {
+    return this.storeState.focusAreasShown;
+  }
+
+  set focusAreasShown(newValue: boolean) {
+    this.$store.commit("focusAreasShown", newValue);
+  }
+
+  get layerIds() {
+    return this.storeState.layerIds;
+  }
+
+  get loader() {
+    return this.$store.state.scenario.loader;
+  }
+
+  get activeAbmSet() {
+    return this.$store.state.scenario.activeAbmSet;
+  }
+
+  get heatMap() {
+    return this.$store.state.scenario.heatMap;
+  }
+
+  get noiseMap() {
+    return this.$store.state.scenario.noiseMap;
+  }
+
+  get stormWater() {
+    return this.$store.state.scenario.stormWater;
+  }
+
+  get wind() {
+    return this.$store.state.scenario.windLayer;
+  }
+
+  get sunExposure() {
+    return this.$store.state.scenario.sunExposureLayer;
+  }
+
+  get multiLayerAnalysis() {
+    return this.$store.state.scenario.multiLayerAnalysisMap;
+  }
+
+  toggleUi() {
+    this.showUi = !this.showUi;
+    this.$store.commit("scenario/showUi", this.showUi);
+  }
+
+  resetView() {
+    this.map.flyTo({
+      center: this.view.center,
+      zoom: this.view.zoom,
+      bearing: this.view.bearing,
+      pitch: this.view.pitch,
+    });
+  }
+
+  /** TODO completely unused ??
         openUseTypesLegend(){
           this.showLegend = true
           this.$modal.show(
@@ -120,217 +171,227 @@ export default {
             {draggable: true, width:200, adaptive: true, clickToClose: true,  shiftX: 0.025, shiftY: 0.1}
           )
         }, */
-    colorizeBuildingsByUseType() {
-      this.$store.commit("scenario/loader", true);
-      console.log(this.loader);
 
-      if (this.allFeaturesHighlighted) {
-        this.allFeaturesHighlighted = false;
-        const featuresToRemove = this.selectedMultiFeatures;
+  colorizeBuildingsByUseType() {
+    this.$store.commit("scenario/loader", true);
+    console.log(this.loader);
 
-        featuresToRemove.forEach((feature) => {
-          feature.properties.selected = "inactive";
-          this.$store.dispatch("editFeatureProps", feature);
-        });
-      } else {
-        this.allFeaturesHighlighted = true;
-        //this.openUseTypesLegend();
+    if (this.allFeaturesHighlighted) {
+      this.allFeaturesHighlighted = false;
+      const featuresToRemove = this.selectedMultiFeatures;
 
-        const bbox = [
-          [0, 0],
-          [window.innerWidth, window.innerHeight],
-        ];
-
-        //console.log(this.layerIds);
-        const features = this.map.queryRenderedFeatures(bbox, {
-          layers: this.layerIds,
-        });
-
-        this.$store.commit("selectedMultiFeatures", features);
-        const newFeature = this.selectedMultiFeatures;
-
-        newFeature.forEach((feature) => {
-          feature.properties.selected = "active";
-          this.$store.dispatch("editFeatureProps", feature);
-        });
-      }
-
-      this.$store.commit("scenario/loader", false);
-      console.log(this.loader);
-    },
-    updateBuildingVisibility() {
-      console.log(this.layerIds);
-      if (!this.visibleBuildings.show) {
-        this.map.setLayoutProperty("groundfloor", "visibility", "none");
-        this.map.setLayoutProperty("upperfloor", "visibility", "none");
-        this.map.setLayoutProperty("rooftops", "visibility", "none");
-      } else {
-        this.map.setLayoutProperty("groundfloor", "visibility", "visible");
-        this.map.setLayoutProperty("upperfloor", "visibility", "visible");
-        this.map.setLayoutProperty("rooftops", "visibility", "visible");
-      }
-
-      if (!this.visibleBuildings.amenities) {
-        this.map.setLayoutProperty("abmAmenities", "visibility", "none");
-      } else {
-        this.map.setLayoutProperty("abmAmenities", "visibility", "visible");
-      }
-    },
-    showBuildingUses() {
-      this.legendVisible = !this.legendVisible;
-      this.colorizeBuildingsByUseType();
-    },
-
-    // todo this really needs to be refactored to use a central function which takes layers as arguments
-    updateLayerVisibility() {
-      console.log(this.layerIds);
-      if (this.layerIds.indexOf("abmTrips") > -1) {
-        if (this.visibleLayers.abm) {
-          this.map.setLayoutProperty("abmTrips", "visibility", "visible");
-        } else {
-          this.map.setLayoutProperty("abmTrips", "visibility", "none");
-        }
-      }
-
-      if (this.layerIds.indexOf("abmHeat") > -1) {
-        if (this.visibleLayers.heat) {
-          this.map.setLayoutProperty("abmHeat", "visibility", "visible");
-          //this.$store.commit("scenario/heatMapVisible", true);
-        } else {
-          this.map.setLayoutProperty("abmHeat", "visibility", "none");
-          //this.$store.commit("scenario/heatMapVisible", false);
-        }
-
-        //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
-      }
-
-      if (this.layerIds.indexOf("abmAmenities") > -1) {
-        if (this.visibleLayers.amenities) {
-          this.map.setLayoutProperty("abmAmenities", "visibility", "visible");
-          //this.$store.commit("scenario/heatMapVisible", true);
-        } else {
-          this.map.setLayoutProperty("abmAmenities", "visibility", "none");
-          //this.$store.commit("scenario/heatMapVisible", false);
-        }
-
-        //this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
-      }
-
-      if (this.layerIds.indexOf("noise") > -1) {
-        if (this.visibleLayers.noise) {
-          this.map.setLayoutProperty("noise", "visibility", "visible");
-          this.map.setLayoutProperty("trafficCounts", "visibility", "visible");
-        } else {
-          this.map.setLayoutProperty("noise", "visibility", "none");
-          this.map.setLayoutProperty("trafficCounts", "visibility", "none");
-        }
-      }
-
-      if (this.layerIds.indexOf("wind") > -1) {
-        if (this.visibleLayers.wind) {
-          this.map.setLayoutProperty("wind", "visibility", "visible");
-        } else {
-          this.map.setLayoutProperty("wind", "visibility", "none");
-        }
-      }
-      if (this.layerIds.indexOf("sun_exposure") > -1) {
-        if (this.visibleLayers.sunExposure) {
-          this.map.setLayoutProperty("sun_exposure", "visibility", "visible");
-        } else {
-          this.map.setLayoutProperty("sun_exposure", "visibility", "none");
-        }
-      }
-      if (this.layerIds.indexOf("stormwater") > -1) {
-        if (this.visibleLayers.stormwater) {
-          this.map.setLayoutProperty("stormwater", "visibility", "visible");
-        } else {
-          this.map.setLayoutProperty("stormwater", "visibility", "none");
-        }
-      }
-      if (this.layerIds.indexOf("trees") > -1) {
-        if (this.visibleLayers.trees) {
-          this.map.setLayoutProperty("trees", "visibility", "visible");
-        } else {
-          this.map.setLayoutProperty("trees", "visibility", "none");
-        }
-      }
-      if (this.layerIds.indexOf("focusAreas") > -1) {
-        console.log("visible layers", this.visibleLayers);
-        if (this.visibleLayers.focusAreas) {
-          this.map.setLayoutProperty(
-            FocusAreasLayerConfig.mapSource.data.id,
-            "visibility",
-            "visible"
-          );
-        } else {
-          this.map.setLayoutProperty(
-            FocusAreasLayerConfig.mapSource.data.id,
-            "visibility",
-            "none"
-          );
-        }
-      }
-      if (this.layerIds.indexOf("multiLayerAnalysis") > -1) {
-        console.log("visible layers", this.visibleLayers);
-        if (this.visibleLayers.multiLayerAnalysis) {
-          this.map.setLayoutProperty(
-            MultiLayerAnalysisConfig.layer.id,
-            "visibility",
-            "visible"
-          );
-        } else {
-          this.map.setLayoutProperty(
-            MultiLayerAnalysisConfig.layer.id,
-            "visibility",
-            "none"
-          );
-        }
-      }
-    },
-    checkHighlights(active) {
-      Object.entries(this.visibility).map(([key, value]) => {
-        return key == active
-          ? (this.visibility[key] = !this.visibility[key])
-          : (this.visibility[key] = false);
+      featuresToRemove.forEach((feature) => {
+        feature.properties.selected = "inactive";
+        this.$store.dispatch("editFeatureProps", feature);
       });
-    },
-    async adjustPitch() {
-      var zoom = this.map.getZoom();
-      var pitch = this.map.getPitch();
-      var bearing = this.map.getBearing();
+    } else {
+      this.allFeaturesHighlighted = true;
+      // this.openUseTypesLegend();
 
-      if (zoom > 16 || zoom < 9) {
-        this.map.setZoom(13);
+      const bbox = [
+        [0, 0],
+        [window.innerWidth, window.innerHeight],
+      ];
+
+      // console.log(this.layerIds);
+      const features = this.map.queryRenderedFeatures(bbox, {
+        layers: this.layerIds,
+      });
+
+      this.$store.commit("selectedMultiFeatures", features);
+      const newFeature = this.selectedMultiFeatures;
+
+      newFeature.forEach((feature) => {
+        feature.properties.selected = "active";
+        this.$store.dispatch("editFeatureProps", feature);
+      });
+    }
+
+    this.$store.commit("scenario/loader", false);
+    console.log(this.loader);
+  }
+
+  updateBuildingVisibility() {
+    console.log(this.layerIds);
+    if (!this.visibleBuildings.show) {
+      this.map.setLayoutProperty("groundfloor", "visibility", "none");
+      this.map.setLayoutProperty("upperfloor", "visibility", "none");
+      this.map.setLayoutProperty("rooftops", "visibility", "none");
+    } else {
+      this.map.setLayoutProperty("groundfloor", "visibility", "visible");
+      this.map.setLayoutProperty("upperfloor", "visibility", "visible");
+      this.map.setLayoutProperty("rooftops", "visibility", "visible");
+    }
+
+    if (!this.visibleBuildings.amenities) {
+      this.map.setLayoutProperty("abmAmenities", "visibility", "none");
+    } else {
+      this.map.setLayoutProperty("abmAmenities", "visibility", "visible");
+    }
+  }
+
+  showBuildingUses() {
+    this.legendVisible = !this.legendVisible;
+    this.colorizeBuildingsByUseType();
+  }
+
+  // todo this really needs to be refactored to use a central function which takes layers as arguments
+  updateLayerVisibility() {
+    console.log(this.layerIds);
+    if (this.layerIds.indexOf("abmTrips") > -1) {
+      if (this.visibleLayers.abm) {
+        this.map.setLayoutProperty("abmTrips", "visibility", "visible");
+      } else {
+        this.map.setLayoutProperty("abmTrips", "visibility", "none");
+      }
+    }
+
+    if (this.layerIds.indexOf("abmHeat") > -1) {
+      if (this.visibleLayers.heat) {
+        this.map.setLayoutProperty("abmHeat", "visibility", "visible");
+        // this.$store.commit("scenario/heatMapVisible", true);
+      } else {
+        this.map.setLayoutProperty("abmHeat", "visibility", "none");
+        // this.$store.commit("scenario/heatMapVisible", false);
       }
 
-      if (pitch < 25) {
-        this.map.setPitch(45);
+      // this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
+    }
+
+    if (this.layerIds.indexOf("abmAmenities") > -1) {
+      if (this.visibleLayers.amenities) {
+        this.map.setLayoutProperty("abmAmenities", "visibility", "visible");
+        // this.$store.commit("scenario/heatMapVisible", true);
+      } else {
+        this.map.setLayoutProperty("abmAmenities", "visibility", "none");
+        // this.$store.commit("scenario/heatMapVisible", false);
       }
 
-      /*if(bearing < 35){
+      // this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
+    }
+
+    if (this.layerIds.indexOf("noise") > -1) {
+      if (this.visibleLayers.noise) {
+        this.map.setLayoutProperty("noise", "visibility", "visible");
+        this.map.setLayoutProperty("trafficCounts", "visibility", "visible");
+      } else {
+        this.map.setLayoutProperty("noise", "visibility", "none");
+        this.map.setLayoutProperty("trafficCounts", "visibility", "none");
+      }
+    }
+
+    if (this.layerIds.indexOf("wind") > -1) {
+      if (this.visibleLayers.wind) {
+        this.map.setLayoutProperty("wind", "visibility", "visible");
+      } else {
+        this.map.setLayoutProperty("wind", "visibility", "none");
+      }
+    }
+    if (this.layerIds.indexOf("sun_exposure") > -1) {
+      if (this.visibleLayers.sunExposure) {
+        this.map.setLayoutProperty("sun_exposure", "visibility", "visible");
+      } else {
+        this.map.setLayoutProperty("sun_exposure", "visibility", "none");
+      }
+    }
+    if (this.layerIds.indexOf("stormwater") > -1) {
+      if (this.visibleLayers.stormwater) {
+        this.map.setLayoutProperty("stormwater", "visibility", "visible");
+      } else {
+        this.map.setLayoutProperty("stormwater", "visibility", "none");
+      }
+    }
+    if (this.layerIds.indexOf("trees") > -1) {
+      if (this.visibleLayers.trees) {
+        this.map.setLayoutProperty("trees", "visibility", "visible");
+      } else {
+        this.map.setLayoutProperty("trees", "visibility", "none");
+      }
+    }
+    if (this.layerIds.indexOf("focusAreas") > -1) {
+      console.log("visible layers", this.visibleLayers);
+      if (this.visibleLayers.focusAreas) {
+        this.map.setLayoutProperty(
+          FocusAreasLayerConfig.mapSource.data.id,
+          "visibility",
+          "visible"
+        );
+      } else {
+        this.map.setLayoutProperty(
+          FocusAreasLayerConfig.mapSource.data.id,
+          "visibility",
+          "none"
+        );
+      }
+    }
+    if (this.layerIds.indexOf("multiLayerAnalysis") > -1) {
+      console.log("visible layers", this.visibleLayers);
+      if (this.visibleLayers.multiLayerAnalysis) {
+        this.map.setLayoutProperty(
+          MultiLayerAnalysisConfig.layer.id,
+          "visibility",
+          "visible"
+        );
+      } else {
+        this.map.setLayoutProperty(
+          MultiLayerAnalysisConfig.layer.id,
+          "visibility",
+          "none"
+        );
+      }
+    }
+  }
+
+  checkHighlights(active: keyof ViewbarVisibility) {
+    Object.entries(this.visibility).map(([key, value]) => {
+      return key === active
+        ? (this.visibility[key] = !this.visibility[key])
+        : (this.visibility[key] = false);
+    });
+  }
+
+  async adjustPitch() {
+    const zoom = this.map.getZoom();
+    const pitch = this.map.getPitch();
+    const bearing = this.map.getBearing();
+
+    if (zoom > 16 || zoom < 9) {
+      this.map.setZoom(13);
+    }
+
+    if (pitch < 25) {
+      this.map.setPitch(45);
+    }
+
+    /* if(bearing < 35){
                 this.map.setBearing(65);
-            }*/
-    },
-    presentationMode() {
-      this.presentationRunning = !this.presentationRunning;
+            } */
+  }
 
-      if (this.presentationRunning) {
-        this.adjustPitch().then(this.rotateCamera(0));
-      }
-    },
-    rotateCamera(timestamp) {
-      this.map.rotateTo((timestamp / 200) % 360, { duration: 0 });
-      // Request the next frame of the animation.
-      if (this.presentationRunning) {
-        requestAnimationFrame(this.rotateCamera);
-      }
-    },
-  },
-};
+  presentationMode() {
+    this.presentationRunning = !this.presentationRunning;
+
+    if (this.presentationRunning) {
+      this.adjustPitch().then(() => this.rotateCamera(0));
+    }
+  }
+
+  rotateCamera(timestamp: number): void {
+    this.map.rotateTo((timestamp / 200) % 360, { duration: 0 });
+    // Request the next frame of the animation.
+    if (this.presentationRunning) {
+      requestAnimationFrame(this.rotateCamera);
+    }
+  }
+
+  onClickOutside(): void {
+    this.visibility = defaultVisibility();
+  }
+}
 </script>
 
 <template>
-  <div id="viewbar">
+  <div id="viewbar" v-click-outside="onClickOutside">
     <div class="button_bar">
       <!-- show BIM version -->
       <v-btn v-if="restrictedAccess && !legendVisible" class="legend"
@@ -367,9 +428,10 @@ export default {
       <v-btn
         v-if="!restrictedAccess"
         v-bind:class="{ highlight: visibility.buildings }"
+        @click="checkHighlights('buildings')"
         ><v-tooltip right>
           <template v-slot:activator="{ on, attrs }">
-            <span @click="checkHighlights('buildings')">
+            <span>
               <v-icon v-bind="attrs" v-on="on">mdi-city</v-icon>
             </span>
           </template>
@@ -400,10 +462,13 @@ export default {
       </v-btn>
 
       <!-- Layer Visibility Menu -->
-      <v-btn v-bind:class="{ highlight: visibility.layers }">
+      <v-btn
+        v-bind:class="{ highlight: visibility.layers }"
+        @click="checkHighlights('layers')"
+      >
         <v-tooltip right>
           <template v-slot:activator="{ on, attrs }">
-            <span @click="checkHighlights('layers')">
+            <span>
               <v-icon v-bind="attrs" v-on="on">mdi-layers</v-icon>
             </span>
           </template>
