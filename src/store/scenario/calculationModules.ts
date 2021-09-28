@@ -42,7 +42,7 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
   let url = "";
   switch (simType) {
     case "wind":
-      url = "https://api.hcu-dev.de/wind/tasks"; // TODO update url. ideally get from env variables.
+      url = "https://api.hcu-dev.de/wind/tasks/"; // TODO update url. ideally get from env variables.
       //url = 'http://localhost:5003/tasks/'
       task_uuid = task_uuid["taskId"];
       break;
