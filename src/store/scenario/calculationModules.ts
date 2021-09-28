@@ -71,7 +71,7 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
 
   // for wind the result is the uuid of a sub-group-task - then collect these results and return them.
   if (simType == "wind" && result) {
-    url = "https://api.hcu-dev.de/wind/grouptasks"; // TODO update url. ideally get from env variables.
+    url = "https://api.hcu-dev.de/wind/grouptasks/"; // TODO update url. ideally get from env variables.
     //url = 'http://localhost:5003/grouptasks/'
     result = await getResultsForSubGroupTask(url, result).then((result) => {
       return result;
