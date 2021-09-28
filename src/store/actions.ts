@@ -3,6 +3,7 @@ import CircledFeatures from "@/config/circledFeatures.json";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import { getLayerOrder } from "@/config/layers";
 import Spaces from "@/config/spaces.json";
+import { StoreState } from "@/models";
 import CityPyO from "@/store/cityPyO";
 import { Layer } from "mapbox-gl";
 import { ActionContext } from "vuex";
