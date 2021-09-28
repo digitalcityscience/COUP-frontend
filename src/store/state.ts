@@ -1,5 +1,6 @@
 import Config from "@/config/config.json";
 import Defaults from "@/defaults";
+import { StoreState } from "@/models";
 
 const initialState: StoreState = {
   map: null,

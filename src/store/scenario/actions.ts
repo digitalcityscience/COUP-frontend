@@ -8,6 +8,7 @@ import SunExposure from "@/config/sunExposureResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
 import Trees from "@/config/trees.json";
 import WindResult from "@/config/windResult.json";
+import { StoreState } from "@/models";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
 import {
   abmAggregationLayerName,

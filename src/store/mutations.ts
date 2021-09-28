@@ -1,3 +1,5 @@
+import { StoreState } from "@/models";
+
 export default {
   addLayerId(state: StoreState, id: string) {
     if (!state.layerIds.includes(id)) {
