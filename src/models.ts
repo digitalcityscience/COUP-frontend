@@ -1,6 +1,8 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import CityPyO from "./store/cityPyO";
 
+export type { MapboxMap };
+
 export interface VisibleLayers {
   focusAreas: boolean;
   abm: boolean;
@@ -12,6 +14,13 @@ export interface VisibleLayers {
   sunExposure: boolean;
   multiLayerAnalysis: boolean;
   trees: boolean;
+}
+
+export interface View {
+  center: [number, number];
+  zoom: number;
+  pitch: number;
+  bearing: number;
 }
 
 export interface StoreState {

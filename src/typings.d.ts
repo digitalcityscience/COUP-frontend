@@ -59,13 +59,6 @@ declare global {
     main_street_orientation: "vertical" | "horizontal";
   }
 
-  interface View {
-    center: number[];
-    zoom: number;
-    pitch: number;
-    bearing: number;
-  }
-
   interface ConnectionOptions {
     userdata: Userdata;
   }
