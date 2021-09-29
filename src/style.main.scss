@@ -1,40 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
 
+@import "@/style/mixins.scss";
+@import "@/style/colors.scss";
+
 * {
     font-family: 'Tajawal', sans-serif;
-}
-
-//color variables
-
-$bright1: whitesmoke;
-$bright2: #ccc;
-//$orange: rgba(253, 128, 93, 1);
-$cyan: rgba(16,245,229,1);
-$orange: rgba(16,245,229,1);
-$opaqueorange: rgba(16, 245, 229, 0.2);
-$darkred: #ab0124;
-$reversed: #0176AC;
-$darkblue: #294252;
-$darkgrey:#222;
-$greyblue: #56799C;
-$red: #E65449;
-$pink: #FE517E;
-
-//mixin
-
-@mixin drop_shadow {
-    -webkit-box-shadow: 0px 15px 25px -10px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 15px 25px -10px rgba(0,0,0,0.75);
-    box-shadow: 0px 15px 25px -10px rgba(0,0,0,0.75);
-}
-
-@mixin fullpseudo {
-    content:'';
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
 }
 
 body, html {
