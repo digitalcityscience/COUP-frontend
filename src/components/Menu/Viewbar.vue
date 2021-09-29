@@ -257,11 +257,7 @@ export default class Viewbar extends Vue {
 </template>
 
 <style scoped lang="scss">
-@import "../../style.main.scss";
-
-.v-tooltip__content--fixed {
-  margin-left: 10px;
-}
+@import "@/style.main.scss";
 
 #viewbar {
   position: fixed;
@@ -275,41 +271,6 @@ export default class Viewbar extends Vue {
     display: flex;
     flex-flow: column wrap;
     width: 40px;
-
-    .v-btn {
-      width: 40px;
-      min-width: 0px;
-      height: 30px;
-      margin: 2px;
-      background: rgba(255, 255, 255, 0.9);
-      @include drop_shadow;
-
-      &.legend {
-        pointer-events: none;
-        background: rgba(0, 0, 0, 0.9);
-
-        .infobox {
-          width: 115px;
-          height: 28px;
-          position: absolute;
-          top: -1;
-          left: 40px;
-          background: rgba(0, 0, 0, 0.75);
-          @include drop_shadow;
-          p {
-            text-transform: none;
-            color: whitesmoke;
-            line-height: 28px;
-            font-size: 90%;
-            font-weight: 300;
-          }
-        }
-      }
-
-      .v-icon {
-        font-size: 18px;
-      }
-    }
   }
 }
 </style>

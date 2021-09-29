@@ -1,15 +1,17 @@
 <template>
-  <v-btn class="toggle_ui" @click="toggleUi">
-    <v-tooltip right nudge-right="10">
-      <template v-slot:activator="{ on, attrs }">
-        <v-icon v-if="showUi" v-bind="attrs" v-on="on" size="18">
-          mdi-eye-off
-        </v-icon>
-        <v-icon v-else v-bind="attrs" v-on="on" size="18">mdi-eye</v-icon>
-      </template>
-      <span>Toggle UI</span>
-    </v-tooltip>
-  </v-btn>
+  <span class="toggle_ui">
+    <v-btn @click="toggleUi">
+      <v-tooltip right nudge-right="10">
+        <template v-slot:activator="{ on, attrs }">
+          <v-icon v-if="showUi" v-bind="attrs" v-on="on" size="18">
+            mdi-eye-off
+          </v-icon>
+          <v-icon v-else v-bind="attrs" v-on="on" size="18">mdi-eye</v-icon>
+        </template>
+        <span>Toggle UI</span>
+      </v-tooltip>
+    </v-btn>
+  </span>
 </template>
 
 <script lang="ts">
@@ -25,4 +27,11 @@ export default class ToggleUi extends Vue {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@import "@/style/viewbar-button.scss";
+.toggle_ui {
+  .v-btn {
+    @include viewbar-button;
+  }
+}
+</style>

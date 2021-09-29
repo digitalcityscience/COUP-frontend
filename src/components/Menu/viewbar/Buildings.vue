@@ -164,14 +164,11 @@ export default class Buildings extends Vue {
 
 <style lang="scss" scoped>
 @import "@/style/colors.scss";
+@import "@/style/viewbar-button.scss";
 
 .control {
   .v-btn {
-    width: 40px;
-    min-width: 0px;
-    height: 30px;
-    margin: 2px;
-    background: rgba(255, 255, 255, 0.9);
+    @include viewbar-button;
 
     &.highlight {
       border: 1px solid $cyan;

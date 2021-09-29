@@ -1,12 +1,14 @@
 <template>
-  <v-btn class="reset_view mt-5" @click="resetView">
-    <v-tooltip right nudge-right="10">
-      <template v-slot:activator="{ on, attrs }">
-        <v-icon v-bind="attrs" v-on="on" size="18">mdi-crosshairs-gps</v-icon>
-      </template>
-      <span>Top View</span>
-    </v-tooltip>
-  </v-btn>
+  <span class="reset_view mt-5">
+    <v-btn @click="resetView">
+      <v-tooltip right nudge-right="10">
+        <template v-slot:activator="{ on, attrs }">
+          <v-icon v-bind="attrs" v-on="on" size="18">mdi-crosshairs-gps</v-icon>
+        </template>
+        <span>Top View</span>
+      </v-tooltip>
+    </v-btn>
+  </span>
 </template>
 
 <script lang="ts">
@@ -36,4 +38,11 @@ export default class ResetView extends Vue {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@import "@/style/viewbar-button.scss";
+.reset_view {
+  .v-btn {
+    @include viewbar-button;
+  }
+}
+</style>
