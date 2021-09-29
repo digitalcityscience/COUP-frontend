@@ -3,6 +3,8 @@ import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import Layers from "@/components/Menu/viewbar/Layers.vue";
 import ResetView from "@/components/Menu/viewbar/ResetView.vue";
+import ToggleUi from "@/components/Menu/viewbar/ToggleUi.vue";
+import PresentationMode from "@/components/Menu/viewbar/PresentationMode.vue";
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import legends from "@/config/legends.json";
 import { VisibleLayers, StoreState } from "@/models";
@@ -24,7 +26,7 @@ function defaultVisibility(): ViewbarVisibility {
 }
 
 @Component({
-  components: { Layers, ResetView },
+  components: { Layers, ResetView, ToggleUi, PresentationMode },
 })
 export default class Viewbar extends Vue {
   @Prop()
@@ -32,7 +34,6 @@ export default class Viewbar extends Vue {
 
   toggleFeatures = false;
   brightness = 1;
-  showUi = true;
   visibility: ViewbarVisibility = defaultVisibility();
 
   visibleBuildings = {
@@ -127,11 +128,6 @@ export default class Viewbar extends Vue {
 
   get wind() {
     return this.$store.state.scenario.windLayer;
-  }
-
-  toggleUi() {
-    this.showUi = !this.showUi;
-    this.$store.commit("scenario/showUi", this.showUi);
   }
 
   /** TODO completely unused ??
@@ -322,40 +318,6 @@ export default class Viewbar extends Vue {
     });
   }
 
-  async adjustPitch() {
-    const zoom = this.map.getZoom();
-    const pitch = this.map.getPitch();
-    const bearing = this.map.getBearing();
-
-    if (zoom > 16 || zoom < 9) {
-      this.map.setZoom(13);
-    }
-
-    if (pitch < 25) {
-      this.map.setPitch(45);
-    }
-
-    /* if(bearing < 35){
-                this.map.setBearing(65);
-            } */
-  }
-
-  presentationMode() {
-    this.presentationRunning = !this.presentationRunning;
-
-    if (this.presentationRunning) {
-      this.adjustPitch().then(() => this.rotateCamera(0));
-    }
-  }
-
-  rotateCamera(timestamp: number): void {
-    this.map.rotateTo((timestamp / 200) % 360, { duration: 0 });
-    // Request the next frame of the animation.
-    if (this.presentationRunning) {
-      requestAnimationFrame(this.rotateCamera);
-    }
-  }
-
   onClickOutside(): void {
     this.visibility = defaultVisibility();
   }
@@ -435,31 +397,9 @@ export default class Viewbar extends Vue {
 
       <Layers />
       <ResetView />
-
-      <v-btn class="toggle_ui" @click="toggleUi">
-        <v-tooltip right>
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon v-if="showUi" v-bind="attrs" v-on="on">mdi-eye-off</v-icon>
-            <v-icon v-else v-bind="attrs" v-on="on">mdi-eye</v-icon>
-          </template>
-          <span>Toggle UI</span>
-        </v-tooltip>
-      </v-btn>
+      <ToggleUi />
     </div>
-    <div
-      class="rogue_btn"
-      v-if="!showUi"
-      :class="{ toggled: presentationRunning }"
-    >
-      <v-btn @click="presentationMode">
-        <v-tooltip left>
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon v-bind="attrs" v-on="on">mdi-video</v-icon>
-          </template>
-          <span>Presentation Mode</span>
-        </v-tooltip>
-      </v-btn>
-    </div>
+    <PresentationMode />
   </div>
 </template>
 
@@ -679,35 +619,6 @@ export default class Viewbar extends Vue {
       &.highlight {
         border: 1px solid $orange;
       }
-    }
-  }
-
-  .rogue_btn {
-    position: fixed;
-    top: calc(-50vh + 100px);
-    left: 0px;
-
-    .v-btn {
-      border: 1px solid #888;
-      background: transparent;
-      border-radius: 0px;
-      @include drop_shadow;
-
-      .v-icon {
-        color: whitesmoke;
-      }
-    }
-
-    &:after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.75;
-      background: $reversed;
-      z-index: -1;
     }
   }
 }

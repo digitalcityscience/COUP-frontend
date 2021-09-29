@@ -44,3 +44,11 @@ export interface StoreState {
   featureCircles: any[];
   visibleLayers: VisibleLayers;
 }
+
+export interface ScenarioStoreState {
+  showUi: boolean;
+}
+
+export interface StoreStateWithModules extends StoreState {
+  scenario: ScenarioStoreState;
+}
