@@ -235,14 +235,6 @@ export default class Viewbar extends Vue {
         ><v-icon style="color: #1380ab">mdi-city</v-icon>
         <div class="infobox"><p>Version Oct. 2020</p></div></v-btn
       >
-      <!-- LEGENDS -->
-      <!-- Headline -->
-      <v-btn v-if="legendVisible" class="legend"
-        ><v-icon style="color: #ffd529">mdi-map-legend</v-icon>
-        <div class="infobox">
-          <p>{{ buildingUsesHeadline }}</p>
-        </div></v-btn
-      >
       <Buildings
         v-if="!restrictedAccess"
         @legend-toggled="legendVisible = $event"

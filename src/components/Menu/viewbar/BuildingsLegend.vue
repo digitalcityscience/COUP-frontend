@@ -1,5 +1,11 @@
 <template>
   <div class="buildings-legend">
+    <v-btn class="legend">
+      <v-icon style="color: #ffd529" size="18">mdi-map-legend</v-icon>
+      <div class="infobox">
+        <p>{{ buildingUses.headline }}</p>
+      </div>
+    </v-btn>
     <!-- iterate over all items in legendCategories and display icon and label for each -->
     <v-data-iterator
       :items="buildingUses.categories"
