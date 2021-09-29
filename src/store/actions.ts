@@ -161,7 +161,9 @@ export default {
           (sf) => parseInt(sf.id, 10) === feature.id
         );
 
-        sourceFeature.properties = feature.properties;
+        if (sourceFeature && typeof sourceFeature === "object") {
+          sourceFeature.properties = feature.properties;
+        }
         source.setData(sourceData);
       } catch (e) {
         console.warn("Could not find feature match in raw data", e);
