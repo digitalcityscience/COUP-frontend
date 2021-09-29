@@ -4,6 +4,7 @@ import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import Layers from "@/components/Menu/viewbar/Layers.vue";
 import ResetView from "@/components/Menu/viewbar/ResetView.vue";
 import ToggleUi from "@/components/Menu/viewbar/ToggleUi.vue";
+import Buildings from "@/components/Menu/viewbar/Buildings.vue";
 import PresentationMode from "@/components/Menu/viewbar/PresentationMode.vue";
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import legends from "@/config/legends.json";
@@ -26,7 +27,7 @@ function defaultVisibility(): ViewbarVisibility {
 }
 
 @Component({
-  components: { Layers, ResetView, ToggleUi, PresentationMode },
+  components: { Layers, ResetView, ToggleUi, PresentationMode, Buildings },
 })
 export default class Viewbar extends Vue {
   @Prop()
@@ -36,15 +37,8 @@ export default class Viewbar extends Vue {
   brightness = 1;
   visibility: ViewbarVisibility = defaultVisibility();
 
-  visibleBuildings = {
-    show: true,
-    highlight: false,
-    amenities: true,
-  };
-
-  presentationRunning = false;
   legendVisible = false;
-  buildingUses = legends.buildingUses;
+  buildingUsesHeadline = legends.buildingUses.headline;
 
   @Watch("wind")
   onWind(newVal) {
@@ -86,18 +80,6 @@ export default class Viewbar extends Vue {
     return this.$store.state.layers;
   }
 
-  get selectedMultiFeatures() {
-    return this.$store.state.selectedMultiFeatures;
-  }
-
-  get allFeaturesHighlighted(): boolean {
-    return this.storeState.allFeaturesHighlighted;
-  }
-
-  set allFeaturesHighlighted(newValue: boolean) {
-    this.$store.commit("allFeaturesHighlighted", newValue);
-  }
-
   get visibleLayers(): VisibleLayers {
     return this.storeState.visibleLayers;
   }
@@ -118,14 +100,6 @@ export default class Viewbar extends Vue {
     return this.storeState.layerIds;
   }
 
-  get loader() {
-    return this.$store.state.scenario.loader;
-  }
-
-  get activeAbmSet() {
-    return this.$store.state.scenario.activeAbmSet;
-  }
-
   get wind() {
     return this.$store.state.scenario.windLayer;
   }
@@ -139,69 +113,6 @@ export default class Viewbar extends Vue {
             {draggable: true, width:200, adaptive: true, clickToClose: true,  shiftX: 0.025, shiftY: 0.1}
           )
         }, */
-
-  colorizeBuildingsByUseType() {
-    this.$store.commit("scenario/loader", true);
-    console.log(this.loader);
-
-    if (this.allFeaturesHighlighted) {
-      this.allFeaturesHighlighted = false;
-      const featuresToRemove = this.selectedMultiFeatures;
-
-      featuresToRemove.forEach((feature) => {
-        feature.properties.selected = "inactive";
-        this.$store.dispatch("editFeatureProps", feature);
-      });
-    } else {
-      this.allFeaturesHighlighted = true;
-      // this.openUseTypesLegend();
-
-      const bbox = [
-        [0, 0],
-        [window.innerWidth, window.innerHeight],
-      ];
-
-      // console.log(this.layerIds);
-      const features = this.map.queryRenderedFeatures(bbox, {
-        layers: this.layerIds,
-      });
-
-      this.$store.commit("selectedMultiFeatures", features);
-      const newFeature = this.selectedMultiFeatures;
-
-      newFeature.forEach((feature) => {
-        feature.properties.selected = "active";
-        this.$store.dispatch("editFeatureProps", feature);
-      });
-    }
-
-    this.$store.commit("scenario/loader", false);
-    console.log(this.loader);
-  }
-
-  updateBuildingVisibility() {
-    console.log(this.layerIds);
-    if (!this.visibleBuildings.show) {
-      this.map.setLayoutProperty("groundfloor", "visibility", "none");
-      this.map.setLayoutProperty("upperfloor", "visibility", "none");
-      this.map.setLayoutProperty("rooftops", "visibility", "none");
-    } else {
-      this.map.setLayoutProperty("groundfloor", "visibility", "visible");
-      this.map.setLayoutProperty("upperfloor", "visibility", "visible");
-      this.map.setLayoutProperty("rooftops", "visibility", "visible");
-    }
-
-    if (!this.visibleBuildings.amenities) {
-      this.map.setLayoutProperty("abmAmenities", "visibility", "none");
-    } else {
-      this.map.setLayoutProperty("abmAmenities", "visibility", "visible");
-    }
-  }
-
-  showBuildingUses() {
-    this.legendVisible = !this.legendVisible;
-    this.colorizeBuildingsByUseType();
-  }
 
   // todo this really needs to be refactored to use a central function which takes layers as arguments
   updateLayerVisibility() {
@@ -310,14 +221,6 @@ export default class Viewbar extends Vue {
     }
   }
 
-  checkHighlights(active: keyof ViewbarVisibility) {
-    Object.entries(this.visibility).map(([key, value]) => {
-      return key === active
-        ? (this.visibility[key] = !this.visibility[key])
-        : (this.visibility[key] = false);
-    });
-  }
-
   onClickOutside(): void {
     this.visibility = defaultVisibility();
   }
@@ -337,64 +240,13 @@ export default class Viewbar extends Vue {
       <v-btn v-if="legendVisible" class="legend"
         ><v-icon style="color: #ffd529">mdi-map-legend</v-icon>
         <div class="infobox">
-          <p>{{ buildingUses.headline }}</p>
+          <p>{{ buildingUsesHeadline }}</p>
         </div></v-btn
       >
-      <!-- iterate over all items in legendCategories and display icon and label for each -->
-      <v-data-iterator
-        v-if="legendVisible"
-        :items="buildingUses.categories"
-        :hide-default-footer="true"
-      >
-        <template v-slot:default="{ items }">
-          <!-- Each legend category has an icon, color and a label to display -->
-          <v-flex v-for="(item, index) in items" :key="index">
-            <v-btn v-if="legendVisible" class="legend">
-              <v-icon :color="item.color">{{ buildingUses.icon }}</v-icon>
-              <div class="infobox">
-                <p>{{ item.label }}</p>
-              </div>
-            </v-btn>
-          </v-flex>
-        </template>
-      </v-data-iterator>
-      <!-- BUILDING MENU -->
-      <v-btn
+      <Buildings
         v-if="!restrictedAccess"
-        v-bind:class="{ highlight: visibility.buildings }"
-        @click="checkHighlights('buildings')"
-        ><v-tooltip right>
-          <template v-slot:activator="{ on, attrs }">
-            <span>
-              <v-icon v-bind="attrs" v-on="on">mdi-city</v-icon>
-            </span>
-          </template>
-          <span>Buildings</span>
-        </v-tooltip>
-        <div v-if="visibility.buildings" class="view_popup buildings">
-          <v-checkbox
-            v-model="visibleBuildings.show"
-            label="Show Buildings"
-            @change="updateBuildingVisibility"
-            dark
-            hide-details
-          ></v-checkbox>
-          <v-checkbox
-            v-model="visibleBuildings.amenities"
-            label="Show Amenities"
-            @change="updateBuildingVisibility"
-            dark
-            hide-details
-            :disabled="activeAbmSet == null"
-          ></v-checkbox>
-          <v-btn class="legendbutton" @click="showBuildingUses">
-            <v-icon>mdi-map-legend</v-icon>
-            <template v-if="legendVisible">Hide Use Type Legend</template>
-            <template v-else>Show Use Type Legend</template>
-          </v-btn>
-        </div>
-      </v-btn>
-
+        @legend-toggled="legendVisible = $event"
+      />
       <Layers />
       <ResetView />
       <ToggleUi />
@@ -496,25 +348,6 @@ export default class Viewbar extends Vue {
         background: rgba(0, 0, 0, 0.8);
         @include drop_shadow;
 
-        &.buildings {
-          top: 0;
-          transform: translateY(0);
-        }
-
-        .layers {
-          width: 100%;
-
-          h3 {
-            width: 100%;
-            background: #222;
-            @include drop_shadow;
-            font-size: 12px;
-            padding: 3px;
-            text-align: left;
-            color: #aaa;
-          }
-        }
-
         // checkboxes
         .v-input--checkbox {
           margin: 5px 5px 5px 20px;
@@ -544,21 +377,6 @@ export default class Viewbar extends Vue {
               font-size: 90%;
               font-weight: 200;
             }
-          }
-        }
-
-        .legendbutton {
-          width: calc(100% - 20px);
-          background: $reversed;
-          color: whitesmoke;
-          font-size: 85%;
-          font-weight: 300;
-          text-transform: none;
-          border-radius: 0px;
-          margin: 10px auto;
-
-          .v-icon {
-            margin-right: 5px;
           }
         }
       }

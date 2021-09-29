@@ -47,6 +47,7 @@ export interface StoreState {
 
 export interface ScenarioStoreState {
   showUi: boolean;
+  activeAbmSet: unknown;
 }
 
 export interface StoreStateWithModules extends StoreState {
