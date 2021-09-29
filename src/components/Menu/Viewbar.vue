@@ -2,6 +2,7 @@
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import Layers from "@/components/Menu/viewbar/Layers.vue";
+import ResetView from "@/components/Menu/viewbar/ResetView.vue";
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import legends from "@/config/legends.json";
 import { VisibleLayers, StoreState } from "@/models";
@@ -23,7 +24,7 @@ function defaultVisibility(): ViewbarVisibility {
 }
 
 @Component({
-  components: { Layers },
+  components: { Layers, ResetView },
 })
 export default class Viewbar extends Vue {
   @Prop()
@@ -66,10 +67,6 @@ export default class Viewbar extends Vue {
 
   get mapStyle() {
     return this.storeState.mapStyle;
-  }
-
-  get view() {
-    return this.$store.state.view;
   }
 
   get accessToken() {
@@ -135,15 +132,6 @@ export default class Viewbar extends Vue {
   toggleUi() {
     this.showUi = !this.showUi;
     this.$store.commit("scenario/showUi", this.showUi);
-  }
-
-  resetView() {
-    this.map.flyTo({
-      center: this.view.center,
-      zoom: this.view.zoom,
-      bearing: this.view.bearing,
-      pitch: this.view.pitch,
-    });
   }
 
   /** TODO completely unused ??
@@ -445,16 +433,9 @@ export default class Viewbar extends Vue {
         </div>
       </v-btn>
 
-      <!-- Layer Visibility Menu -->
       <Layers />
-      <v-btn class="reset_view" @click="resetView" style="margin-top: 30px">
-        <v-tooltip right>
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon v-bind="attrs" v-on="on">mdi-crosshairs-gps</v-icon>
-          </template>
-          <span>Top View</span>
-        </v-tooltip>
-      </v-btn>
+      <ResetView />
+
       <v-btn class="toggle_ui" @click="toggleUi">
         <v-tooltip right>
           <template v-slot:activator="{ on, attrs }">
