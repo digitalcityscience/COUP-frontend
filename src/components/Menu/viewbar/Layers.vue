@@ -176,7 +176,7 @@ export default class Layers extends Vue {
 </script>
 
 <style lang="scss" scoped>
-@import "@/style.main.scss";
+@import "@/style/colors.scss";
 .control {
   .v-btn {
     width: 40px;
