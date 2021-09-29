@@ -1,10 +1,14 @@
 <template>
   <div class="legend-line">
     <v-btn class="legend">
-      <v-icon :color="color" size="18">{{ icon }}</v-icon>
-      <div class="infobox">
-        <p>{{ label }}</p>
-      </div>
+      <v-tooltip right nudge-right="10">
+        <template v-slot:activator="{ on, attrs }">
+          <v-icon :color="color" v-bind="attrs" v-on="on" size="18">
+            {{ icon }}
+          </v-icon>
+        </template>
+        <span>{{ label }}</span>
+      </v-tooltip>
     </v-btn>
   </div>
 </template>
@@ -24,18 +28,13 @@ export default class LegendLine extends Vue {
 
 <style lang="scss" scoped>
 @import "@/style/mixins.scss";
+@import "@/style/viewbar-button.scss";
 
 .legend-line {
   .v-btn {
-    width: 40px;
-    min-width: 0px;
-    height: 30px;
-    margin: 2px;
-    background: rgba(255, 255, 255, 0.9);
-    @include drop_shadow;
+    @include viewbar-button;
 
     &.legend {
-      pointer-events: none;
       background: rgba(0, 0, 0, 0.9);
 
       .infobox {
