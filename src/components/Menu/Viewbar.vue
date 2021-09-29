@@ -2,6 +2,7 @@
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import Layers from "@/components/Menu/viewbar/Layers.vue";
+import LegendLine from "@/components/Menu/viewbar/LegendLine.vue";
 import ResetView from "@/components/Menu/viewbar/ResetView.vue";
 import ToggleUi from "@/components/Menu/viewbar/ToggleUi.vue";
 import Buildings from "@/components/Menu/viewbar/Buildings.vue";
@@ -27,7 +28,14 @@ function defaultVisibility(): ViewbarVisibility {
 }
 
 @Component({
-  components: { Layers, ResetView, ToggleUi, PresentationMode, Buildings },
+  components: {
+    Layers,
+    ResetView,
+    ToggleUi,
+    PresentationMode,
+    Buildings,
+    LegendLine,
+  },
 })
 export default class Viewbar extends Vue {
   @Prop()
@@ -230,11 +238,12 @@ export default class Viewbar extends Vue {
 <template>
   <div id="viewbar" v-click-outside="onClickOutside">
     <div class="button_bar">
-      <!-- show BIM version -->
-      <v-btn v-if="restrictedAccess && !legendVisible" class="legend"
-        ><v-icon style="color: #1380ab">mdi-city</v-icon>
-        <div class="infobox"><p>Version Oct. 2020</p></div></v-btn
-      >
+      <LegendLine
+        v-if="restrictedAccess && !legendVisible"
+        label="Version Oct. 2020"
+        color="#1380ab"
+        icon="mdi-city"
+      />
       <Buildings
         v-if="!restrictedAccess"
         @legend-toggled="legendVisible = $event"
@@ -267,18 +276,6 @@ export default class Viewbar extends Vue {
     flex-flow: column wrap;
     width: 40px;
 
-    .legend {
-      display: block;
-      position: relative;
-      width: 150px;
-      //min-height:200px;
-      background: rgba(0, 0, 0, 0.9);
-      max-width: 100%;
-      padding: 5px;
-      box-sizing: border-box;
-      @include drop_shadow;
-    }
-
     .v-btn {
       width: 40px;
       min-width: 0px;
@@ -290,22 +287,6 @@ export default class Viewbar extends Vue {
       &.legend {
         pointer-events: none;
         background: rgba(0, 0, 0, 0.9);
-
-        /*&.yellow {
-                        .v-icon {
-                            color:#FFB121;
-                        }
-                    }
-                    &.red {
-                        .v-icon {
-                            color:#F76A6A;
-                        }
-                    }
-                    &.blue {
-                        .v-icon {
-                            color:#4EBFFC;
-                        }
-                    }*/
 
         .infobox {
           width: 115px;
@@ -327,107 +308,6 @@ export default class Viewbar extends Vue {
 
       .v-icon {
         font-size: 18px;
-      }
-
-      // the element that folds out
-      //  if button in button bar is clicked
-      .view_popup {
-        position: absolute;
-        left: 45px;
-        top: 50%;
-        transform: translateY(-25%);
-        width: 200px;
-        background: rgba(0, 0, 0, 0.8);
-        @include drop_shadow;
-
-        // checkboxes
-        .v-input--checkbox {
-          margin: 5px 5px 5px 20px;
-
-          ::v-deep.v-input__control {
-            label {
-              text-transform: none;
-              color: white;
-              font-size: 90%;
-              font-weight: 200;
-            }
-          }
-        }
-
-        .v-radio {
-          margin: 5px 5px 5px 20px;
-        }
-
-        // radio buttons
-        .v-input--selection-controls {
-          color: rgba(211, 211, 211, 0.5); // lightgrey, 50%
-
-          ::v-deep.v-input__control {
-            label {
-              text-transform: none;
-              color: white;
-              font-size: 90%;
-              font-weight: 200;
-            }
-          }
-        }
-      }
-
-      .popup_cnt {
-        position: absolute;
-        left: 34px;
-        top: 0;
-        width: 200px;
-        background: rgba(0, 0, 0, 0.8);
-        @include drop_shadow;
-
-        p {
-          color: #aaa;
-          text-transform: none;
-          font-size: 80%;
-          text-align: right;
-          padding: 0px 10px;
-          margin: 10px auto 5px auto;
-        }
-
-        .v-input {
-          position: relative;
-          width: 90%;
-          margin: auto;
-
-          ::v-deep.v-input__append-outer {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            margin: 0;
-            transform: translateX(-50%);
-            pointer-events: none;
-
-            .v-input {
-              width: 40px;
-              .v-input__control {
-                .v-input__slot {
-                  margin: 0 !important;
-
-                  .v-text-field__slot {
-                    font-size: 80% !important;
-                    input {
-                      text-align: center;
-                    }
-                  }
-                  &:before,
-                  &:after {
-                    display: none !important;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      &.highlight {
-        border: 1px solid $orange;
       }
     }
   }
