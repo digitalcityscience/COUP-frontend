@@ -8,24 +8,7 @@ import ToggleUi from "@/components/Menu/viewbar/ToggleUi.vue";
 import Buildings from "@/components/Menu/viewbar/Buildings.vue";
 import PresentationMode from "@/components/Menu/viewbar/PresentationMode.vue";
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-import legends from "@/config/legends.json";
 import { VisibleLayers, StoreState } from "@/models";
-
-export interface ViewbarVisibility {
-  layers: boolean;
-  legends: boolean;
-  buildings: boolean;
-  slider: boolean;
-}
-
-function defaultVisibility(): ViewbarVisibility {
-  return {
-    layers: false,
-    legends: false,
-    buildings: false,
-    slider: false,
-  };
-}
 
 @Component({
   components: {
@@ -43,10 +26,7 @@ export default class Viewbar extends Vue {
 
   toggleFeatures = false;
   brightness = 1;
-  visibility: ViewbarVisibility = defaultVisibility();
-
   legendVisible = false;
-  buildingUsesHeadline = legends.buildingUses.headline;
 
   @Watch("wind")
   onWind(newVal) {
@@ -228,15 +208,11 @@ export default class Viewbar extends Vue {
       }
     }
   }
-
-  onClickOutside(): void {
-    this.visibility = defaultVisibility();
-  }
 }
 </script>
 
 <template>
-  <div id="viewbar" v-click-outside="onClickOutside">
+  <div id="viewbar">
     <div class="button_bar">
       <LegendLine
         v-if="restrictedAccess && !legendVisible"
