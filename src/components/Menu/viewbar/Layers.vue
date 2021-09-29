@@ -10,10 +10,10 @@
       <template v-slot:activator="{ on, attrs }">
         <span class="control">
           <v-btn v-bind="attrs" v-on="on" :class="{ highlight: menu }">
-            <v-tooltip right>
+            <v-tooltip right nudge-right="10">
               <template v-slot:activator="{ on, attrs }">
                 <span>
-                  <v-icon v-bind="attrs" v-on="on">mdi-layers</v-icon>
+                  <v-icon v-bind="attrs" v-on="on" size="18">mdi-layers</v-icon>
                 </span>
               </template>
               <span>Layers</span>
@@ -185,9 +185,6 @@ export default class Layers extends Vue {
     margin: 2px;
     background: rgba(255, 255, 255, 0.9);
 
-    .v-icon {
-      font-size: 18px;
-    }
     &.highlight {
       border: 1px solid $cyan;
     }
