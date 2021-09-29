@@ -31,7 +31,7 @@ export interface StoreState {
   openModalsIds: string[];
   modalIndex: number;
   selectedObjectId: string | null;
-  selectedMultiFeatures: unknown[];
-  featureCircles: unknown[];
+  selectedMultiFeatures: any[];
+  featureCircles: any[];
   visibleLayers: VisibleLayers;
 }

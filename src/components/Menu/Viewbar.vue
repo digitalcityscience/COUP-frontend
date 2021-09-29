@@ -1,8 +1,10 @@
 <script lang="ts">
 import FocusAreasLayerConfig from "@/config/focusAreas.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
+import Layers from "@/components/Menu/viewbar/Layers.vue";
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import legends from "@/config/legends.json";
+import { VisibleLayers, StoreState } from "@/models";
 
 export interface ViewbarVisibility {
   layers: boolean;
@@ -20,7 +22,9 @@ function defaultVisibility(): ViewbarVisibility {
   };
 }
 
-@Component
+@Component({
+  components: { Layers },
+})
 export default class Viewbar extends Vue {
   @Prop()
   restrictedAccess!: boolean;
@@ -51,7 +55,7 @@ export default class Viewbar extends Vue {
   }
 
   @Watch("visibleLayers", { deep: true })
-  onVisibleLayers() {
+  onVisibleLayers(): void {
     console.warn("visible layers watched");
     this.updateLayerVisibility();
   }
@@ -96,11 +100,11 @@ export default class Viewbar extends Vue {
     this.$store.commit("allFeaturesHighlighted", newValue);
   }
 
-  get visibleLayers(): GenericObject {
+  get visibleLayers(): VisibleLayers {
     return this.storeState.visibleLayers;
   }
 
-  set visibleLayers(newLayers: GenericObject) {
+  set visibleLayers(newLayers: VisibleLayers) {
     this.$store.commit("visibleLayers", newLayers);
   }
 
@@ -124,28 +128,8 @@ export default class Viewbar extends Vue {
     return this.$store.state.scenario.activeAbmSet;
   }
 
-  get heatMap() {
-    return this.$store.state.scenario.heatMap;
-  }
-
-  get noiseMap() {
-    return this.$store.state.scenario.noiseMap;
-  }
-
-  get stormWater() {
-    return this.$store.state.scenario.stormWater;
-  }
-
   get wind() {
     return this.$store.state.scenario.windLayer;
-  }
-
-  get sunExposure() {
-    return this.$store.state.scenario.sunExposureLayer;
-  }
-
-  get multiLayerAnalysis() {
-    return this.$store.state.scenario.multiLayerAnalysisMap;
   }
 
   toggleUi() {
@@ -462,129 +446,7 @@ export default class Viewbar extends Vue {
       </v-btn>
 
       <!-- Layer Visibility Menu -->
-      <v-btn
-        v-bind:class="{ highlight: visibility.layers }"
-        @click="checkHighlights('layers')"
-      >
-        <v-tooltip right>
-          <template v-slot:activator="{ on, attrs }">
-            <span>
-              <v-icon v-bind="attrs" v-on="on">mdi-layers</v-icon>
-            </span>
-          </template>
-          <span>Layers</span>
-        </v-tooltip>
-        <div v-if="visibility.layers" class="view_popup">
-          <div class="layers">
-            <h3>Focus Areas</h3>
-            <v-checkbox
-              v-model="visibleLayers.focusAreas"
-              label="Focus Areas"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="false"
-            ></v-checkbox>
-          </div>
-          <div class="layers">
-            <h3>ABM Layers</h3>
-            <v-checkbox
-              v-model="visibleLayers.abm"
-              label="ABM Animation"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="activeAbmSet == null"
-            ></v-checkbox>
-            <v-checkbox
-              v-model="visibleLayers.heat"
-              label="ABM Aggregation"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="!heatMap"
-            ></v-checkbox>
-            <v-checkbox
-              v-model="visibleLayers.amenities"
-              label="ABM Amenities"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="activeAbmSet == null"
-            ></v-checkbox>
-          </div>
-          <div class="layers">
-            <h3>Noise Layers</h3>
-            <v-checkbox
-              v-model="visibleLayers.noise"
-              label="Traffic Noise"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="!noiseMap"
-            ></v-checkbox>
-          </div>
-          <div class="layers">
-            <h3>Climate Layers</h3>
-            <v-checkbox
-              v-model="visibleLayers.wind"
-              label="Wind"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="!wind"
-            ></v-checkbox>
-            <v-checkbox
-              v-model="visibleLayers.sunExposure"
-              label="Sun Exposure"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="!sunExposure"
-            ></v-checkbox>
-          </div>
-          <div class="layers">
-            <h3>Stormwater Layers</h3>
-            <v-checkbox
-              v-model="visibleLayers.stormwater"
-              label="Stormwater"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="!stormWater"
-            ></v-checkbox>
-            <v-checkbox
-              v-model="visibleLayers.trees"
-              label="Trees"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="!stormWater"
-            ></v-checkbox>
-          </div>
-          <div class="layers">
-            <h3>Multi Layer Analysis</h3>
-            <v-checkbox
-              v-model="visibleLayers.multiLayerAnalysis"
-              label="Combined Layers"
-              color="white"
-              dark
-              @change="updateLayerVisibility"
-              hide-details
-              :disabled="!multiLayerAnalysis"
-            ></v-checkbox>
-          </div>
-        </div>
-      </v-btn>
+      <Layers />
       <v-btn class="reset_view" @click="resetView" style="margin-top: 30px">
         <v-tooltip right>
           <template v-slot:activator="{ on, attrs }">
