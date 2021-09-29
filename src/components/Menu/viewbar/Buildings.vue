@@ -40,11 +40,13 @@
             hide-details
             :disabled="activeAbmSet == null"
           ></v-checkbox>
-          <v-btn class="legendbutton" @click="showBuildingUses">
-            <v-icon>mdi-map-legend</v-icon>
-            <template v-if="legendVisible">Hide Use Type Legend</template>
-            <template v-else>Show Use Type Legend</template>
-          </v-btn>
+          <v-checkbox
+            v-model="legendVisible"
+            label="Show Use Type Legend"
+            @change="showBuildingUses"
+            dark
+            hide-details
+          ></v-checkbox>
         </div>
       </v-menu>
     </div>
@@ -100,7 +102,6 @@ export default class Buildings extends Vue {
   }
 
   showBuildingUses(): void {
-    this.legendVisible = !this.legendVisible;
     this.legendToggled();
     this.colorizeBuildingsByUseType();
   }
@@ -199,21 +200,6 @@ export default class Buildings extends Vue {
         font-size: 90%;
         font-weight: 200;
       }
-    }
-  }
-
-  .legendbutton {
-    width: calc(100% - 20px);
-    background: $reversed;
-    color: whitesmoke;
-    font-size: 85%;
-    font-weight: 300;
-    text-transform: none;
-    border-radius: 0px;
-    margin: 10px auto;
-
-    .v-icon {
-      margin-right: 5px;
     }
   }
 }
