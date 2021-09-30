@@ -1,14 +1,10 @@
 <template>
   <div class="legend-line">
     <v-btn class="legend">
-      <v-tooltip right nudge-right="10">
-        <template v-slot:activator="{ on, attrs }">
-          <v-icon :color="color" v-bind="attrs" v-on="on" size="18">
-            {{ icon }}
-          </v-icon>
-        </template>
-        <span>{{ label }}</span>
-      </v-tooltip>
+      <v-icon :color="color" size="18">{{ icon }}</v-icon>
+      <div class="infobox">
+        <p>{{ label }}</p>
+      </div>
     </v-btn>
   </div>
 </template>
@@ -35,6 +31,7 @@ export default class LegendLine extends Vue {
     @include viewbar-button;
 
     &.legend {
+      pointer-events: none;
       background: rgba(0, 0, 0, 0.9);
 
       .infobox {

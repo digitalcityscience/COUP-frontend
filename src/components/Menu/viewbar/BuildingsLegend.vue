@@ -1,10 +1,5 @@
 <template>
   <div class="buildings-legend">
-    <LegendLine
-      :label="buildingUses.headline"
-      color="#ffd529"
-      icon="mdi-map-legend"
-    />
     <!-- iterate over all items in legendCategories and display icon and label for each -->
     <v-data-iterator
       :items="buildingUses.categories"
