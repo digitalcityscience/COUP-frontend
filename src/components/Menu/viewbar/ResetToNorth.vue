@@ -1,11 +1,11 @@
 <template>
   <span class="reset_view">
-    <v-btn @click="resetView">
+    <v-btn @click="resetToNorth">
       <v-tooltip right nudge-right="10">
         <template v-slot:activator="{ on, attrs }">
-          <v-icon v-bind="attrs" v-on="on" size="18">mdi-crosshairs-gps</v-icon>
+          <v-icon v-bind="attrs" v-on="on" size="18">mdi-navigation</v-icon>
         </template>
-        <span>Top View</span>
+        <span>Reset bearing to north</span>
       </v-tooltip>
     </v-btn>
   </span>
@@ -13,27 +13,18 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import type { StoreState, MapboxMap, View } from "@/models";
+import type { StoreState, MapboxMap } from "@/models";
 import type { Store } from "vuex";
 @Component
-export default class ResetView extends Vue {
+export default class ResetToNorth extends Vue {
   $store: Store<StoreState>;
 
   get map(): MapboxMap {
     return this.$store.state.map;
   }
 
-  get view(): View {
-    return this.$store.state.view;
-  }
-
-  resetView(): void {
-    this.map.flyTo({
-      center: this.view.center,
-      zoom: this.view.zoom,
-      bearing: this.view.bearing,
-      pitch: this.view.pitch,
-    });
+  resetToNorth(): void {
+    this.map.resetNorth();
   }
 }
 </script>

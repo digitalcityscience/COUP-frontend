@@ -86,15 +86,6 @@ export default {
       closeOnClick: false,
     });
 
-    // Add zoom and rotation controls to the map.
-    this.map.addControl(
-      new mapboxgl.NavigationControl({
-        showZoom: false,
-        visualizePitch: false,
-      }),
-      "top-left"
-    );
-
     // general map interaction
     this.map.on("load", this.onMapLoaded);
     this.map.on("click", this.onMapClicked);

@@ -4,6 +4,7 @@ import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import Layers from "@/components/Menu/viewbar/Layers.vue";
 import LegendLine from "@/components/Menu/viewbar/LegendLine.vue";
 import ResetView from "@/components/Menu/viewbar/ResetView.vue";
+import ResetToNorth from "@/components/Menu/viewbar/ResetToNorth.vue";
 import ToggleUi from "@/components/Menu/viewbar/ToggleUi.vue";
 import Buildings from "@/components/Menu/viewbar/Buildings.vue";
 import BuildingsLegend from "@/components/Menu/viewbar/BuildingsLegend.vue";
@@ -20,6 +21,7 @@ import { VisibleLayers, StoreState } from "@/models";
     Buildings,
     LegendLine,
     BuildingsLegend,
+    ResetToNorth,
   },
 })
 export default class Viewbar extends Vue {
@@ -228,6 +230,7 @@ export default class Viewbar extends Vue {
           @legend-toggled="legendVisible = $event"
         />
         <Layers />
+        <ResetToNorth class="mt-5"/>
         <ResetView />
         <ToggleUi />
       </div>
