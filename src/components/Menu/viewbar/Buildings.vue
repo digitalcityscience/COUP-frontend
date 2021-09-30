@@ -149,9 +149,9 @@ export default class Buildings extends Vue {
       });
 
       this.$store.commit("selectedMultiFeatures", features);
-      const newFeature = this.selectedMultiFeatures;
+      const newFeatures = this.selectedMultiFeatures;
 
-      newFeature.forEach((feature) => {
+      newFeatures.forEach((feature) => {
         feature.properties.selected = "active";
         this.$store.dispatch("editFeatureProps", feature);
       });
