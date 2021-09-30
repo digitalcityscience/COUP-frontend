@@ -390,14 +390,14 @@ export default {
       });
   },
   //compute ABM Data Set
-  computeLoop({ state, commit, dispatch, rootState }, abmCore) {
+  computeLoop({ state, commit, dispatch, rootState }, abmCore:any[]) {
     const agentIndexes = {};
     const abmFilterData = {};
     const timePaths = [];
     const simpleTimeData = {};
     const trips = [];
 
-    console.log(abmCore);
+    console.log("abmCore size: ", abmCore?.length);
     //go through each agent inside the abm set (agent, index, array)
 
     commit("loaderTxt", "Clustering ABM Data for functional purposes ... ");
@@ -496,8 +496,8 @@ export default {
     commit("activeTimePaths", Object.freeze(timePaths));
     commit("abmTrips", Object.freeze(trips));
 
-    console.log("trips", trips);
-    console.log(timePaths);
+    console.log("trips size: ", trips?.length);
+    console.log("timePaths size: ", timePaths?.length);
 
     commit("abmSimpleTimes", Object.freeze(simpleTimeData));
     commit("activeAbmSet", Object.freeze(abmCore));
