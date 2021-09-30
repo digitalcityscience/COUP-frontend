@@ -1,13 +1,27 @@
-<script>
+<template>
+  <v-app>
+    <Map :restrictedAccess="restrictedAccess" />
+    <Menu :restrictedAccess="restrictedAccess" />
+    <TimeSheet v-if="showTimeSheet" />
+    <Viewbar :restrictedAccess="restrictedAccess" />
+    <Loader />
+    <LogosAIT />
+    <div id="line_canvas"></div>
+  </v-app>
+</template>
+
+<script lang="ts">
+import { Component, Vue, Prop } from "vue-property-decorator";
 import Map from "./components/Map/Map.vue";
 import Menu from "./components/Menu/Menu.vue";
 import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
 import LogosAIT from "./components/Scenario/LogosAIT.vue";
 import Loader from "./components/Loader/Loader.vue";
+import type { StoreState } from "@/models";
+import type { Store } from "vuex";
 
-export default {
-  name: "App",
+@Component({
   components: {
     Map,
     TimeSheet,
@@ -16,31 +30,22 @@ export default {
     Loader,
     LogosAIT,
   },
-  props: {
-    restrictedAccess: Boolean,
-  },
-  computed: {
-    cityPyo() {
-      return this.$store.state.cityPyO;
-    },
-    loader() {
-      return this.$store.state.loader;
-    },
-  },
-};
-</script>
+})
+export default class App extends Vue {
+  $store: Store<StoreState>;
 
-<template>
-  <v-app>
-    <Map :restrictedAccess="restrictedAccess" />
-    <Menu :restrictedAccess="restrictedAccess" />
-    <TimeSheet />
-    <Viewbar :restrictedAccess="restrictedAccess" />
-    <Loader />
-    <LogosAIT />
-    <div id="line_canvas"></div>
-  </v-app>
-</template>
+  @Prop()
+  restrictedAccess!: boolean;
+
+  get activeComponent(): string {
+    return this.$store.state.activeMenuComponent;
+  }
+
+  get showTimeSheet(): boolean {
+    return ["AbmScenario", "SWScenario"].includes(this.activeComponent);
+  }
+}
+</script>
 
 <style lang="scss">
 #app {
