@@ -15,11 +15,13 @@ import { ViewConfiguration } from "@/components/Scenario/ViewConfiguration";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import { getAbmLayerIds } from "@/config/layers";
+import MenuDivision from "@/components/Menu/MenuDivision.vue";
 
 export default {
   name: "AbmScenario",
   components: {
     DashboardCharts: DashboardCharts,
+    MenuDivision,
   },
   props: {
     restrictedAccess: Boolean,
@@ -713,6 +715,15 @@ export default {
         </div>
       </div>
     </div>
+
+    <MenuDivision
+      icon="mdi-information-variant"
+      :active="activeDivision === 'info'"
+      tooltip="Info"
+    >
+      <h2>ABM | About</h2>
+      <br />
+    </MenuDivision>
 
     <!--<v-expansion-panels>
             <v-expansion-panel>
