@@ -625,7 +625,7 @@ export default {
             </div>
             -->
 
-          <div class="btn_wrapper" v-bind:class="{ highlight: checkState }">
+          <div class="btn_wrapper" v-bind:class="{ highlight: checkState }" v-if="checkState">
               <v-tooltip right>
                 <template v-slot:activator="{ on, attrs }">
                   <v-btn
