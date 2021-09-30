@@ -1,45 +1,23 @@
-<script>
-import legends from "@/config/legends.json";
-
-export default {
-  name: "Legend",
-  props: {
-    topic: String,
-    showAtBottom: Boolean,
-  },
-  data() {
-    return {
-      legendExplanation: legends[this.topic]["headline"],
-      legendCategories: legends[this.topic]["categories"],
-      labelLowValues: legends[this.topic]["labelLowValues"],
-      labelHighValues: legends[this.topic]["labelHighValues"],
-    };
-  },
-  mounted() {
-    console.log("test", this.showAtBottom);
-  },
-};
-</script>
-
 <template>
   <div v-if="showAtBottom" id="bottom-legend">
     <v-container>
-      <v-row class="flex-nowrap">
-        <v-col style="background-color: rgba(0, 0, 0, 0.5)">{{
-          labelLowValues
-        }}</v-col>
+      <v-row class="flex-nowrap legend-row">
+        <v-col>
+          {{ legend.labelLowValues }}
+        </v-col>
         <v-col
           no-gutters
-          v-for="item in legendCategories"
-          class="pa-0 ml-1"
-          align="center"
+          v-for="category in legend.categories"
+          v-bind:key="category.label"
+          class="px-1 category-color"
           cols="1"
-          :style="'background-color:' + item.color"
         >
+          <div
+            class="color-block"
+            :style="'background-color:' + category.color"
+          />
         </v-col>
-        <v-col style="background-color: rgba(0, 0, 0, 0.5)">{{
-          labelHighValues
-        }}</v-col>
+        <v-col>{{ legend.labelHighValues }}</v-col>
       </v-row>
     </v-container>
   </div>
@@ -47,35 +25,36 @@ export default {
   <div v-else>
     <v-container class="component_content info_section">
       <div class="legend_headline">LEGEND</div>
-      <div class="legend_explanation">{{ legendExplanation }}</div>
+      <div class="legend_explanation">{{ legend.headline }}</div>
 
       <!-- Legend categories as v-for -->
       <v-row
         no-gutters
-        v-for="item in legendCategories"
+        v-for="category in legend.categories"
+        v-bind:key="category.label"
         class="mb-0 ml-0"
         align="center"
       >
         <v-col cols="2">
           <v-card class="pa-0" tile dark style="background-color: inherit">
-            <v-icon :color="item.color">mdi-square</v-icon>
+            <v-icon :color="category.color">mdi-square</v-icon>
           </v-card>
         </v-col>
         <!-- this will be wrapped as a new line into the same col as above,
       as the column width sum up to more than 12. -->
         <v-col cols="9">
           <v-card class="pa-0" tile dark style="background-color: inherit">
-            {{ item.label }}
+            {{ category.label }}
           </v-card>
         </v-col>
         <v-col
-          v-if="item.detail"
+          v-if="category.detail"
           cols="12"
           class="mb-2 ml-11"
           style="line-height: 0.7"
         >
           <v-card class="pa-0" tile dark style="background-color: inherit">
-            {{ item.detail }}
+            {{ category.detail }}
           </v-card>
         </v-col>
       </v-row>
@@ -83,8 +62,26 @@ export default {
   </div>
 </template>
 
+<script lang="ts">
+import { Component, Vue, Prop } from "vue-property-decorator";
+import legends from "@/config/legends.json";
+import { Legend as LegendModel } from "@/models";
+
+@Component
+export default class Legend extends Vue {
+  @Prop()
+  topic!: string;
+  @Prop()
+  showAtBottom!: boolean;
+
+  get legend(): LegendModel {
+    return legends[this.topic];
+  }
+}
+</script>
+
 <style scoped lang="scss">
-@import "../../style.main.scss";
+@import "@/style/mixins.scss";
 
 #bottom-legend {
   position: absolute !important;
@@ -94,6 +91,17 @@ export default {
   right: 70vw;
   float: left;
   color: whitesmoke;
+
+  .category-color {
+    align-self: center;
+
+    .color-block {
+      height: 10px;
+    }
+  }
+  .col {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
 
   @media (max-device-width: 1600px) {
     display: none;

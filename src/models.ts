@@ -53,3 +53,17 @@ export interface ScenarioStoreState {
 export interface StoreStateWithModules extends StoreState {
   scenario: ScenarioStoreState;
 }
+
+export interface Legend {
+  headline: string;
+  icon: string;
+  labelLowValues: string;
+  labelHighValues: string;
+  categories: Categories[];
+}
+
+export interface Categories {
+  label: string;
+  detail: string;
+  color: string;
+}
