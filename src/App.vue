@@ -2,7 +2,7 @@
   <v-app>
     <Map :restrictedAccess="restrictedAccess" />
     <Menu :restrictedAccess="restrictedAccess" />
-    <TimeSheet v-if="showTimeSheet" />
+    <TimeSheet :hidden="!showTimeSheet" />
     <Viewbar :restrictedAccess="restrictedAccess" />
     <Loader />
     <LogosAIT />
