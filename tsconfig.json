@@ -17,6 +17,7 @@
     "types": [
       "webpack-env",
       "vuetify",
+      "jest",
       "node"
     ],
     "paths": {
@@ -36,7 +37,7 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx", "src/components/Map/store/index.js", "src/components/Map/store/index.js", "src/components/Map/store/map.js", "src/components/Map/store/layer.js", "src/components/Map/store/crs.js", "src/store/utils/composeModules.js"
+    "tests/**/*.tsx"
   ],
   "exclude": [
     "node_modules"
