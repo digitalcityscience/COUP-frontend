@@ -28,14 +28,14 @@
           <v-checkbox
             v-model="visibleBuildings.show"
             label="Show Buildings"
-            @change="updateBuildingVisibility"
+            @change="toggleBuildingVisibility"
             dark
             hide-details
           ></v-checkbox>
           <v-checkbox
             v-model="visibleBuildings.amenities"
             label="Show Amenities"
-            @change="updateBuildingVisibility"
+            @change="toggleAmenitiesVisibility"
             dark
             hide-details
             :disabled="activeAbmSet == null"
@@ -58,6 +58,7 @@ import { Component, Vue, Emit } from "vue-property-decorator";
 import { MapboxMap, StoreStateWithModules } from "@/models";
 import { Store } from "vuex";
 import BuildingsLegend from "@/components/Menu/viewbar/BuildingsLegend.vue";
+import * as mapService from "@/services/map.service";
 
 @Component({
   components: { BuildingsLegend },
@@ -106,21 +107,19 @@ export default class Buildings extends Vue {
     this.colorizeBuildingsByUseType();
   }
 
-  updateBuildingVisibility(): void {
-    if (!this.visibleBuildings.show) {
-      this.map.setLayoutProperty("groundfloor", "visibility", "none");
-      this.map.setLayoutProperty("upperfloor", "visibility", "none");
-      this.map.setLayoutProperty("rooftops", "visibility", "none");
+  toggleBuildingVisibility(): void {
+    if (this.visibleBuildings.show) {
+      mapService.showBuildings(this.map);
     } else {
-      this.map.setLayoutProperty("groundfloor", "visibility", "visible");
-      this.map.setLayoutProperty("upperfloor", "visibility", "visible");
-      this.map.setLayoutProperty("rooftops", "visibility", "visible");
+      mapService.hideBuildings(this.map);
     }
+  }
 
-    if (!this.visibleBuildings.amenities) {
-      this.map.setLayoutProperty("abmAmenities", "visibility", "none");
+  toggleAmenitiesVisibility(): void {
+    if (this.visibleBuildings.amenities) {
+      mapService.showAmenities(this.map);
     } else {
-      this.map.setLayoutProperty("abmAmenities", "visibility", "visible");
+      mapService.hideAmenities(this.map);
     }
   }
 
