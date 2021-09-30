@@ -52,20 +52,8 @@ export default {
       swAnimationRunning: false,
     };
   },
-  mounted() {},
-  updated() {
-    //this.renderTimeGraph();
-  },
-  created() {
-    document.onkeydown = this.onkeydown;
-  },
   components: {},
   methods: {
-    onkeydown(e) {
-      if (e.which === 32) {
-        this.triggerAnimation();
-      }
-    },
     triggerAnimation() {
       /*functionality for play button*/
       const animationRunning = this.$store.state.scenario.animationRunning;
