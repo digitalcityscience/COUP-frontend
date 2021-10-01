@@ -67,3 +67,10 @@ export interface Categories {
   detail: string;
   color: string;
 }
+
+export interface MenuLink {
+  title: string;
+  icon: string;
+  hidden: boolean;
+  default?: boolean;
+}

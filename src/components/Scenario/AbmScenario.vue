@@ -16,12 +16,15 @@ import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import { getAbmLayerIds } from "@/config/layers";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
+import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import { MenuLink } from "@/models";
 
 export default {
   name: "AbmScenario",
   components: {
     DashboardCharts: DashboardCharts,
     MenuDivision,
+    MenuComponentDivision,
   },
   props: {
     restrictedAccess: Boolean,
@@ -29,7 +32,6 @@ export default {
   data() {
     return {
       activeDivision: null,
-      componentDivisions: [],
       designScenarioNames: bridges,
       moduleSettingOptions: moduleSettingNames,
       mainStreetOrientationOptions: mainStreetOrientationOptions,
@@ -124,6 +126,32 @@ export default {
     viewConfig(): ViewConfiguration {
       return { filter: false };
     },
+    componentDivisions(): MenuLink[] {
+      return [
+        {
+          title: "Scenario",
+          icon: "mdi-map-marker-radius",
+          hidden: false,
+          default: true,
+        },
+        {
+          title: "info",
+          icon: "mdi-information-variant",
+          hidden: false,
+        },
+        {
+          title: "Dashboard",
+          icon: "mdi-view-dashboard",
+          hidden: !this.activeAbmSet,
+        },
+        { title: "Filter", icon: "mdi-filter", hidden: !this.activeAbmSet },
+        {
+          title: "Aggregation Layer",
+          icon: "mdi-gauge",
+          hidden: !this.activeAbmSet,
+        },
+      ];
+    },
   },
   watch: {
     resultsOutdated(newVal, oldVal) {
@@ -169,18 +197,6 @@ export default {
     this.$store.dispatch("hideAllLayersButThese", getAbmLayerIds());
     // switch time graph to ABM
     this.$store.commit("scenario/selectGraph", "abm");
-
-    /*autogenerationg Sub Menu for all divs of Class "division"*/
-    var divisions = document.getElementsByClassName("division");
-    for (var i = 0; i < divisions.length; i++) {
-      let divInstance = {
-        title: divisions[i].getAttribute("data-title"),
-        pic: divisions[i].getAttribute("data-pic"),
-      };
-      this.componentDivisions.push(divInstance);
-    }
-
-    this.activeDivision = divisions[0].getAttribute("data-title");
   },
   methods: {
     confirmSettings() {
@@ -234,28 +250,11 @@ export default {
 
 <template>
   <div id="scenario" ref="scenario">
-    <div class="component_divisions">
-      <ul>
-        <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-        <li
-          v-for="division in componentDivisions"
-          :key="division.title"
-          v-bind:class="[
-            activeDivision === division.title ? 'highlight' : '',
-            activeAbmSet == 'undefined' || activeAbmSet == null ? 'hidden' : '',
-          ]"
-        >
-          <div class="component_link" @click="activeDivision = division.title">
-            <v-tooltip left>
-              <template v-slot:activator="{ on, attrs }">
-                <v-icon v-bind="attrs" v-on="on">{{ division.pic }}</v-icon>
-              </template>
-              <span>{{ division.title }}</span>
-            </v-tooltip>
-          </div>
-        </li>
-      </ul>
-    </div>
+    <MenuComponentDivision
+      :menuLinks="componentDivisions"
+      :highlighted="activeDivision"
+      @active="activeDivision = $event"
+    />
 
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
