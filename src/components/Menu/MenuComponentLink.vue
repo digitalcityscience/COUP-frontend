@@ -19,4 +19,13 @@ export default class MenuComponentLink extends Vue {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.component_link {
+  .v-icon {
+    width: 37px;
+    height: 40px;
+    filter: invert(1);
+  }
+}
+</style>
+

@@ -71,6 +71,6 @@ export interface Categories {
 export interface MenuLink {
   title: string;
   icon: string;
-  hidden: boolean;
+  hidden?: boolean;
   default?: boolean;
 }

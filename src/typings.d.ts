@@ -77,7 +77,7 @@ declare global {
     layerName: string;
     layerRange: number[];
     layerConstraints: number[];
-    logicOperator: string;
+    logicOperator?: string;
   }
 
   interface logicOperator {

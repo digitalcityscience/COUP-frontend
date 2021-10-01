@@ -1,13 +1,14 @@
-<script>
-import { mapState } from "vuex";
+<script lang="ts">
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import { noiseSettingsNames } from "@/store/noise";
-import Legend from "@/components/Scenario/Legend";
+import Legend from "@/components/Scenario/Legend.vue";
+import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import type { MenuLink } from "@/models";
 
 export default {
   name: "NoiseScenario",
   components: {
-    Legend: Legend,
+    Legend,
+    MenuComponentDivision,
   },
   props: {
     restrictedAccess: Boolean,
@@ -15,13 +16,12 @@ export default {
   data() {
     return {
       activeDivision: null,
-      componentDivisions: [],
       trafficPercent_labels: ["0%", "25%", "50%", "75%", "100%"],
       trafficPercent: 1,
       maxSpeed: 50,
       resultOutdated: true,
       showError: false,
-      errMsg: '',
+      errMsg: "",
       scenarioAlreadySaved: false,
     };
   },
@@ -36,6 +36,26 @@ export default {
       //['trafficPercent', 'scenario/noiseScenario/' + noiseSettingsNames.trafficPercent],
       //['maxSpeed', 'scenario/noiseScenario/' + noiseSettingsNames.maxSpeed],
     ]),
+    componentDivisions(): MenuLink[] {
+      return [
+        {
+          title: "Scenario",
+          icon: "mdi-map-marker-radius",
+          hidden: false,
+          default: true,
+        },
+        {
+          title: "Dashboard",
+          icon: "mdi-view-dashboard",
+          hidden: false,
+        },
+        {
+          title: "info",
+          icon: "mdi-information-variant",
+          hidden: false,
+        },
+      ];
+    },
   },
   watch: {
     maxSpeed(newVal, old) {
@@ -50,19 +70,6 @@ export default {
   mounted: function () {
     // hide all other layers
     this.$store.dispatch("hideAllLayersButThese", ["noise", "trafficCounts"]);
-
-    /*autogenerationg Sub Menu for all divs of Class "division"*/
-    var divisions = document.getElementsByClassName("division");
-    for (var i = 0; i < divisions.length; i++) {
-      let divInstance = {
-        title: divisions[i].getAttribute("data-title"),
-        pic: divisions[i].getAttribute("data-pic"),
-      };
-      this.componentDivisions.push(divInstance);
-    }
-
-    this.activeDivision = divisions[0].getAttribute("data-title");
-    console.log("active divisoin is", this.activeDivision);
   },
   methods: {
     isResultOutdated() {
@@ -88,7 +95,7 @@ export default {
           this.$store.commit("scenario/noiseMap", false);
           this.resultLoading = false;
           this.showError = true;
-          this.errMsg = err
+          this.errMsg = err;
         });
     },
     loadNoiseResults() {
@@ -132,23 +139,11 @@ export default {
   <div id="scenario" ref="scenario">
     <!-- google maps style legend at bottom -->
     <Legend :topic="'noise'" :showAtBottom="true"></Legend>
-
-    <div class="component_divisions">
-      <ul>
-        <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-        <li
-          v-for="division in componentDivisions"
-          :key="division.title"
-          v-bind:class="{ highlight: activeDivision === division.title }"
-        >
-          <div class="component_link" @click="activeDivision = division.title">
-            <v-icon>{{ division.pic }}</v-icon>
-          </div>
-          <div class="toHover">{{ division.title }}</div>
-        </li>
-      </ul>
-    </div>
-
+    <MenuComponentDivision
+      :menuLinks="componentDivisions"
+      :highlighted="activeDivision"
+      @active="activeDivision = $event"
+    />
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div

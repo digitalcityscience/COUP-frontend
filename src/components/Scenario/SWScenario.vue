@@ -1,19 +1,19 @@
-<script>
+<script lang="ts">
 import { mapState } from "vuex";
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
 import Rain from "@/config/rain.json";
-import Legend from "@/components/Scenario/Legend";
 import { swLayerName } from "@/store/deck-layers";
+import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import type { MenuLink } from "@/models";
 
 export default {
   name: "StormwaterScenario",
   components: {
-    Legend: Legend,
+    MenuComponentDivision,
   },
   data() {
     return {
       activeDivision: null,
-      componentDivisions: [],
       showError: false,
       errMsg: "",
       resultOutdated: false,
@@ -89,6 +89,24 @@ export default {
     stormWater() {
       return this.$store.state.scenario.stormWater;
     },
+    componentDivisions(): MenuLink[] {
+      return [
+        {
+          title: "Scenario",
+          icon: "mdi-map-marker-radius",
+          hidden: false,
+          default: true,
+        },
+        {
+          title: "Dashboard",
+          icon: "mdi-view-dashboard",
+        },
+        {
+          title: "info",
+          icon: "mdi-information-variant",
+        },
+      ];
+    },
   },
   watch: {},
   beforeMount() {
@@ -98,18 +116,6 @@ export default {
   mounted: function () {
     // hide all other layers
     this.$store.dispatch("hideAllLayersButThese", ["stormwater"]);
-    /*autogenerationg Sub Menu for all divs of Class "division"*/
-    var divisions = document.getElementsByClassName("division");
-    for (var i = 0; i < divisions.length; i++) {
-      let divInstance = {
-        title: divisions[i].getAttribute("data-title"),
-        pic: divisions[i].getAttribute("data-pic"),
-      };
-      this.componentDivisions.push(divInstance);
-    }
-
-    this.activeDivision = divisions[0].getAttribute("data-title");
-    console.log("active divisoin is", this.activeDivision);
   },
   methods: {
     activateStormWater() {
@@ -185,21 +191,11 @@ export default {
 
 <template>
   <div id="scenario" ref="scenario">
-    <div class="component_divisions">
-      <ul>
-        <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-        <li
-          v-for="division in componentDivisions"
-          :key="division.title"
-          v-bind:class="{ highlight: activeDivision === division.title }"
-        >
-          <div class="component_link" @click="activeDivision = division.title">
-            <v-icon>{{ division.pic }}</v-icon>
-          </div>
-          <div class="toHover">{{ division.title }}</div>
-        </li>
-      </ul>
-    </div>
+    <MenuComponentDivision
+      :menuLinks="componentDivisions"
+      :highlighted="activeDivision"
+      @active="activeDivision = $event"
+    />
 
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->

@@ -1,7 +1,6 @@
-<script>
+<script lang="ts">
 import { mapState } from "vuex";
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import { noiseSettingsNames } from "@/store/noise";
 import {
   filterAndScaleLayerData,
   showMultiLayerAnalysis,
@@ -10,14 +9,15 @@ import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import mdiInformationPng from "@/assets/mdi-information.png";
 import CombinedLayersConfig from "@/config/multiLayerAnalysis.json";
 import PerformanceInfoLayerConfig from "@/config/performanceInfos.json";
+import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import type { MenuLink } from "@/models";
 
 export default {
   name: "MultiLayerAnalysis",
-  components: {},
+  components: { MenuComponentDivision },
   data() {
     return {
       activeDivision: null,
-      componentDivisions: [],
       showError: false,
       missingInputScenarios: [],
       showMissingScenarios: false,
@@ -134,6 +134,16 @@ export default {
     },
     currentSunResult() {
       return this.$store.state.scenario.sunExposureGeoJson;
+    },
+    componentDivisions(): MenuLink[] {
+      return [
+        {
+          title: "Scenario",
+          icon: "mdi-map-marker-radius",
+          hidden: false,
+          default: true,
+        }
+      ];
     },
   },
   watch: {
@@ -327,24 +337,11 @@ export default {
 
     // hide all layers
     this.$store.dispatch("hideAllLayersButThese");
-
-    /*autogenerationg Sub Menu for all divs of Class "division"*/
-    var divisions = document.getElementsByClassName("division");
-    for (var i = 0; i < divisions.length; i++) {
-      let divInstance = {
-        title: divisions[i].getAttribute("data-title"),
-        pic: divisions[i].getAttribute("data-pic"),
-      };
-      this.componentDivisions.push(divInstance);
-    }
-
-    this.activeDivision = divisions[0].getAttribute("data-title");
-    console.log("active divisoin is", this.activeDivision);
   },
   methods: {
     addImageToMap() {
       // add image to map if necessary . For result annotation layer.
-      if (!$store.state.map.hasImage("mdi-information")) {
+      if (!this.$store.state.map.hasImage("mdi-information")) {
         const map = this.$store.state.map;
         map.loadImage(mdiInformationPng, function (error, image) {
           if (error) throw error;
@@ -534,21 +531,11 @@ export default {
 
 <template>
   <div id="scenario" ref="scenario">
-    <div class="component_divisions">
-      <ul>
-        <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-        <li
-          v-for="division in componentDivisions"
-          :key="division.title"
-          v-bind:class="{ highlight: activeDivision === division.title }"
-        >
-          <div class="component_link" @click="activeDivision = division.title">
-            <v-icon>{{ division.pic }}</v-icon>
-          </div>
-          <div class="toHover">{{ division.title }}</div>
-        </li>
-      </ul>
-    </div>
+    <MenuComponentDivision
+      :menuLinks="componentDivisions"
+      :highlighted="activeDivision"
+      @active="activeDivision = $event"
+    />
 
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
@@ -928,7 +915,7 @@ export default {
 </template>
 
 <style scoped lang="scss">
-@import "../../style.main.scss";
+@import "@/style.main.scss";
 p.warning {
   color: darkred;
   margin: auto;

@@ -1,14 +1,15 @@
-<script>
-import { mapState } from "vuex";
+<script lang="ts">
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import { noiseSettingsNames } from "@/store/noise";
 import hash from "object-hash";
-import Legend from "@/components/Scenario/Legend";
+import Legend from "@/components/Scenario/Legend.vue";
+import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import type { MenuLink } from "@/models";
 
 export default {
   name: "WindScenario",
   components: {
-    Legend: Legend,
+    Legend,
+    MenuComponentDivision,
   },
   props: {
     restrictedAccess: Boolean,
@@ -16,7 +17,6 @@ export default {
   data() {
     return {
       activeDivision: null,
-      componentDivisions: [],
       windSpeed: 5,
       windDirection: 270,
       resultOutdated: true,
@@ -34,6 +34,24 @@ export default {
       ["savedWindScenarios", "scenario/" + "savedWindScenarios"], // todo manage stores
       ["currentScenario", "scenario/" + "currentWindScenario"], // todo manage stores
     ]),
+    componentDivisions(): MenuLink[] {
+      return [
+        {
+          title: "Scenario",
+          icon: "mdi-map-marker-radius",
+          hidden: false,
+          default: true,
+        },
+        {
+          title: "Dashboard",
+          icon: "mdi-view-dashboard",
+        },
+        {
+          title: "info",
+          icon: "mdi-information-variant",
+        },
+      ];
+    },
   },
   watch: {
     windSpeed(newVal, old) {
@@ -54,18 +72,6 @@ export default {
   mounted: function () {
     // hide all other layers
     this.$store.dispatch("hideAllLayersButThese", ["wind"]);
-    /*autogenerationg Sub Menu for all divs of Class "division"*/
-    var divisions = document.getElementsByClassName("division");
-    for (var i = 0; i < divisions.length; i++) {
-      let divInstance = {
-        title: divisions[i].getAttribute("data-title"),
-        pic: divisions[i].getAttribute("data-pic"),
-      };
-      this.componentDivisions.push(divInstance);
-    }
-
-    this.activeDivision = divisions[0].getAttribute("data-title");
-    console.log("active divisoin is", this.activeDivision);
   },
   methods: {
     isResultOutdated() {
@@ -148,23 +154,11 @@ export default {
   <div id="scenario" ref="scenario">
     <!-- google maps style legend at bottom -->
     <Legend :topic="'wind'" :showAtBottom="true"></Legend>
-
-    <div class="component_divisions">
-      <ul>
-        <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-        <li
-          v-for="division in componentDivisions"
-          :key="division.title"
-          v-bind:class="{ highlight: activeDivision === division.title }"
-        >
-          <div class="component_link" @click="activeDivision = division.title">
-            <v-icon>{{ division.pic }}</v-icon>
-          </div>
-          <div class="toHover">{{ division.title }}</div>
-        </li>
-      </ul>
-    </div>
-
+    <MenuComponentDivision
+      :menuLinks="componentDivisions"
+      :highlighted="activeDivision"
+      @active="activeDivision = $event"
+    />
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div

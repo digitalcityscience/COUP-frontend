@@ -17,7 +17,7 @@ import FocusAreasLayer from "@/config/focusAreas.json";
 import { getAbmLayerIds } from "@/config/layers";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import { MenuLink } from "@/models";
+import type { MenuLink } from "@/models";
 
 export default {
   name: "AbmScenario",
