@@ -271,7 +271,7 @@ export default {
         class="component_content scenario"
       >
         <v-container fluid>
-          <h2>ABM | Scenario Settings</h2>
+          <h2>Pedestrians Flow | Scenario Settings</h2>
           <div
             class="scenario_box"
             :class="
@@ -475,7 +475,7 @@ export default {
     >
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <h2>ABM Scenario Selection</h2>
+        <h2>Pedestrians Scenario Selection</h2>
         <v-btn
           @click="loadWorkshopScenario(workshopScenarioNames[0])"
           class="scenario_main_btn"
@@ -508,7 +508,7 @@ export default {
     <div class="division" data-title="Dashboard" data-pic="mdi-view-dashboard">
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Dashboard'" class="component_content">
-        <h2>ABM Dashboard</h2>
+        <h2>Pedestrians Flow | Dashboard</h2>
         <DashboardCharts></DashboardCharts>
       </div>
       <!--component_content end-->
@@ -522,7 +522,7 @@ export default {
       data-pic="mdi-filter"
     >
       <div v-if="activeDivision === 'Filter'" class="component_content">
-        <h2>ABM Scenario Filters</h2>
+        <h2>Pedestrians Flow Scenario Filters</h2>
         <v-container fluid>
           <v-checkbox
             v-model="filterSettings.resident"
@@ -614,7 +614,7 @@ export default {
                     </v-btn>-->
 
         <v-overlay :value="resultLoading">
-          <div>Loading ABM results</div>
+          <div>Loading Pedestrians Flow results</div>
           <v-progress-linear>...</v-progress-linear>
         </v-overlay>
       </div>
@@ -625,7 +625,7 @@ export default {
         v-if="activeDivision === 'Aggregation Layer'"
         class="component_content"
       >
-        <h2>Aggregation Layer Settings</h2>
+        <h2>Pedestrian Flow | Aggregation Layer</h2>
         <v-range-slider
           v-model="adjustRange"
           :min="8"
@@ -719,25 +719,25 @@ export default {
     <MenuDivision
       icon="mdi-information-variant"
       :active="activeDivision === 'info'"
-      tooltip="Info"
+      tooltip="info"
     >
-      <h2>ABM | About</h2>
+      <h2>Pedestrians Flow | About</h2>
       <br />
     </MenuDivision>
 
     <!--<v-expansion-panels>
             <v-expansion-panel>
-                <v-expansion-panel-header>ABM SCENARIO</v-expansion-panel-header>
+                <v-expansion-panel-header>Pedestrians SCENARIO</v-expansion-panel-header>
                 <v-expansion-panel-content>
 
                 </v-expansion-panel-content>
                 <v-overlay :value="isLoading">
-                    <div>Loading ABM results</div>
+                    <div>Loading Pedestrians results</div>
                     <v-progress-linear>...</v-progress-linear>
                 </v-overlay>
             </v-expansion-panel>
             <v-expansion-panel>
-                <v-expansion-panel-header>ABM FILTERS</v-expansion-panel-header>
+                <v-expansion-panel-header>Pedestrians FILTERS</v-expansion-panel-header>
                 <v-expansion-panel-content>
 
                 </v-expansion-panel-content>

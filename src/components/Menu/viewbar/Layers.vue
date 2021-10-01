@@ -35,10 +35,10 @@
           ></v-checkbox>
         </div>
         <div class="layers">
-          <h3>ABM Layers</h3>
+          <h3>Pedestrians Layers</h3>
           <v-checkbox
             v-model="visibleLayers.abm"
-            label="ABM Animation"
+            label="Pedestrians Animation"
             color="white"
             dark
             hide-details
@@ -46,7 +46,7 @@
           ></v-checkbox>
           <v-checkbox
             v-model="visibleLayers.heat"
-            label="ABM Aggregation"
+            label="Pedestrians Aggregation"
             color="white"
             dark
             hide-details
@@ -54,7 +54,7 @@
           ></v-checkbox>
           <v-checkbox
             v-model="visibleLayers.amenities"
-            label="ABM Amenities"
+            label="Pedestrians Amenities"
             color="white"
             dark
             hide-details

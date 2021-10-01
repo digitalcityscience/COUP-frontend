@@ -70,7 +70,7 @@ export default {
               v-bind:class="{ highlight: activeComponent === 'AbmScenario' }"
               @click="activeComponent = 'AbmScenario'"
             >
-              <p>ABM</p>
+              <p>Pedestrians</p>
             </li>
             <li
               class="component_link"
@@ -115,7 +115,7 @@ export default {
         </template>
         <template v-else>
           <select class="mobile_select" v-model="activeComponent">
-            <option value="AbmScenario">ABM</option>
+            <option value="AbmScenario">Pedestrians</option>
             <option value="SWScenario">Stormwater</option>
             <option value="NoiseScenario">Noise</option>
             <option value="WindScenario">Wind</option>

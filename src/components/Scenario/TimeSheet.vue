@@ -613,7 +613,7 @@ export default {
   >
     <!--
         <div class="graph_selection" v-if="activeAbmSet != null && stormWater != false">
-            <v-btn>Show ABM Results</v-btn>
+            <v-btn>Show Pedestrians Results</v-btn>
             <v-btn>Show Storm Water Results</v-btn>
         </div>
         -->
