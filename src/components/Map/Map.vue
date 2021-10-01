@@ -1,6 +1,6 @@
 <script lang="ts">
 import mapboxgl from "mapbox-gl";
-import { mapState, mapActions, mapGetters, mapMutations } from "vuex";
+import { mapState } from "vuex";
 import amenities from "@/config/amenities.json";
 import { alkisTranslations } from "@/store/abm";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
@@ -11,7 +11,6 @@ import FocusAreasLayer from "@/config/focusAreas.json";
 
 export default {
   name: "Map",
-  components: { Contextmenu },
   props: {
     restrictedAccess: Boolean,
   },
@@ -42,9 +41,6 @@ export default {
       ["updateAmenityStatsChart", "scenario/updateAmenityStatsChart"],
       ["openModalsIds", "openModalsIds"],
     ]),
-    abmTrips() {
-      return this.$store.state.scenario.abmTrips;
-    },
     heatMapData() {
       return this.$store.state.scenario.heatMapData;
     },
@@ -66,7 +62,7 @@ export default {
       this.updateHeatMap();
     },
   },
-  mounted() {
+  mounted(): void {
     mapboxgl.accessToken = this.accessToken;
 
     const options = {
@@ -99,28 +95,33 @@ export default {
     this.map.on("mouseleave", "focusAreas", this.onFocusAreaLeave);
   },
   methods: {
-    mousePos(evt) {
+    recordEventPosition(evt: MouseEvent): void {
+      console.log("recordEventPosition clicked: ", evt);
+
       this.lastClicked = [];
       this.lastClicked[0] = (evt.clientX * 100) / window.innerWidth / 100;
       this.lastClicked[1] = (evt.clientY * 100) / window.innerHeight / 100;
       this.$store.commit("scenario/lastClick", this.lastClicked);
     },
-    onMapClicked(evt) {
-      console.log("click!", this.map);
-
+    onMapClicked(evt: mapboxgl.MapMouseEvent): void {
+      console.debug("click!", evt);
+      this.recordEventPosition(evt.originalEvent);
       const bbox = [
         [evt.point.x - 10, evt.point.y - 10],
         [evt.point.x + 10, evt.point.y + 10],
       ];
 
-      const features = this.map.queryRenderedFeatures(bbox, {
-        layers: this.layerIds.filter((layerId) => {
-          return this.map.getLayer(layerId);
-        }),
-      });
+      const features = (this.map as mapboxgl.Map).queryRenderedFeatures(
+        bbox as any,
+        {
+          layers: this.layerIds.filter((layerId) => {
+            return this.map.getLayer(layerId);
+          }),
+        }
+      );
       this.actionForClick(features);
     },
-    actionForClick(clickedFeatures) {
+    actionForClick(clickedFeatures: mapboxgl.MapboxGeoJSONFeature[]): void {
       const initialFeature = clickedFeatures[0];
       const initialLayerId = initialFeature.layer.id;
 
@@ -264,7 +265,7 @@ export default {
 </script>
 
 <template>
-  <div @click="mousePos" id="map" ref="map"></div>
+  <div id="map" ref="map"></div>
 </template>
 
 <style scoped lang="scss">
