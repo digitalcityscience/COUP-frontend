@@ -135,20 +135,17 @@ export default {
           default: true,
         },
         {
-          title: "info",
-          icon: "mdi-information-variant",
-          hidden: false,
-        },
-        {
           title: "Dashboard",
           icon: "mdi-view-dashboard",
-          hidden: !this.activeAbmSet,
         },
-        { title: "Filter", icon: "mdi-filter", hidden: !this.activeAbmSet },
         {
           title: "Aggregation Layer",
           icon: "mdi-gauge",
-          hidden: !this.activeAbmSet,
+        },
+        {
+          title: "info",
+          icon: "mdi-information-variant",
+          hidden: false,
         },
       ];
     },
@@ -270,7 +267,7 @@ export default {
         class="component_content scenario"
       >
         <v-container fluid>
-          <h2>Pedestrians Flow | Scenario Settings</h2>
+          <h2>Pedestrian Flow | Scenario Settings</h2>
           <div
             class="scenario_box"
             :class="
@@ -507,7 +504,7 @@ export default {
     <div class="division" data-title="Dashboard" data-pic="mdi-view-dashboard">
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Dashboard'" class="component_content">
-        <h2>Pedestrians Flow | Dashboard</h2>
+        <h2>Pedestrian Flow | Dashboard</h2>
         <DashboardCharts></DashboardCharts>
       </div>
       <!--component_content end-->
@@ -521,7 +518,7 @@ export default {
       data-pic="mdi-filter"
     >
       <div v-if="activeDivision === 'Filter'" class="component_content">
-        <h2>Pedestrians Flow Scenario Filters</h2>
+        <h2>Pedestrian Flow Scenario Filters</h2>
         <v-container fluid>
           <v-checkbox
             v-model="filterSettings.resident"
@@ -613,7 +610,7 @@ export default {
                     </v-btn>-->
 
         <v-overlay :value="resultLoading">
-          <div>Loading Pedestrians Flow results</div>
+          <div>Loading Pedestrian Flow results</div>
           <v-progress-linear>...</v-progress-linear>
         </v-overlay>
       </div>
@@ -720,7 +717,7 @@ export default {
       :active="activeDivision === 'info'"
       tooltip="info"
     >
-      <h2>Pedestrians Flow | About</h2>
+      <h2>Pedestrian Flow | About</h2>
       <br />
     </MenuDivision>
 
