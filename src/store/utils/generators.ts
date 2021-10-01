@@ -60,7 +60,7 @@ export function generateMutations(state: GenericObject, prefix?: string) {
     }
   }, {});
 
-  console.log(mutations);
+  console.debug("Generated mutations for: ", Object.keys(state));
 
   return mutations;
 }
