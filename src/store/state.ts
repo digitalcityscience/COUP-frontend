@@ -18,7 +18,7 @@ const initialState: StoreState = {
   focusAreasGeoJson: null,
   focusAreasShown: false,
   openModalsIds: [],
-  modalIndex: 0,
+  modalIndex: 1,
   selectedObjectId: null,
   featureCircles: [], // circles around features for feature highlighting
   visibleLayers: {
