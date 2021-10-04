@@ -119,7 +119,10 @@ export default {
           }),
         }
       );
-      this.actionForClick(features);
+
+      if (Array.isArray(features) && features.length > 0) {
+        this.actionForClick(features);
+      }
     },
     actionForClick(clickedFeatures: mapboxgl.MapboxGeoJSONFeature[]): void {
       const initialFeature = clickedFeatures[0];
