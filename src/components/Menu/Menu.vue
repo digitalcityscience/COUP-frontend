@@ -161,7 +161,6 @@ export default {
   font-family: "Tajawal", sans-serif;
   backdrop-filter: blur(5px) saturate(140%);
   z-index: 1000;
-  overflow-y: auto;
 
   &.ui_hide {
     transform: translateX(100vw);
