@@ -48,6 +48,22 @@ export interface StoreState {
 export interface ScenarioStoreState {
   showUi: boolean;
   activeAbmSet: unknown;
+  animationRunning: boolean;
+  activeTimePaths: unknown;
+  abmTimePaths: unknown;
+  selectedRange: [number, number];
+  heatMap: boolean;
+  rerenderSwGraph: boolean;
+  stormWater: boolean;
+  filterActive: boolean;
+  loop: boolean;
+  abmSimpleTimes: Record<any, any>;
+  currentTimeStamp: number;
+  clusteredAbmData: Record<any, any>;
+  filterSettings: Record<any, any>;
+  swResultGeoJson: Record<any, any>;
+  selectGraph: "abm" | "sw";
+  rainAmount: any[];
 }
 
 export interface StoreStateWithModules extends StoreState {

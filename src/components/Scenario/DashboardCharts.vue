@@ -1,8 +1,8 @@
 <script>
 import { mapState } from "vuex";
-import Chart from "chart.js";
+import Chart from 'chart.js/auto';
 import ChartDataLabels from "chartjs-plugin-datalabels";
-Chart.plugins.unregister(ChartDataLabels);
+Chart.unregister(ChartDataLabels);
 import { generateStoreGetterSetter } from "@/store/utils/generators";
 
 export default {

@@ -22,8 +22,8 @@
     "@turf/turf": "^5.1.6",
     "acorn": "^8.0.1",
     "babel-plugin-transform-remove-console": "^6.9.4",
-    "chart.js": "^2.9.4",
-    "chartjs-plugin-datalabels": "^0.7.0",
+    "chart.js": "^3.5.1",
+    "chartjs-plugin-datalabels": "^2.0.0",
     "copy-webpack-plugin": "^6.3.1",
     "core-js": "^3.6.4",
     "fs": "0.0.1-security",
@@ -42,7 +42,6 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.19",
-    "@types/chart.js": "^2.9.34",
     "@types/mapbox-gl": "^1.11.0",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
@@ -50,8 +49,8 @@
     "@vue/cli-plugin-eslint": "~4.3.0",
     "@vue/cli-plugin-router": "~4.3.0",
     "@vue/cli-plugin-typescript": "~4.3.0",
-    "@vue/cli-plugin-vuex": "~4.3.0",
     "@vue/cli-plugin-unit-jest": "~4.5.0",
+    "@vue/cli-plugin-vuex": "~4.3.0",
     "@vue/cli-service": "~4.3.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "^7.0.0",
@@ -59,12 +58,12 @@
     "eslint": "^6.7.2",
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-vue": "^6.2.2",
+    "prettier": "^2.2.1",
     "sass": "^1.26.3",
     "sass-loader": "^8.0.2",
     "typescript": "~3.8.3",
     "vue-cli-plugin-vuetify": "~2.4.2",
     "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.7.3",
-    "prettier": "^2.2.1"
+    "vuetify-loader": "^1.7.3"
   }
 }

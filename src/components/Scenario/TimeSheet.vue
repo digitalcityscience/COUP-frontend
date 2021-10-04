@@ -1,271 +1,281 @@
-<script>
-import { mapState } from "vuex";
-import Chart from "chart.js";
+<script lang="ts">
+import type { StoreStateWithModules } from "@/models";
 import { abmTripsLayerName, animate } from "@/store/deck-layers";
-import { generateStoreGetterSetter } from "@/store/utils/generators";
+import { Chart } from "chart.js";
+import { Component, Vue, Watch } from "vue-property-decorator";
+import { Store } from "vuex";
 
-export default {
-  name: "TimeSheet",
-  data() {
-    return {
-      timeChart: null,
-      swChart: null,
-      rainChart: null,
-      buildingsRunOffResults: [],
-      parksRunOffResults: [],
-      streetsRunOffResults: [],
-      currentTimeSet: 0,
-      animationSpeed: 21,
-      timeArray: {},
-      swTimeStamps: [],
-      timeStamps: [],
-      timeCoords: [],
-      timeHours: [],
-      heatMapRange: { left: "0%", width: "100%" },
-      filterCoords: [],
-      activeAbmTimeCoords: [],
-      transCoords: [],
-      intervalNes: [],
-      timeFilter: false,
-      checkState: false,
-      filter: null,
-      filterLabels: [
-        "Pedestrian",
-        "Bicycle",
-        "Public Transport",
-        "Car",
-        "No Filter",
-      ],
-      filterOptions: {
-        Pedestrian: "foot",
-        Bicycle: "bicycle",
-        "Public Transport": "public_transport",
-        Car: "car",
+@Component
+export default class TimeSheet extends Vue {
+  $store: Store<StoreStateWithModules>;
+
+  timeChart = null;
+  swChart = null;
+  rainChart = null;
+  buildingsRunOffResults = [];
+  parksRunOffResults = [];
+  streetsRunOffResults = [];
+  currentTimeSet = 0;
+  animationSpeed = 21;
+  timeArray = {};
+  swTimeStamps = [];
+  timeStamps = [];
+  timeCoords = [];
+  timeHours = [];
+  heatMapRange = { left: "0%", width: "100%" };
+  filterCoords = [];
+  activeAbmTimeCoords = [];
+  transCoords = [];
+  intervalNes = [];
+  timeFilter = false;
+  checkState = false;
+  filter = null;
+  filterLabels = [
+    "Pedestrian",
+    "Bicycle",
+    "Public Transport",
+    "Car",
+    "No Filter",
+  ];
+  filterOptions = {
+    Pedestrian: "foot",
+    Bicycle: "bicycle",
+    "Public Transport": "public_transport",
+    Car: "car",
+  };
+  minTime = 0;
+  maxTime = 0;
+  currentTime = 0;
+  loopSetter = false;
+  windowWidth = window.innerWidth;
+  mobileTimePanel = false;
+  rainTime = 0; // time in slider for stormwater
+  swAnimationRunning = false;
+
+  triggerAnimation(): void {
+    /*functionality for play button*/
+    const animationRunning = this.$store.state.scenario.animationRunning;
+    this.$store.commit("scenario/animationRunning", !animationRunning);
+
+    if (!animationRunning) {
+      const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
+      animate(
+        (deckLayer as any).implementation,
+        null,
+        null,
+        this.currentTimeStamp
+      );
+    }
+  }
+
+  // update the time-dependend stormwater deck.gl layer, if the time in the slider changes.
+  updateSWLayer() {
+    this.$store.commit("scenario/rainTime", this.rainTime);
+    this.$store.dispatch("scenario/updateSWLayerTime");
+  }
+
+  getDataForTimeChart() {
+    this.timeStamps = [];
+    this.timeCoords = [];
+
+    Object.entries(this.abmSimpleTimes).forEach((entry) => {
+      const [key, value] = entry;
+      let label = Math.floor(Number(key) / 3600) + 8 + ":00";
+      let coords = [...new Set(value.all)];
+
+      this.timeStamps.push(label);
+      this.timeCoords.push(coords.length);
+    });
+
+    this.renderTimeGraph();
+  }
+
+  getFilteredDataForTimeChart() {
+    this.activeAbmTimeCoords = [];
+    Object.entries(this.abmSimpleTimes).forEach(([key, value]) => {
+      this.transCoords = [];
+      var spliceArr = [];
+
+      Object.entries(this.filterSettings).forEach(
+        ([filterKey, filterValue]) => {
+          if (!filterValue) {
+            spliceArr = [...new Set(value[filterKey]), ...spliceArr];
+          }
+        }
+      );
+
+      let removeDuplicates = [...new Set(value.all)];
+      this.transCoords = removeDuplicates.filter(
+        (el) => !spliceArr.includes(el)
+      );
+      this.activeAbmTimeCoords.push(this.transCoords.length);
+    });
+    this.renderTimeGraph();
+  }
+
+  async prepareDataForRunOffGraph() {
+    this.buildingsRunOffResults = [];
+    this.streetsRunOffResults = [];
+    this.parksRunOffResults = [];
+
+    // make time stamps and run off results
+    const features = this.swResultGeoJson.features;
+
+    // calculate total runoff for each point in time
+    // iterate over every subcatchment result and add the results to the accumulated up values for the subcatchment type
+    features.forEach((subcatchmentResult) => {
+      const subcatchmentType = subcatchmentResult.properties["type_sub"]; // e.g. park
+      if (subcatchmentResult.properties["runoff_results"]) {
+        switch (subcatchmentType) {
+          case "B_C": // building commercial
+          case "B_R": // building residential
+          case "B_S": // building special
+            this.addSubcatchmentResultToAccumulatedRunOffs(
+              this.buildingsRunOffResults,
+              subcatchmentResult
+            );
+            break;
+          case "PT_park":
+          case "PT_promenade":
+          case "PT_plaza":
+          case "S_playground":
+            this.addSubcatchmentResultToAccumulatedRunOffs(
+              this.parksRunOffResults,
+              subcatchmentResult
+            );
+            break;
+          case "T_street": // streets
+            this.addSubcatchmentResultToAccumulatedRunOffs(
+              this.streetsRunOffResults,
+              subcatchmentResult
+            );
+            break;
+          default:
+            console.error(
+              "got an unknown subcatchment type in stormwater result: ",
+              subcatchmentType
+            );
+        }
+      }
+    });
+    return true;
+  }
+
+  addSubcatchmentResultToAccumulatedRunOffs(totalRunOff, subCatchmentResult) {
+    const timestamps =
+      subCatchmentResult.properties["runoff_results"]["timestamps"];
+    // iterate over every time stamp and add the result to runOffTotal at that time
+    timestamps.forEach((timestamp) => {
+      if (timestamp > 120) {
+        // ignore all timestamps > 120, to display only relevant data.
+        return;
+      }
+      if (!totalRunOff[timestamp]) {
+        totalRunOff[timestamp] = 0; // 0 if no runOff Total yet
+      }
+      // TODO potentially we need to convert runoff value into another unit
+      // sum up the run off value for each feature at a point in time
+      totalRunOff[timestamp] +=
+        subCatchmentResult.properties["runoff_results"]["runoff_value"][
+          timestamp
+        ];
+    });
+  }
+
+  renderTimeGraph() {
+    /*render graph via chart.js*/
+    var ctx = (
+      document.getElementById("timeChart") as HTMLCanvasElement
+    ).getContext("2d");
+    if (this.timeChart) {
+      this.timeChart.destroy();
+    }
+
+    this.timeChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: this.timeStamps,
+        datasets: [
+          {
+            data: this.timeCoords,
+            //borderColor: 'rgba(253, 128, 93, 1)',
+            borderColor: "rgba(16,245,229,1)",
+            backgroundColor: "rgba(0,0,0,0.75)",
+            borderWidth: 1,
+            fill: false,
+            label: "all Agents",
+          },
+          {
+            data: this.filterCoords,
+            hidden: !this.timeFilter,
+            label: "compared Agents",
+            borderColor: "rgba(81,209,252,0.85)",
+            borderWidth: 1,
+            fill: true,
+          },
+          {
+            data: this.activeAbmTimeCoords,
+            hidden: !this.filterActive,
+            label: "filtered Agents",
+            borderColor: "rgba(10,171,135,0.85)",
+            borderWidth: 1,
+            fill: true,
+          },
+        ],
       },
-      minTime: 0,
-      maxTime: 0,
-      currentTime: 0,
-      loopSetter: false,
-      windowWidth: window.innerWidth,
-      mobileTimePanel: false,
-      rainTime: 0, // time in slider for stormwater
-      swAnimationRunning: false,
-    };
-  },
-  components: {},
-  methods: {
-    triggerAnimation() {
-      /*functionality for play button*/
-      const animationRunning = this.$store.state.scenario.animationRunning;
-      this.$store.commit("scenario/animationRunning", !animationRunning);
-
-      if (!animationRunning) {
-        const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-        animate(deckLayer.implementation, null, null, this.currentTimeStamp);
-      }
-    },
-    // update the time-dependend stormwater deck.gl layer, if the time in the slider changes.
-    updateSWLayer() {
-      this.$store.commit("scenario/rainTime", this.rainTime);
-      this.$store.dispatch("scenario/updateSWLayerTime");
-    },
-    getDataForTimeChart() {
-      this.timeStamps = [];
-      this.timeCoords = [];
-
-      Object.entries(this.abmSimpleTimes).forEach((entry) => {
-        const [key, value] = entry;
-        let label = Math.floor(key / 3600) + 8 + ":00";
-        let coords = [...new Set(value.all)];
-
-        this.timeStamps.push(label);
-        this.timeCoords.push(coords.length);
-      });
-
-      this.renderTimeGraph();
-    },
-    getFilteredDataForTimeChart() {
-      this.activeAbmTimeCoords = [];
-      Object.entries(this.abmSimpleTimes).forEach(([key, value]) => {
-        this.transCoords = [];
-        var spliceArr = [];
-
-        Object.entries(this.filterSettings).forEach(
-          ([filterKey, filterValue]) => {
-            if (!filterValue) {
-              spliceArr = [...new Set(value[filterKey]), ...spliceArr];
-            }
-          }
-        );
-
-        let removeDuplicates = [...new Set(value.all)];
-        this.transCoords = removeDuplicates.filter(
-          (el) => !spliceArr.includes(el)
-        );
-        this.activeAbmTimeCoords.push(this.transCoords.length);
-      });
-      this.renderTimeGraph();
-    },
-    async prepareDataForRunOffGraph() {
-      this.buildingsRunOffResults = [];
-      this.streetsRunOffResults = [];
-      this.parksRunOffResults = [];
-
-      // make time stamps and run off results
-      const features = this.swResultGeoJson.features;
-
-      // calculate total runoff for each point in time
-      // iterate over every subcatchment result and add the results to the accumulated up values for the subcatchment type
-      features.forEach((subcatchmentResult) => {
-        const subcatchmentType = subcatchmentResult.properties["type_sub"]; // e.g. park
-        if (subcatchmentResult.properties["runoff_results"]) {
-          switch (subcatchmentType) {
-            case "B_C": // building commercial
-            case "B_R": // building residential
-            case "B_S": // building special
-              this.addSubcatchmentResultToAccumulatedRunOffs(
-                this.buildingsRunOffResults,
-                subcatchmentResult
-              );
-              break;
-            case "PT_park":
-            case "PT_promenade":
-            case "PT_plaza":
-            case "S_playground":
-              this.addSubcatchmentResultToAccumulatedRunOffs(
-                this.parksRunOffResults,
-                subcatchmentResult
-              );
-              break;
-            case "T_street": // streets
-              this.addSubcatchmentResultToAccumulatedRunOffs(
-                this.streetsRunOffResults,
-                subcatchmentResult
-              );
-              break;
-            default:
-              console.error(
-                "got an unknown subcatchment type in stormwater result: ",
-                subcatchmentType
-              );
-          }
-        }
-      });
-      return true;
-    },
-    addSubcatchmentResultToAccumulatedRunOffs(totalRunOff, subCatchmentResult) {
-      const timestamps =
-        subCatchmentResult.properties["runoff_results"]["timestamps"];
-      // iterate over every time stamp and add the result to runOffTotal at that time
-      timestamps.forEach((timestamp) => {
-        if (timestamp > 120) {
-          // ignore all timestamps > 120, to display only relevant data.
-          return;
-        }
-        if (!totalRunOff[timestamp]) {
-          totalRunOff[timestamp] = 0; // 0 if no runOff Total yet
-        }
-        // TODO potentially we need to convert runoff value into another unit
-        // sum up the run off value for each feature at a point in time
-        totalRunOff[timestamp] +=
-          subCatchmentResult.properties["runoff_results"]["runoff_value"][
-            timestamp
-          ];
-      });
-    },
-    renderTimeGraph() {
-      /*render graph via chart.js*/
-      var ctx = document.getElementById("timeChart").getContext("2d");
-      if (this.timeChart) {
-        this.timeChart.destroy();
-      }
-
-      this.timeChart = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: this.timeStamps,
-          datasets: [
-            {
-              data: this.timeCoords,
-              //borderColor: 'rgba(253, 128, 93, 1)',
-              borderColor: "rgba(16,245,229,1)",
-              backgroundColor: "rgba(0,0,0,0.75)",
-              borderWidth: 1,
-              fill: false,
-              label: "all Agents",
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: "rgba(49,48,73,0.35)",
             },
-            {
-              data: this.filterCoords,
-              display: this.timeFilter,
-              label: "compared Agents",
-              borderColor: "rgba(81,209,252,0.85)",
-              borderWidth: 1,
-              fill: true,
+          },
+          x: {
+            grid: {
+              color: "rgba(49,48,73,0.35)",
             },
-            {
-              data: this.activeAbmTimeCoords,
-              display: this.filterActive,
-              label: "filtered Agents",
-              borderColor: "rgba(10,171,135,0.85)",
-              borderWidth: 1,
-              fill: true,
-            },
-          ],
+          },
         },
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: true,
-                },
-                gridLines: {
-                  color: "rgba(49,48,73,0.35)",
-                },
-              },
-            ],
-            xAxes: [
-              {
-                gridLines: {
-                  color: "rgba(49,48,73,0.35)",
-                },
-              },
-            ],
+        elements: {
+          point: {
+            radius: 0,
           },
-          elements: {
-            point: {
-              radius: 0,
-            },
-            line: {
-              tension: 1,
-            },
+          line: {
+            tension: 1,
           },
+        },
+        plugins: {
           legend: {
             display: false,
           },
         },
-      });
-    },
-    // runOff graph
-    renderSWGraphRunOff() {
-      var ctxSW = document.getElementById("swChart").getContext("2d");
+      },
+    });
+  }
 
-      if (this.swChart) {
-        this.swChart.destroy();
-      }
+  // runOff graph
+  renderSWGraphRunOff() {
+    var ctxSW = (
+      document.getElementById("swChart") as HTMLCanvasElement
+    ).getContext("2d");
 
-      // make strings like "2:30" to show elapsed time in hours
-      this.swTimeStamps = Array.from(
-        Array(this.buildingsRunOffResults.length).keys()
-      );
-      this.swTimeStamps = this.swTimeStamps.map(
-        (num) =>
-          Math.floor(num / 60) + // full hours
-          ":" +
-          (num % 60 >= 30 ? "30" : "00") // group to 30min bits.
-      );
+    if (this.swChart) {
+      this.swChart.destroy();
+    }
 
-      /* debugging info
+    // make strings like "2:30" to show elapsed time in hours
+    this.swTimeStamps = Array.from(
+      Array(this.buildingsRunOffResults.length).keys()
+    );
+    this.swTimeStamps = this.swTimeStamps.map(
+      (num) =>
+        Math.floor(num / 60) + // full hours
+        ":" +
+        (num % 60 >= 30 ? "30" : "00") // group to 30min bits.
+    );
+
+    /* debugging info
 
           console.warn("accumulated runoff values buildings",
            this.buildingsRunOffResults
@@ -283,324 +293,332 @@ export default {
           )
         */
 
-      const yAxixMax = 600; // for now this seems to be max. aggregated runoff for 1 space type.
+    const yAxixMax = 600; // for now this seems to be max. aggregated runoff for 1 space type.
 
-      this.swChart = new Chart(ctxSW, {
-        type: "line",
-        data: {
-          labels: this.swTimeStamps,
-          datasets: [
-            {
-              data: this.buildingsRunOffResults,
-              //borderColor: 'rgba(253, 128, 93, 1)',
-              borderColor: "rgba(16,245,229,1)",
-              backgroundColor: "rgba(0,0,0,0.75)",
-              borderWidth: 1,
-              fill: false,
-              label: "Buildings",
-            },
-            {
-              data: this.parksRunOffResults,
-              label: "Plazas & Parks",
-              borderColor: "rgba(81,209,252,0.85)",
-              borderWidth: 1,
-              fill: true,
-            },
-            {
-              data: this.streetsRunOffResults,
-              label: "Streets",
-              borderColor: "rgba(10,171,135,0.85)",
-              borderWidth: 1,
-              fill: true,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            yAxes: [
-              {
-                /*ticks: {
+    this.swChart = new Chart(ctxSW, {
+      type: "line",
+      data: {
+        labels: this.swTimeStamps,
+        datasets: [
+          {
+            data: this.buildingsRunOffResults,
+            //borderColor: 'rgba(253, 128, 93, 1)',
+            borderColor: "rgba(16,245,229,1)",
+            backgroundColor: "rgba(0,0,0,0.75)",
+            borderWidth: 1,
+            fill: false,
+            label: "Buildings",
+          },
+          {
+            data: this.parksRunOffResults,
+            label: "Plazas & Parks",
+            borderColor: "rgba(81,209,252,0.85)",
+            borderWidth: 1,
+            fill: true,
+          },
+          {
+            data: this.streetsRunOffResults,
+            label: "Streets",
+            borderColor: "rgba(10,171,135,0.85)",
+            borderWidth: 1,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        scales: {
+          y: {
+            /*ticks: {
                         beginAtZero: true
                         },*/
-                max: yAxixMax,
-                scaleLabel: {
-                  display: true,
-                  labelString: "Runoff (LPS)",
-                },
-                gridLines: {
-                  color: "rgba(49,48,73,0.35)",
-                },
-                ticks: {
-                  beginAtZero: true,
-                  stepSize: yAxixMax / 10,
-                  maxTicksLimit: 10,
-                  suggestedMax: yAxixMax,
-                  display: false,
-                },
-              },
-            ],
-            xAxes: [
-              {
-                scaleLabel: {
-                  display: true,
-                  labelString: "storm duration in hours",
-                },
-                gridLines: {
-                  color: "rgba(49,48,73,0.35)",
-                },
-                ticks: {
-                  beginAtZero: true,
-                  //display: false
-                },
-              },
-            ],
-          },
-          elements: {
-            point: {
-              radius: 0,
+            max: yAxixMax,
+            title: {
+              display: true,
+              text: "Runoff (LPS)",
             },
-            line: {
-              tension: 1,
+            grid: {
+              color: "rgba(49,48,73,0.35)",
+            },
+            beginAtZero: true,
+            suggestedMax: yAxixMax,
+            ticks: {
+              stepSize: yAxixMax / 10,
+              maxTicksLimit: 10,
+              display: false,
             },
           },
+          x: {
+            title: {
+              display: true,
+              text: "storm duration in hours",
+            },
+            grid: {
+              color: "rgba(49,48,73,0.35)",
+            },
+            beginAtZero: true,
+          },
+        },
+        elements: {
+          point: {
+            radius: 0,
+          },
+          line: {
+            tension: 1,
+          },
+        },
+        plugins: {
           legend: {
             display: false,
           },
         },
-      });
-    },
-    renderSWGraphRain() {
-      console.log("rain gage", this.rainAmount);
-
-      var ctxR = document.getElementById("rainChart").getContext("2d");
-
-      if (this.rainChart) {
-        this.rainChart.destroy();
-      }
-
-      this.rainChart = new Chart(ctxR, {
-        type: "bar",
-        data: {
-          //labels: Array.from(Array(rainDataMinutes.length).keys()),
-          labels: Array.from(Array(this.rainAmount.length).keys()),
-          datasets: [
-            {
-              data: this.rainAmount,
-              //borderColor: 'rgba(16,245,229,1)',
-              backgroundColor: "rgba(255,255,255,0.5)",
-              fill: true,
-              //label: 'mm/m²',
-            },
-          ],
-        },
-        options: {
-          legend: {
-            display: false,
-          },
-          scales: {
-            xAxes: [
-              {
-                gridLines: {
-                  display: false,
-                  color: "rgba(49,48,73,0.35)",
-                },
-                ticks: {
-                  beginAtZero: true,
-                  display: false,
-                },
-              },
-            ],
-            yAxes: [
-              {
-                max: "20",
-                scaleLabel: {
-                  display: true,
-                  //position: "right",
-                  labelString: "", // just so the graph is rendered in the same place as the runoff graph..
-                },
-                gridLines: {
-                  display: false,
-                  color: "rgba(49,48,73,0.35)",
-                },
-                ticks: {
-                  stepSize: 1,
-                  maxTicksLimit: 48,
-                  suggestedMax: 20,
-                  display: false,
-                },
-              },
-            ],
-          },
-        },
-      });
-    },
-    pauseAnimation() {
-      this.$store.commit("scenario/animationRunning", false);
-    },
-    increaseAnimationSpeed() {
-      if (this.animationSpeed <= 21) {
-        this.animationSpeed += 7;
-      } else {
-        this.animationSpeed = 7;
-      }
-
-      this.$store.commit("scenario/animationSpeed", this.animationSpeed);
-    },
-    /*change Time via Slider*/
-    changeCurrentTime() {
-      /*reanimate abm Tripslayer with new currentTime*/
-      if (this.animationRunning) {
-        const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-        animate(deckLayer.implementation, null, null, this.currentTime);
-      }
-    },
-    activateComparisonGraph() {
-      this.timeFilter = true;
-      this.filterCoords = [];
-
-      if (this.filter === "No Filter") {
-        // do not filter timeCoords
-        this.filterCoords = [...this.timeCoords];
-      } else {
-        Object.values(this.abmSimpleTimes).forEach((value) => {
-          let coords = [...new Set(value[this.filterOptions[this.filter]])];
-          this.filterCoords.push(coords.length);
-        });
-
-        this.renderTimeGraph();
-      }
-      this.renderTimeGraph();
-    },
-    setLoop() {
-      this.loopSetter = !this.loopSetter;
-      this.$store.commit("scenario/setLoop", this.loopSetter);
-    },
-    autoLoopAnimation() {
-      var animationSpeed = 1;
-      var max = 288;
-
-      if (this.swAnimationRunning) {
-        if (this.rainTime + animationSpeed >= max) {
-          this.rainTime = 0;
-        } else {
-          this.rainTime = this.rainTime + animationSpeed;
-        }
-
-        this.$store.commit("scenario/rainTime", this.rainTime);
-        this.$store.dispatch("scenario/updateSWLayerTime");
-        window.requestAnimationFrame(() => {
-          this.autoLoopAnimation();
-        });
-      }
-    },
-  },
-  computed: {
-    ...mapState(["activeMenuComponent"]),
-    ...generateStoreGetterSetter([
-      ["currentTimeStamp", "scenario/currentTimeStamp"],
-      ["rerenderSwGraph", "scenario/rerenderSwGraph"],
-    ]),
-    selectedRange() {
-      return this.$store.state.scenario.selectedRange;
-    },
-    abmTimePaths() {
-      return this.$store.state.scenario.abmTimePaths;
-    },
-    activeTimePaths() {
-      return this.$store.state.scenario.activeTimePaths;
-    },
-    abmSimpleTimes() {
-      return this.$store.state.scenario.abmSimpleTimes;
-    },
-    currentTimeStamp() {
-      return this.$store.state.scenario.currentTimeStamp;
-    },
-    filterSet() {
-      return this.$store.state.scenario.clusteredAbmData;
-    },
-    filterSettings() {
-      return this.$store.state.scenario.filterSettings;
-    },
-    activeAbmSet() {
-      return this.$store.state.scenario.activeAbmSet;
-    },
-    heatMapActive() {
-      return this.$store.state.scenario.heatMap;
-    },
-    animationRunning() {
-      return this.$store.state.scenario.animationRunning;
-    },
-    filterActive() {
-      return this.$store.state.scenario.filterActive;
-    },
-    showUi() {
-      return this.$store.state.scenario.showUi;
-    },
-    loop() {
-      return this.$store.state.scenario.loop;
-    },
-    stormWater() {
-      return this.$store.state.scenario.stormWater;
-    },
-    // TODO hand prop to component in order to decide which graph to show
-    selectGraph() {
-      return this.$store.state.scenario.selectGraph;
-    },
-    swResultGeoJson() {
-      return this.$store.state.scenario.swResultGeoJson;
-    },
-    rainAmount() {
-      return this.$store.state.scenario.rainAmount;
-    },
-  },
-  watch: {
-    activeAbmSet() {
-      this.getDataForTimeChart();
-    },
-    heatMapActive() {
-      if (this.heatMapActive) {
-        this.$store.commit("scenario/animationRunning", false);
-      }
-    },
-    currentTimeStamp() {
-      this.currentTime = this.currentTimeStamp;
-    },
-    selectedRange() {
-      var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
-      var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
-
-      this.heatMapRange.left = (leftVal * 100) / 57600 + "%";
-      this.heatMapRange.width = ((rightVal - leftVal) * 100) / 57600 + "%";
-    },
-    rerenderSwGraph() {
-      if (this.rerenderSwGraph) {
-        this.$store.commit("scenario/selectGraph", "sw");
-        this.prepareDataForRunOffGraph().then(() => {
-          this.renderSWGraphRunOff();
-          this.renderSWGraphRain();
-        });
-      }
-
-      this.rerenderSwGraph = false;
-    },
-    swAnimationRunning() {
-      if (this.swAnimationRunning) {
-        this.autoLoopAnimation();
-      }
-    },
-    filterSettings: {
-      deep: true,
-      handler() {
-        if (this.filterActive) {
-          this.getFilteredDataForTimeChart();
-        } else {
-          this.activeAbmTimeCoords = [];
-          this.renderTimeGraph();
-        }
       },
-    },
-  },
-};
+    });
+  }
+
+  renderSWGraphRain() {
+    console.log("rain gage", this.rainAmount);
+
+    var ctxR = (
+      document.getElementById("rainChart") as HTMLCanvasElement
+    ).getContext("2d");
+
+    if (this.rainChart) {
+      this.rainChart.destroy();
+    }
+
+    this.rainChart = new Chart(ctxR, {
+      type: "bar",
+      data: {
+        //labels: Array.from(Array(rainDataMinutes.length).keys()),
+        labels: Array.from(Array(this.rainAmount.length).keys()),
+        datasets: [
+          {
+            data: this.rainAmount,
+            //borderColor: 'rgba(16,245,229,1)',
+            backgroundColor: "rgba(255,255,255,0.5)",
+            //            fill: true,
+            //label: 'mm/m²',
+          },
+        ],
+      },
+      options: {
+        scales: {
+          x: {
+            grid: {
+              display: false,
+              color: "rgba(49,48,73,0.35)",
+            },
+            beginAtZero: true,
+            ticks: {
+              display: false,
+            },
+          },
+          y: {
+            max: 20,
+            title: {
+              display: true,
+              //position: "right",
+              text: "", // just so the graph is rendered in the same place as the runoff graph..
+            },
+            grid: {
+              display: false,
+              color: "rgba(49,48,73,0.35)",
+            },
+            suggestedMax: 20,
+            ticks: {
+              stepSize: 1,
+              maxTicksLimit: 48,
+              display: false,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  pauseAnimation() {
+    this.$store.commit("scenario/animationRunning", false);
+  }
+
+  increaseAnimationSpeed() {
+    if (this.animationSpeed <= 21) {
+      this.animationSpeed += 7;
+    } else {
+      this.animationSpeed = 7;
+    }
+
+    this.$store.commit("scenario/animationSpeed", this.animationSpeed);
+  }
+
+  /*change Time via Slider*/
+  changeCurrentTime() {
+    /*reanimate abm Tripslayer with new currentTime*/
+    if (this.animationRunning) {
+      const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
+      animate((deckLayer as any).implementation, null, null, this.currentTime);
+    }
+  }
+
+  activateComparisonGraph() {
+    this.timeFilter = true;
+    this.filterCoords = [];
+
+    if (this.filter === "No Filter") {
+      // do not filter timeCoords
+      this.filterCoords = [...this.timeCoords];
+    } else {
+      Object.values(this.abmSimpleTimes).forEach((value) => {
+        let coords = [...new Set(value[this.filterOptions[this.filter]])];
+        this.filterCoords.push(coords.length);
+      });
+
+      this.renderTimeGraph();
+    }
+    this.renderTimeGraph();
+  }
+
+  setLoop() {
+    this.loopSetter = !this.loopSetter;
+    this.$store.commit("scenario/setLoop", this.loopSetter);
+  }
+
+  autoLoopAnimation() {
+    var animationSpeed = 1;
+    var max = 288;
+
+    if (this.swAnimationRunning) {
+      if (this.rainTime + animationSpeed >= max) {
+        this.rainTime = 0;
+      } else {
+        this.rainTime = this.rainTime + animationSpeed;
+      }
+
+      this.$store.commit("scenario/rainTime", this.rainTime);
+      this.$store.dispatch("scenario/updateSWLayerTime");
+      window.requestAnimationFrame(() => {
+        this.autoLoopAnimation();
+      });
+    }
+  }
+
+  get rerenderSwGraph(): boolean {
+    return this.$store.state.scenario.rerenderSwGraph;
+  }
+
+  set rerenderSwGraph(newValue: boolean) {
+    this.$store.commit("scenario/rerenderSwGraph", newValue);
+  }
+
+  get selectedRange() {
+    return this.$store.state.scenario.selectedRange;
+  }
+
+  get abmTimePaths() {
+    return this.$store.state.scenario.abmTimePaths;
+  }
+
+  get activeTimePaths() {
+    return this.$store.state.scenario.activeTimePaths;
+  }
+
+  get abmSimpleTimes() {
+    return this.$store.state.scenario.abmSimpleTimes;
+  }
+
+  get currentTimeStamp(): number {
+    return this.$store.state.scenario.currentTimeStamp;
+  }
+  get filterSet() {
+    return this.$store.state.scenario.clusteredAbmData;
+  }
+  get filterSettings() {
+    return this.$store.state.scenario.filterSettings;
+  }
+  get activeAbmSet() {
+    return this.$store.state.scenario.activeAbmSet;
+  }
+  get heatMapActive() {
+    return this.$store.state.scenario.heatMap;
+  }
+  get animationRunning() {
+    return this.$store.state.scenario.animationRunning;
+  }
+  get filterActive(): boolean {
+    return this.$store.state.scenario.filterActive;
+  }
+  get showUi(): boolean {
+    return this.$store.state.scenario.showUi;
+  }
+  get loop() {
+    return this.$store.state.scenario.loop;
+  }
+  get stormWater() {
+    return this.$store.state.scenario.stormWater;
+  }
+  // TODO hand prop to component in order to decide which graph to show
+  get selectGraph() {
+    return this.$store.state.scenario.selectGraph;
+  }
+  get swResultGeoJson() {
+    return this.$store.state.scenario.swResultGeoJson;
+  }
+  get rainAmount() {
+    return this.$store.state.scenario.rainAmount;
+  }
+
+  @Watch("activeAbmSet")
+  activeAbmSetWatcher(): void {
+    this.getDataForTimeChart();
+  }
+
+  @Watch("heatMapActive")
+  heatMapActiveWatcher() {
+    if (this.heatMapActive) {
+      this.$store.commit("scenario/animationRunning", false);
+    }
+  }
+  @Watch("currentTimeStamp")
+  currentTimeStampWatcher() {
+    this.currentTime = this.currentTimeStamp;
+  }
+  @Watch("selectedRange")
+  selectedRangeWatcher(): void {
+    var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
+    var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
+
+    this.heatMapRange.left = (leftVal * 100) / 57600 + "%";
+    this.heatMapRange.width = ((rightVal - leftVal) * 100) / 57600 + "%";
+  }
+  @Watch("rerenderSwGraph")
+  rerenderSwGraphWatcher(): void {
+    if (this.rerenderSwGraph) {
+      this.$store.commit("scenario/selectGraph", "sw");
+      this.prepareDataForRunOffGraph().then(() => {
+        this.renderSWGraphRunOff();
+        this.renderSWGraphRain();
+      });
+    }
+
+    this.rerenderSwGraph = false;
+  }
+
+  @Watch("swAnimationRunning")
+  swAnimationRunningWatcher(): void {
+    if (this.swAnimationRunning) {
+      this.autoLoopAnimation();
+    }
+  }
+
+  @Watch("filterSettings", { deep: true })
+  filterSettingsWatcher(): void {
+    if (this.filterActive) {
+      this.getFilteredDataForTimeChart();
+    } else {
+      this.activeAbmTimeCoords = [];
+      this.renderTimeGraph();
+    }
+  }
+}
 </script>
 
 <template>
