@@ -28,6 +28,7 @@ export default {
   },
   props: {
     restrictedAccess: Boolean,
+    context: String,
   },
   data() {
     return {
@@ -194,6 +195,7 @@ export default {
     this.$store.dispatch("hideAllLayersButThese", getAbmLayerIds());
     // switch time graph to ABM
     this.$store.commit("scenario/selectGraph", "abm");
+    console.warn("context??", this.context)
   },
   methods: {
     confirmSettings() {
@@ -241,6 +243,10 @@ export default {
     loadWorkshopScenario(scenarioId) {
       this.$store.dispatch("scenario/loadWorkshopScenario", scenarioId);
     },
+    // TODO there is so much embedded logic in calling an ABM scenario for grasbrook. needs to be properly refactored
+    loadScienceCityScenario(scenarioId) {
+      this.$store.dispatch("scenario/loadScienceCityAbmScenario", scenarioId);
+    },
   },
 };
 </script>
@@ -256,7 +262,7 @@ export default {
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div
-      v-if="!restrictedAccess"
+      v-if="!restrictedAccess && context=='grasbrook'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"
@@ -462,7 +468,35 @@ export default {
     </div>
     <!--division end-->
 
-    <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
+    <!--SCENARIO DIVISION FOR ScienceCity Bahrendfeld ONLY-->
+    <div
+      v-if="context=='schb'"
+      class="division"
+      data-title="Scenario"
+      data-pic="mdi-map-marker-radius"
+    >
+      <!--v-if needs to be set to data-title to make switch between divisions possible-->
+      <div v-if="activeDivision === 'Scenario'" class="component_content">
+        <h2>Pedestrian Flow | Scenario Settings</h2>
+        <v-btn
+          @click="loadScienceCityScenario('abm_scenario_status_quo')"
+          class="scenario_main_btn"
+          block
+          >Status Quo</v-btn
+        >
+        <v-btn
+          @click="loadScienceCityScenario('abm_scenario_schb')"
+          class="scenario_main_btn"
+          block
+          >ScienceCity</v-btn
+        >
+        <v-overlay :value="resultLoading">
+          <div>Loading results</div>
+          <v-progress-linear>...</v-progress-linear>
+        </v-overlay>
+      </div>
+    
+    </div><!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
     <div
       v-if="restrictedAccess"
       class="division"
@@ -473,19 +507,19 @@ export default {
       <div v-if="activeDivision === 'Scenario'" class="component_content">
         <h2>Pedestrians Scenario Selection</h2>
         <v-btn
-          @click="loadWorkshopScenario(workshopScenarioNames[0])"
+          @click="loadScenarioByName(workshopScenarioNames[0])"
           class="scenario_main_btn"
           block
           >Scenario I</v-btn
         >
         <v-btn
-          @click="loadWorkshopScenario(workshopScenarioNames[1])"
+          @click="loadScenarioByName(workshopScenarioNames[1])"
           class="scenario_main_btn"
           block
           >Scenario II</v-btn
         >
         <v-btn
-          @click="loadWorkshopScenario(workshopScenarioNames[2])"
+          @click="loadScenarioByName(workshopScenarioNames[2])"
           class="scenario_main_btn"
           block
           >Scenario III</v-btn

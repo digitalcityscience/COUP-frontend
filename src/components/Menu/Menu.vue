@@ -18,12 +18,16 @@ export default {
   },
   props: {
     restrictedAccess: Boolean,
+    context: String,
   },
   data() {
     return {
       windowWidth: window.innerWidth,
       menuOpen: false,
     };
+  },
+  mounted() {
+    console.warn("context in menu.vue", this.context)
   },
   computed: {
     activeComponent: {
@@ -126,17 +130,17 @@ export default {
       </div>
       <div class="body_scope">
         <div v-if="activeComponent === 'AbmScenario'">
-          <AbmScenario :restrictedAccess="restrictedAccess" />
+          <AbmScenario :restrictedAccess="restrictedAccess" :context="context" />
         </div>
         <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
         <div v-if="activeComponent === 'NoiseScenario'">
-          <NoiseScenario :restrictedAccess="restrictedAccess" />
+          <NoiseScenario/>
         </div>
         <div v-if="activeComponent === 'WindScenario'">
-          <WindScenario :restrictedAccess="restrictedAccess" />
+          <WindScenario/>
         </div>
         <div v-if="activeComponent === 'SunExposureResults'">
-          <SunExposureResults :restrictedAccess="restrictedAccess" />
+          <SunExposureResults/>
         </div>
         <div v-if="activeComponent === 'MultiLayerAnalysis'">
           <MultiLayerAnalysis />
