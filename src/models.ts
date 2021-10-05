@@ -62,9 +62,11 @@ export interface ScenarioStoreState {
   clusteredAbmData: Record<any, any>;
   filterSettings: Record<any, any>;
   swResultGeoJson: Record<any, any>;
-  selectGraph: "abm" | "sw";
+  selectGraph:ScenarioWithTimeSheets;
   rainAmount: any[];
 }
+
+export type ScenarioWithTimeSheets = "abm" | "sw";
 
 export interface StoreStateWithModules extends StoreState {
   scenario: ScenarioStoreState;
