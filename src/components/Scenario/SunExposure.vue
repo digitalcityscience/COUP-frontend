@@ -13,9 +13,6 @@ export default {
     Legend,
     MenuComponentDivision,
   },
-  props: {
-    restrictedAccess: Boolean,
-  },
   data() {
     return {
       activeDivision: null,
