@@ -2,7 +2,7 @@
   <div>
     <div
       class="sw_panel panel"
-      :class="{ show: mobileTimePanel, dismiss: !controls }"
+      :class="{ show: mobileTimePanel, dismiss: !didStormWaterRun }"
     >
       <div class="sw_graph">
         <canvas id="rainChart" width="300" height="40"></canvas>
@@ -22,7 +22,7 @@
       </div>
     </div>
     <TimeSheetControl
-      v-if="controls"
+      v-if="controls && didStormWaterRun"
       @animationSpeed="animationSpeed = $event"
       @trigger-animation="triggerAnimation"
       :animationRunning="swAnimationRunning"
@@ -57,6 +57,12 @@ export default class SWTimeSheet extends Vue {
 
   @Prop({ default: true })
   controls!: boolean;
+
+  get didStormWaterRun(): boolean {
+    return (
+      this.swResultGeoJson && Object.entries(this.swResultGeoJson).length > 0
+    );
+  }
 
   get rainAmount() {
     return this.$store.state.scenario.rainAmount;
