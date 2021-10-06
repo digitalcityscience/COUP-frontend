@@ -1,5 +1,6 @@
 import { workshopScenarioNames } from "@/store/abm";
 import Amenities from "@/config/amenities.json";
+import { StoreState } from '@/models';
 
 export default class CityPyO {
   url: string;
@@ -26,29 +27,12 @@ export default class CityPyO {
     if (res.status === 200) {
       const json = await res.json();
       this.userid = json.user_id;
-      return { authenticated: true, restricted: json.restricted };
+
+
+      return { authenticated: true, restricted: json.restricted, context: json.context };
     } else {
       console.warn(res.status, res.statusText);
       return { authenticated: false };
-    }
-  }
-
-  async isUserRestricted() {
-    const res = await fetch(this.url + "isRestrictedUser", {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username: this.userid }),
-    });
-
-    if (res.status === 200) {
-      const json = await res.json();
-      return json.restricted;
-    } else {
-      console.warn(res.status, res.statusText);
-      return true;
     }
   }
 
@@ -118,9 +102,9 @@ export default class CityPyO {
     await this.performRequest(fileName, requestUrl, body);
   }
 
-  async getAbmResultLayer(id: string, scenario: AbmScenario) {
+  async getAbmResultLayer(id: string, scenario?: AbmScenario) {
     // fetch predefined workshop scenario layer
-    if (workshopScenarioNames.includes(id)) {
+    if (!scenario) {
       const responseJson = await this.getLayer(id, false);
 
       return this.formatResponse(id, responseJson.data);

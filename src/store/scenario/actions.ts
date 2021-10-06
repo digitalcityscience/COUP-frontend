@@ -34,6 +34,7 @@ import {
   request_calculation,
 } from "@/store/scenario/calculationModules";
 import { ActionContext } from "vuex";
+import scenario from '.';
 
 export default {
   async updateNoiseScenario(
@@ -203,6 +204,29 @@ export default {
       dispatch("updateWindLayer", wind_scenario);
     }
   },
+  loadScienceCityAbmScenario({state, commit, dispatch, rootState }, scenarioId: string) {
+    //show loading screen
+    commit("resultLoading", true);
+    commit("loader", true);
+
+    rootState.cityPyO.getLayer(scenarioId, false)
+    .then((result) => {
+      if (!result) {
+        alert(
+          "There was an error requesting the data from the server. Please get in contact with the admins."
+        );
+        //remove loading screen
+        commit("resultLoading", false);
+        return;
+      }
+
+      commit("loaderTxt", "Serving Abm Data ... ");
+      return dispatch("computeLoop", result.data)
+    });
+
+
+    // TODO dispatch("updateAmenitiesLayer", scenarioId);
+  },
   // TODO: adapt to new abm model with underpass_veddel_north and new results!
   loadWorkshopScenario({ state, commit, dispatch, rootState }, scenarioId) {
     const bridges = updateBridges(
@@ -369,7 +393,6 @@ export default {
     const scenarioName = workshopScenario || abmTripsLayerName;
 
     //LOAD DATA FROM CITYPYO
-
     commit("loaderTxt", "Getting ABM Simulation Data from CityPyO ... ");
     return rootState.cityPyO
       .getAbmResultLayer(scenarioName, state)

@@ -18,6 +18,7 @@ export default {
     return {
       authenticated: false,
       restrictedAccess: true,
+      context: "grasbrook",
       form: {
         username: "",
         password: "",
@@ -58,6 +59,7 @@ export default {
       const loginResult = await this.$store.dispatch("connect", userdata);
       this.authenticated = loginResult.authenticated;
       if (this.authenticated) {
+        this.context = loginResult.context;
         this.restrictedAccess = loginResult.restricted;
         this.applyCustomMapSettings();
 
@@ -127,7 +129,7 @@ export default {
       </div>
     </div>
     <template v-if="authenticated">
-      <App :restrictedAccess="restrictedAccess" />
+      <App :restrictedAccess="restrictedAccess" :context="context" />
     </template>
   </v-app>
 </template>
