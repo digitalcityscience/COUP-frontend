@@ -56,20 +56,20 @@ export default {
             Object.freeze(noiseResult.source.options.data)
           );
           // adding result to map
-          dispatch("addSourceToMap", noiseResult.source, { root: true }).then(
-            (noiseResultSource) => {
+          dispatch("addSourceToMap", noiseResult.source, { root: true })
+            .then((noiseResultSource) => {
               dispatch("addLayerToMap", NoiseLayer.layer, { root: true });
               dispatch("addTrafficCountLayer");
-            }
-      ).then((response) => {
-        return resolve(response)
-        })
-      .catch((error) => {
-        console.log("error when getting results")
-        return reject(error)
-        })
-      })
-    })
+            })
+            .then((response) => {
+              return resolve(response);
+            })
+            .catch((error) => {
+              console.log("error when getting results");
+              return reject(error);
+            });
+        });
+    });
   },
   async addTrafficCountLayer({ state, commit, dispatch, rootState }) {
     // check if traffic counts already in store, otherwise load them from cityPyo
@@ -184,7 +184,7 @@ export default {
       const newResults =
         !state.windResultGeoJson ||
         source.options.data.features.length >
-        state.windResultGeoJson["features"].length;
+          state.windResultGeoJson["features"].length;
 
       if (receivedCompleteResult || newResults) {
         // todo use timestamP??
@@ -413,7 +413,7 @@ export default {
       });
   },
   //compute ABM Data Set
-  computeLoop({ state, commit, dispatch, rootState }, abmCore:any[]) {
+  computeLoop({ state, commit, dispatch, rootState }, abmCore: any[]) {
     const agentIndexes = {};
     const abmFilterData = {};
     const timePaths = [];
@@ -488,7 +488,7 @@ export default {
           who.agent.resident_or_visitor
         ] =
           simpleTimeData[Math.floor(v / 300) * 300][
-          who.agent.resident_or_visitor
+            who.agent.resident_or_visitor
           ] || [];
         simpleTimeData[Math.floor(v / 300) * 300]["all"].push(agent_id);
         simpleTimeData[Math.floor(v / 300) * 300][who.agent.mode].push(
@@ -654,17 +654,19 @@ export default {
       rootState.map?.flyTo({ zoom: 15, pitch: 45, speed: 0.2 });
     });
   },
-  addSWLayer({ state, commit, dispatch, rootState }) {
-    buildSWLayer(state.swResultGeoJson, state.rainTime).then((deckLayer) => {
-      if (rootState.map?.getLayer(swLayerName)) {
-        rootState.map?.removeLayer(swLayerName);
-      }
 
-      console.log("stormwater layer loaded");
-      rootState.map?.addLayer(deckLayer);
-      commit("addLayerId", swLayerName, { root: true });
-    });
+  async transformSWLayerData({ state, commit, dispatch, rootState }) {
+    const deckLayer = await buildSWLayer(state.swResultGeoJson, state.rainTime);
+    if (rootState.map?.getLayer(swLayerName)) {
+      rootState.map?.removeLayer(swLayerName);
+    }
 
+    console.log("stormwater layer loaded");
+    rootState.map?.addLayer(deckLayer);
+    commit("addLayerId", swLayerName, { root: true });
+  },
+  async addSWLayer({ state, commit, dispatch, rootState }) {
+    await dispatch("transformSWLayerData");
     console.log("adding trees", Trees.source, Trees.layer);
     rootState.cityPyO.getLayer(Trees.source.data.id).then((source) => {
       dispatch("addSourceToMap", source, { root: true }).then(() => {
@@ -729,7 +731,7 @@ function updateBridges(bridge_hafencity, underpass_veddel) {
 function isNoiseScenarioMatching(noiseDataSet, noiseScenario) {
   return (
     noiseDataSet["noise_scenario"]["traffic_quota"] ==
-    noiseScenario.traffic_quota &&
+      noiseScenario.traffic_quota &&
     noiseDataSet["noise_scenario"]["max_speed"] == noiseScenario.max_speed
   );
 }
