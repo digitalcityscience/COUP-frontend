@@ -1,10 +1,25 @@
-<script>
+<script lang="ts">
 import { mapState } from "vuex";
-import Chart from 'chart.js/auto';
+import Chart from "chart.js/auto";
+import { color } from "chart.js/helpers";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 Chart.unregister(ChartDataLabels);
 import { generateStoreGetterSetter } from "@/store/utils/generators";
-
+const chartColors: Record<string | number, string> = {
+  grasbrook: "lightgrey",
+  1: "#e172d8",
+  2: "#eda361",
+  3: "#8712cf",
+  4: "#d37373",
+  5: "#32cd17",
+  6: "#2bca5b",
+  7: "#1a51d1",
+  8: "#d2c74f",
+  9: "#56ebc8",
+  10: "#ed80b3",
+  11: "#6a4fef",
+  12: "#70b6c9",
+};
 export default {
   name: "DashboardCharts",
   data() {
@@ -13,21 +28,6 @@ export default {
       barChart: null,
       radarChartReady: false,
       barChartReady: false,
-      chartColors: {
-        grasbrook: "lightgrey",
-        1: "#e172d8",
-        2: "#eda361",
-        3: "#8712cf",
-        4: "#d37373",
-        5: "#32cd17",
-        6: "#2bca5b",
-        7: "#1a51d1",
-        8: "#d2c74f",
-        9: "#56ebc8",
-        10: "#ed80b3",
-        11: "#6a4fef",
-        12: "#70b6c9",
-      },
     };
   },
   mounted() {
@@ -50,9 +50,9 @@ export default {
       console.log("rendering bar chart");
 
       /*render graph via chart.js*/
-      var ctx = document.getElementById("barChart").getContext("2d");
-      var chartColors = this.chartColors;
-
+      var ctx = (
+        document.getElementById("barChart") as HTMLCanvasElement
+      ).getContext("2d");
       // create datasets
       let datasets = [];
       let units = this.amenityStats["units"];
@@ -95,45 +95,40 @@ export default {
 
       this.barChart = new Chart(ctx, {
         plugins: [ChartDataLabels],
-        type: "horizontalBar",
+        type: "bar",
         data: {
           labels: labels,
           datasets: datasets,
         },
         options: {
-          legend: {
-            display: false,
-          },
+          indexAxis: "y", // this makes the chart behive like a horizontalBar
           scales: {
-            xAxes: [
-              {
-                stacked: false,
-                gridLines: {
-                  color: "rgba(49,48,73,0.35)",
-                },
+            x: {
+              stacked: false,
+              grid: {
+                color: "rgba(49,48,73,0.35)",
               },
-            ],
-            yAxes: [
-              {
-                stacked: false,
-                gridLines: {
-                  color: "rgba(49,48,73,0.35)",
-                },
+            },
+            y: {
+              stacked: false,
+              grid: {
+                color: "rgba(49,48,73,0.35)",
               },
-            ],
+            },
           },
-          tooltips: {
-            enabled: true,
-            bodyFontStyle: "bold",
-            callbacks: {
-              label: function (tooltipItem, data) {
-                //This will be the tooltip.body
-                const value =
-                  data.datasets[tooltipItem.datasetIndex].notes[
-                    "originalValues"
-                  ][tooltipItem.index];
-                const unit = units[tooltipItem.index];
-                return value.toString() + " " + unit;
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                label: function (tooltipItem) {
+                  //This will be the tooltip.body
+                  const value = tooltipItem.dataset.data[tooltipItem.dataIndex];
+                  const unit = units[tooltipItem.dataIndex];
+                  return value.toString() + " " + unit;
+                },
               },
             },
           },
@@ -157,9 +152,9 @@ export default {
       }
 
       /*render graph via chart.js*/
-      var ctx = document.getElementById("radarChart").getContext("2d");
-      var color = Chart.helpers.color;
-      var chartColors = this.chartColors;
+      const ctx = (
+        document.getElementById("radarChart") as HTMLCanvasElement
+      ).getContext("2d");
 
       // create datasets
       let datasets = [];
@@ -181,16 +176,16 @@ export default {
         const focusArea = key;
         let displayLabels = "auto";
         if (Object.keys(this.abmStats).length < 2) {
-          displayLabels = focusArea === "grasbrook" ? "auto" : true; // prioritize stats for focusArea over grasbrook
+          displayLabels = focusArea === "grasbrook" ? "auto" : "true"; // prioritize stats for focusArea over grasbrook
         }
-
+        const colorToUse = color(chartColors[focusArea]);
         let dataset = {
           data: Object.values(results["scaledResults"]),
           label: "Focus Area: " + focusArea.toString(),
-          backgroundColor: color(chartColors[focusArea]).alpha(0.2),
-          hoverBackgroundColor: color(chartColors[focusArea]).alpha(0.2),
-          borderColor: chartColors[focusArea],
-          pointBackgroundColor: color(chartColors[focusArea]).alpha(0.2),
+          backgroundColor: colorToUse.alpha(0.2).rgbString(),
+          hoverBackgroundColor: colorToUse.alpha(0.2).rgbString(),
+          borderColor: colorToUse.rgbString(),
+          pointBackgroundColor: colorToUse.alpha(0.2).rgbString(),
           notes: {
             originalValues: Object.values(results["original"]),
             units: units,
@@ -246,46 +241,42 @@ export default {
           datasets: datasets,
         },
         options: {
-          legend: {
-            display: false,
-          },
-          title: {
-            display: false,
-          },
-          scale: {
-            pointLabels: {
-              display: false,
-              //fontStyle: "bolder",
-            },
-            gridLines: {
-              display: true,
-              circular: true,
-              color: "#444",
-            },
-            ticks: {
-              display: false,
-              // beginAtZero: true
-            },
-          },
-          tooltips: {
-            enabled: true,
-            bodyFontStyle: "bold",
-            title: "",
-            callbacks: {
-              title: function (tooltipItem, data) {
-                return data.labels[tooltipItem[0].index];
+          scales: {
+            r: {
+              grid: {
+                display: true,
+                circular: true,
+                color: "#444",
               },
-              label: function (tooltipItem, data) {
-                //This will be the tooltip.body
-                const value =
-                  data.datasets[tooltipItem.datasetIndex].notes[
-                    "originalValues"
-                  ][tooltipItem.index];
-                const unit =
-                  data.datasets[tooltipItem.datasetIndex].notes["units"][
-                    tooltipItem.index
-                  ];
-                return value + " " + unit;
+              pointLabels: {
+                display: false,
+              },
+              beginAtZero: true,
+              ticks: {
+                display: false,
+                callback: function () {
+                  return "";
+                },
+                backdropColor: "rgba(0, 0, 0, 0)",
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              enabled: true,
+              callbacks: {
+                title: function (tooltipItem) {
+                  return tooltipItem[0].label;
+                },
+                label: function (tooltipItem) {
+                  //This will be the tooltip.body
+                  const value = tooltipItem.dataset.data[tooltipItem.dataIndex];
+                  const unit = units[tooltipItem.dataIndex];
+                  return value.toString() + " " + unit;
+                },
               },
             },
           },
