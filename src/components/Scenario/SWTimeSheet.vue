@@ -85,8 +85,8 @@ export default class SWTimeSheet extends Vue {
   }
 
   autoLoopAnimation(): void {
-    var animationSpeed = 1;
-    var max = 288;
+    const animationSpeed = 1;
+    const max = 288;
 
     if (this.swAnimationRunning) {
       if (this.rainTime + animationSpeed >= max) {
@@ -95,8 +95,7 @@ export default class SWTimeSheet extends Vue {
         this.rainTime = this.rainTime + animationSpeed;
       }
 
-      this.$store.commit("scenario/rainTime", this.rainTime);
-      this.$store.dispatch("scenario/updateSWLayerTime");
+      this.updateSWLayer();
       window.requestAnimationFrame(() => {
         this.autoLoopAnimation();
       });
@@ -318,7 +317,7 @@ export default class SWTimeSheet extends Vue {
   // update the time-dependend stormwater deck.gl layer, if the time in the slider changes.
   updateSWLayer() {
     this.$store.commit("scenario/rainTime", this.rainTime);
-    this.$store.dispatch("scenario/updateSWLayerTime");
+    this.$store.dispatch("scenario/transformSWLayerData");
   }
 
   renderSWGraphRain() {
