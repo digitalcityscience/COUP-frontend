@@ -267,9 +267,6 @@ export default class SWTimeSheet extends Vue {
       options: {
         scales: {
           y: {
-            /*ticks: {
-                        beginAtZero: true
-                        },*/
             max: yAxixMax,
             title: {
               display: true,
@@ -363,7 +360,7 @@ export default class SWTimeSheet extends Vue {
             title: {
               display: true,
               //position: "right",
-              text: "", // just so the graph is rendered in the same place as the runoff graph..
+              text: "a", // just so the graph is rendered in the same place as the runoff graph..
             },
             grid: {
               display: false,
@@ -375,6 +372,11 @@ export default class SWTimeSheet extends Vue {
               maxTicksLimit: 48,
               display: false,
             },
+          },
+        },
+        plugins: {
+          legend: {
+            display: false,
           },
         },
       },
