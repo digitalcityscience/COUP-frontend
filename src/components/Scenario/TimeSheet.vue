@@ -302,7 +302,10 @@ export default class TimeSheet extends Vue {
       ui_hide: !showUi || (activeAbmSet == null && stormWater == false),
     }"
   >
-    <span :class="{ dismiss: selectGraph !== 'abm' }">
+    <span
+      :hidden="selectGraph !== 'abm'"
+      :class="{ dismiss: selectGraph !== 'abm' }"
+    >
       <div
         class="time_panel panel"
         :class="{ show: mobileTimePanel, dismiss: selectGraph !== 'abm' }"
@@ -342,6 +345,7 @@ export default class TimeSheet extends Vue {
       />
     </span>
     <SWTimeSheet
+      :hidden="selectGraph !== 'sw'"
       :class="{ dismiss: selectGraph !== 'sw' }"
       :controls="selectGraph === 'sw'"
     />
