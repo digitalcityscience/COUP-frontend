@@ -26,9 +26,6 @@ export default {
       menuOpen: false,
     };
   },
-  mounted() {
-    console.warn("context in menu.vue", this.context)
-  },
   computed: {
     activeComponent: {
       get() {
@@ -62,9 +59,13 @@ export default {
       </template>
     </div>
     <div class="menu_wrapper">
-      <div class="header_scope">
+      <div v-if="context=='grasbrook'" class="header_scope">
         <h3>Grasbrook CityScope</h3>
         <p>Tool for Functional Planning</p>
+      </div>
+      <div v-if="context=='schb'" class="header_scope">
+        <h3>Science City</h3>
+        <p>Competition Tool</p>
       </div>
       <div class="component_switch">
         <template v-if="windowWidth >= 720">
