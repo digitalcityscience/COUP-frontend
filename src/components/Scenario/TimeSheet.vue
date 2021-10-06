@@ -302,7 +302,6 @@ export default class TimeSheet extends Vue {
       ui_hide: !showUi || (activeAbmSet == null && stormWater == false),
     }"
   >
-    selectGraph: {{ selectGraph }}
     <span :class="{ dismiss: selectGraph !== 'abm' }">
       <div
         class="time_panel panel"
