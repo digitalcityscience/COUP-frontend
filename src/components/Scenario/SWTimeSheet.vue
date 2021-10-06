@@ -2,7 +2,10 @@
   <div>
     <div
       class="sw_panel panel"
-      :class="{ show: mobileTimePanel, dismiss: !didStormWaterRun }"
+      :class="{
+        show: mobileTimePanel,
+        dismiss: !didStormWaterRun || !mobileTimePanel,
+      }"
     >
       <div class="sw_graph">
         <canvas id="rainChart" width="300" height="40"></canvas>
@@ -26,6 +29,7 @@
       @animationSpeed="animationSpeed = $event"
       @trigger-animation="triggerAnimation"
       :animationRunning="swAnimationRunning"
+      @toggle-graph="mobileTimePanel = $event"
     />
   </div>
 </template>

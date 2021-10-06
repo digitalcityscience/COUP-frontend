@@ -3,6 +3,18 @@
     <div class="btn_wrapper">
       <v-tooltip right>
         <template v-slot:activator="{ on, attrs }">
+          <v-btn @click="toggleGraph">
+            <v-icon v-bind="attrs" v-on="on">{{
+              showGraph ? "mdi-minus" : "mdi-timetable"
+            }}</v-icon>
+          </v-btn>
+        </template>
+        <span>{{ showGraph ? "Hide" : "Show" }} Graph</span>
+      </v-tooltip>
+    </div>
+    <div class="btn_wrapper">
+      <v-tooltip right>
+        <template v-slot:activator="{ on, attrs }">
           <v-btn @click="increaseAnimationSpeed">
             <v-icon v-bind="attrs" v-on="on">mdi-fast-forward</v-icon>
           </v-btn>
@@ -53,6 +65,7 @@ export default class TimeSheetControl extends Vue {
 
   checkState = false;
   animationSpeed = 21;
+  showGraph = false;
 
   get windowWidth(): number {
     return window.innerWidth;
@@ -66,9 +79,19 @@ export default class TimeSheetControl extends Vue {
     return true;
   }
 
+  @Emit()
+  toggleGraph(): boolean {
+    this.showGraph = !this.showGraph;
+    return this.showGraph;
+  }
+
   @Emit("animationSpeed")
   animationSpeedChanged(): number {
     return this.animationSpeed;
+  }
+
+  mounted(): void {
+    this.toggleGraph();
   }
 
   increaseAnimationSpeed(): void {

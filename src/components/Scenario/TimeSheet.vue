@@ -47,7 +47,7 @@ export default class TimeSheet extends Vue {
   currentTime = 0;
   loopSetter = false;
   windowWidth = window.innerWidth;
-  mobileTimePanel = false;
+  showGraph = true;
 
   triggerAnimation(): void {
     /*functionality for play button*/
@@ -299,7 +299,7 @@ export default class TimeSheet extends Vue {
   <div
     id="timesheet"
     :class="{
-      ui_hide: !showUi || (activeAbmSet == null && stormWater == false),
+      ui_hide: !showUi,
     }"
   >
     <span
@@ -308,7 +308,10 @@ export default class TimeSheet extends Vue {
     >
       <div
         class="time_panel panel"
-        :class="{ show: mobileTimePanel, dismiss: selectGraph !== 'abm' }"
+        :class="{
+          show: showGraph,
+          dismiss: selectGraph !== 'abm' || !showGraph,
+        }"
       >
         <div class="time_graph">
           <canvas id="timeChart" width="300" height="200"></canvas>
@@ -336,12 +339,12 @@ export default class TimeSheet extends Vue {
           </p>
         </div>
       </div>
-
       <TimeSheetControl
         v-if="selectGraph === 'abm'"
         @trigger-animation="triggerAnimation"
-        :animationRunning="animationRunning"
+        :animation-running="animationRunning"
         @animationSpeed="animationSpeed = $event"
+        @toggle-graph="showGraph = $event"
       />
     </span>
     <SWTimeSheet
@@ -515,10 +518,6 @@ export default class TimeSheet extends Vue {
 
       .time_slider {
         width: 90%;
-      }
-
-      &.show {
-        transform: translateY(0);
       }
     }
   }
