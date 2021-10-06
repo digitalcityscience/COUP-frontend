@@ -9,7 +9,7 @@
           no-gutters
           v-for="category in legend.categories"
           v-bind:key="category.label"
-          class="px-1 category-color"
+          class="px-1 py-5 category-color"
           cols="1"
         >
           <div
