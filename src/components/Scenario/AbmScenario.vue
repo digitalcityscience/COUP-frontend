@@ -753,6 +753,48 @@ export default {
     >
       <h2>Pedestrian Flow | About</h2>
       <br />
+      <div class="info_section">
+        <h4>PEDESTRIANS - HUMAN AGENTS</h4>
+        <div class="info_text">
+          The model simulates the expected flow of people throughout the day as
+          they move through the neighborhood footpath network. Human agents in
+          the district, including residents, office workers / employees, and
+          visitors (e.g. to the museum) are assigned basic daily routines.
+          Within these routines, a certain degree of variability is modelled,
+          depending on the availability (distance) of different amenities and
+          assigned agent preferences. For example, a daily routine might look
+          like: Home-Work-Lunch-Work-Leisure-Home. During the lunchtime part of
+          the routine, an agent might be assigned to leave the office anytime
+          between 11am and 3pm, and search for a place to eat given a preference
+          ranking of (1) cafeteria, (2) restaurant, (3) cafe. Then, the agent
+          would select whichever type is available within a certain walking
+          distance and return to work afterwards.
+        </div>
+
+        <h4>AMENITIES</h4>
+        <div class="info_text">
+          Amenities, in particular ground floor uses relevant to the public
+          (e.g. shops, restaurants, cafes) and keystone social and cultural
+          amenities (e.g. museum, school), are explored as drivers of pedestrian
+          activity.
+        </div>
+
+        <h4>VALIDATION</h4>
+        <div class="info_text">
+          To validate the approach, the model was applied to neighboring
+          HafenCity for which some pedestrian counting data are available. The
+          model showed a strong relative fit for the distribution of
+          pedestrians. This indicates that the model assumptions can reasonably
+          be used to compare future scenarios in the Hamburg context.
+        </div>
+        <h4>GAMA SIMULATION SOFTWARE</h4>
+        <div class="info_text">
+          Pedestrian flow simulations are performed using GAMA, a software for
+          spatially explicit agent based modelling. GAMA is a free software
+          published under a GNU Free Documentation License, Version 1.3 or
+          later.
+        </div>
+      </div>
     </MenuDivision>
 
     <!--<v-expansion-panels>
