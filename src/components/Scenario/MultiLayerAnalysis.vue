@@ -142,7 +142,7 @@ export default {
           icon: "mdi-map-marker-radius",
           hidden: false,
           default: true,
-        }
+        },
       ];
     },
   },
@@ -556,7 +556,7 @@ export default {
             <!-- per row: check button. AND/OR selector. slider per v-select -->
             <!-- set slider min max dynamically -->
             <div v-if="layersReadyToCompare.length >= 2">
-              <v-row align="center" class="mb-0">
+              <v-row no-gutters>
                 <v-select
                   :items="layersReadyToCompare"
                   v-model="layerChoice_1"
@@ -570,8 +570,6 @@ export default {
                   dark
                   hide-details
                 ></v-select>
-              </v-row>
-              <v-row>
                 <v-select
                   :items="layersReadyToCompare"
                   v-model="layerChoice_2"
@@ -589,7 +587,7 @@ export default {
             </div>
             <!-- Layers not available?? Load defaults! -->
             <div v-if="missingInputScenarios.length">
-              <v-row class="mb-0" align="start">
+              <v-row no-gutters class="mb-0" align="start">
                 <v-col cols="10">
                   <v-card
                     class="pa-0"
@@ -622,8 +620,8 @@ export default {
                 v-if="showMissingScenarios"
                 no-gutters
                 v-for="layerName in missingInputScenarios"
+                :key="layerName"
                 class="mb-2 ml-0"
-                style=""
               >
                 <v-col cols="2" xs="3">
                   <v-card class="mr-2" tile dark style="">
