@@ -44,7 +44,6 @@ export default class TimeSheet extends Vue {
   };
   minTime = 0;
   maxTime = 0;
-  currentTime = 0;
   loopSetter = false;
   windowWidth = window.innerWidth;
   showGraph = true;
@@ -177,11 +176,12 @@ export default class TimeSheet extends Vue {
   }
 
   /*change Time via Slider*/
-  changeCurrentTime() {
+  changeCurrentTime(newTime: number): void {
     /*reanimate abm Tripslayer with new currentTime*/
+    this.currentTimeStamp = newTime;
     if (this.animationRunning) {
       const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-      animate((deckLayer as any).implementation, null, null, this.currentTime);
+      animate((deckLayer as any).implementation, null, null, newTime);
     }
   }
 
@@ -227,6 +227,14 @@ export default class TimeSheet extends Vue {
   get currentTimeStamp(): number {
     return this.$store.state.scenario.currentTimeStamp;
   }
+
+  set currentTimeStamp(updatedTime: number) {
+    this.$store.commit(
+      "scenario/currentTimeStamp",
+      updatedTime + this.animationSpeed
+    );
+  }
+
   get filterSet() {
     return this.$store.state.scenario.clusteredAbmData;
   }
@@ -270,10 +278,7 @@ export default class TimeSheet extends Vue {
       this.$store.commit("scenario/animationRunning", false);
     }
   }
-  @Watch("currentTimeStamp")
-  currentTimeStampWatcher() {
-    this.currentTime = this.currentTimeStamp;
-  }
+
   @Watch("selectedRange")
   selectedRangeWatcher(): void {
     var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
@@ -322,7 +327,7 @@ export default class TimeSheet extends Vue {
               thumb-label="always"
               :min="minTime"
               :max="57600"
-              v-model="currentTime"
+              :value="currentTimeStamp"
               @change="changeCurrentTime"
             ></v-slider>
           </div>
