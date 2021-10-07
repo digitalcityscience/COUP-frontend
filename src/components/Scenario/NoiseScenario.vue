@@ -210,7 +210,11 @@ export default {
             Save
           </v-btn>
           <!--saved scenarios -->
-          <div class="saved_scenarios" style="margin-top: 10vh">
+          <div
+            class="saved_scenarios"
+            style="margin-top: 10vh"
+            v-if="savedNoiseScenarios && savedNoiseScenarios.length > 0"
+          >
             <!-- todo : make this the same as headers of info section! -->
             <h4>RELOAD A SAVED SCENARIO</h4>
             <v-data-iterator
