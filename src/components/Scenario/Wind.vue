@@ -257,7 +257,7 @@ export default {
           </p>
           <v-btn
             @click="confirmWindScenario"
-            class="confirm_btn"
+            class="confirm_btn mt-2"
             :class="{ changesMade: resultOutdated }"
             :disabled="resultLoading || showError"
           >

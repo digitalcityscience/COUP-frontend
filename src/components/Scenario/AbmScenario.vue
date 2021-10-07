@@ -195,7 +195,7 @@ export default {
     this.$store.dispatch("hideAllLayersButThese", getAbmLayerIds());
     // switch time graph to ABM
     this.$store.commit("scenario/selectGraph", "abm");
-    console.warn("context??", this.context)
+    console.warn("context??", this.context);
   },
   methods: {
     confirmSettings() {
@@ -262,7 +262,7 @@ export default {
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div
-      v-if="!restrictedAccess && context=='grasbrook'"
+      v-if="!restrictedAccess && context == 'grasbrook'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"
@@ -450,19 +450,19 @@ export default {
               />
             </v-radio-group>
           </div>
-        </v-container>
-        <v-btn
-          @click="confirmSettings"
-          class="confirm_btn"
-          :class="{ changesMade: resultOutdated }"
-        >
-          Run Scenario
-        </v-btn>
+          <v-btn
+            @click="confirmSettings"
+            class="confirm_btn mt-2"
+            :class="{ changesMade: resultOutdated }"
+          >
+            Run Scenario
+          </v-btn>
 
-        <v-overlay :value="resultLoading">
-          <div>Loading results</div>
-          <v-progress-linear>...</v-progress-linear>
-        </v-overlay>
+          <v-overlay :value="resultLoading">
+            <div>Loading results</div>
+            <v-progress-linear>...</v-progress-linear>
+          </v-overlay>
+        </v-container>
       </div>
       <!--component_content end-->
     </div>
@@ -470,7 +470,7 @@ export default {
 
     <!--SCENARIO DIVISION FOR ScienceCity Bahrendfeld ONLY-->
     <div
-      v-if="context=='schb'"
+      v-if="context == 'schb'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"
@@ -495,8 +495,8 @@ export default {
           <v-progress-linear>...</v-progress-linear>
         </v-overlay>
       </div>
-    
-    </div><!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
+    </div>
+    <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
     <div
       v-if="restrictedAccess"
       class="division"

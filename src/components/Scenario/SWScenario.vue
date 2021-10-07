@@ -291,7 +291,7 @@ export default {
           <p v-if="showError" class="warning">{{ errorMsg }}</p>
           <v-btn
             @click="runScenario()"
-            class="confirm_btn"
+            class="confirm_btn mt-2"
             :class="{ changesMade: resultOutdated }"
             :disabled="resultLoading"
           >

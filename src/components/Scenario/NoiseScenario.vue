@@ -189,7 +189,7 @@ export default {
           <p v-if="showError" class="warning">{{ errMsg }}</p>
           <v-btn
             @click="loadNoiseResults"
-            class="confirm_btn"
+            class="confirm_btn mt-2"
             :class="{ changesMade: resultOutdated }"
             :disabled="resultLoading || showError"
           >

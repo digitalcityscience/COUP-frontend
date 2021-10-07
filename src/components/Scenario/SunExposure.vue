@@ -99,11 +99,7 @@ export default {
               Hours of sunlight per day averaged over a year
             </header>
           </div>
-          <v-btn
-            style="margin-top: 1vh"
-            @click="loadResult()"
-            class="confirm_btn"
-          >
+          <v-btn @click="loadResult()" class="confirm_btn mt-2">
             Run Scenario
           </v-btn>
         </v-container>
