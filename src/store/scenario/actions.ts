@@ -204,6 +204,7 @@ export default {
       dispatch("updateWindLayer", wind_scenario);
     }
   },
+  // TODO: how do we realize 1 central function for all users?
   loadScienceCityAbmScenario({state, commit, dispatch, rootState }, scenarioId: string) {
     //show loading screen
     commit("resultLoading", true);
@@ -241,20 +242,17 @@ export default {
   },
   updateAbmDesignScenario({ state, commit, dispatch, rootState }) {
     /*    // reset all abm data
-    commit("abmData", null)
     commit("abmTrips", null)
     commit("agentIndexes", null)
     commit("clusteredAbmData", null)
     commit("activeAbmSet", null)   // same as abmDat}
     commit("abmObject", null)
     commit("abmTimePaths", null)
-    commit("activeTimePaths", null)
     commit("abmS  impleTimes", null)
     commit("abmWeightCount", null)
     commit("updateAbmStatsChart", false)
     commit("updateAmenityStatsChart", false)
-    commit("filterActive", false)
-    commit("filterSettings", null)*/
+    */
 
     const bridges = updateBridges(
       state.moduleSettings.bridge_hafencity,
@@ -415,7 +413,6 @@ export default {
   //compute ABM Data Set
   computeLoop({ state, commit, dispatch, rootState }, abmCore: any[]) {
     const agentIndexes = {};
-    const abmFilterData = {};
     const timePaths = [];
     const simpleTimeData = {};
     const trips = [];
@@ -439,22 +436,9 @@ export default {
         }
       }
 
-      // #2 Clustering Agent Sets for faster Filtering in Frontend
-      // ---------------- FILTER SET -----------------------------
-      for (const [key, value] of Object.entries(who.agent)) {
-        if (`${key}` !== "id" && `${key}` !== "source") {
-          if (`${value}` !== "unknown" && `${value}` !== "nil") {
-            abmFilterData[`${value}`] = abmFilterData[`${value}`] || [];
-            abmFilterData[`${value}`].push(agent_id);
-          }
-        }
-      }
-
-      // ---------------- FILTER SET END--------------------------
-
-      // #3 Clustering TIME DATA for Aggregation Layer
+      // #2 Clustering TIME DATA for Aggregation Layer
       // ---------------- TIME DATA ------------------------------
-
+      // TODO refactor!!!
       commit("loaderTxt", "Analyzing Time Data ... ");
       who.timestamps.forEach((v, i, a) => {
         /*round timestamps to full hours*/
@@ -474,6 +458,8 @@ export default {
 
         /*simpleTimeData[v] = simpleTimeData[v] || [];
         simpleTimeData[v].push(agent_id);*/
+
+        // TODO 300 ?? what is 300??
 
         commit("loaderTxt", "Creating Simple Time Data Arrays ... ");
         simpleTimeData[Math.floor(v / 300) * 300] =
@@ -514,9 +500,7 @@ export default {
 
     //Commit computed results to the store
     commit("agentIndexes", Object.freeze(agentIndexes));
-    commit("clusteredAbmData", Object.freeze(abmFilterData));
     commit("abmTimePaths", Object.freeze(timePaths));
-    commit("activeTimePaths", Object.freeze(timePaths));
     commit("abmTrips", Object.freeze(trips));
 
     console.log("trips size: ", trips?.length);
@@ -534,7 +518,7 @@ export default {
   },
   buildLayers({ state, commit, dispatch, rootState }) {
     const tripsLayerData = state.activeAbmSet;
-    const heatLayerData = state.activeTimePaths;
+    const heatLayerData = state.abmTimePaths;
     const currentTimeStamp = 0;
     const heatLayerFormed = [];
 
@@ -581,11 +565,12 @@ export default {
       }
     );
   },
+  // this updates ABM related layers only
   updateLayers({ state, commit, dispatch, rootState }, layer) {
     const range = state.selectedRange;
     const type = state.heatMapType;
     const tripsLayerData = state.activeAbmSet;
-    const heatLayerData = state.activeTimePaths;
+    const heatLayerData = state.abmTimePaths;
     const currentTimeStamp = state.currentTimeStamp;
     const heatLayerFormed = [];
 
@@ -677,43 +662,7 @@ export default {
       });
     });
   },
-  filterAbmCore({ state, commit, dispatch, rootState }, filterSettings) {
-    const abmData = state.activeAbmSet;
-    const timePaths = state.abmTimePaths;
-    const filterSet = { ...state.clusteredAbmData };
-    const spliceArr = [];
-
-    Object.entries(filterSettings).forEach(([key, value]) => {
-      if (value === true) {
-        delete filterSet[key];
-      } else {
-        filterSet[key].forEach((v) => {
-          spliceArr.push(v);
-        });
-      }
-    });
-
-    const filteredTimePaths = JSON.parse(JSON.stringify(timePaths));
-    console.log(filteredTimePaths);
-    const filteredAbm = abmData.filter((v) => !spliceArr.includes(v.agent.id));
-    Object.entries(filteredTimePaths).forEach(([key, value]) => {
-      if (value) {
-        filteredTimePaths[key].busyAgents = filteredTimePaths[
-          key
-        ].busyAgents.filter((v) => !spliceArr.includes(v));
-      }
-    });
-
-    console.log("new Filter Setting applied");
-    commit("activeAbmSet", Object.freeze(filteredAbm));
-    commit("activeTimePaths", Object.freeze(filteredTimePaths));
-    dispatch("updateLayers", "all").then(() => {
-      dispatch("updateLayerOrder", { root: true });
-    });
-    console.log("updating layer order");
-    commit("loader", false);
-  },
-};
+ };
 
 function updateBridges(bridge_hafencity, underpass_veddel) {
   const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there

@@ -1,36 +1,23 @@
-import { bridges, filterOptions, roofAmenitiesOptions } from "@/store/abm";
+import { bridges, roofAmenitiesOptions } from "@/store/abm";
 
 export default {
+  // ABM
   bridges: [bridges.bridge_hafencity],
-  resultLoading: false,
-  loader: true,
-  loaderTxt: "data is loading ... ",
-  abmData: null,
   abmTrips: null,
   agentIndexes: null,
-  clusteredAbmData: null,
-  activeAbmSet: null, // same as abmData
+  activeAbmSet: null,
   abmObject: {},
   abmTimePaths: null,
-  activeTimePaths: null,
   abmSimpleTimes: null,
   abmWeightCount: null,
   abmStats: {},
   abmStatsMultiLayer: {},
-  amenityStats: {},
   amenityStatsMultiLayer: {},
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
-  filterActive: false,
-  filterSettings: null,
-  noiseResults: [],
-  trafficCounts: null,
-  noiseScenario: {
-    traffic_quota: 1,
-    max_speed: 50,
-  },
-  currentNoiseGeoJson: null,
-  currentlyShownScenarioSettings: {},
+  
+
+  currentlyShownScenarioSettings: {},   // TODO is this ABM specific??
   resultOutdated: true, // in the beginning no results are shown. Trigger user to request results.
   moduleSettings: {
     bridge_hafencity: true,
@@ -39,38 +26,44 @@ export default {
     blocks: "open",
     main_street_orientation: "vertical",
   },
-  scenarioViewFilters: {
-    agent_age: ["0-6", "7-17", "18-35", "36-60", "61-100"], // all ages activated
-    resident_or_visitor: filterOptions.any,
-    modes: {
-      bicycle: true,
-      car: true,
-      foot: true,
-      public_transport: true,
-    },
-  },
-  loop: false,
-  setLoop: false,
-  currentTimeStamp: 0,
-  animationRunning: false,
-  animationSpeed: 7,
+  
+  animationRunning: false, // TODO is this really abm specific or for all timeChart components??
+  animationSpeed: 7, // // TODO is this really abm specific or for all timeChart components??
   heatMapData: [],
   heatMapAverage: [],
   heatMapType: "default",
-  heatMap: false,
-  heatMapVisible: true,
-  selectedRange: [8, 23],
+  
+  selectedRange: [8, 23],  // i think this is time filter for the heatmap
+  
+  // layers
   noiseMap: false,
   stormWater: false,
   windLayer: false,
   sunExposureLayer: false,
   multiLayerAnalysisMap: false,
+  heatMap: false,
+  heatMapVisible: true,
+  
+  // UI
+  loop: false,
+  setLoop: false,
+  currentTimeStamp: 0,
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
-  amenitiesGeoJson: null,
   selectedFocusAreas: [],
-  windScenarioHash: "158d2b824886d908440da5c5f6c4dc4f815cdeba", // hash for annual average setting
+  resultLoading: false,
+  loader: true,
+  loaderTxt: "data is loading ... ",
+  
+  
+  // Amenities
+  amenitiesGeoJson: null,
+  amenityStats: {},
+  
+  
+  // wind
+  windScenarioHash: "158d2b824886d908440da5c5f6c4dc4f815cdeba", // hash for annual average setting // TODO DELETE?
   currentWindScenario: {
     wind_speed: 5,
     wind_direction: 270,
@@ -92,11 +85,29 @@ export default {
       label: "STRONG BREEZE",
     },
   ],
-  savedNoiseScenarios: [],
   windResultGeoJson: null,
+  
+  // sun
   sunExposureGeoJson: null,
-  junctions: {},
+  
+  
+  // noise
+  savedNoiseScenarios: [],
+  noiseScenario: {
+    traffic_quota: 1,
+    max_speed: 50,
+  },
+  noiseResults: [],
+  currentNoiseGeoJson: null,
+  trafficCounts: null,
+
+  
+  // UI
   selectGraph: "abm",
+  
+    
+  // Stormwater
+  junctions: {},
   swResultGeoJson: {},
   rainAmount: [],
   rainTime: 0,

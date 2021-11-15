@@ -15,14 +15,5 @@ export default {
       ...state.moduleSettings,
       ...payload,
     };
-  },
-  scenarioViewFilterUpdate(
-    state: GenericObject,
-    payload: { [key: string]: any }
-  ) {
-    state.scenarioViewFilters = {
-      ...state.scenarioViewFilters,
-      ...payload,
-    };
-  },
+  }
 };

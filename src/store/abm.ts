@@ -30,22 +30,6 @@ export const roofAmenitiesOptions = {
   random: "random",
   complementary: "complementary",
 };
-export const filters = {
-  start_time: "start_time",
-  end_time: "end_time",
-  resident_or_visitor: "resident_or_visitor",
-  agent_age: "agent_age",
-};
-
-export const filterOptions = {
-  any: "any",
-  resident: "resident",
-  visitor: "visitor",
-  foot: "foot",
-  bicycle: "bicycle",
-  public_transport: "public_transport",
-  car: "car",
-};
 
 export const workshopScenarioNames = ["session_1", "session_2", "session_3"];
 

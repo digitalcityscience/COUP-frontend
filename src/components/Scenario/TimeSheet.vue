@@ -23,25 +23,9 @@ export default class TimeSheet extends Vue {
   timeHours = [];
   heatMapRange = { left: "0%", width: "100%" };
   filterCoords = [];
-  activeAbmTimeCoords = [];
-  transCoords = [];
-  intervalNes = [];
   timeFilter = false;
   checkState = false;
   filter = null;
-  filterLabels = [
-    "Pedestrian",
-    "Bicycle",
-    "Public Transport",
-    "Car",
-    "No Filter",
-  ];
-  filterOptions = {
-    Pedestrian: "foot",
-    Bicycle: "bicycle",
-    "Public Transport": "public_transport",
-    Car: "car",
-  };
   minTime = 0;
   maxTime = 0;
   loopSetter = false;
@@ -80,29 +64,6 @@ export default class TimeSheet extends Vue {
     this.renderTimeGraph();
   }
 
-  getFilteredDataForTimeChart() {
-    this.activeAbmTimeCoords = [];
-    Object.entries(this.abmSimpleTimes).forEach(([key, value]) => {
-      this.transCoords = [];
-      var spliceArr = [];
-
-      Object.entries(this.filterSettings).forEach(
-        ([filterKey, filterValue]) => {
-          if (!filterValue) {
-            spliceArr = [...new Set(value[filterKey]), ...spliceArr];
-          }
-        }
-      );
-
-      let removeDuplicates = [...new Set(value.all)];
-      this.transCoords = removeDuplicates.filter(
-        (el) => !spliceArr.includes(el)
-      );
-      this.activeAbmTimeCoords.push(this.transCoords.length);
-    });
-    this.renderTimeGraph();
-  }
-
   renderTimeGraph() {
     /*render graph via chart.js*/
     var ctx = (
@@ -133,15 +94,7 @@ export default class TimeSheet extends Vue {
             borderColor: "rgba(81,209,252,0.85)",
             borderWidth: 1,
             fill: true,
-          },
-          {
-            data: this.activeAbmTimeCoords,
-            hidden: !this.filterActive,
-            label: "filtered Agents",
-            borderColor: "rgba(10,171,135,0.85)",
-            borderWidth: 1,
-            fill: true,
-          },
+          }
         ],
       },
       options: {
@@ -185,23 +138,24 @@ export default class TimeSheet extends Vue {
     }
   }
 
-  activateComparisonGraph() {
-    this.timeFilter = true;
-    this.filterCoords = [];
+    // TODO what did this do? and how did it work??
+  // activateComparisonGraph() {
+  //   this.timeFilter = true;
+  //   this.filterCoords = [];
 
-    if (this.filter === "No Filter") {
-      // do not filter timeCoords
-      this.filterCoords = [...this.timeCoords];
-    } else {
-      Object.values(this.abmSimpleTimes).forEach((value) => {
-        let coords = [...new Set(value[this.filterOptions[this.filter]])];
-        this.filterCoords.push(coords.length);
-      });
+  //   if (this.filter === "No Filter") {
+  //     // do not filter timeCoords
+  //     this.filterCoords = [...this.timeCoords];
+  //   } else {
+  //     Object.values(this.abmSimpleTimes).forEach((value) => {
+  //       let coords = [...new Set(value[this.filterOptions[this.filter]])];
+  //       this.filterCoords.push(coords.length);
+  //     });
 
-      this.renderTimeGraph();
-    }
-    this.renderTimeGraph();
-  }
+  //     this.renderTimeGraph();
+  //   }
+  //   this.renderTimeGraph();
+  // }
 
   setLoop() {
     this.loopSetter = !this.loopSetter;
@@ -210,14 +164,6 @@ export default class TimeSheet extends Vue {
 
   get selectedRange() {
     return this.$store.state.scenario.selectedRange;
-  }
-
-  get abmTimePaths() {
-    return this.$store.state.scenario.abmTimePaths;
-  }
-
-  get activeTimePaths() {
-    return this.$store.state.scenario.activeTimePaths;
   }
 
   get abmSimpleTimes() {
@@ -235,12 +181,6 @@ export default class TimeSheet extends Vue {
     );
   }
 
-  get filterSet() {
-    return this.$store.state.scenario.clusteredAbmData;
-  }
-  get filterSettings() {
-    return this.$store.state.scenario.filterSettings;
-  }
   get activeAbmSet() {
     return this.$store.state.scenario.activeAbmSet;
   }
@@ -249,9 +189,6 @@ export default class TimeSheet extends Vue {
   }
   get animationRunning() {
     return this.$store.state.scenario.animationRunning;
-  }
-  get filterActive(): boolean {
-    return this.$store.state.scenario.filterActive;
   }
   get showUi(): boolean {
     return this.$store.state.scenario.showUi;
@@ -286,16 +223,6 @@ export default class TimeSheet extends Vue {
 
     this.heatMapRange.left = (leftVal * 100) / 57600 + "%";
     this.heatMapRange.width = ((rightVal - leftVal) * 100) / 57600 + "%";
-  }
-
-  @Watch("filterSettings", { deep: true })
-  filterSettingsWatcher(): void {
-    if (this.filterActive) {
-      this.getFilteredDataForTimeChart();
-    } else {
-      this.activeAbmTimeCoords = [];
-      this.renderTimeGraph();
-    }
   }
 }
 </script>
