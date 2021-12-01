@@ -162,8 +162,8 @@ export default class TimeSheet extends Vue {
     this.$store.commit("scenario/setLoop", this.loopSetter);
   }
 
-  get selectedRange() {
-    return this.$store.state.scenario.selectedRange;
+  get abmTimeRange() {
+    return this.$store.state.scenario.abmTimeRange;
   }
 
   get abmSimpleTimes() {
@@ -216,10 +216,10 @@ export default class TimeSheet extends Vue {
     }
   }
 
-  @Watch("selectedRange")
+  @Watch("abmTimeRange")
   selectedRangeWatcher(): void {
-    var leftVal = (this.selectedRange[0] - 8) * 60 * 60;
-    var rightVal = (this.selectedRange[1] - 8) * 60 * 60;
+    var leftVal = (this.abmTimeRange[0] - 8) * 60 * 60;
+    var rightVal = (this.abmTimeRange[1] - 8) * 60 * 60;
 
     this.heatMapRange.left = (leftVal * 100) / 57600 + "%";
     this.heatMapRange.width = ((rightVal - leftVal) * 100) / 57600 + "%";

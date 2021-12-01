@@ -46,21 +46,7 @@ export default {
     },
     heatMapActive() {
       return this.$store.state.scenario.heatMap;
-    },
-    heatMapType() {
-      return this.$store.state.scenario.heatMapType;
-    },
-  },
-  watch: {
-    heatMapData() {
-      this.updateHeatMap();
-    },
-    heatMapActive() {
-      this.updateHeatMap();
-    },
-    heatMapType() {
-      this.updateHeatMap();
-    },
+    }
   },
   mounted(): void {
     mapboxgl.accessToken = this.accessToken;
@@ -186,9 +172,6 @@ export default {
           shiftY: this.lastClicked[1] + 0.125,
         }
       );
-    },
-    updateHeatMap() {
-      //this.$store.dispatch('scenario/rebuildDeckLayer')
     },
     onAmenitiesHover(evt) {
       this.map.getCanvas().style.cursor = "pointer";

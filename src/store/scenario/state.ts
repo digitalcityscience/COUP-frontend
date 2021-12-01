@@ -5,9 +5,9 @@ export default {
   bridges: [bridges.bridge_hafencity],
   abmTrips: null,
   agentIndexes: null,
-  activeAbmSet: null,
   abmObject: {},
-  abmTimePaths: null,
+  activeAbmSet: null,  // for trips layer
+  abmTimePaths: null,  //  for heatmap
   abmSimpleTimes: null,
   abmWeightCount: null,
   abmStats: {},
@@ -31,9 +31,8 @@ export default {
   animationSpeed: 7, // // TODO is this really abm specific or for all timeChart components??
   heatMapData: [],
   heatMapAverage: [],
-  heatMapType: "default",
   
-  selectedRange: [8, 23],  // i think this is time filter for the heatmap
+  abmTimeRange: [8, 23],  // time filter for the heatmap
   
   // layers
   noiseMap: false,

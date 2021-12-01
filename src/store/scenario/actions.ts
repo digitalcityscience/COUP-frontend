@@ -12,11 +12,9 @@ import { StoreState } from "@/models";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
 import {
   abmAggregationLayerName,
-  abmArcLayerName,
   abmTripsLayerName,
   animate,
   buildAggregationLayer,
-  buildArcLayer,
   buildSWLayer,
   buildTripsLayer,
   swLayerName,
@@ -244,7 +242,6 @@ export default {
     /*    // reset all abm data
     commit("abmTrips", null)
     commit("agentIndexes", null)
-    commit("clusteredAbmData", null)
     commit("activeAbmSet", null)   // same as abmDat}
     commit("abmObject", null)
     commit("abmTimePaths", null)
@@ -550,7 +547,7 @@ export default {
       );
     });
 
-    return buildAggregationLayer(heatLayerFormed, "default").then(
+    return buildAggregationLayer(heatLayerFormed).then(
       (deckLayer) => {
         if (rootState.map?.getLayer(abmAggregationLayerName)) {
           rootState.map?.removeLayer(abmAggregationLayerName);
@@ -567,8 +564,7 @@ export default {
   },
   // this updates ABM related layers only
   updateLayers({ state, commit, dispatch, rootState }, layer) {
-    const range = state.selectedRange;
-    const type = state.heatMapType;
+    const abmTimeRange = state.abmTimeRange;
     const tripsLayerData = state.activeAbmSet;
     const heatLayerData = state.abmTimePaths;
     const currentTimeStamp = state.currentTimeStamp;
@@ -594,7 +590,7 @@ export default {
 
     if (layer == "heatMap" || layer == "all") {
       Object.entries(heatLayerData).forEach(([key, value]) => {
-        if (key >= range[0] && key <= range[1]) {
+        if (key >= abmTimeRange[0] && key <= abmTimeRange[1]) {
           Object.entries(heatLayerData[key].values).forEach(
             ([subKey, subValue]) => {
               heatLayerData[key].values[subKey].forEach((v, i, a) => {
@@ -615,7 +611,7 @@ export default {
         }
       });
 
-      buildAggregationLayer(heatLayerFormed, type).then((deckLayer) => {
+      buildAggregationLayer(heatLayerFormed).then((deckLayer) => {
         if (rootState.map?.getLayer(abmAggregationLayerName)) {
           rootState.map?.removeLayer(abmAggregationLayerName);
         }
@@ -626,20 +622,6 @@ export default {
       });
     }
   },
-  addArcLayer({ state, commit, dispatch, rootState }, arcLayerData) {
-    buildArcLayer(arcLayerData).then((deckLayer) => {
-      if (rootState.map?.getLayer(abmArcLayerName)) {
-        rootState.map?.removeLayer(abmArcLayerName);
-      }
-
-      console.log("new arc layer loaded");
-      dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
-        commit("addLayerId", abmArcLayerName, { root: true });
-      });
-      rootState.map?.flyTo({ zoom: 15, pitch: 45, speed: 0.2 });
-    });
-  },
-
   async transformSWLayerData({ state, commit, dispatch, rootState }) {
     const deckLayer = await buildSWLayer(state.swResultGeoJson, state.rainTime);
     if (rootState.map?.getLayer(swLayerName)) {

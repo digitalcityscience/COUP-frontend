@@ -2,6 +2,9 @@
 node_modules
 /dist
 
+# default login
+src/config/cityPyoDefaultUser.json
+
 
 # local env files
 .env.local

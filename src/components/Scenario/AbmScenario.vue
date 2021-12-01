@@ -44,7 +44,6 @@ export default {
       timeRange: [0, 54000],
       adjustRange: [8, 23],
       datamsg: "",
-      heatMapType: "default",
       pedestrianModel: true,
       btnlabel: "Generate Aggregation Layer",
       reloadHeatMapLayer: false,
@@ -181,8 +180,7 @@ export default {
         this.$store.commit("scenario/loop", false);
       }
 
-      this.$store.commit("scenario/selectedRange", this.adjustRange);
-      this.$store.commit("scenario/heatMapType", this.heatMapType);
+      this.$store.commit("scenario/abmTimeRange", this.adjustRange);
       this.$store.dispatch("scenario/updateLayers", "heatMap");
     },
     setHeatMapTimes(x, y) {
@@ -570,25 +568,6 @@ export default {
         </div>
         <p>{{ datamsg }}</p>
         <!--<v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>-->
-
-        <div v-if="heatMap" class="additional">
-          <div class="additional_options">
-            <template>
-              <v-container fluid>
-                <p>{{ heatMapType || "null" }}</p>
-                <v-radio-group
-                  v-model="heatMapType"
-                  :mandatory="true"
-                  @change="changeHeatMapData"
-                  dark
-                >
-                  <v-radio label="Absolute Data" value="default"></v-radio>
-                  <v-radio label="Relative Data" value="relative"></v-radio>
-                </v-radio-group>
-              </v-container>
-            </template>
-          </div>
-        </div>
       </div>
     </div>
 

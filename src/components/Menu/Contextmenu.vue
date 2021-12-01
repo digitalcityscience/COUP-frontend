@@ -4,8 +4,6 @@ import * as turf from "@turf/turf";
 import { alkisTranslations } from "@/store/abm";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
 import AmenitiesLayerDefinition from "@/config/amenities.json";
-import { getOdArcData } from "@/store/scenario/odArcs.ts";
-import { abmArcLayerName } from "@/store/deck-layers";
 
 export default {
   name: "Contextmenu",
@@ -55,38 +53,6 @@ export default {
     this.toggleFeatureCircling();
     this.toggleFeatureHighlighting();
   },
-  watch: {
-    asOrigin(newVal, oldVal) {
-      if (newVal && this.asDestination) {
-        this.asDestination = false;
-      }
-      if (newVal) {
-        // get new data and add new layer to map
-        this.getArcLayerData(this.objectFeatures, true).then(() => {
-          this.updateOdTripsLayer();
-        });
-      } else {
-        this.map?.removeLayer(abmArcLayerName);
-      }
-    },
-    asDestination(newVal, oldVal) {
-      if (newVal && this.asOrigin) {
-        this.asOrigin = false;
-      }
-      if (newVal) {
-        // get new data and add new layer to map
-        this.getArcLayerData(this.objectFeatures, false).then(() => {
-          this.updateOdTripsLayer();
-        });
-      } else {
-        this.map?.removeLayer(abmArcLayerName);
-      }
-    },
-    /** filter arcLayerData with new minOdTrips value and renew layer */
-    minOdTrips() {
-      this.updateOdTripsLayer();
-    },
-  },
   mounted() {
     let selector = this.$el;
     this.modalDiv = selector.closest(".vm--modal");
@@ -112,10 +78,6 @@ export default {
 
     if (!this.allFeaturesHighlighted) {
       this.toggleFeatureHighlighting();
-    }
-
-    if (this.map?.getLayer(abmArcLayerName)) {
-      this.map?.removeLayer(abmArcLayerName);
     }
 
     // remove line on canvas connecting modal to selected feature
@@ -281,40 +243,6 @@ export default {
         this.modalInfo,
         asOrigin
       );
-    },
-    filterArcLayerData() {
-      if (this.minOdTrips === 1 || this.arcLayerData.length === 0) {
-        // no need to filter
-        return this.arcLayerData;
-      }
-
-      // filter for trips that with min. amount of similar trips
-      return this.arcLayerData.filter((datapoint) => {
-        /* datapoint schema
-             "color": [254, 227, 81],
-             "source": number[],
-             "target": number[],
-             "width": number  // number of trips with same origin / destination
-             */
-        return datapoint.width >= this.minOdTrips;
-      });
-    },
-    updateOdTripsLayer() {
-      // filter data first
-      const data = this.filterArcLayerData();
-
-      if (data.length === 0) {
-        // empty dataset (after filtering) , remove layer
-        if (this.map?.getLayer(abmArcLayerName)) {
-          this.map?.removeLayer(abmArcLayerName);
-        }
-        this.noTripsWarning = true; // show warning for empty datasets
-        return;
-      }
-
-      this.$store.dispatch("scenario/addArcLayer", data);
-      this.noTripsWarning = false;
-      console.log("new arc layer with # trips = ", data.length);
     },
     sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));

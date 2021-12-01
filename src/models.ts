@@ -50,7 +50,7 @@ export interface ScenarioStoreState {
   activeAbmSet: unknown;
   animationRunning: boolean;
   abmTimePaths: unknown;
-  selectedRange: [number, number];
+  abmTimeRange: [number, number];
   heatMap: boolean;
   rerenderSwGraph: boolean;
   stormWater: boolean;

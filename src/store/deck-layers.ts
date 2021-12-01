@@ -9,7 +9,6 @@ import store from "../store/index";
 
 export const abmTripsLayerName = "abmTrips";
 export const abmAggregationLayerName = "abmHeat";
-export const abmArcLayerName = "abmArcs";
 export const swLayerName = "stormwater";
 
 export async function buildTripsLayer(
@@ -59,37 +58,18 @@ export async function buildTripsLayer(
   return tripsLayer;
 }
 
-export async function buildArcLayer(arcLayerData) {
-  return new DeckLayer({
-    id: abmArcLayerName,
-    type: ArcLayer,
-    data: arcLayerData,
-    pickable: true,
-
-    getWidth: (d) => d.width,
-
-    getSourcePosition: (d) => d.source,
-    getTargetPosition: (d) => d.target,
-    getSourceColor: (d) => d.color,
-    getTargetColor: (d) => d.color,
-  });
-}
-
-export async function buildAggregationLayer(
-  data: DataSet<any>,
-  type
-): Promise<DeckLayer<any>> {
+export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
   const aggregationLayer = new DeckLayer({
     id: abmAggregationLayerName,
     type: HeatmapLayer,
     data: data,
     pickable: false,
     getPosition: (d) => d.c,
-    getWeight: type == "default" ? (d) => d.w : 1,
-    intensity: type == "default" ? 20 : 3,
-    threshold: type == "default" ? 10 : 0.5,
-    radiusPixels: type == "default" ? 50 : 70,
-    opacity: type == "default" ? 0.8 : 0.8,
+    getWeight: (d) => d.w,
+    intensity: 20,
+    threshold: 10,
+    radiusPixels: 50,
+    opacity: 0.8,
     visible: true,
   });
 
@@ -177,11 +157,11 @@ export function animate(
 
   const loop = store.state.scenario.loop;
   const setLoop = store.state.scenario.setLoop;
-  const range = store.state.scenario.selectedRange;
+  const abmTimeRange = store.state.scenario.abmTimeRange;
 
   if (loop && setLoop) {
-    start = (range[0] - 8) * 3600;
-    end = (range[1] - 8) * 3600;
+    start = (abmTimeRange[0] - 8) * 3600;
+    end = (abmTimeRange[1] - 8) * 3600;
   }
 
   if (!start) {
