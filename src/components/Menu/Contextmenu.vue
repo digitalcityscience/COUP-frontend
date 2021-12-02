@@ -19,11 +19,6 @@ export default {
       objectFeatures: [],
       objectId: null,
       modalInfo: {},
-      arcLayerData: {},
-      asOrigin: false,
-      asDestination: false,
-      minOdTrips: 1,
-      noTripsWarning: false,
     };
   },
   computed: {
@@ -237,13 +232,6 @@ export default {
     getProjectedObjectCoords() {
       return this.map.project(this.modalInfo["coords"]);
     },
-    async getArcLayerData(objectData, asOrigin) {
-      this.arcLayerData = await getOdArcData(
-        objectData,
-        this.modalInfo,
-        asOrigin
-      );
-    },
     sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     },
@@ -355,40 +343,6 @@ export default {
           </p>
         </div>
       </div>
-    </div>
-    <!-- Origin // Destination checkboxes -->
-    <div class="body_scope"></div>
-    <div v-if="abmTrips" class="od-menu">
-      <v-checkbox
-        v-model="asOrigin"
-        label="Origin of"
-        dark
-        hide-details
-      ></v-checkbox>
-      <v-checkbox
-        v-model="asDestination"
-        label="Destination of"
-        dark
-        hide-details
-      ></v-checkbox>
-      <v-slider
-        style="margin-top: 15px"
-        @dragstart="(_) => null"
-        @dragend="(_) => null"
-        @mousedown.native.stop="(_) => null"
-        @mousemove.native.stop="(_) => null"
-        v-model="minOdTrips"
-        step="1"
-        thumb-label="always"
-        label="Min. Trips"
-        thumb-size="25"
-        tick-size="50"
-        min="1"
-        max="20"
-        dark
-        flat
-      ></v-slider>
-      <div v-if="noTripsWarning" class="warn">No trips to show</div>
     </div>
   </div>
   <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->

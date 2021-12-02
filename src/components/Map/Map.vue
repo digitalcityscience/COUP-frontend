@@ -114,6 +114,7 @@ export default {
       const initialFeature = clickedFeatures[0];
       const initialLayerId = initialFeature.layer.id;
 
+      // TODO can we delete this feature????
       // calculate stats for focus area
       if (initialLayerId === FocusAreasLayer.layer.id) {
         this.onFocusAreaClick(initialFeature.id);
