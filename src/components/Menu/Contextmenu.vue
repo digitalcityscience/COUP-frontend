@@ -3,7 +3,6 @@ import { mapState } from "vuex";
 import * as turf from "@turf/turf";
 import { alkisTranslations } from "@/store/abm";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
-import AmenitiesLayerDefinition from "@/config/amenities.json";
 
 export default {
   name: "Contextmenu",
@@ -98,7 +97,6 @@ export default {
         upperfloor: "Upper Floors",
         rooftop: "Rooftop",
       };
-      headlines[AmenitiesLayerDefinition.layer.id] = "Amenity";
 
       return headlines[layerName];
     },
@@ -134,22 +132,6 @@ export default {
                 feature.properties["building_height"].toString() + "m",
             });
             break;
-          case AmenitiesLayerDefinition.layer.id: {
-            this.modalInfo["objectType"] = "amenity";
-            this.modalInfo["coords"] = feature.geometry.coordinates;
-            this.modalInfo["detailContent"]["Amenity"] = {};
-            const alkisId = feature.properties.GFK;
-            feature.properties["useType"] =
-              alkisTranslations[alkisId] || alkisId;
-            this.modalInfo["detailContent"]["Amenity"] = [
-              {
-                "New amenity ?": feature.properties["Pre-exist"] ? "No" : "Yes",
-              },
-              { "Use Type": feature.properties["useType"] },
-              { GFK: feature.properties.GFK },
-            ];
-            break;
-          }
         }
       });
     },
@@ -220,9 +202,7 @@ export default {
           // if a upper floor found: take as fallback geometry for circling.
           return true;
         }
-        if (feature.layer.id === AmenitiesLayerDefinition.layer.id) {
-          buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.015);
-        }
+        
         return true;
       });
       // update circled features

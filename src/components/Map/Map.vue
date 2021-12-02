@@ -18,7 +18,7 @@ export default {
     return {
       lastClicked: [],
       hoveredFocusArea: null,
-      modalLayers: ["groundfloor", "upperfloor", "rooftops", "abmAmenities"],
+      modalLayers: ["groundfloor", "upperfloor", "rooftops"],
       restrictedLayers: ["groundfloor", "upperfloor", "rooftops"],
     };
   },
@@ -114,7 +114,6 @@ export default {
       const initialFeature = clickedFeatures[0];
       const initialLayerId = initialFeature.layer.id;
 
-      // TODO can we delete this feature????
       // calculate stats for focus area
       if (initialLayerId === FocusAreasLayer.layer.id) {
         this.onFocusAreaClick(initialFeature.id);
@@ -124,6 +123,7 @@ export default {
       // open/close a modal
       if (this.modalLayers.indexOf(initialLayerId) > -1) {
         if (
+          // TODO handle restricted access somewhere else
           this.restrictedAccess &&
           this.restrictedLayers.indexOf(initialLayerId) > -1
         ) {
@@ -162,6 +162,7 @@ export default {
     createModal() {
       this.openModalsIds.push(this.selectedObjectId);
       this.$modal.show(
+        // pass arguments to context menu
         Contextmenu,
         {},
         {
