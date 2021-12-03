@@ -64,12 +64,14 @@ export interface ScenarioStoreState {
   resultLoading: boolean;
 }
 
-export type ExtensiveIntensive = "extensive" | "intensive";
+export type StormWaterRoofType = "extensive" | "intensive";
+
+export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
 
 export interface StormWaterScenarioState {
   return_period: number;
-  flow_path: "blockToPark" | "blockToStreet";
-  roofs: ExtensiveIntensive;
+  flow_path: StormWaterFlowPath;
+  roofs: StormWaterRoofType;
 }
 
 export type ScenarioWithTimeSheets = "abm" | "sw";

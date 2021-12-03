@@ -168,8 +168,9 @@ import Rain from "@/config/rain.json";
 import { swLayerName } from "@/store/deck-layers";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type {
-  ExtensiveIntensive,
+  StormWaterRoofType,
   MenuLink,
+  StormWaterFlowPath,
   StormWaterScenarioState,
 } from "@/models";
 
@@ -184,7 +185,8 @@ export default class StormwaterScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   activeDivision = null;
   showError = false;
-  errMsg = "";
+  errorMsg: string = "";
+
   returnPeriod = 2;
   returnPeriodOptions = [
     {
@@ -200,7 +202,7 @@ export default class StormwaterScenario extends Vue {
       label: "100yr Event",
     },
   ];
-  flowPath: "blockToPark";
+  flowPath: StormWaterFlowPath = "blockToPark";
   flowPathOptions = [
     {
       value: "blockToPark",
@@ -211,7 +213,7 @@ export default class StormwaterScenario extends Vue {
       label: "Building > Block > Street",
     },
   ];
-  greenRoofs: ExtensiveIntensive = "extensive";
+  greenRoofs: StormWaterRoofType = "extensive";
   greenRoofOptions = [
     {
       value: "extensive",
@@ -223,8 +225,6 @@ export default class StormwaterScenario extends Vue {
     },
   ];
   rainAmount: string = "2yr";
-  rainTime = "test";
-  errorMsg: string = "";
 
   beforeMount() {
     // todo remove this
