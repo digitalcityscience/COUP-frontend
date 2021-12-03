@@ -58,8 +58,18 @@ export interface ScenarioStoreState {
   abmSimpleTimes: Record<any, any>;
   currentTimeStamp: number;
   swResultGeoJson: Record<any, any>;
-  selectGraph:ScenarioWithTimeSheets;
-  rainAmount: any[];
+  selectGraph: ScenarioWithTimeSheets;
+  rainAmount: number[];
+  stormWaterScenario: StormWaterScenarioState;
+  resultLoading: boolean;
+}
+
+export type ExtensiveIntensive = "extensive" | "intensive";
+
+export interface StormWaterScenarioState {
+  return_period: number;
+  flow_path: "blockToPark" | "blockToStreet";
+  roofs: ExtensiveIntensive;
 }
 
 export type ScenarioWithTimeSheets = "abm" | "sw";

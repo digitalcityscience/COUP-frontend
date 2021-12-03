@@ -1,194 +1,3 @@
-<script lang="ts">
-import { mapState } from "vuex";
-import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import Rain from "@/config/rain.json";
-import { swLayerName } from "@/store/deck-layers";
-import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import type { MenuLink } from "@/models";
-
-export default {
-  name: "StormwaterScenario",
-  components: {
-    MenuComponentDivision,
-  },
-  data() {
-    return {
-      activeDivision: null,
-      showError: false,
-      errMsg: "",
-      resultOutdated: false,
-      returnPeriod: 2,
-      returnPeriodOptions: [
-        {
-          value: 2,
-          label: "2yr Event",
-        },
-        {
-          value: 10,
-          label: "10yr Event",
-        },
-        {
-          value: 100,
-          label: "100yr Event",
-        },
-      ],
-      flowPath: "blockToPark",
-      flowPathOptions: [
-        {
-          value: "blockToPark",
-          label: "Building > Block > Park",
-        },
-        {
-          value: "blockToStreet",
-          label: "Building > Block > Street",
-        },
-      ],
-      greenRoofs: "extensive",
-      greenRoofOptions: [
-        {
-          value: "extensive",
-          label: "Extensive Green Roofs",
-        },
-        {
-          value: "intensive",
-          label: "Intensive Green Roofs",
-        },
-      ],
-      /* feature not enabled yet
-          improvedTreePits: true,
-          treePitOptions: [
-            {
-              "value": true,
-              "label": "Improved Tree Pits"
-            },
-            {
-              "value": false,
-              "label": "Other Trees"
-            }
-          ],
-          */
-      // bird's variables that i dont understand
-      rainAmount: "2yr",
-      rainTime: "test",
-    };
-  },
-  computed: {
-    ...mapState([
-      "mapStyle",
-      "view",
-      "accessToken",
-      "map",
-      "layers",
-      "layerIds",
-    ]),
-    ...generateStoreGetterSetter([
-      ["resultLoading", "scenario/" + "resultLoading"], // todo manage stores
-      ["savedStormWaterScenarios", "scenario/" + "savedStormWaterScenarios"], // todo manage stores
-      ["stormWaterScenario", "scenario/" + "stormWaterScenario"], // todo manage stores
-    ]),
-    stormWater() {
-      return this.$store.state.scenario.stormWater;
-    },
-    componentDivisions(): MenuLink[] {
-      return [
-        {
-          title: "Scenario",
-          icon: "mdi-map-marker-radius",
-          hidden: false,
-          default: true,
-        },
-        {
-          title: "Dashboard",
-          icon: "mdi-view-dashboard",
-        },
-        {
-          title: "info",
-          icon: "mdi-information-variant",
-        },
-      ];
-    },
-  },
-  watch: {},
-  beforeMount() {
-    // todo remove this
-    this.activateStormWater();
-  },
-  mounted: function () {
-    // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", ["stormwater"]);
-  },
-  methods: {
-    activateStormWater() {
-      this.$store.commit("scenario/stormWater", true);
-      this.$store.commit("scenario/selectGraph", "sw");
-    },
-    async loadStormwaterMap() {
-      this.resultLoading = true;
-      this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
-      this.$store.commit("scenario/swResultGeoJson", null);
-      this.$store
-        .dispatch("scenario/updateStormWaterLayer", this.stormWaterScenario)
-        .then(() => {
-          // success
-          this.$store.commit("scenario/stormWater", true);
-          this.resultLoading = false;
-          this.showError = false;
-          this.resultOutdated = this.isResultOutdated();
-        })
-        .catch((err) => {
-          console.log("caught error", err);
-          this.$store.commit("scenario/stormWater", false);
-          this.resultLoading = false;
-          this.showError = true;
-          this.errorMsg = err;
-        });
-    },
-    changeRain(rain) {
-      // TODO rain Amount sometimes is a string and sometimes array. gets used in different contexts. Refactor
-      this.rainAmount = rain;
-      this.$store.commit("scenario/rainAmount", Rain[rain]);
-    },
-    getRoofTypeString() {
-      if (this.greenRoofs === "extensive") {
-        return "GR-EX1";
-      }
-      return "GR-IN1";
-    },
-    runScenario() {
-      // update stormwater scenario in store
-      this.makeStormWaterScenario();
-
-      // update selected rain gage (for TimeSheet only??)
-      const returnPeriodString = this.returnPeriod.toString() + "yr";
-      this.changeRain(returnPeriodString);
-
-      // get stormwater result from cityPyo
-      this.loadStormwaterMap();
-    },
-    makeStormWaterScenario() {
-      this.stormWaterScenario = {
-        return_period: this.returnPeriod,
-        flow_path: this.flowPath,
-        roofs: this.greenRoofs,
-        // "treePits": this.treePits
-      };
-    },
-    isResultOutdated() {
-      console.warn("input changed");
-      if (!this.stormWaterScenario) {
-        this.resultOutdated = false;
-      } else {
-        this.resultOutdated =
-          this.returnPeriod !== this.stormWaterScenario["return_period"] ||
-          this.flowPath !== this.stormWaterScenario["flow_path"] ||
-          this.greenRoofs !== this.stormWaterScenario["roofs"];
-        // || this.treePits !== this.stormWaterScenario["treePits"]  // feature not enabled yet
-      }
-    },
-  },
-};
-</script>
-
 <template>
   <div id="scenario" ref="scenario">
     <MenuComponentDivision
@@ -212,7 +21,7 @@ export default {
           <h2>Stormwater | Scenario Settings</h2>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">TIMESERIES</header>
-            <v-radio-group v-model="returnPeriod" @change="isResultOutdated()">
+            <v-radio-group v-model="returnPeriod">
               <v-radio
                 :value="returnPeriodOptions[0].value"
                 flat
@@ -235,7 +44,7 @@ export default {
           </div>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">FLOW PATH</header>
-            <v-radio-group v-model="flowPath" @change="isResultOutdated()">
+            <v-radio-group v-model="flowPath">
               <v-radio
                 :value="flowPathOptions[0].value"
                 flat
@@ -252,7 +61,7 @@ export default {
           </div>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">ROOFS</header>
-            <v-radio-group v-model="greenRoofs" @change="isResultOutdated()">
+            <v-radio-group v-model="greenRoofs">
               <v-radio
                 :value="greenRoofOptions[0].value"
                 flat
@@ -267,27 +76,6 @@ export default {
               />
             </v-radio-group>
           </div>
-          <!-- hidden for now
-            <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
-              <header class="text-sm-left">
-                TREES
-              </header>
-              <v-radio-group v-model="improvedTreePits" @change="isResultOutdated()">
-                <v-radio
-                  :value="treePitOptions[0].value"
-                  flat
-                  :label="treePitOptions[0].label"
-                  dark
-                />
-                <v-radio
-                  :value="treePitOptions[1].value"
-                  flat
-                  :label="treePitOptions[1].label"
-                  dark
-                  />
-              </v-radio-group>
-
-            </div>   TREE PITS DIV -->
           <p v-if="showError" class="warning">{{ errorMsg }}</p>
           <v-btn
             @click="runScenario()"
@@ -372,6 +160,186 @@ export default {
     <!--division end-->
   </div>
 </template>
+
+<script lang="ts">
+import { mapState } from "vuex";
+import { generateStoreGetterSetter } from "@/store/utils/generators";
+import Rain from "@/config/rain.json";
+import { swLayerName } from "@/store/deck-layers";
+import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import type {
+  ExtensiveIntensive,
+  MenuLink,
+  StormWaterScenarioState,
+} from "@/models";
+
+import { Component, Vue } from "vue-property-decorator";
+import { StoreStateWithModules } from "@/models";
+import { Store } from "vuex";
+
+@Component({
+  components: { MenuComponentDivision },
+})
+export default class StormwaterScenario extends Vue {
+  $store: Store<StoreStateWithModules>;
+  activeDivision = null;
+  showError = false;
+  errMsg = "";
+  returnPeriod = 2;
+  returnPeriodOptions = [
+    {
+      value: 2,
+      label: "2yr Event",
+    },
+    {
+      value: 10,
+      label: "10yr Event",
+    },
+    {
+      value: 100,
+      label: "100yr Event",
+    },
+  ];
+  flowPath: "blockToPark";
+  flowPathOptions = [
+    {
+      value: "blockToPark",
+      label: "Building > Block > Park",
+    },
+    {
+      value: "blockToStreet",
+      label: "Building > Block > Street",
+    },
+  ];
+  greenRoofs: ExtensiveIntensive = "extensive";
+  greenRoofOptions = [
+    {
+      value: "extensive",
+      label: "Extensive Green Roofs",
+    },
+    {
+      value: "intensive",
+      label: "Intensive Green Roofs",
+    },
+  ];
+  rainAmount: string = "2yr";
+  rainTime = "test";
+  errorMsg: string = "";
+
+  beforeMount() {
+    // todo remove this
+    this.activateStormWater();
+  }
+
+  activateStormWater() {
+    this.$store.commit("scenario/stormWater", true);
+    this.$store.commit("scenario/selectGraph", "sw");
+  }
+
+  mounted() {
+    // hide all other layers
+    this.$store.dispatch("hideAllLayersButThese", ["stormwater"]);
+  }
+
+  get componentDivisions(): MenuLink[] {
+    return [
+      {
+        title: "Scenario",
+        icon: "mdi-map-marker-radius",
+        hidden: false,
+        default: true,
+      },
+      {
+        title: "Dashboard",
+        icon: "mdi-view-dashboard",
+      },
+      {
+        title: "info",
+        icon: "mdi-information-variant",
+      },
+    ];
+  }
+
+  get stormWater(): boolean {
+    return this.$store.state.scenario.stormWater;
+  }
+
+  runScenario(): void {
+    // update stormwater scenario in store
+    this.makeStormWaterScenario();
+
+    // update selected rain gage (for TimeSheet only??)
+    const returnPeriodString: keyof typeof Rain =
+      (this.returnPeriod.toString() + "yr") as keyof typeof Rain;
+    this.changeRain(returnPeriodString);
+
+    // get stormwater result from cityPyo
+    this.loadStormwaterMap();
+  }
+
+  get stormWaterScenario(): StormWaterScenarioState {
+    return this.$store.state.scenario.stormWaterScenario;
+  }
+
+  set stormWaterScenario(newScenario: StormWaterScenarioState) {
+    this.$store.commit("scenario/stormWaterScenario", newScenario);
+  }
+
+  makeStormWaterScenario(): void {
+    this.stormWaterScenario = {
+      return_period: this.returnPeriod,
+      flow_path: this.flowPath,
+      roofs: this.greenRoofs,
+    };
+  }
+
+  changeRain(returnPeriod: keyof typeof Rain): void {
+    this.rainAmount = returnPeriod;
+    this.$store.commit("scenario/rainAmount", Rain[returnPeriod]);
+  }
+
+  get resultLoading(): boolean {
+    return this.$store.state.scenario.resultLoading;
+  }
+
+  set resultLoading(loadingState: boolean) {
+    this.$store.commit("scenario/resultLoading", loadingState);
+  }
+
+  async loadStormwaterMap() {
+    this.resultLoading = true;
+    this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
+    this.$store.commit("scenario/swResultGeoJson", null);
+    this.$store
+      .dispatch("scenario/updateStormWaterLayer", this.stormWaterScenario)
+      .then(() => {
+        // success
+        this.$store.commit("scenario/stormWater", true);
+        this.resultLoading = false;
+        this.showError = false;
+      })
+      .catch((err) => {
+        console.log("caught error", err);
+        this.$store.commit("scenario/stormWater", false);
+        this.resultLoading = false;
+        this.showError = true;
+        this.errorMsg = err;
+      });
+  }
+
+  get resultOutdated(): boolean {
+    console.warn("input changed");
+    if (!this.stormWaterScenario) {
+      return false;
+    } else {
+      return;
+      this.returnPeriod !== this.stormWaterScenario["return_period"] ||
+        this.flowPath !== this.stormWaterScenario["flow_path"] ||
+        this.greenRoofs !== this.stormWaterScenario["roofs"];
+    }
+  }
+}
+</script>
 
 <style scoped lang="scss">
 @import "../../style.main.scss";
