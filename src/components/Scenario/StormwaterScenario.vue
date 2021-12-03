@@ -20,8 +20,8 @@
         <v-container fluid>
           <h2>Stormwater | Scenario Settings</h2>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
-            <header class="text-sm-left">TIMESERIES</header>
-            <v-radio-group v-model="returnPeriod">
+            <header class="text-sm-left">RETURN PERIOD</header>
+            <v-radio-group v-model="scenarioConfiguration.returnPeriod">
               <v-radio
                 :value="returnPeriodOptions[0].value"
                 flat
@@ -44,7 +44,7 @@
           </div>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">FLOW PATH</header>
-            <v-radio-group v-model="flowPath">
+            <v-radio-group v-model="scenarioConfiguration.flowPath">
               <v-radio
                 :value="flowPathOptions[0].value"
                 flat
@@ -61,7 +61,7 @@
           </div>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
             <header class="text-sm-left">ROOFS</header>
-            <v-radio-group v-model="greenRoofs">
+            <v-radio-group v-model="scenarioConfiguration.roofs">
               <v-radio
                 :value="greenRoofOptions[0].value"
                 flat
@@ -171,12 +171,18 @@ import type {
   StormWaterRoofType,
   MenuLink,
   StormWaterFlowPath,
-  StormWaterScenarioState,
+  StormWaterScenarioConfiguration,
 } from "@/models";
 
 import { Component, Vue } from "vue-property-decorator";
 import { StoreStateWithModules } from "@/models";
 import { Store } from "vuex";
+
+const defaultScenarioConfiguration: StormWaterScenarioConfiguration = {
+  returnPeriod: 2,
+  flowPath: "blockToPark",
+  roofs: "extensive",
+};
 
 @Component({
   components: { MenuComponentDivision },
@@ -186,7 +192,8 @@ export default class StormwaterScenario extends Vue {
   activeDivision = null;
   errorMsg: string = "";
 
-  returnPeriod = 2;
+  scenarioConfiguration = defaultScenarioConfiguration;
+
   returnPeriodOptions = [
     {
       value: 2,
@@ -201,7 +208,6 @@ export default class StormwaterScenario extends Vue {
       label: "100yr Event",
     },
   ];
-  flowPath: StormWaterFlowPath = "blockToPark";
   flowPathOptions = [
     {
       value: "blockToPark",
@@ -212,7 +218,6 @@ export default class StormwaterScenario extends Vue {
       label: "Building > Block > Street",
     },
   ];
-  greenRoofs: StormWaterRoofType = "extensive";
   greenRoofOptions = [
     {
       value: "extensive",
@@ -223,7 +228,7 @@ export default class StormwaterScenario extends Vue {
       label: "Intensive Green Roofs",
     },
   ];
-  rainAmount: string = "2yr";
+  rainAmount: string = 2 + "yr";
 
   beforeMount() {
     // todo remove this
@@ -265,36 +270,30 @@ export default class StormwaterScenario extends Vue {
 
   runScenario(): void {
     // update stormwater scenario in store
-    this.makeStormWaterScenario();
+    this.scenarioConfigurationGlobal = Object.assign({}, this.scenarioConfiguration);
 
-    // update selected rain gage (for TimeSheet only??)
-    const returnPeriodString: keyof typeof Rain =
-      (this.returnPeriod.toString() + "yr") as keyof typeof Rain;
-    this.changeRain(returnPeriodString);
+    // update selected rain gage (for TimeSheet only)
+    this.changeRain();
 
     // get stormwater result from cityPyo
     this.loadStormwaterMap();
   }
 
-  get stormWaterScenario(): StormWaterScenarioState {
-    return this.$store.state.scenario.stormWaterScenario;
+  get scenarioConfigurationGlobal(): StormWaterScenarioConfiguration {
+    return this.$store.state.scenario.stormWaterScenarioConfiguration;
   }
 
-  set stormWaterScenario(newScenario: StormWaterScenarioState) {
-    this.$store.commit("scenario/stormWaterScenario", newScenario);
+  set scenarioConfigurationGlobal(
+    newScenarioConfiguration: StormWaterScenarioConfiguration
+  ) {
+    this.$store.commit(
+      "scenario/stormWaterScenarioConfiguration",
+      newScenarioConfiguration
+    );
   }
 
-  makeStormWaterScenario(): void {
-    this.stormWaterScenario = {
-      return_period: this.returnPeriod,
-      flow_path: this.flowPath,
-      roofs: this.greenRoofs,
-    };
-  }
-
-  changeRain(returnPeriod: keyof typeof Rain): void {
-    this.rainAmount = returnPeriod;
-    this.$store.commit("scenario/rainAmount", Rain[returnPeriod]);
+  changeRain(): void {
+    this.$store.commit("scenario/rainAmount", Rain[this.scenarioConfiguration.returnPeriod]);
   }
 
   get resultLoading(): boolean {
@@ -310,7 +309,7 @@ export default class StormwaterScenario extends Vue {
     this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
     this.$store.commit("scenario/swResultGeoJson", null);
     this.$store
-      .dispatch("scenario/updateStormWaterLayer", this.stormWaterScenario)
+      .dispatch("scenario/updateStormWaterLayer", this.scenarioConfiguration)
       .then(() => {
         // success
         this.$store.commit("scenario/stormWater", true);
@@ -326,15 +325,7 @@ export default class StormwaterScenario extends Vue {
   }
 
   get resultOutdated(): boolean {
-    console.warn("input changed");
-    if (!this.stormWaterScenario) {
-      return false;
-    } else {
-      return;
-      this.returnPeriod !== this.stormWaterScenario["return_period"] ||
-        this.flowPath !== this.stormWaterScenario["flow_path"] ||
-        this.greenRoofs !== this.stormWaterScenario["roofs"];
-    }
+    return JSON.stringify(this.scenarioConfiguration) !== JSON.stringify(this.scenarioConfigurationGlobal)
   }
 }
 </script>

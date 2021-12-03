@@ -109,11 +109,18 @@ export default {
     { state, commit, dispatch, rootState },
     stormWaterScenario
   ) {
-    stormWaterScenario["city_pyo_user"] = rootState.cityPyO.userid;
-
+    
+    const scenario = {
+      "roofs": stormWaterScenario.roofs,
+      "flow_path": stormWaterScenario.flowPath,
+      "return_period": stormWaterScenario.returnPeriod,
+      "result_format": "geojson",
+      "city_pyo_user":  rootState.cityPyO.userid,
+    }
+    
     // request calculation and fetch results
     return new Promise((resolve, reject) => {
-      request_calculation("stormwater", stormWaterScenario)
+      request_calculation("stormwater", scenario)
         .then((stormWaterResultUuid) => {
           return getSimulationResultForScenario(
             "stormwater",

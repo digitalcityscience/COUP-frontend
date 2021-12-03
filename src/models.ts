@@ -60,7 +60,7 @@ export interface ScenarioStoreState {
   swResultGeoJson: Record<any, any>;
   selectGraph: ScenarioWithTimeSheets;
   rainAmount: number[];
-  stormWaterScenario: StormWaterScenarioState;
+  stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
   resultLoading: boolean;
 }
 
@@ -68,9 +68,9 @@ export type StormWaterRoofType = "extensive" | "intensive";
 
 export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
 
-export interface StormWaterScenarioState {
-  return_period: number;
-  flow_path: StormWaterFlowPath;
+export interface StormWaterScenarioConfiguration {
+  returnPeriod: number;
+  flowPath: StormWaterFlowPath;
   roofs: StormWaterRoofType;
 }
 

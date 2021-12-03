@@ -112,5 +112,5 @@ export default {
   rainTime: 0,
   rerenderSwGraph: false,
   savedStormWaterScenarios: [],
-  stormWaterScenario: null,
+  stormWaterScenarioConfiguration: null,
 };
