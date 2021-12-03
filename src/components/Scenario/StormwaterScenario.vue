@@ -228,7 +228,6 @@ export default class StormwaterScenario extends Vue {
       label: "Intensive Green Roofs",
     },
   ];
-  rainAmount: string = 2 + "yr";
 
   beforeMount() {
     // todo remove this
