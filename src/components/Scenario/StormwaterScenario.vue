@@ -76,7 +76,7 @@
               />
             </v-radio-group>
           </div>
-          <p v-if="showError" class="warning">{{ errorMsg }}</p>
+          <p v-if="errorMsg" class="warning">{{ errorMsg }}</p>
           <v-btn
             @click="runScenario()"
             class="confirm_btn mt-2"
@@ -184,7 +184,6 @@ import { Store } from "vuex";
 export default class StormwaterScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   activeDivision = null;
-  showError = false;
   errorMsg: string = "";
 
   returnPeriod = 2;
@@ -316,13 +315,12 @@ export default class StormwaterScenario extends Vue {
         // success
         this.$store.commit("scenario/stormWater", true);
         this.resultLoading = false;
-        this.showError = false;
+        this.errorMsg = "";
       })
       .catch((err) => {
         console.log("caught error", err);
         this.$store.commit("scenario/stormWater", false);
         this.resultLoading = false;
-        this.showError = true;
         this.errorMsg = err;
       });
   }
