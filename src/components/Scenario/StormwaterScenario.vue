@@ -19,7 +19,7 @@
       >
         <v-container fluid>
           <h2>Stormwater | Scenario Settings</h2>
-          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">RETURN PERIOD</header>
             <v-radio-group v-model="scenarioConfiguration.returnPeriod">
               <v-radio
@@ -42,7 +42,7 @@
               />
             </v-radio-group>
           </div>
-          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">FLOW PATH</header>
             <v-radio-group v-model="scenarioConfiguration.flowPath">
               <v-radio
@@ -59,7 +59,7 @@
               />
             </v-radio-group>
           </div>
-          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">ROOFS</header>
             <v-radio-group v-model="scenarioConfiguration.roofs">
               <v-radio
@@ -80,7 +80,7 @@
           <v-btn
             @click="runScenario()"
             class="confirm_btn mt-2"
-            :class="{ changesMade: resultOutdated }"
+            :class="{ changesMade: isFormDirty }"
             :disabled="resultLoading"
           >
             Run Scenario
@@ -272,7 +272,8 @@ export default class StormwaterScenario extends Vue {
     this.scenarioConfigurationGlobal = Object.assign({}, this.scenarioConfiguration);
 
     // update selected rain gage (for TimeSheet only)
-    this.changeRain();
+    this.updateRainAmountDisplayedInSWTimeGraph
+();
 
     // get stormwater result from cityPyo
     this.loadStormwaterMap();
@@ -291,7 +292,7 @@ export default class StormwaterScenario extends Vue {
     );
   }
 
-  changeRain(): void {
+  updateRainAmountDisplayedInSWTimeGraph(): void {
     this.$store.commit("scenario/rainAmount", Rain[this.scenarioConfiguration.returnPeriod]);
   }
 
@@ -323,7 +324,7 @@ export default class StormwaterScenario extends Vue {
       });
   }
 
-  get resultOutdated(): boolean {
+  get isFormDirty(): boolean {
     return JSON.stringify(this.scenarioConfiguration) !== JSON.stringify(this.scenarioConfigurationGlobal)
   }
 }
