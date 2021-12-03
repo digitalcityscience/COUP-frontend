@@ -46,7 +46,7 @@ export default class App extends Vue {
   }
 
   get showTimeSheet(): boolean {
-    return ["AbmScenario", "SWScenario"].includes(this.activeComponent);
+    return ["AbmScenario", "StormwaterScenario"].includes(this.activeComponent);
   }
 }
 </script>
