@@ -162,20 +162,12 @@
 </template>
 
 <script lang="ts">
-import { mapState } from "vuex";
-import { generateStoreGetterSetter } from "@/store/utils/generators";
-import Rain from "@/config/rain.json";
-import { swLayerName } from "@/store/deck-layers";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import type {
-  StormWaterRoofType,
-  MenuLink,
-  StormWaterFlowPath,
-  StormWaterScenarioConfiguration,
-} from "@/models";
-
-import { Component, Vue } from "vue-property-decorator";
+import Rain from "@/config/rain.json";
+import type { MenuLink, StormWaterScenarioConfiguration } from "@/models";
 import { StoreStateWithModules } from "@/models";
+import { swLayerName } from "@/store/deck-layers";
+import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 
 const defaultScenarioConfiguration: StormWaterScenarioConfiguration = {
