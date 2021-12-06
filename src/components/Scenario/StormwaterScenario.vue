@@ -182,7 +182,7 @@ const defaultScenarioConfiguration: StormWaterScenarioConfiguration = {
 export default class StormwaterScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   activeDivision = null;
-  errorMsg: string = "";
+  errorMsg = "";
 
   scenarioConfiguration = defaultScenarioConfiguration;
 
@@ -255,10 +255,6 @@ export default class StormwaterScenario extends Vue {
     ];
   }
 
-  get stormWater(): boolean {
-    return this.$store.state.scenario.stormWater;
-  }
-
   runScenario(): void {
     // update stormwater scenario in store
     this.scenarioConfigurationGlobal = Object.assign(
@@ -274,14 +270,14 @@ export default class StormwaterScenario extends Vue {
   }
 
   get scenarioConfigurationGlobal(): StormWaterScenarioConfiguration {
-    return this.$store.state.scenario.stormWaterScenarioConfiguration;
+    return this.$store.getters["stormwater/scenarioConfiguration"];
   }
 
   set scenarioConfigurationGlobal(
     newScenarioConfiguration: StormWaterScenarioConfiguration
   ) {
     this.$store.commit(
-      "scenario/stormWaterScenarioConfiguration",
+      "stormwater/mutateScenarioConfiguration",
       newScenarioConfiguration
     );
   }

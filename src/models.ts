@@ -1,5 +1,6 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import CityPyO from "./store/cityPyO";
+import type StormWater from "./store/stormwater";
 
 export type { MapboxMap };
 
@@ -78,6 +79,7 @@ export type ScenarioWithTimeSheets = "abm" | "sw";
 
 export interface StoreStateWithModules extends StoreState {
   scenario: ScenarioStoreState;
+  stormwater: StormWater;
 }
 
 export interface Legend {
