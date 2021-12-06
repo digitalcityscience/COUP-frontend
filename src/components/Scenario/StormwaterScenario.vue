@@ -269,11 +269,13 @@ export default class StormwaterScenario extends Vue {
 
   runScenario(): void {
     // update stormwater scenario in store
-    this.scenarioConfigurationGlobal = Object.assign({}, this.scenarioConfiguration);
+    this.scenarioConfigurationGlobal = Object.assign(
+      {},
+      this.scenarioConfiguration
+    );
 
     // update selected rain gage (for TimeSheet only)
-    this.updateRainAmountDisplayedInSWTimeGraph
-();
+    this.updateRainAmountDisplayedInSWTimeGraph();
 
     // get stormwater result from cityPyo
     this.loadStormwaterMap();
@@ -293,7 +295,10 @@ export default class StormwaterScenario extends Vue {
   }
 
   updateRainAmountDisplayedInSWTimeGraph(): void {
-    this.$store.commit("scenario/rainAmount", Rain[this.scenarioConfiguration.returnPeriod]);
+    this.$store.commit(
+      "scenario/rainAmount",
+      Rain[this.scenarioConfiguration.returnPeriod]
+    );
   }
 
   get resultLoading(): boolean {
@@ -325,7 +330,10 @@ export default class StormwaterScenario extends Vue {
   }
 
   get isFormDirty(): boolean {
-    return JSON.stringify(this.scenarioConfiguration) !== JSON.stringify(this.scenarioConfigurationGlobal)
+    return (
+      JSON.stringify(this.scenarioConfiguration) !==
+      JSON.stringify(this.scenarioConfigurationGlobal)
+    );
   }
 }
 </script>
