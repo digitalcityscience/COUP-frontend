@@ -62,8 +62,6 @@ export default class StormWaterStore extends VuexModule {
 
     // request calculation and fetch results
     const calcModules = this.context.rootState.calculationModules;
-    console.log("calc modules", calcModules)
-
     const stormWaterResultUuid = await calcModules.requestCalculationStormWater(this.scenarioConfiguration);
     const simulationResult: StormWaterResult = await calcModules.getResultForStormWater(stormWaterResultUuid);
 
