@@ -1,5 +1,15 @@
-import type { StormWaterScenarioConfiguration } from "@/models";
-import { Module, VuexModule, Mutation } from "vuex-module-decorators";
+import { swLayerName } from "@/config/layers";
+import type { GeoJSON, StormWaterScenarioConfiguration } from "@/models";
+import {
+  getSimulationResultForScenario,
+  request_calculation,
+} from "@/store/scenario/calculationModules";
+import {
+  Module,
+  Mutation,
+  MutationAction,
+  VuexModule,
+} from "vuex-module-decorators";
 
 export interface StormwaterState {
   stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
@@ -17,6 +27,12 @@ export default class StormWaterStore extends VuexModule {
     ...defaultStormwaterConfiguration,
   };
 
+  geoJsonResult: GeoJSON | null = null;
+
+  get geoJson(): GeoJSON {
+    return this.geoJsonResult;
+  }
+
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
   }
@@ -26,5 +42,32 @@ export default class StormWaterStore extends VuexModule {
     newScenarioConfiguration: StormWaterScenarioConfiguration
   ): void {
     this.scenarioConfig = { ...newScenarioConfiguration };
+  }
+
+  @MutationAction({ mutate: ["geoJsonResult"] })
+  async updateStormWaterLayer(
+    userId: string
+  ): Promise<{ geoJsonResult: GeoJSON }> {
+    const scenario = {
+      roofs: this.scenarioConfiguration.roofs,
+      flow_path: this.scenarioConfiguration.flowPath,
+      return_period: this.scenarioConfiguration.returnPeriod,
+      result_format: "geojson",
+      city_pyo_user: userId, //rootState.cityPyO.userid,
+    };
+
+    // request calculation and fetch results
+    const stormWaterResultUuid = await request_calculation(
+      swLayerName,
+      scenario
+    );
+    const simulationResult = await getSimulationResultForScenario(
+      swLayerName,
+      stormWaterResultUuid
+    );
+
+    return {
+      geoJsonResult: Object.freeze(simulationResult.source.options.data),
+    };
   }
 }

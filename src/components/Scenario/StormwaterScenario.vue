@@ -166,7 +166,7 @@ import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import Rain from "@/config/rain.json";
 import type { MenuLink, StormWaterScenarioConfiguration } from "@/models";
 import { StoreStateWithModules } from "@/models";
-import { swLayerName } from "@/store/deck-layers";
+import { swLayerName } from "@/config/layers";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 
@@ -297,10 +297,17 @@ export default class StormwaterScenario extends Vue {
     this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
     this.$store.commit("scenario/swResultGeoJson", null);
     this.$store
-      .dispatch("scenario/updateStormWaterLayer", this.scenarioConfiguration)
+      .dispatch(
+        "stormwater/updateStormWaterLayer",
+        this.$store.getters.cityPyO.userid
+      )
       .then(() => {
         // success
         this.$store.commit("scenario/stormWater", true);
+        // adding result to map
+        this.$store.dispatch("scenario/addSWLayer");
+        // update time graph
+        this.$store.commit("scenario/rerenderSwGraph", true);
         this.resultLoading = false;
         this.errorMsg = "";
       })
