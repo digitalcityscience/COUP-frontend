@@ -59,10 +59,7 @@ export function getLayerOrder() {
 export function getAbmLayerIds() {
   let abmLayers = [];
   abmLayers = abmLayers.concat(buildingLayerIds);
-  abmLayers = abmLayers.concat([
-    abmAggregationLayerName,
-    abmTripsLayerName,
-  ]);
+  abmLayers = abmLayers.concat([abmAggregationLayerName, abmTripsLayerName]);
   abmLayers.push(AmenitiesConfig.layer.id);
 
   return abmLayers;

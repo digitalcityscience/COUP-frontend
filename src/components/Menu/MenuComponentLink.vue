@@ -28,4 +28,3 @@ export default class MenuComponentLink extends Vue {
   }
 }
 </style>
-

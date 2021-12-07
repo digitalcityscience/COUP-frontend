@@ -290,7 +290,9 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
 
   // remove duplicates meetings
   //@ts-ignore
-  meetingsAtPoint = Array.from( new Set(meetingsAtPoint.map(JSON.stringify)),    JSON.parse
+  meetingsAtPoint = Array.from(
+    new Set(meetingsAtPoint.map(JSON.stringify)),
+    JSON.parse
   );
   return meetingsAtPoint.length;
 }

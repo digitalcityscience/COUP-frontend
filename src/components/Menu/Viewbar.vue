@@ -225,7 +225,7 @@ export default class Viewbar extends Vue {
           @legend-toggled="legendVisible = $event"
         />
         <Layers />
-        <ResetToNorth class="mt-5"/>
+        <ResetToNorth class="mt-5" />
         <ResetView />
         <ToggleUi />
       </div>

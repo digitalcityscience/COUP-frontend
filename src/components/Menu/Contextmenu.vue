@@ -202,7 +202,7 @@ export default {
           // if a upper floor found: take as fallback geometry for circling.
           return true;
         }
-        
+
         return true;
       });
       // update circled features

@@ -80,7 +80,7 @@ export default {
       [
         "roof_amenities",
         "scenario/moduleSettings/" + moduleSettingNames.roofAmenities,
-      ]
+      ],
     ]),
     abmStats() {
       return this.$store.state.scenario.abmStats;

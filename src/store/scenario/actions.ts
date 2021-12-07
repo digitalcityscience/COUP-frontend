@@ -32,7 +32,7 @@ import {
   request_calculation,
 } from "@/store/scenario/calculationModules";
 import { ActionContext } from "vuex";
-import scenario from '.';
+import scenario from ".";
 
 export default {
   async updateNoiseScenario(
@@ -109,15 +109,14 @@ export default {
     { state, commit, dispatch, rootState },
     stormWaterScenario
   ) {
-    
     const scenario = {
-      "roofs": stormWaterScenario.roofs,
-      "flow_path": stormWaterScenario.flowPath,
-      "return_period": stormWaterScenario.returnPeriod,
-      "result_format": "geojson",
-      "city_pyo_user":  rootState.cityPyO.userid,
-    }
-    
+      roofs: stormWaterScenario.roofs,
+      flow_path: stormWaterScenario.flowPath,
+      return_period: stormWaterScenario.returnPeriod,
+      result_format: "geojson",
+      city_pyo_user: rootState.cityPyO.userid,
+    };
+
     // request calculation and fetch results
     return new Promise((resolve, reject) => {
       request_calculation("stormwater", scenario)
@@ -210,13 +209,15 @@ export default {
     }
   },
   // TODO: how do we realize 1 central function for all users?
-  loadScienceCityAbmScenario({state, commit, dispatch, rootState }, scenarioId: string) {
+  loadScienceCityAbmScenario(
+    { state, commit, dispatch, rootState },
+    scenarioId: string
+  ) {
     //show loading screen
     commit("resultLoading", true);
     commit("loader", true);
 
-    rootState.cityPyO.getLayer(scenarioId, false)
-    .then((result) => {
+    rootState.cityPyO.getLayer(scenarioId, false).then((result) => {
       if (!result) {
         alert(
           "There was an error requesting the data from the server. Please get in contact with the admins."
@@ -227,9 +228,8 @@ export default {
       }
 
       commit("loaderTxt", "Serving Abm Data ... ");
-      return dispatch("computeLoop", result.data)
+      return dispatch("computeLoop", result.data);
     });
-
 
     // TODO dispatch("updateAmenitiesLayer", scenarioId);
   },
@@ -554,20 +554,18 @@ export default {
       );
     });
 
-    return buildAggregationLayer(heatLayerFormed).then(
-      (deckLayer) => {
-        if (rootState.map?.getLayer(abmAggregationLayerName)) {
-          rootState.map?.removeLayer(abmAggregationLayerName);
-        }
-
-        console.log("new aggregation layer loaded");
-        dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
-          commit("addLayerId", abmAggregationLayerName, { root: true });
-        });
-        commit("heatMap", true);
-        console.log(state.heatMap);
+    return buildAggregationLayer(heatLayerFormed).then((deckLayer) => {
+      if (rootState.map?.getLayer(abmAggregationLayerName)) {
+        rootState.map?.removeLayer(abmAggregationLayerName);
       }
-    );
+
+      console.log("new aggregation layer loaded");
+      dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
+        commit("addLayerId", abmAggregationLayerName, { root: true });
+      });
+      commit("heatMap", true);
+      console.log(state.heatMap);
+    });
   },
   // this updates ABM related layers only
   updateLayers({ state, commit, dispatch, rootState }, layer) {
@@ -651,7 +649,7 @@ export default {
       });
     });
   },
- };
+};
 
 function updateBridges(bridge_hafencity, underpass_veddel) {
   const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there

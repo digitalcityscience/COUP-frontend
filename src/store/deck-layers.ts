@@ -58,7 +58,9 @@ export async function buildTripsLayer(
   return tripsLayer;
 }
 
-export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
+export async function buildAggregationLayer(
+  data: DataSet<any>
+): Promise<DeckLayer<any>> {
   const aggregationLayer = new DeckLayer({
     id: abmAggregationLayerName,
     type: HeatmapLayer,

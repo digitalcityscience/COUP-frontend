@@ -46,7 +46,7 @@ export default {
     },
     heatMapActive() {
       return this.$store.state.scenario.heatMap;
-    }
+    },
   },
   mounted(): void {
     mapboxgl.accessToken = this.accessToken;

@@ -10,7 +10,7 @@ export function hideBuildings(map: MapboxMap | null): void {
   hideLayers(map, buildingsLayers);
 }
 
-const amenityLayers = ["abmAmenities"]
+const amenityLayers = ["abmAmenities"];
 
 export function showAmenities(map: MapboxMap | null): void {
   showLayers(map, amenityLayers);

@@ -1,6 +1,6 @@
 import { workshopScenarioNames } from "@/store/abm";
 import Amenities from "@/config/amenities.json";
-import { StoreState } from '@/models';
+import { StoreState } from "@/models";
 
 export default class CityPyO {
   url: string;
@@ -28,8 +28,11 @@ export default class CityPyO {
       const json = await res.json();
       this.userid = json.user_id;
 
-
-      return { authenticated: true, restricted: json.restricted, context: json.context };
+      return {
+        authenticated: true,
+        restricted: json.restricted,
+        context: json.context,
+      };
     } else {
       console.warn(res.status, res.statusText);
       return { authenticated: false };
