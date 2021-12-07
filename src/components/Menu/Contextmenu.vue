@@ -1,7 +1,6 @@
 <script>
 import { mapState } from "vuex";
 import * as turf from "@turf/turf";
-import { alkisTranslations } from "@/store/abm";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
 
 export default {
@@ -305,19 +304,27 @@ export default {
           <v-icon>mdi-close</v-icon>
         </div>
       </div>
-      <div class="general" v-for="item in modalInfo.generalContent">
+      <div
+        class="general"
+        v-for="(item, index) in modalInfo.generalContent"
+        :key="index"
+      >
         <p></p>
-        <div v-for="(value, key) in item">
+        <div v-for="(value, key) in item" :key="key">
           <p>{{ key }} : {{ value }}</p>
         </div>
       </div>
     </div>
-    <div class="head_scope" v-for="(content, name) in modalInfo.detailContent">
+    <div
+      class="head_scope"
+      v-for="(content, name) in modalInfo.detailContent"
+      :key="name"
+    >
       <div class="head_bar">
         <h3>{{ getLayerHeadline(name) }}</h3>
       </div>
-      <div v-for="ctx in content">
-        <div v-for="(value, key) in ctx">
+      <div v-for="ctx in content" :key="ctx.key">
+        <div v-for="(value, key) in ctx" :key="key">
           <p>
             <strong>{{ key }}</strong> {{ value }}
           </p>
