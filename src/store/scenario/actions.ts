@@ -27,12 +27,9 @@ import {
   calculateAmenityStatsForFocusArea,
   calculateAmenityStatsForMultiLayerAnalysis,
 } from "@/store/scenario/amenityStats";
-import {
-  getSimulationResultForScenario,
-  request_calculation,
-} from "@/store/scenario/calculationModules";
 import { ActionContext } from "vuex";
 import scenario from '.';
+import { StormWaterScenarioConfiguration } from '../stormwater';
 
 export default {
   async updateNoiseScenario(
@@ -43,9 +40,9 @@ export default {
 
     return new Promise((resolve, reject) => {
       // request calculation and fetch results
-      request_calculation("noise", noiseScenario)
+      rootState.calculationModules.requestCalculationNoise(noiseScenario)
         .then((noiseResultUuid) => {
-          return getSimulationResultForScenario("noise", noiseResultUuid);
+          return rootState.calculationModules.getResultForNoise(noiseResultUuid);
         })
         .then((noiseResult) => {
           // adding result to store
@@ -107,30 +104,22 @@ export default {
   },
   async updateStormWaterLayer(
     { state, commit, dispatch, rootState },
-    stormWaterScenario
+    stormWaterScenario: StormWaterScenarioConfiguration
   ) {
-    
-    const scenario = {
-      "roofs": stormWaterScenario.roofs,
-      "flow_path": stormWaterScenario.flowPath,
-      "return_period": stormWaterScenario.returnPeriod,
-      "result_format": "geojson",
-      "city_pyo_user":  rootState.cityPyO.userid,
-    }
     
     // request calculation and fetch results
     return new Promise((resolve, reject) => {
-      request_calculation("stormwater", scenario)
-        .then((stormWaterResultUuid) => {
-          return getSimulationResultForScenario(
-            "stormwater",
-            stormWaterResultUuid
-          );
+      rootState.calculationModules.requestCalculationStormWater(stormWaterScenario)
+        .then((stormWaterResultUuid: string) => {
+          return rootState.calculationModules.getResultForStorWater(stormWaterResultUuid);
         })
         .then((stormwaterResult) => {
           // adding result to store
-          const swResultGeoJson = stormwaterResult.source.options.data;
+          // TODO Make a stormwater result object in store
+          const swResultGeoJson = stormwaterResult["geojson"]
           commit("swResultGeoJson", Object.freeze(swResultGeoJson));
+          const stormWaterResultRain = stormwaterResult["rain"]
+          commit("stormWaterResultRain", stormWaterResultRain);
         })
         .finally(() => {
           // adding result to map
@@ -169,17 +158,15 @@ export default {
     wind_scenario["city_pyo_user"] = rootState.cityPyO.userid;
 
     // fetch results, add to map and return boolean whether results are complete or not
-    const windResultUuid = request_calculation("wind", wind_scenario).then(
+    const windResultUuid = rootState.calculationModules.requestCalculationWind(wind_scenario).then(
       (windResultUuid) => {
         console.log("wind result uuid", windResultUuid);
         return windResultUuid;
       }
     );
 
-    const completed = await getSimulationResultForScenario(
-      "wind",
-      await windResultUuid
-    ).then((resultInfo) => {
+    const completed = await rootState.calculationModules.getResultForWind(await windResultUuid)
+    .then((resultInfo) => {
       console.log("end result", resultInfo);
 
       const receivedCompleteResult = resultInfo.complete || false; // was the result complete?

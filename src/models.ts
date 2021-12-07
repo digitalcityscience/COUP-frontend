@@ -1,5 +1,6 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import CityPyO from "./store/cityPyO";
+import CalculationModules from "./store/calculationModules";
 import type StormWater from "./store/stormwater";
 
 export type { MapboxMap };
@@ -34,6 +35,7 @@ export interface StoreState {
   view: View;
   accessToken: string;
   cityPyO: CityPyO | null;
+  calculationModules: CalculationModules | null;
   mapStyle: string;
   restrictedAccess: boolean;
   focusAreasGeoJson: Record<string, unknown> | null;

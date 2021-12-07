@@ -7,6 +7,7 @@ import { StoreState } from "@/models";
 import CityPyO from "@/store/cityPyO";
 import { Layer } from "mapbox-gl";
 import { ActionContext } from "vuex";
+import CalculationModules from './calculationModules';
 
 export default {
   async createDesignLayers({
@@ -175,9 +176,17 @@ export default {
     options: ConnectionOptions
   ) {
     const cityPyo = new CityPyO();
-    commit("cityPyO", cityPyo);
+    const authResponse = await cityPyo.login(options.userdata);
 
-    return await cityPyo.login(options.userdata);
+    // add cityPyo and CalculationModules class to store upon successful auth
+    if (authResponse.authenticated) {
+      const calculationModules = new CalculationModules(cityPyo.userid);
+      const userId = cityPyo.userid;
+      commit("calculationModules", calculationModules);
+      commit("cityPyO", cityPyo);
+    }
+
+    return authResponse;
   },
   addFocusAreasMapLayer({
     state,
