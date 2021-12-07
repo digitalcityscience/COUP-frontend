@@ -29,7 +29,7 @@ import {
 } from "@/store/scenario/amenityStats";
 import { ActionContext } from "vuex";
 import scenario from '.';
-import { StormWaterScenarioConfiguration } from '../stormwater';
+import type { StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 
 export default {
   async updateNoiseScenario(
@@ -111,15 +111,11 @@ export default {
     return new Promise((resolve, reject) => {
       rootState.calculationModules.requestCalculationStormWater(stormWaterScenario)
         .then((stormWaterResultUuid: string) => {
-          return rootState.calculationModules.getResultForStorWater(stormWaterResultUuid);
+          return rootState.calculationModules.getResultForStormWater(stormWaterResultUuid);
         })
-        .then((stormwaterResult) => {
+        .then((stormwaterResult: StormWaterResult) => {
           // adding result to store
-          // TODO Make a stormwater result object in store
-          const swResultGeoJson = stormwaterResult["geojson"]
-          commit("swResultGeoJson", Object.freeze(swResultGeoJson));
-          const stormWaterResultRain = stormwaterResult["rain"]
-          commit("stormWaterResultRain", stormWaterResultRain);
+          commit("stormwater/mutateResult", stormwaterResult, {root: true})
         })
         .finally(() => {
           // adding result to map
@@ -616,7 +612,8 @@ export default {
     }
   },
   async transformSWLayerData({ state, commit, dispatch, rootState }) {
-    const deckLayer = await buildSWLayer(state.swResultGeoJson, state.rainTime);
+    console.log("root state stormwater", rootState.stormwater.result)
+    const deckLayer = await buildSWLayer(rootState.stormwater.result.geojson, state.rainTime);
     if (rootState.map?.getLayer(swLayerName)) {
       rootState.map?.removeLayer(swLayerName);
     }
@@ -626,8 +623,11 @@ export default {
     commit("addLayerId", swLayerName, { root: true });
   },
   async addSWLayer({ state, commit, dispatch, rootState }) {
+    // add stormwater result to map and time sheet
     await dispatch("transformSWLayerData");
     console.log("adding trees", Trees.source, Trees.layer);
+
+    // add trees
     rootState.cityPyO.getLayer(Trees.source.data.id).then((source) => {
       dispatch("addSourceToMap", source, { root: true }).then(() => {
         dispatch("addLayerToMap", Trees.layer, { root: true }).then(() => {

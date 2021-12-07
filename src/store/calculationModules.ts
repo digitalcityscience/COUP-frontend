@@ -1,4 +1,4 @@
-import { StormWaterScenarioConfiguration } from './stormwater';
+import type { StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
@@ -18,7 +18,8 @@ export default class CalculationModules {
     this.endpointsCalculation = {
       "wind": this.apiURL +  "wind/windtask",
       "noise": this.apiURL + "noise/task",
-      "stormWater": this.apiURL + "water/task",
+      //"stormWater": this.apiURL + "water/task",
+      "stormWater": "http://localhost:5002" + "/task",
     }
 
     // endpoints for result collection
@@ -26,7 +27,8 @@ export default class CalculationModules {
       "wind_single_task": this.apiURL +  "wind/tasks/",
       "wind_group_task": this.apiURL +  "wind/grouptasks/",
       "noise": this.apiURL + "noise/tasks/",
-      "stormWater": this.apiURL + "water/tasks",
+      // "stormWater": this.apiURL + "water/tasks/",
+      "stormWater":  "http://localhost:5002" + "/tasks/",
     }
   }
 
@@ -49,7 +51,6 @@ export default class CalculationModules {
   
   // triggers stormWater calculation and returns the result uuids of the result
   async requestCalculationStormWater(stormWaterScenario: StormWaterScenarioConfiguration) {
-    console.log(" requesting calc for stormWaterScenario", stormWaterScenario);
     return await requestCalculation(this.endpointsCalculation["stormWater"], stormWaterScenario, this.cityPyoUser);
   }
 
@@ -78,6 +79,12 @@ export default class CalculationModules {
         return result
     })
 
+    // check result validity
+    if (! await result["results"] ) {
+      console.error("Invalid result", await result)
+      throw new Error("Did not get a valid result")
+    }
+
     return {
       complete: result["complete"],  //  indicator whether all result tiles have beeen received.
       source: await formatResultAsMapSource("wind", await result["results"]),
@@ -89,6 +96,13 @@ export default class CalculationModules {
   async getResultForNoise(task: GenericObject) { // TODO make task object
     let result = await getResultForSingleTask(this.endpointsResultCollection["noise"], task["taskId"])
     
+
+    // check result validity
+    if (! await result) {
+      console.error("Invalid result", await result)
+      throw new Error("Did not get a valid result")
+    }
+
     return {
       complete: true, // noise result does not come in parts
       source: await formatResultAsMapSource("noise", await result),
@@ -97,13 +111,19 @@ export default class CalculationModules {
 
 
   /** gets stormwater result */
-  async getResultForStormWater(task: GenericObject) { // TODO make task object
+  async getResultForStormWater(task: GenericObject): Promise<StormWaterResult> { // TODO make task object
     let result = await getResultForSingleTask(this.endpointsResultCollection["stormWater"], task["taskId"])
 
+    // check result validity
+    if (!(await result["geojson"] && await result["rain"])) {
+      console.error("Invalid result", await result)
+      throw new Error("Did not get a valid result")
+    }
+
     return {
-      "complete": true, // // stormwater result does not come in parts
+      "complete": true, // stormwater result does not come in parts
       "geojson": await result["geojson"],  // geojson with subcatchments to be shown as map layer
-      "rain": await result["rain"] // rain data to be shown in time TimeSheet
+      "rainData": await result["rain"] // rain data to be shown in time TimeSheet
     };
   }
 }

@@ -1,8 +1,9 @@
-import type { StormWaterScenarioConfiguration } from "@/models";
+import type { StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 import { Module, VuexModule, Mutation } from "vuex-module-decorators";
 
 export interface StormwaterState {
   stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
+  stormWaterResult: StormWaterResult | null;
 }
 
 export const defaultStormwaterConfiguration: StormWaterScenarioConfiguration = {
@@ -16,9 +17,14 @@ export default class StormWaterStore extends VuexModule {
   scenarioConfig: StormWaterScenarioConfiguration = {
     ...defaultStormwaterConfiguration,
   };
+  result: StormWaterResult|null = null;
 
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
+  }
+
+  get stormWaterResult(): StormWaterResult {
+    return this.result
   }
 
   @Mutation
@@ -26,5 +32,18 @@ export default class StormWaterStore extends VuexModule {
     newScenarioConfiguration: StormWaterScenarioConfiguration
   ): void {
     this.scenarioConfig = { ...newScenarioConfiguration };
+  }
+  @Mutation
+  mutateResult(
+    newResult: StormWaterResult
+  ): void {
+    this.result = {
+      geojson: Object.freeze(newResult.geojson),
+      rainData: newResult.rainData,
+      complete: newResult.complete
+    };
+  }@Mutation
+  resetResult(): void {
+    this.result = null;
   }
 }

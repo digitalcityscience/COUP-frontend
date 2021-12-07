@@ -163,12 +163,12 @@
 
 <script lang="ts">
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import Rain from "@/config/rain.json";
-import type { MenuLink, StormWaterScenarioConfiguration } from "@/models";
+import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 import { StoreStateWithModules } from "@/models";
 import { swLayerName } from "@/store/deck-layers";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
+
 
 @Component({
   components: { MenuComponentDivision },
@@ -257,9 +257,6 @@ export default class StormwaterScenario extends Vue {
       this.scenarioConfiguration
     );
 
-    // update selected rain gage (for TimeSheet only)
-    this.updateRainAmountDisplayedInSWTimeGraph();
-
     // get stormwater result from cityPyo
     this.loadStormwaterMap();
   }
@@ -277,13 +274,6 @@ export default class StormwaterScenario extends Vue {
     );
   }
 
-  updateRainAmountDisplayedInSWTimeGraph(): void {
-    this.$store.commit(
-      "scenario/rainAmount",
-      Rain[this.scenarioConfiguration.returnPeriod]
-    );
-  }
-
   get resultLoading(): boolean {
     return this.$store.state.scenario.resultLoading;
   }
@@ -295,7 +285,7 @@ export default class StormwaterScenario extends Vue {
   async loadStormwaterMap(): Promise<void> {
     this.resultLoading = true;
     this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
-    this.$store.commit("scenario/swResultGeoJson", null);
+    this.$store.commit("stormwater/resetResult");
     this.$store
       .dispatch("scenario/updateStormWaterLayer", this.scenarioConfiguration)
       .then(() => {

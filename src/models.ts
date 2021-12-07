@@ -60,10 +60,7 @@ export interface ScenarioStoreState {
   loop: boolean;
   abmSimpleTimes: Record<any, any>;
   currentTimeStamp: number;
-  swResultGeoJson: Record<any, any>;
   selectGraph: ScenarioWithTimeSheets;
-  rainAmount: number[];
-  stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
   resultLoading: boolean;
 }
 
@@ -75,6 +72,12 @@ export interface StormWaterScenarioConfiguration {
   returnPeriod: number;
   flowPath: StormWaterFlowPath;
   roofs: StormWaterRoofType;
+}
+
+export interface StormWaterResult {
+  geojson: GenericObject;
+  rainData: number[];
+  complete: boolean;
 }
 
 export type ScenarioWithTimeSheets = "abm" | "sw";
