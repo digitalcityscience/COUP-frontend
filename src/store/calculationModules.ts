@@ -18,8 +18,7 @@ export default class CalculationModules {
     this.endpointsCalculation = {
       "wind": this.apiURL +  "wind/windtask",
       "noise": this.apiURL + "noise/task",
-      //"stormWater": this.apiURL + "water/task",
-      "stormWater": "http://localhost:5002" + "/task",
+      "stormWater": this.apiURL + "water/task",
     }
 
     // endpoints for result collection
@@ -27,8 +26,7 @@ export default class CalculationModules {
       "wind_single_task": this.apiURL +  "wind/tasks/",
       "wind_group_task": this.apiURL +  "wind/grouptasks/",
       "noise": this.apiURL + "noise/tasks/",
-      // "stormWater": this.apiURL + "water/tasks/",
-      "stormWater":  "http://localhost:5002" + "/tasks/",
+      "stormWater": this.apiURL + "water/tasks/",
     }
   }
 
