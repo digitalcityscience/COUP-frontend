@@ -9,7 +9,7 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
-    "@danmarshall/deckgl-typings": "^4.1.9",
+    "@danmarshall/deckgl-typings": "^4.9.11",
     "@deck.gl/aggregation-layers": "^8.2.5",
     "@deck.gl/core": "^8.2.5",
     "@deck.gl/geo-layers": "^8.1.12",

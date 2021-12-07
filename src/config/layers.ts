@@ -15,8 +15,9 @@ import SpacesConfig from "@/config/spaces.json";
 import {
   abmTripsLayerName,
   abmAggregationLayerName,
-  swLayerName,
 } from "@/store/deck-layers";
+
+export const swLayerName = "stormwater";
 
 const addedLayersIds = [
   LayerSubselectionConfig.layer.id,

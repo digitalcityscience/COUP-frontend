@@ -165,7 +165,7 @@
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 import { StoreStateWithModules } from "@/models";
-import { swLayerName } from "@/store/deck-layers";
+import { swLayerName } from "@/config/layers";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 
@@ -287,19 +287,23 @@ export default class StormwaterScenario extends Vue {
     this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
     this.$store.commit("stormwater/resetResult");
     this.$store
-      .dispatch("scenario/updateStormWaterLayer", this.scenarioConfiguration)
-      .then(() => {
-        // success
-        this.$store.commit("scenario/stormWater", true);
-        this.resultLoading = false;
-        this.errorMsg = "";
-      })
-      .catch((err) => {
-        console.log("caught error", err);
-        this.$store.commit("scenario/stormWater", false);
-        this.resultLoading = false;
-        this.errorMsg = err;
-      });
+      .dispatch("stormwater/updateStormWaterResult")
+        .then(() => {
+          // success
+          this.$store.commit("scenario/stormWater", true);
+          // adding result to map
+          this.$store.dispatch("scenario/addSWLayer");
+          // update time graph
+          this.$store.commit("scenario/rerenderSwGraph", true);
+          this.resultLoading = false;
+          this.errorMsg = "";
+        })
+        .catch((err) => {
+          console.log("caught error", err);
+          this.$store.commit("scenario/stormWater", false);
+          this.resultLoading = false;
+          this.errorMsg = err;
+        });
   }
 
   get isFormDirty(): boolean {

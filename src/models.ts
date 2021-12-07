@@ -4,6 +4,7 @@ import CalculationModules from "./store/calculationModules";
 import type StormWater from "./store/stormwater";
 
 export type { MapboxMap };
+export type GeoJSON = Record<string, unknown>;
 
 export interface VisibleLayers {
   focusAreas: boolean;
@@ -38,7 +39,7 @@ export interface StoreState {
   calculationModules: CalculationModules | null;
   mapStyle: string;
   restrictedAccess: boolean;
-  focusAreasGeoJson: Record<string, unknown> | null;
+  focusAreasGeoJson: GeoJSON | null;
   focusAreasShown: boolean; // TODO: use visible layers instead
   openModalsIds: string[];
   modalIndex: number;

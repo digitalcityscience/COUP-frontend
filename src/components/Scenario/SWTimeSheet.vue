@@ -36,7 +36,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch, Prop } from "vue-property-decorator";
-import type { StoreStateWithModules, StormWaterResult } from "@/models";
+import type { StoreStateWithModules, GeoJSON, StormWaterResult } from "@/models";
 import type { Store } from "vuex";
 import { Chart } from "chart.js";
 import TimeSheetControl from "@/components/Scenario/TimeSheetControl.vue";
@@ -124,7 +124,7 @@ export default class SWTimeSheet extends Vue {
     this.parksRunOffResults = [];
 
     // make time stamps and run off results
-    const features = this.stormWaterResult.geojson.features;
+    const features = this.stormWaterResult.geojson.features as any[];
 
     // calculate total runoff for each point in time
     // iterate over every subcatchment result and add the results to the accumulated up values for the subcatchment type

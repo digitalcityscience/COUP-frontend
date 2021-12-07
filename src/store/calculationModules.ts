@@ -109,7 +109,6 @@ export default class CalculationModules {
     };
   }
 
-
   /** gets stormwater result */
   async getResultForStormWater(task: GenericObject): Promise<StormWaterResult> { // TODO make task object
     let result = await getResultForSingleTask(this.endpointsResultCollection["stormWater"], task["taskId"])

@@ -1,5 +1,6 @@
-import type { AnySourceData as AnyMapboxLayer } from "mapbox-gl";
+import type { AnySourceData as AnyMamboxLayer } from "mapbox-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
+import { ColumnLayer } from "@deck.gl/layers";
 
 export {};
 
@@ -57,7 +58,10 @@ declare global {
 
   interface RawSource {
     id: string;
-    options: AnyMapboxLayer | DeckLayer;
+    options:
+      | AnyMamboxLayer
+      | DeckLayer<unknown>
+      | ColumnLayer<unknown, unknown>;
   }
 
   interface LayerAnalysisRequest {

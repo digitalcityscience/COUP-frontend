@@ -1,5 +1,6 @@
 import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
+import { swLayerName } from "@/config/layers";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import NoiseLayer from "@/config/noise.json";
@@ -9,15 +10,14 @@ import TrafficCountLayer from "@/config/trafficCounts.json";
 import Trees from "@/config/trees.json";
 import WindResult from "@/config/windResult.json";
 import { StoreState } from "@/models";
+import { buildSWLayer } from "@/services/deck.service";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
 import {
   abmAggregationLayerName,
   abmTripsLayerName,
   animate,
   buildAggregationLayer,
-  buildSWLayer,
   buildTripsLayer,
-  swLayerName,
 } from "@/store/deck-layers";
 import {
   calcAbmStatsForMultiLayer,
@@ -100,36 +100,6 @@ export default {
     };
     return dispatch("addSourceToMap", source, { root: true }).then((source) => {
       return dispatch("addLayerToMap", TrafficCountLayer.layer, { root: true });
-    });
-  },
-  async updateStormWaterLayer(
-    { state, commit, dispatch, rootState },
-    stormWaterScenario: StormWaterScenarioConfiguration
-  ) {
-    
-    // request calculation and fetch results
-    return new Promise((resolve, reject) => {
-      rootState.calculationModules.requestCalculationStormWater(stormWaterScenario)
-        .then((stormWaterResultUuid: string) => {
-          return rootState.calculationModules.getResultForStormWater(stormWaterResultUuid);
-        })
-        .then((stormwaterResult: StormWaterResult) => {
-          // adding result to store
-          commit("stormwater/mutateResult", stormwaterResult, {root: true})
-        })
-        .finally(() => {
-          // adding result to map
-          dispatch("addSWLayer");
-          // update time graph
-          commit("rerenderSwGraph", true);
-        })
-        .then((response) => {
-          return resolve(response);
-        })
-        .catch((error) => {
-          console.log("catching error");
-          return reject(error);
-        });
     });
   },
   addSunExposureLayer({
@@ -612,19 +582,15 @@ export default {
     }
   },
   async transformSWLayerData({ state, commit, dispatch, rootState }) {
-    console.log("root state stormwater", rootState.stormwater.result)
-    const deckLayer = await buildSWLayer(rootState.stormwater.result.geojson, state.rainTime);
-    if (rootState.map?.getLayer(swLayerName)) {
-      rootState.map?.removeLayer(swLayerName);
-    }
-
-    console.log("stormwater layer loaded");
-    rootState.map?.addLayer(deckLayer);
-    commit("addLayerId", swLayerName, { root: true });
+    const deckLayer = buildSWLayer(
+      rootState.stormwater.result.geojson,
+      state.rainTime
+    );
+    console.info("stormwater layer loaded");
+    await dispatch("addLayerToMap", deckLayer, { root: true });
   },
   async addSWLayer({ state, commit, dispatch, rootState }) {
-    // add stormwater result to map and time sheet
-    await dispatch("transformSWLayerData");
+    dispatch("transformSWLayerData");
     console.log("adding trees", Trees.source, Trees.layer);
 
     // add trees
