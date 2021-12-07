@@ -616,46 +616,47 @@ export default {
                 </v-col>
               </v-row>
               <!-- Legend categories as v-for -->
-              <v-row
-                v-if="showMissingScenarios"
-                no-gutters
-                v-for="layerName in missingInputScenarios"
-                :key="layerName"
-                class="mb-2 ml-0"
-              >
-                <v-col cols="2" xs="3">
-                  <v-card class="mr-2" tile dark style="">
-                    <v-icon :color="'white'">mdi-close</v-icon>
-                  </v-card>
-                </v-col>
-                <v-col cols="3" xs="9">
-                  <v-card
-                    class="pa-0"
-                    tile
-                    dark
-                    style="background-color: inherit"
-                  >
-                    {{ layerName }}
-                  </v-card>
-                </v-col>
-                <v-col cols="7" xs="12">
-                  <v-card
-                    class="pa-0"
-                    tile
-                    dark
-                    style="background-color: inherit"
-                  >
-                    <v-btn
-                      @click="loadDefaultResultFor(layerName)"
-                      class="confirm_btn"
-                      :class="{ changesMade: resultOutdated }"
-                      :disabled="resultLoading"
-                      style="min-width: 100%"
-                      >Load Default
-                    </v-btn>
-                  </v-card>
-                </v-col>
-              </v-row>
+              <template v-if="showMissingScenarios">
+                <v-row
+                  no-gutters
+                  v-for="layerName in missingInputScenarios"
+                  :key="layerName"
+                  class="mb-2 ml-0"
+                >
+                  <v-col cols="2" xs="3">
+                    <v-card class="mr-2" tile dark style="">
+                      <v-icon :color="'white'">mdi-close</v-icon>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="3" xs="9">
+                    <v-card
+                      class="pa-0"
+                      tile
+                      dark
+                      style="background-color: inherit"
+                    >
+                      {{ layerName }}
+                    </v-card>
+                  </v-col>
+                  <v-col cols="7" xs="12">
+                    <v-card
+                      class="pa-0"
+                      tile
+                      dark
+                      style="background-color: inherit"
+                    >
+                      <v-btn
+                        @click="loadDefaultResultFor(layerName)"
+                        class="confirm_btn"
+                        :class="{ changesMade: resultOutdated }"
+                        :disabled="resultLoading"
+                        style="min-width: 100%"
+                        >Load Default
+                      </v-btn>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </template>
             </div>
             <!-- end of missing scenarios -->
           </div>

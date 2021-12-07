@@ -59,11 +59,11 @@ export default {
       </template>
     </div>
     <div class="menu_wrapper">
-      <div v-if="context=='grasbrook'" class="header_scope">
+      <div v-if="context == 'grasbrook'" class="header_scope">
         <h3>Grasbrook CityScope</h3>
         <p>Tool for Functional Planning</p>
       </div>
-      <div v-if="context=='schb'" class="header_scope">
+      <div v-if="context == 'schb'" class="header_scope">
         <h3>Science City</h3>
         <p>Competition Tool</p>
       </div>
@@ -79,7 +79,9 @@ export default {
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'StormwaterScenario' }"
+              v-bind:class="{
+                highlight: activeComponent === 'StormwaterScenario',
+              }"
               @click="activeComponent = 'StormwaterScenario'"
             >
               <p>Stormwater</p>
@@ -131,17 +133,22 @@ export default {
       </div>
       <div class="body_scope">
         <div v-if="activeComponent === 'AbmScenario'">
-          <AbmScenario :restrictedAccess="restrictedAccess" :context="context" />
+          <AbmScenario
+            :restrictedAccess="restrictedAccess"
+            :context="context"
+          />
         </div>
-        <div v-if="activeComponent === 'StormwaterScenario'"><StormwaterScenario /></div>
+        <div v-if="activeComponent === 'StormwaterScenario'">
+          <StormwaterScenario />
+        </div>
         <div v-if="activeComponent === 'NoiseScenario'">
-          <NoiseScenario/>
+          <NoiseScenario />
         </div>
         <div v-if="activeComponent === 'WindScenario'">
-          <WindScenario/>
+          <WindScenario />
         </div>
         <div v-if="activeComponent === 'SunExposureResults'">
-          <SunExposureResults/>
+          <SunExposureResults />
         </div>
         <div v-if="activeComponent === 'MultiLayerAnalysis'">
           <MultiLayerAnalysis />

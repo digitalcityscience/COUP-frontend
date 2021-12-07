@@ -18,7 +18,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
   modules: {
     scenario,
-    stormwater
+    stormwater,
   },
   state,
   getters: {

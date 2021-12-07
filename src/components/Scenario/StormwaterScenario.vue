@@ -170,12 +170,6 @@ import { swLayerName } from "@/store/deck-layers";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 
-const defaultScenarioConfiguration: StormWaterScenarioConfiguration = {
-  returnPeriod: 2,
-  flowPath: "blockToPark",
-  roofs: "extensive",
-};
-
 @Component({
   components: { MenuComponentDivision },
 })
@@ -184,7 +178,7 @@ export default class StormwaterScenario extends Vue {
   activeDivision = null;
   errorMsg = "";
 
-  scenarioConfiguration = defaultScenarioConfiguration;
+  scenarioConfiguration: StormWaterScenarioConfiguration | null = null;
 
   returnPeriodOptions = [
     {
@@ -221,17 +215,18 @@ export default class StormwaterScenario extends Vue {
     },
   ];
 
-  beforeMount() {
+  beforeMount(): void {
     // todo remove this
     this.activateStormWater();
   }
 
-  activateStormWater() {
+  activateStormWater(): void {
     this.$store.commit("scenario/stormWater", true);
     this.$store.commit("scenario/selectGraph", "sw");
   }
 
-  mounted() {
+  mounted(): void {
+    this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
     // hide all other layers
     this.$store.dispatch("hideAllLayersButThese", ["stormwater"]);
   }
@@ -297,7 +292,7 @@ export default class StormwaterScenario extends Vue {
     this.$store.commit("scenario/resultLoading", loadingState);
   }
 
-  async loadStormwaterMap() {
+  async loadStormwaterMap(): Promise<void> {
     this.resultLoading = true;
     this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
     this.$store.commit("scenario/swResultGeoJson", null);

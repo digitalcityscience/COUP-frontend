@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-// @ts-ignore
 import { DataSet } from "@deck.gl/core/lib/layer";
 import { TripsLayer } from "@deck.gl/geo-layers";
 import { PolygonLayer } from "@deck.gl/layers";
@@ -58,7 +58,9 @@ export async function buildTripsLayer(
   return tripsLayer;
 }
 
-export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
+export async function buildAggregationLayer(
+  data: DataSet<any>
+): Promise<DeckLayer<any>> {
   const aggregationLayer = new DeckLayer({
     id: abmAggregationLayerName,
     type: HeatmapLayer,

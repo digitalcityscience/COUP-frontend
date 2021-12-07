@@ -1,14 +1,5 @@
-import { Module, VuexModule, Mutation, Action } from "vuex-module-decorators";
-
-export type StormWaterRoofType = "extensive" | "intensive";
-
-export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
-
-export interface StormWaterScenarioConfiguration {
-  returnPeriod: number;
-  flowPath: StormWaterFlowPath;
-  roofs: StormWaterRoofType;
-}
+import type { StormWaterScenarioConfiguration } from "@/models";
+import { Module, VuexModule, Mutation } from "vuex-module-decorators";
 
 export interface StormwaterState {
   stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
@@ -21,11 +12,7 @@ export const defaultStormwaterConfiguration: StormWaterScenarioConfiguration = {
 };
 
 @Module({ namespaced: true })
-export default class StormWater extends VuexModule {
-  config: StormwaterState = {
-    stormWaterScenarioConfiguration: { ...defaultStormwaterConfiguration },
-  };
-
+export default class StormWaterStore extends VuexModule {
   scenarioConfig: StormWaterScenarioConfiguration = {
     ...defaultStormwaterConfiguration,
   };
@@ -33,8 +20,6 @@ export default class StormWater extends VuexModule {
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
   }
-
-  count = 0;
 
   @Mutation
   mutateScenarioConfiguration(
