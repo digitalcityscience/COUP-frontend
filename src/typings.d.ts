@@ -1,4 +1,4 @@
-import type { AnySourceData as AnyMamboxLayer } from "mapbox-gl";
+import type { AnySourceData as AnyMabboxLayer } from "mapbox-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 import { ColumnLayer } from "@deck.gl/layers";
 
