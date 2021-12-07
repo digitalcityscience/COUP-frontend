@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-// @ts-ignore
 import { DataSet } from "@deck.gl/core/lib/layer";
 import { TripsLayer } from "@deck.gl/geo-layers";
 import { PolygonLayer } from "@deck.gl/layers";
