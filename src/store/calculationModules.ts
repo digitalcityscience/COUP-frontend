@@ -1,3 +1,4 @@
+import axios from "axios";
 import type { StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 
 
@@ -129,9 +130,9 @@ export default class CalculationModules {
 async function requestCalculation(url: string, scenario: GenericObject, cityPyoUser:string) {
   scenario["city_pyo_user"] = cityPyoUser;
   scenario["result_format"] = "geojson"; // mapbox front-end always needs geojson results
-  const result_uuid = await performRequest(url, scenario, "POST");
+  const result_uuid = await makePostRequest(url, scenario);
   
-  return await result_uuid;
+  return result_uuid;
 }
   
 /** gets a result for a task. Retries to get a result until timeout */
@@ -142,7 +143,7 @@ async function getResultForSingleTask(url, taskUuid) {
 
   let task_succeeded = false;
   while (!task_succeeded && requestCount < maxTries) {
-    const response = await (await fetch(url + taskUuid)).json();
+    const response = await makeGetRequest(url + taskUuid)
     task_succeeded = response["taskSucceeded"];
     console.log("response, response['taskSucceeded']");
     console.log(response, response["taskSucceeded"]);
@@ -164,7 +165,7 @@ async function getResultForSingleTask(url, taskUuid) {
 
 /** gets the results of a wind group task */
 async function getResultsForWindGroupTask(url, groupTaskUuid) {
-  const response = await (await fetch(url + groupTaskUuid)).json();
+  const response = await makeGetRequest(url + groupTaskUuid)
   const resultsComplete = response["grouptaskProcessed"];
 
   console.log(
@@ -173,29 +174,31 @@ async function getResultsForWindGroupTask(url, groupTaskUuid) {
   );
 
   return {
-    results: await response["results"],
-    complete: await resultsComplete,
+    results: response["results"],
+    complete: resultsComplete,
   };
 }
 
-async function performRequest(requestUrl, scenario, method) {
+async function makePostRequest(requestUrl, scenario) {
   console.log("performing request with scneario ", scenario);
 
-  const res = await fetch(requestUrl, {
-    method: method,
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(scenario),
-  });
+  const response = await axios.post(requestUrl, scenario)
+    .then(res => { return res.data })
+    .catch(error => {
+      console.error("Error when posting calculation request", error);
+      throw new Error("Could not post calculation request")
+    });
 
-  if (res.status !== 200) {
-    console.warn("could not get/update ressource from cityPyo ", scenario, res.status, res.statusText)
-    throw new Error("Calculation request failed, " +  res.status)
-  }
+    return response
+}
 
-  return await res.json();
+async function makeGetRequest(requestUrl) {
+  return await axios.get(requestUrl)
+    .then(res => { return res.data })
+    .catch(error => {
+      console.error("Error when getting results", error, requestUrl);
+      throw new Error("Could not load results from server")
+    });
 }
 
 async function formatResultAsMapSource(id, responseJson) {
