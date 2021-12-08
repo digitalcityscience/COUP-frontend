@@ -79,14 +79,14 @@ export default class CalculationModules {
     })
 
     // check result validity
-    if (! await result["results"] ) {
-      console.error("Invalid result", await result)
+    if (!result["results"] ) {
+      console.error("Invalid result", result)
       throw new Error("Did not get a valid result")
     }
 
     return {
       complete: result["complete"],  //  indicator whether all result tiles have beeen received.
-      source: await formatResultAsMapSource("wind", await result["results"]),
+      source: formatResultAsMapSource("wind", result["results"]),
     };
 
   }
@@ -97,14 +97,14 @@ export default class CalculationModules {
     
 
     // check result validity
-    if (! await result) {
-      console.error("Invalid result", await result)
+    if (!result) {
+      console.error("Invalid result", result)
       throw new Error("Did not get a valid result")
     }
 
     return {
       complete: true, // noise result does not come in parts
-      source: await formatResultAsMapSource("noise", await result),
+      source: formatResultAsMapSource("noise", result),
     };
   }
 
@@ -113,15 +113,15 @@ export default class CalculationModules {
     let result = await getResultForSingleTask(this.endpointsResultCollection["stormWater"], task["taskId"])
 
     // check result validity
-    if (!(await result["geojson"] && await result["rain"])) {
-      console.error("Invalid result", await result)
+    if (!(result["geojson"] && result["rain"])) {
+      console.error("Invalid result", result)
       throw new Error("Did not get a valid result")
     }
 
     return {
       "complete": true, // stormwater result does not come in parts
-      "geojson": await result["geojson"],  // geojson with subcatchments to be shown as map layer
-      "rainData": await result["rain"] // rain data to be shown in time TimeSheet
+      "geojson": result["geojson"],  // geojson with subcatchments to be shown as map layer
+      "rainData": result["rain"] // rain data to be shown in time TimeSheet
     };
   }
 }
@@ -201,12 +201,12 @@ async function makeGetRequest(requestUrl) {
     });
 }
 
-async function formatResultAsMapSource(id, responseJson) {
+function formatResultAsMapSource(id, responseJson) {
   return {
     id: id,
     options: {
       type: "geojson",
-      data: await responseJson,
+      data: responseJson,
     },
   };
 }
