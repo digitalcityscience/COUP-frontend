@@ -9,7 +9,6 @@ import {
   roofAmenitiesOptions,
   workshopScenarioNames,
 } from "@/store/abm.ts";
-import { ViewConfiguration } from "@/components/Scenario/ViewConfiguration";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/focusAreas.json";
 import { getAbmLayerIds } from "@/config/layers";
@@ -93,9 +92,6 @@ export default {
     },
     showUi() {
       return this.$store.state.scenario.showUi;
-    },
-    viewConfig(): ViewConfiguration {
-      return { filter: false };
     },
     componentDivisions(): MenuLink[] {
       return [
