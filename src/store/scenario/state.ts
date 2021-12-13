@@ -6,8 +6,8 @@ export default {
   abmTrips: null,
   agentIndexes: null,
   abmObject: {},
-  activeAbmSet: null,  // for trips layer
-  abmTimePaths: null,  //  for heatmap
+  activeAbmSet: null, // for trips layer
+  abmTimePaths: null, //  for heatmap
   abmSimpleTimes: null,
   abmWeightCount: null,
   abmStats: {},
@@ -15,9 +15,8 @@ export default {
   amenityStatsMultiLayer: {},
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
-  
 
-  currentlyShownScenarioSettings: {},   // TODO is this ABM specific??
+  currentlyShownScenarioSettings: {}, // TODO is this ABM specific??
   resultOutdated: true, // in the beginning no results are shown. Trigger user to request results.
   moduleSettings: {
     bridge_hafencity: true,
@@ -26,14 +25,14 @@ export default {
     blocks: "open",
     main_street_orientation: "vertical",
   },
-  
+
   animationRunning: false, // TODO is this really abm specific or for all timeChart components??
   animationSpeed: 7, // // TODO is this really abm specific or for all timeChart components??
   heatMapData: [],
   heatMapAverage: [],
-  
-  abmTimeRange: [8, 23],  // time filter for the heatmap
-  
+
+  abmTimeRange: [8, 23], // time filter for the heatmap
+
   // layers
   noiseMap: false,
   stormWater: false,
@@ -42,7 +41,7 @@ export default {
   multiLayerAnalysisMap: false,
   heatMap: false,
   heatMapVisible: true,
-  
+
   // UI
   loop: false,
   setLoop: false,
@@ -54,13 +53,11 @@ export default {
   resultLoading: false,
   loader: true,
   loaderTxt: "data is loading ... ",
-  
-  
+
   // Amenities
   amenitiesGeoJson: null,
   amenityStats: {},
-  
-  
+
   // wind
   windScenarioHash: "158d2b824886d908440da5c5f6c4dc4f815cdeba", // hash for annual average setting // TODO DELETE?
   currentWindScenario: {
@@ -85,11 +82,10 @@ export default {
     },
   ],
   windResultGeoJson: null,
-  
+
   // sun
   sunExposureGeoJson: null,
-  
-  
+
   // noise
   savedNoiseScenarios: [],
   noiseScenario: {
@@ -100,11 +96,9 @@ export default {
   currentNoiseGeoJson: null,
   trafficCounts: null,
 
-  
   // UI
   selectGraph: "abm",
-  
-    
+
   // Stormwater
   junctions: {},
   swResultGeoJson: {},
@@ -112,5 +106,5 @@ export default {
   rainTime: 0,
   rerenderSwGraph: false,
   savedStormWaterScenarios: [],
-  stormWaterScenario: null,
+  stormWaterScenarioConfiguration: null,
 };

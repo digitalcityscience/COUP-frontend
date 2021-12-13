@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <Map :restrictedAccess="restrictedAccess" />
-    <Menu :restrictedAccess="restrictedAccess" :context="context"/>
+    <Menu :restrictedAccess="restrictedAccess" :context="context" />
     <TimeSheet :hidden="!showTimeSheet" />
     <Viewbar :restrictedAccess="restrictedAccess" />
     <Loader />
@@ -32,21 +32,19 @@ import type { Store } from "vuex";
   },
 })
 export default class App extends Vue {
-
-  
   $store: Store<StoreState>;
 
   @Prop()
   restrictedAccess!: boolean;
   @Prop()
   context!: string;
- 
+
   get activeComponent(): string {
     return this.$store.state.activeMenuComponent;
   }
 
   get showTimeSheet(): boolean {
-    return ["AbmScenario", "SWScenario"].includes(this.activeComponent);
+    return ["AbmScenario", "StormwaterScenario"].includes(this.activeComponent);
   }
 }
 </script>

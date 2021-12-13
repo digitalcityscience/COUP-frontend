@@ -269,7 +269,7 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
   }
 
   // iterate over the agents at the same point and extract pairs of agents within similar timeframes
-  let meetingsAtPoint = [];
+  let meetingsAtPoint: [string[]] = [] as unknown as [string[]];
   for (const agentName of Object.keys(agentsAtPoint)) {
     // number of potential agents met by our agent
     // every agent that was at the same point within a timeframe of 5min
@@ -289,8 +289,10 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
   }
 
   // remove duplicates meetings
-  //@ts-ignore
-  meetingsAtPoint = Array.from( new Set(meetingsAtPoint.map(JSON.stringify)),    JSON.parse
+  // @ts-ignore
+  meetingsAtPoint = Array.from(
+    new Set(meetingsAtPoint.map((meetings) => JSON.stringify(meetings))),
+    JSON.parse
   );
   return meetingsAtPoint.length;
 }

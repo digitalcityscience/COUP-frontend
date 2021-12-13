@@ -1,5 +1,6 @@
 import Amenities from "@/config/amenities.json";
 import Bridges from "@/config/bridges.json";
+import { swLayerName } from "@/config/layers";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
 import NoiseLayer from "@/config/noise.json";
@@ -9,15 +10,14 @@ import TrafficCountLayer from "@/config/trafficCounts.json";
 import Trees from "@/config/trees.json";
 import WindResult from "@/config/windResult.json";
 import { StoreState } from "@/models";
+import { buildSWLayer } from "@/services/deck.service";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
 import {
   abmAggregationLayerName,
   abmTripsLayerName,
   animate,
   buildAggregationLayer,
-  buildSWLayer,
   buildTripsLayer,
-  swLayerName,
 } from "@/store/deck-layers";
 import {
   calcAbmStatsForMultiLayer,
@@ -32,7 +32,7 @@ import {
   request_calculation,
 } from "@/store/scenario/calculationModules";
 import { ActionContext } from "vuex";
-import scenario from '.';
+import scenario from ".";
 
 export default {
   async updateNoiseScenario(
@@ -105,41 +105,6 @@ export default {
       return dispatch("addLayerToMap", TrafficCountLayer.layer, { root: true });
     });
   },
-  async updateStormWaterLayer(
-    { state, commit, dispatch, rootState },
-    stormWaterScenario
-  ) {
-    stormWaterScenario["city_pyo_user"] = rootState.cityPyO.userid;
-
-    // request calculation and fetch results
-    return new Promise((resolve, reject) => {
-      request_calculation("stormwater", stormWaterScenario)
-        .then((stormWaterResultUuid) => {
-          return getSimulationResultForScenario(
-            "stormwater",
-            stormWaterResultUuid
-          );
-        })
-        .then((stormwaterResult) => {
-          // adding result to store
-          const swResultGeoJson = stormwaterResult.source.options.data;
-          commit("swResultGeoJson", Object.freeze(swResultGeoJson));
-        })
-        .finally(() => {
-          // adding result to map
-          dispatch("addSWLayer");
-          // update time graph
-          commit("rerenderSwGraph", true);
-        })
-        .then((response) => {
-          return resolve(response);
-        })
-        .catch((error) => {
-          console.log("catching error");
-          return reject(error);
-        });
-    });
-  },
   addSunExposureLayer({
     state,
     rootState,
@@ -203,13 +168,15 @@ export default {
     }
   },
   // TODO: how do we realize 1 central function for all users?
-  loadScienceCityAbmScenario({state, commit, dispatch, rootState }, scenarioId: string) {
+  loadScienceCityAbmScenario(
+    { state, commit, dispatch, rootState },
+    scenarioId: string
+  ) {
     //show loading screen
     commit("resultLoading", true);
     commit("loader", true);
 
-    rootState.cityPyO.getLayer(scenarioId, false)
-    .then((result) => {
+    rootState.cityPyO.getLayer(scenarioId, false).then((result) => {
       if (!result) {
         alert(
           "There was an error requesting the data from the server. Please get in contact with the admins."
@@ -220,9 +187,8 @@ export default {
       }
 
       commit("loaderTxt", "Serving Abm Data ... ");
-      return dispatch("computeLoop", result.data)
+      return dispatch("computeLoop", result.data);
     });
-
 
     // TODO dispatch("updateAmenitiesLayer", scenarioId);
   },
@@ -547,20 +513,18 @@ export default {
       );
     });
 
-    return buildAggregationLayer(heatLayerFormed).then(
-      (deckLayer) => {
-        if (rootState.map?.getLayer(abmAggregationLayerName)) {
-          rootState.map?.removeLayer(abmAggregationLayerName);
-        }
-
-        console.log("new aggregation layer loaded");
-        dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
-          commit("addLayerId", abmAggregationLayerName, { root: true });
-        });
-        commit("heatMap", true);
-        console.log(state.heatMap);
+    return buildAggregationLayer(heatLayerFormed).then((deckLayer) => {
+      if (rootState.map?.getLayer(abmAggregationLayerName)) {
+        rootState.map?.removeLayer(abmAggregationLayerName);
       }
-    );
+
+      console.log("new aggregation layer loaded");
+      dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
+        commit("addLayerId", abmAggregationLayerName, { root: true });
+      });
+      commit("heatMap", true);
+      console.log(state.heatMap);
+    });
   },
   // this updates ABM related layers only
   updateLayers({ state, commit, dispatch, rootState }, layer) {
@@ -623,17 +587,15 @@ export default {
     }
   },
   async transformSWLayerData({ state, commit, dispatch, rootState }) {
-    const deckLayer = await buildSWLayer(state.swResultGeoJson, state.rainTime);
-    if (rootState.map?.getLayer(swLayerName)) {
-      rootState.map?.removeLayer(swLayerName);
-    }
-
-    console.log("stormwater layer loaded");
-    rootState.map?.addLayer(deckLayer);
-    commit("addLayerId", swLayerName, { root: true });
+    const deckLayer = buildSWLayer(
+      rootState.stormwater.geoJsonResult,
+      state.rainTime
+    );
+    console.info("stormwater layer loaded");
+    await dispatch("addLayerToMap", deckLayer, { root: true });
   },
   async addSWLayer({ state, commit, dispatch, rootState }) {
-    await dispatch("transformSWLayerData");
+    dispatch("transformSWLayerData");
     console.log("adding trees", Trees.source, Trees.layer);
     rootState.cityPyO.getLayer(Trees.source.data.id).then((source) => {
       dispatch("addSourceToMap", source, { root: true }).then(() => {
@@ -644,7 +606,7 @@ export default {
       });
     });
   },
- };
+};
 
 function updateBridges(bridge_hafencity, underpass_veddel) {
   const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there

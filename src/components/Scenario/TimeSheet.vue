@@ -94,7 +94,7 @@ export default class TimeSheet extends Vue {
             borderColor: "rgba(81,209,252,0.85)",
             borderWidth: 1,
             fill: true,
-          }
+          },
         ],
       },
       options: {
@@ -138,7 +138,7 @@ export default class TimeSheet extends Vue {
     }
   }
 
-    // TODO what did this do? and how did it work??
+  // TODO what did this do? and how did it work??
   // activateComparisonGraph() {
   //   this.timeFilter = true;
   //   this.filterCoords = [];

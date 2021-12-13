@@ -9,7 +9,7 @@ export async function request_calculation(simType, scenario) {
   switch (simType) {
     case "wind":
       //url = "https://api.hcu-dev.de/wind/windtask";
-      url = 'http://localhost:5003/windtask'
+      url = "http://localhost:5003/windtask";
       break;
     case "noise":
       url = "https://api.hcu-dev.de/noise/task";
@@ -43,7 +43,7 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
   switch (simType) {
     case "wind":
       //url = "https://api.hcu-dev.de/wind/tasks/"; // TODO update url. ideally get from env variables.
-      url = 'http://localhost:5003/tasks/'
+      url = "http://localhost:5003/tasks/";
       task_uuid = task_uuid["taskId"];
       break;
     case "noise":
@@ -72,7 +72,7 @@ export async function getSimulationResultForScenario(simType, task_uuid) {
   // for wind the result is the uuid of a sub-group-task - then collect these results and return them.
   if (simType == "wind" && result) {
     //url = "https://api.hcu-dev.de/wind/grouptasks/"; // TODO update url. ideally get from env variables.
-    url = 'http://localhost:5003/grouptasks/'
+    url = "http://localhost:5003/grouptasks/";
     result = await getResultsForSubGroupTask(url, result).then((result) => {
       return result;
     });
@@ -112,8 +112,8 @@ async function getResultForTask(url, taskUuid) {
     });
   }
 
-  console.error("could not get result for url, uuid", url, taskUuid)
-  throw new Error("Could not get result from server")
+  console.error("could not get result for url, uuid", url, taskUuid);
+  throw new Error("Could not get result from server");
 }
 
 // gets the results of a wind group task
@@ -145,8 +145,13 @@ async function performRequest(requestUrl, scenario, method) {
   });
 
   if (res.status !== 200) {
-    console.warn("could not get/update ressource from cityPyo ", scenario, res.status, res.statusText)
-    throw new Error("Calculation request failed, " +  res.status)
+    console.warn(
+      "could not get/update ressource from cityPyo ",
+      scenario,
+      res.status,
+      res.statusText
+    );
+    throw new Error("Calculation request failed, " + res.status);
   }
 
   return await res.json();

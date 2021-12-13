@@ -1,6 +1,6 @@
 <script>
 import AbmScenario from "@/components/Scenario/AbmScenario.vue";
-import SWScenario from "@/components/Scenario/SWScenario.vue";
+import StormwaterScenario from "@/components/Scenario/StormwaterScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
 import SunExposureResults from "@/components/Scenario/SunExposure.vue";
 import WindScenario from "@/components/Scenario/Wind.vue";
@@ -10,7 +10,7 @@ export default {
   name: "Menu",
   components: {
     AbmScenario,
-    SWScenario,
+    StormwaterScenario,
     NoiseScenario,
     WindScenario,
     SunExposureResults,
@@ -59,11 +59,11 @@ export default {
       </template>
     </div>
     <div class="menu_wrapper">
-      <div v-if="context=='grasbrook'" class="header_scope">
+      <div v-if="context == 'grasbrook'" class="header_scope">
         <h3>Grasbrook CityScope</h3>
         <p>Tool for Functional Planning</p>
       </div>
-      <div v-if="context=='schb'" class="header_scope">
+      <div v-if="context == 'schb'" class="header_scope">
         <h3>Science City</h3>
         <p>Competition Tool</p>
       </div>
@@ -79,8 +79,10 @@ export default {
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'SWScenario' }"
-              @click="activeComponent = 'SWScenario'"
+              v-bind:class="{
+                highlight: activeComponent === 'StormwaterScenario',
+              }"
+              @click="activeComponent = 'StormwaterScenario'"
             >
               <p>Stormwater</p>
             </li>
@@ -121,7 +123,7 @@ export default {
         <template v-else>
           <select class="mobile_select" v-model="activeComponent">
             <option value="AbmScenario">Pedestrians</option>
-            <option value="SWScenario">Stormwater</option>
+            <option value="StormwaterScenario">Stormwater</option>
             <option value="NoiseScenario">Noise</option>
             <option value="WindScenario">Wind</option>
             <option value="SunExposureResults">Sun</option>
@@ -131,17 +133,22 @@ export default {
       </div>
       <div class="body_scope">
         <div v-if="activeComponent === 'AbmScenario'">
-          <AbmScenario :restrictedAccess="restrictedAccess" :context="context" />
+          <AbmScenario
+            :restrictedAccess="restrictedAccess"
+            :context="context"
+          />
         </div>
-        <div v-if="activeComponent === 'SWScenario'"><SWScenario /></div>
+        <div v-if="activeComponent === 'StormwaterScenario'">
+          <StormwaterScenario />
+        </div>
         <div v-if="activeComponent === 'NoiseScenario'">
-          <NoiseScenario/>
+          <NoiseScenario />
         </div>
         <div v-if="activeComponent === 'WindScenario'">
-          <WindScenario/>
+          <WindScenario />
         </div>
         <div v-if="activeComponent === 'SunExposureResults'">
-          <SunExposureResults/>
+          <SunExposureResults />
         </div>
         <div v-if="activeComponent === 'MultiLayerAnalysis'">
           <MultiLayerAnalysis />

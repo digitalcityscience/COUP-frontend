@@ -1,7 +1,9 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import CityPyO from "./store/cityPyO";
+import type StormWater from "./store/stormwater";
 
 export type { MapboxMap };
+export type GeoJSON = Record<string, unknown>;
 
 export interface VisibleLayers {
   focusAreas: boolean;
@@ -35,7 +37,7 @@ export interface StoreState {
   cityPyO: CityPyO | null;
   mapStyle: string;
   restrictedAccess: boolean;
-  focusAreasGeoJson: Record<string, unknown> | null;
+  focusAreasGeoJson: GeoJSON | null;
   focusAreasShown: boolean; // TODO: use visible layers instead
   openModalsIds: string[];
   modalIndex: number;
@@ -57,15 +59,28 @@ export interface ScenarioStoreState {
   loop: boolean;
   abmSimpleTimes: Record<any, any>;
   currentTimeStamp: number;
-  swResultGeoJson: Record<any, any>;
-  selectGraph:ScenarioWithTimeSheets;
-  rainAmount: any[];
+  swResultGeoJson: GeoJSON;
+  selectGraph: ScenarioWithTimeSheets;
+  rainAmount: number[];
+  stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
+  resultLoading: boolean;
+}
+
+export type StormWaterRoofType = "extensive" | "intensive";
+
+export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
+
+export interface StormWaterScenarioConfiguration {
+  returnPeriod: number;
+  flowPath: StormWaterFlowPath;
+  roofs: StormWaterRoofType;
 }
 
 export type ScenarioWithTimeSheets = "abm" | "sw";
 
 export interface StoreStateWithModules extends StoreState {
   scenario: ScenarioStoreState;
+  stormwater: StormWater;
 }
 
 export interface Legend {

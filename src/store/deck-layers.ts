@@ -1,15 +1,13 @@
+// @ts-nocheck
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-// @ts-ignore
 import { DataSet } from "@deck.gl/core/lib/layer";
 import { TripsLayer } from "@deck.gl/geo-layers";
-import { PolygonLayer } from "@deck.gl/layers";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 import GL from "@luma.gl/constants";
 import store from "../store/index";
 
 export const abmTripsLayerName = "abmTrips";
 export const abmAggregationLayerName = "abmHeat";
-export const swLayerName = "stormwater";
 
 export async function buildTripsLayer(
   data: DataSet<any>,
@@ -58,7 +56,9 @@ export async function buildTripsLayer(
   return tripsLayer;
 }
 
-export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLayer<any>> {
+export async function buildAggregationLayer(
+  data: DataSet<any>
+): Promise<DeckLayer<any>> {
   const aggregationLayer = new DeckLayer({
     id: abmAggregationLayerName,
     type: HeatmapLayer,
@@ -80,67 +80,6 @@ export async function buildAggregationLayer(data: DataSet<any>): Promise<DeckLay
   return aggregationLayer;
 }
 
-//export function buildSWLayer(data: DataSet<any>) {
-export async function buildSWLayer(data: DataSet<any>, time) {
-  data = data["features"];
-
-  const stormWaterLayer = new DeckLayer({
-    id: swLayerName,
-    type: PolygonLayer,
-    data: data,
-    pickable: true,
-    filled: true,
-    opacity: 0.75,
-    extruded: true,
-    getElevation: 0,
-    swTime: 0,
-    getPolygon: (d) => d.geometry.coordinates.flat(1),
-    //getFillColor,
-    getFillColor: (d) =>
-      getPolygonColor(d["properties"]["runoff_results"]["runoff_value"][time]),
-    visible: true,
-  });
-  return stormWaterLayer;
-}
-
-export function getPolygonColor(d) {
-  if (d <= 0.2) {
-    return [12, 45, 140];
-  }
-  if (d > 0.2 && d <= 0.4) {
-    return [16, 37, 199];
-  }
-  if (d > 0.4 && d <= 0.6) {
-    return [58, 90, 250];
-  }
-  if (d > 0.6 && d <= 0.8) {
-    return [100, 130, 250];
-  }
-  if (d > 0.8 && d <= 1.0) {
-    return [166, 188, 250];
-  }
-  if (d > 1.0 && d <= 2.0) {
-    return [218, 232, 250];
-  }
-  if (d > 2.0 && d <= 4.0) {
-    return [236, 249, 229];
-  }
-  if (d > 4.0 && d <= 8.0) {
-    return [250, 244, 152];
-  }
-  if (d > 8.0 && d <= 16) {
-    return [247, 213, 62];
-  }
-  if (d > 16 && d <= 32) {
-    return [224, 160, 73];
-  }
-  if (d > 32 && d <= 64) {
-    return [224, 85, 63];
-  }
-  if (d > 64 && d <= 128) {
-    return [130, 21, 9];
-  }
-}
 
 // animate deck trips layer
 export function animate(

@@ -11,12 +11,14 @@ import {
   generateSimpleGetters,
   generateSimpleMutations,
 } from "./utils/generators";
+import stormwater from "./stormwater";
 
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
   modules: {
     scenario,
+    stormwater,
   },
   state,
   getters: {
