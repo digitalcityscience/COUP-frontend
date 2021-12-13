@@ -1,0 +1,7 @@
+Delete filter feature to clean code
+- activeTimePaths vs abmTimePaths
+
+- abmFilterData == clusteredAbmData ??? --> throw away all usages
+
+action: scenario/ Delete
+store:  delete

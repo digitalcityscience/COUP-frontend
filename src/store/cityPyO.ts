@@ -115,7 +115,7 @@ export default class CityPyO {
     const body = {
       userid: this.userid,
       scenario_properties: scenario.moduleSettings,
-      agent_filters: scenario.scenarioViewFilters,
+      agent_filters: {},
     };
 
     const response = await this.performRequest(id, requestUrl, body);

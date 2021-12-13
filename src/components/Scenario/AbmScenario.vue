@@ -7,8 +7,6 @@ import {
   mainStreetOrientationOptions,
   blockPermeabilityOptions,
   roofAmenitiesOptions,
-  filters,
-  filterOptions,
   workshopScenarioNames,
 } from "@/store/abm.ts";
 import { ViewConfiguration } from "@/components/Scenario/ViewConfiguration";
@@ -38,9 +36,6 @@ export default {
       mainStreetOrientationOptions: mainStreetOrientationOptions,
       blockOptions: blockPermeabilityOptions,
       roofAmenitiesOptions: roofAmenitiesOptions,
-      filters: filters,
-      filterOptions: filterOptions,
-      filterSettings: {},
       workshopScenarioNames: workshopScenarioNames,
       age: 21,
       timePaths: [],
@@ -49,7 +44,6 @@ export default {
       timeRange: [0, 54000],
       adjustRange: [8, 23],
       datamsg: "",
-      heatMapType: "default",
       pedestrianModel: true,
       btnlabel: "Generate Aggregation Layer",
       reloadHeatMapLayer: false,
@@ -86,37 +80,13 @@ export default {
       [
         "roof_amenities",
         "scenario/moduleSettings/" + moduleSettingNames.roofAmenities,
-      ],
-      ["agent_age", "scenario/scenarioViewFilters/" + filters.agent_age],
-      [
-        "resident_or_visitor",
-        "scenario/scenarioViewFilters/" + filters.resident_or_visitor,
-      ],
-      ["foot", "scenario/scenarioViewFilters/modes/" + filterOptions.foot],
-      [
-        "bicycle",
-        "scenario/scenarioViewFilters/modes/" + filterOptions.bicycle,
-      ],
-      [
-        "public_transport",
-        "scenario/scenarioViewFilters/modes/" + filterOptions.public_transport,
-      ],
-      ["car", "scenario/scenarioViewFilters/modes/" + filterOptions.car],
+      ]
     ]),
     abmStats() {
       return this.$store.state.scenario.abmStats;
     },
     amenityStats() {
       return this.$store.state.scenario.amenityStats;
-    },
-    filterSet() {
-      return this.$store.state.scenario.clusteredAbmData;
-    },
-    activeAbmSet() {
-      return this.$store.state.scenario.activeAbmSet;
-    },
-    filterActive() {
-      return this.$store.state.scenario.filterActive;
     },
     heatMap() {
       return this.$store.state.scenario.heatMap;
@@ -155,11 +125,6 @@ export default {
     resultsOutdated(newVal, oldVal) {
       console.log("changes made");
       console.log(newVal, oldVal);
-    },
-    filterSet() {
-      for (var key in this.filterSet) {
-        this.filterSettings[key] = true;
-      }
     },
     heatMap() {
       if (this.heatMap) {
@@ -215,8 +180,7 @@ export default {
         this.$store.commit("scenario/loop", false);
       }
 
-      this.$store.commit("scenario/selectedRange", this.adjustRange);
-      this.$store.commit("scenario/heatMapType", this.heatMapType);
+      this.$store.commit("scenario/abmTimeRange", this.adjustRange);
       this.$store.dispatch("scenario/updateLayers", "heatMap");
     },
     setHeatMapTimes(x, y) {
@@ -225,20 +189,6 @@ export default {
     },
     heatMapActive() {
       this.$store.commit("scenario/heatMap", !this.heatMap);
-    },
-    updateFilter() {
-      this.$store.commit("scenario/loader", true);
-      this.$store.dispatch("scenario/filterAbmCore", this.filterSettings);
-      this.$store.commit("scenario/filterSettings", { ...this.filterSettings });
-
-      for (var key in this.filterSettings) {
-        if (!this.filterSettings[key]) {
-          this.$store.commit("scenario/filterActive", true);
-          return;
-        } else {
-          this.$store.commit("scenario/filterActive", false);
-        }
-      }
     },
     loadWorkshopScenario(scenarioId) {
       this.$store.dispatch("scenario/loadWorkshopScenario", scenarioId);
@@ -544,112 +494,6 @@ export default {
       <!--component_content end-->
     </div>
     <!--division end-->
-
-    <div
-      v-if="viewConfig.filter"
-      class="division"
-      data-title="Filter"
-      data-pic="mdi-filter"
-    >
-      <div v-if="activeDivision === 'Filter'" class="component_content">
-        <h2>Pedestrian Flow Scenario Filters</h2>
-        <v-container fluid>
-          <v-checkbox
-            v-model="filterSettings.resident"
-            flat
-            label="Show Residents"
-            dark
-          ></v-checkbox>
-          <v-checkbox
-            v-model="filterSettings.visitor"
-            flat
-            label="Show Visitors"
-            dark
-          ></v-checkbox>
-          <!--<v-radio
-                                :value="filterOptions.any"
-                                flat
-                                label="Residents & Visitors"
-                                dark
-                            />-->
-          <v-container fluid>
-            <h3>Age Filters</h3>
-            <v-checkbox
-              hide-details
-              v-model="filterSettings['0-6']"
-              flat
-              label="0-6 years"
-              dark
-            /><v-checkbox
-              hide-details
-              v-model="filterSettings['7-17']"
-              flat
-              label="7-17 years"
-              dark
-            /><v-checkbox
-              hide-details
-              v-model="filterSettings['18-35']"
-              flat
-              label="18-35 years"
-              dark
-            /><v-checkbox
-              hide-details
-              v-model="filterSettings['36-60']"
-              flat
-              label="36-60 years"
-              dark
-            /><v-checkbox
-              hide-details
-              v-model="filterSettings['61-100']"
-              flat
-              label="61-100 years"
-              dark
-            />
-          </v-container>
-          <!--<v-container v-if="!pedestrianModel">
-                            <v-switch
-                                v-model="filterSettings.foot"
-                                flat
-                                label="Walking"
-                                dark
-                                @change="updateFilter"
-                            />
-                            <v-switch
-                                v-model="filterSettings.bicycle"
-                                flat
-                                label="Biking"
-                                dark
-                                @change="updateFilter"
-                            />
-                            <v-switch
-                                v-model="filterSettings.public_transport"
-                                flat
-                                label="Public Transport"
-                                dark
-                                @change="updateFilter"
-                            />
-                            <v-switch
-                                v-model="filterSettings.car"
-                                flat
-                                label="Cars"
-                                dark
-                                @change="updateFilter"
-                            />
-                        </v-container>-->
-          <v-btn @click="updateFilter">Apply Filters</v-btn>
-        </v-container>
-
-        <!--<v-btn @click="confirmSettings" class="confirm_btn">
-                        Run Scenario
-                    </v-btn>-->
-
-        <v-overlay :value="resultLoading">
-          <div>Loading Pedestrian Flow results</div>
-          <v-progress-linear>...</v-progress-linear>
-        </v-overlay>
-      </div>
-    </div>
-
     <div class="division" data-title="Aggregation Layer" data-pic="mdi-gauge">
       <div
         v-if="activeDivision === 'Aggregation Layer'"
@@ -724,25 +568,6 @@ export default {
         </div>
         <p>{{ datamsg }}</p>
         <!--<v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>-->
-
-        <div v-if="heatMap" class="additional">
-          <div class="additional_options">
-            <template>
-              <v-container fluid>
-                <p>{{ heatMapType || "null" }}</p>
-                <v-radio-group
-                  v-model="heatMapType"
-                  :mandatory="true"
-                  @change="changeHeatMapData"
-                  dark
-                >
-                  <v-radio label="Absolute Data" value="default"></v-radio>
-                  <v-radio label="Relative Data" value="relative"></v-radio>
-                </v-radio-group>
-              </v-container>
-            </template>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -796,29 +621,6 @@ export default {
         </div>
       </div>
     </MenuDivision>
-
-    <!--<v-expansion-panels>
-            <v-expansion-panel>
-                <v-expansion-panel-header>Pedestrians SCENARIO</v-expansion-panel-header>
-                <v-expansion-panel-content>
-
-                </v-expansion-panel-content>
-                <v-overlay :value="isLoading">
-                    <div>Loading Pedestrians results</div>
-                    <v-progress-linear>...</v-progress-linear>
-                </v-overlay>
-            </v-expansion-panel>
-            <v-expansion-panel>
-                <v-expansion-panel-header>Pedestrians FILTERS</v-expansion-panel-header>
-                <v-expansion-panel-content>
-
-                </v-expansion-panel-content>
-            </v-expansion-panel>
-
-        </v-expansion-panels>
-
-        <div class='sub'>
-        </div>-->
   </div>
 </template>
 

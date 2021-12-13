@@ -23,7 +23,6 @@ declare global {
   interface ScenarioResult {
     designScenario: string;
     moduleSettings: Record<string, any>;
-    scenarioViewFilters: Record<string, any>;
   }
 
   interface AbmScenario extends ScenarioResult {
@@ -32,18 +31,6 @@ declare global {
     currentlyShownScenarioSettings: AbmScenarioSettings;
     resultOutdated: boolean;
     moduleSettings: AbmScenarioSettings;
-    scenarioViewFilters: {
-      start_time?: number;
-      end_time?: number;
-      resident_or_visitor?: "resident" | "visitor" | null;
-      student_or_adult?: string[];
-      modes?: {
-        bicycle: boolean;
-        car: boolean;
-        foot: boolean;
-        public_transport: boolean;
-      };
-    };
   }
 
   interface NoiseScenario {

@@ -3,9 +3,6 @@ import { mapState } from "vuex";
 import * as turf from "@turf/turf";
 import { alkisTranslations } from "@/store/abm";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
-import AmenitiesLayerDefinition from "@/config/amenities.json";
-import { getOdArcData } from "@/store/scenario/odArcs.ts";
-import { abmArcLayerName } from "@/store/deck-layers";
 
 export default {
   name: "Contextmenu",
@@ -21,11 +18,6 @@ export default {
       objectFeatures: [],
       objectId: null,
       modalInfo: {},
-      arcLayerData: {},
-      asOrigin: false,
-      asDestination: false,
-      minOdTrips: 1,
-      noTripsWarning: false,
     };
   },
   computed: {
@@ -55,38 +47,6 @@ export default {
     this.toggleFeatureCircling();
     this.toggleFeatureHighlighting();
   },
-  watch: {
-    asOrigin(newVal, oldVal) {
-      if (newVal && this.asDestination) {
-        this.asDestination = false;
-      }
-      if (newVal) {
-        // get new data and add new layer to map
-        this.getArcLayerData(this.objectFeatures, true).then(() => {
-          this.updateOdTripsLayer();
-        });
-      } else {
-        this.map?.removeLayer(abmArcLayerName);
-      }
-    },
-    asDestination(newVal, oldVal) {
-      if (newVal && this.asOrigin) {
-        this.asOrigin = false;
-      }
-      if (newVal) {
-        // get new data and add new layer to map
-        this.getArcLayerData(this.objectFeatures, false).then(() => {
-          this.updateOdTripsLayer();
-        });
-      } else {
-        this.map?.removeLayer(abmArcLayerName);
-      }
-    },
-    /** filter arcLayerData with new minOdTrips value and renew layer */
-    minOdTrips() {
-      this.updateOdTripsLayer();
-    },
-  },
   mounted() {
     let selector = this.$el;
     this.modalDiv = selector.closest(".vm--modal");
@@ -114,10 +74,6 @@ export default {
       this.toggleFeatureHighlighting();
     }
 
-    if (this.map?.getLayer(abmArcLayerName)) {
-      this.map?.removeLayer(abmArcLayerName);
-    }
-
     // remove line on canvas connecting modal to selected feature
     const canvas = document.getElementById(this.lineCanvasId);
     canvas.remove();
@@ -141,7 +97,6 @@ export default {
         upperfloor: "Upper Floors",
         rooftop: "Rooftop",
       };
-      headlines[AmenitiesLayerDefinition.layer.id] = "Amenity";
 
       return headlines[layerName];
     },
@@ -177,22 +132,6 @@ export default {
                 feature.properties["building_height"].toString() + "m",
             });
             break;
-          case AmenitiesLayerDefinition.layer.id: {
-            this.modalInfo["objectType"] = "amenity";
-            this.modalInfo["coords"] = feature.geometry.coordinates;
-            this.modalInfo["detailContent"]["Amenity"] = {};
-            const alkisId = feature.properties.GFK;
-            feature.properties["useType"] =
-              alkisTranslations[alkisId] || alkisId;
-            this.modalInfo["detailContent"]["Amenity"] = [
-              {
-                "New amenity ?": feature.properties["Pre-exist"] ? "No" : "Yes",
-              },
-              { "Use Type": feature.properties["useType"] },
-              { GFK: feature.properties.GFK },
-            ];
-            break;
-          }
         }
       });
     },
@@ -263,9 +202,7 @@ export default {
           // if a upper floor found: take as fallback geometry for circling.
           return true;
         }
-        if (feature.layer.id === AmenitiesLayerDefinition.layer.id) {
-          buffer = turf.buffer(turf.point(feature.geometry.coordinates), 0.015);
-        }
+        
         return true;
       });
       // update circled features
@@ -274,47 +211,6 @@ export default {
     },
     getProjectedObjectCoords() {
       return this.map.project(this.modalInfo["coords"]);
-    },
-    async getArcLayerData(objectData, asOrigin) {
-      this.arcLayerData = await getOdArcData(
-        objectData,
-        this.modalInfo,
-        asOrigin
-      );
-    },
-    filterArcLayerData() {
-      if (this.minOdTrips === 1 || this.arcLayerData.length === 0) {
-        // no need to filter
-        return this.arcLayerData;
-      }
-
-      // filter for trips that with min. amount of similar trips
-      return this.arcLayerData.filter((datapoint) => {
-        /* datapoint schema
-             "color": [254, 227, 81],
-             "source": number[],
-             "target": number[],
-             "width": number  // number of trips with same origin / destination
-             */
-        return datapoint.width >= this.minOdTrips;
-      });
-    },
-    updateOdTripsLayer() {
-      // filter data first
-      const data = this.filterArcLayerData();
-
-      if (data.length === 0) {
-        // empty dataset (after filtering) , remove layer
-        if (this.map?.getLayer(abmArcLayerName)) {
-          this.map?.removeLayer(abmArcLayerName);
-        }
-        this.noTripsWarning = true; // show warning for empty datasets
-        return;
-      }
-
-      this.$store.dispatch("scenario/addArcLayer", data);
-      this.noTripsWarning = false;
-      console.log("new arc layer with # trips = ", data.length);
     },
     sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
@@ -427,40 +323,6 @@ export default {
           </p>
         </div>
       </div>
-    </div>
-    <!-- Origin // Destination checkboxes -->
-    <div class="body_scope"></div>
-    <div v-if="abmTrips" class="od-menu">
-      <v-checkbox
-        v-model="asOrigin"
-        label="Origin of"
-        dark
-        hide-details
-      ></v-checkbox>
-      <v-checkbox
-        v-model="asDestination"
-        label="Destination of"
-        dark
-        hide-details
-      ></v-checkbox>
-      <v-slider
-        style="margin-top: 15px"
-        @dragstart="(_) => null"
-        @dragend="(_) => null"
-        @mousedown.native.stop="(_) => null"
-        @mousemove.native.stop="(_) => null"
-        v-model="minOdTrips"
-        step="1"
-        thumb-label="always"
-        label="Min. Trips"
-        thumb-size="25"
-        tick-size="50"
-        min="1"
-        max="20"
-        dark
-        flat
-      ></v-slider>
-      <div v-if="noTripsWarning" class="warn">No trips to show</div>
     </div>
   </div>
   <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->

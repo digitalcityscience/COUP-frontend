@@ -13,7 +13,6 @@ import TrafficCounts from "@/config/trafficCounts.json";
 import DesignConfigs from "@/config/buildings.json";
 import SpacesConfig from "@/config/spaces.json";
 import {
-  abmArcLayerName,
   abmTripsLayerName,
   abmAggregationLayerName,
   swLayerName,
@@ -25,7 +24,6 @@ const addedLayersIds = [
   SunExposure.layer.id,
   Noise.layer.id,
   TrafficCounts.layer.id,
-  abmArcLayerName,
   swLayerName,
   Trees.layer.id,
   MultiLayerAnalysisConfig.layer.id,
@@ -64,7 +62,6 @@ export function getAbmLayerIds() {
   abmLayers = abmLayers.concat([
     abmAggregationLayerName,
     abmTripsLayerName,
-    abmArcLayerName,
   ]);
   abmLayers.push(AmenitiesConfig.layer.id);
 

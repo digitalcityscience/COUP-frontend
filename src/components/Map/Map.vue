@@ -18,7 +18,7 @@ export default {
     return {
       lastClicked: [],
       hoveredFocusArea: null,
-      modalLayers: ["groundfloor", "upperfloor", "rooftops", "abmAmenities"],
+      modalLayers: ["groundfloor", "upperfloor", "rooftops"],
       restrictedLayers: ["groundfloor", "upperfloor", "rooftops"],
     };
   },
@@ -46,21 +46,7 @@ export default {
     },
     heatMapActive() {
       return this.$store.state.scenario.heatMap;
-    },
-    heatMapType() {
-      return this.$store.state.scenario.heatMapType;
-    },
-  },
-  watch: {
-    heatMapData() {
-      this.updateHeatMap();
-    },
-    heatMapActive() {
-      this.updateHeatMap();
-    },
-    heatMapType() {
-      this.updateHeatMap();
-    },
+    }
   },
   mounted(): void {
     mapboxgl.accessToken = this.accessToken;
@@ -137,6 +123,7 @@ export default {
       // open/close a modal
       if (this.modalLayers.indexOf(initialLayerId) > -1) {
         if (
+          // TODO handle restricted access somewhere else
           this.restrictedAccess &&
           this.restrictedLayers.indexOf(initialLayerId) > -1
         ) {
@@ -175,6 +162,7 @@ export default {
     createModal() {
       this.openModalsIds.push(this.selectedObjectId);
       this.$modal.show(
+        // pass arguments to context menu
         Contextmenu,
         {},
         {
@@ -186,9 +174,6 @@ export default {
           shiftY: this.lastClicked[1] + 0.125,
         }
       );
-    },
-    updateHeatMap() {
-      //this.$store.dispatch('scenario/rebuildDeckLayer')
     },
     onAmenitiesHover(evt) {
       this.map.getCanvas().style.cursor = "pointer";

@@ -125,8 +125,6 @@ export default class Viewbar extends Vue {
         this.map.setLayoutProperty("abmHeat", "visibility", "none");
         // this.$store.commit("scenario/heatMapVisible", false);
       }
-
-      // this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
     }
 
     if (this.layerIds.indexOf("abmAmenities") > -1) {
@@ -135,10 +133,7 @@ export default class Viewbar extends Vue {
         // this.$store.commit("scenario/heatMapVisible", true);
       } else {
         this.map.setLayoutProperty("abmAmenities", "visibility", "none");
-        // this.$store.commit("scenario/heatMapVisible", false);
       }
-
-      // this.$store.dispatch('scenario/rebuildTripsLayer', this.filterSettings);
     }
 
     if (this.layerIds.indexOf("noise") > -1) {
