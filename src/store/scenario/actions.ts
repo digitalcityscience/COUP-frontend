@@ -28,7 +28,8 @@ import {
   calculateAmenityStatsForMultiLayerAnalysis,
 } from "@/store/scenario/amenityStats";
 import { ActionContext } from "vuex";
-import CalculationModules from '../calculationModules';
+import scenario from '.';
+import type { StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 
 export default {
   async updateNoiseScenario(
@@ -39,9 +40,9 @@ export default {
 
     return new Promise((resolve, reject) => {
       // request calculation and fetch results
-      CalculationModules.requestCalculationNoise(noiseScenario)
+      rootState.calculationModules.requestCalculationNoise(noiseScenario)
         .then((noiseResultUuid) => {
-          return CalculationModules.getResultForNoise(noiseResultUuid);
+          return rootState.calculationModules.getResultForNoise(noiseResultUuid);
         })
         .then((noiseResult) => {
           // adding result to store
@@ -123,14 +124,14 @@ export default {
     wind_scenario["city_pyo_user"] = rootState.cityPyO.userid;
 
     // fetch results, add to map and return boolean whether results are complete or not
-    const windResultUuid = CalculationModules.requestCalculationWind(wind_scenario).then(
+    const windResultUuid = rootState.calculationModules.requestCalculationWind(wind_scenario).then(
       (windResultUuid) => {
         console.log("wind result uuid", windResultUuid);
         return windResultUuid;
       }
     );
 
-    const completed = await CalculationModules.getResultForWind(await windResultUuid)
+    const completed = await rootState.calculationModules.getResultForWind(await windResultUuid)
     .then((resultInfo) => {
       console.log("end result", resultInfo);
 

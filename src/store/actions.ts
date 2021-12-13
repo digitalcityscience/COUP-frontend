@@ -180,6 +180,9 @@ export default {
 
     // add cityPyo and CalculationModules class to store upon successful auth
     if (authResponse.authenticated) {
+      const calculationModules = new CalculationModules(cityPyo.userid);
+      const userId = cityPyo.userid;
+      commit("calculationModules", calculationModules);
       commit("cityPyO", cityPyo);
     }
 

@@ -11,10 +11,6 @@ export default class CityPyO {
     //this.login(userdata)
   }
 
-  getUserId() {
-    return this.userid;
-  }
-
   async login(userdata: { username: string; password: string }) {
     // log login request on cityPyo only if in production
     userdata["log_this_request"] = !(process.env.NODE_ENV === "development");

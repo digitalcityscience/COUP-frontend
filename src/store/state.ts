@@ -13,6 +13,7 @@ const initialState: StoreState = {
   mapStyle: Config["mapStyle"] || Defaults.mapStyle,
   accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
   cityPyO: null,
+  calculationModules: null,
   currentTime: 0,
   restrictedAccess: false,
   focusAreasGeoJson: null,
