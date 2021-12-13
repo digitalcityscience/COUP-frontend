@@ -126,6 +126,7 @@ export default class CalculationModules {
   }
 }
 
+
 // triggers stormWater calculation and returns the result uuids of the result
 async function requestCalculation(url: string, scenario: GenericObject, cityPyoUser:string) {
   scenario["city_pyo_user"] = cityPyoUser;
@@ -139,29 +140,22 @@ async function requestCalculation(url: string, scenario: GenericObject, cityPyoU
 async function getResultForSingleTask(url, taskUuid) {
   const sleepTime = 5000;
   const maxTries = 120000 / sleepTime; // give up after 2 min
-  let requestCount = 0;
 
   let task_succeeded = false;
-  while (!task_succeeded && requestCount < maxTries) {
-    const response = await makeGetRequest(url + taskUuid)
-    task_succeeded = response["taskSucceeded"];
-    console.log("response, response['taskSucceeded']");
-    console.log(response, response["taskSucceeded"]);
 
-    if (task_succeeded) {
-      return response["result"];
+  return (async () => {
+    let generator = getResultGenerator(0, maxTries, url, taskUuid);
+    for await (let response of generator) {
+      task_succeeded = response["taskSucceeded"];
+      if (task_succeeded) {
+        return response["result"];
+      }
     }
-
-    // result not found yet. wait until result available.
-    await new Promise((resolve) => setTimeout(resolve, sleepTime)).then(() => {
-      console.log("request count", requestCount);
-      requestCount += 1;
-    });
-  }
-
-  console.error("could not get result for url, uuid", url, taskUuid)
-  throw new Error("Could not get result from server")
+    console.error("could not get result for url, uuid", url, taskUuid)
+    throw new Error("Could not get result from server")
+  })();
 }
+
 
 /** gets the results of a wind group task */
 async function getResultsForWindGroupTask(url, groupTaskUuid) {
@@ -209,4 +203,11 @@ function formatResultAsMapSource(id, responseJson) {
       data: responseJson,
     },
   };
+}
+
+async function* getResultGenerator(start, end, url, taskUuid) {
+  for (let i = start; i <= end; i++) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    yield await makeGetRequest(url + taskUuid);
+  }
 }
