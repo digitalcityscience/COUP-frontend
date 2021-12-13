@@ -5,7 +5,7 @@ import {
   MutationAction,
   VuexModule,
 } from "vuex-module-decorators";
-import store from "@/store";
+import CalculationModules from "@/store/calculationModules";
 
 
 export interface StormwaterState {
@@ -61,9 +61,8 @@ export default class StormWaterStore extends VuexModule {
   async updateStormWaterResult(): Promise<{ result: StormWaterResult }> {
 
     // request calculation and fetch results
-    const calcModules = this.context.rootState.calculationModules;
-    const stormWaterResultUuid = await calcModules.requestCalculationStormWater(this.scenarioConfiguration);
-    const simulationResult: StormWaterResult = await calcModules.getResultForStormWater(stormWaterResultUuid);
+    const stormWaterResultUuid = await CalculationModules.requestCalculationStormWater(this.scenarioConfiguration);
+    const simulationResult: StormWaterResult = await CalculationModules.getResultForStormWater(stormWaterResultUuid);
 
     return ( { result:  simulationResult } );
   }

@@ -1,16 +1,18 @@
 import axios from "axios";
 import type { StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
+import store from "../store/index";
 
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
-export default class CalculationModules {
+class CalculationModules {
   cityPyoUser: string;
   apiURL: string;
   endpointsCalculation: GenericObject
   endpointsResultCollection: GenericObject
 
-  constructor(cityPyoUser: string) {
-    this.cityPyoUser = cityPyoUser;
+  constructor() {
+
+    this.cityPyoUser = store.state.cityPyO.getUserId();
     
     // base url api
     this.apiURL = process.env.VUE_APP_CALCULATIONS_API_URL;
@@ -210,3 +212,5 @@ function formatResultAsMapSource(id, responseJson) {
     },
   };
 }
+
+export default new CalculationModules();
