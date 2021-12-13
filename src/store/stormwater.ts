@@ -11,10 +11,6 @@ import {
   VuexModule,
 } from "vuex-module-decorators";
 
-export interface StormwaterState {
-  stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
-}
-
 export const defaultStormwaterConfiguration: StormWaterScenarioConfiguration = {
   returnPeriod: 2,
   flowPath: "blockToPark",
