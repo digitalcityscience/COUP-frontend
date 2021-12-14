@@ -1,12 +1,15 @@
-import type { StormWaterScenarioConfiguration, StormWaterResult, GeoJSON } from "@/models";
+import type {
+  StormWaterResult,
+  StormWaterScenarioConfiguration,
+} from "@/models";
+import { cityPyOUserid } from "@/services/authn.service";
+import * as calcModules from "@/services/calculationModules.service";
 import {
   Module,
   Mutation,
   MutationAction,
   VuexModule,
 } from "vuex-module-decorators";
-import store from "@/store";
-
 
 export interface StormwaterState {
   stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
@@ -24,14 +27,14 @@ export default class StormWaterStore extends VuexModule {
   scenarioConfig: StormWaterScenarioConfiguration = {
     ...defaultStormwaterConfiguration,
   };
-  result: StormWaterResult|null = null;
+  result: StormWaterResult | null = null;
 
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
   }
 
   get stormWaterResult(): StormWaterResult {
-    return this.result
+    return this.result;
   }
 
   @Mutation
@@ -42,16 +45,14 @@ export default class StormWaterStore extends VuexModule {
   }
 
   @Mutation
-  mutateResult(
-    newResult: StormWaterResult
-  ): void {
+  mutateResult(newResult: StormWaterResult): void {
     this.result = {
       geojson: Object.freeze(newResult.geojson),
       rainData: newResult.rainData,
-      complete: newResult.complete
+      complete: newResult.complete,
     };
   }
-  
+
   @Mutation
   resetResult(): void {
     this.result = null;
@@ -59,12 +60,14 @@ export default class StormWaterStore extends VuexModule {
 
   @MutationAction({ mutate: ["result"] })
   async updateStormWaterResult(): Promise<{ result: StormWaterResult }> {
-
     // request calculation and fetch results
-    const calcModules = this.context.rootState.calculationModules;
-    const stormWaterResultUuid = await calcModules.requestCalculationStormWater(this.scenarioConfiguration);
-    const simulationResult: StormWaterResult = await calcModules.getResultForStormWater(stormWaterResultUuid);
+    const stormWaterResultUuid = await calcModules.requestCalculationStormWater(
+      this.scenarioConfiguration,
+      cityPyOUserid()
+    );
+    const simulationResult: StormWaterResult =
+      await calcModules.getResultForStormWater(stormWaterResultUuid);
 
-    return ( { result:  simulationResult } );
+    return { result: simulationResult };
   }
 }

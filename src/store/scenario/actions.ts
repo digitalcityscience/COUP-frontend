@@ -12,6 +12,7 @@ import WindResult from "@/config/windResult.json";
 import { StoreState } from "@/models";
 import { buildSWLayer } from "@/services/deck.service";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
+import * as calculationModules from "@/services/calculationModules.service";
 import {
   abmAggregationLayerName,
   abmTripsLayerName,
@@ -28,9 +29,6 @@ import {
   calculateAmenityStatsForMultiLayerAnalysis,
 } from "@/store/scenario/amenityStats";
 import { ActionContext } from "vuex";
-import scenario from '.';
-import type { StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
-
 export default {
   async updateNoiseScenario(
     { state, commit, dispatch, rootState },
@@ -40,9 +38,12 @@ export default {
 
     return new Promise((resolve, reject) => {
       // request calculation and fetch results
-      rootState.calculationModules.requestCalculationNoise(noiseScenario)
+      rootState.calculationModules
+        .requestCalculationNoise(noiseScenario)
         .then((noiseResultUuid) => {
-          return rootState.calculationModules.getResultForNoise(noiseResultUuid);
+          return rootState.calculationModules.getResultForNoise(
+            noiseResultUuid
+          );
         })
         .then((noiseResult) => {
           // adding result to store
@@ -119,42 +120,44 @@ export default {
   },
   // load layer source from cityPyo and add the layer to the map
   // Todo : isnt there a way to update the source data without reinstanciating the entire layer?
-  async updateWindLayer({ state, commit, dispatch, rootState }, wind_scenario) {
-    console.log("updating wind!");
-    wind_scenario["city_pyo_user"] = rootState.cityPyO.userid;
-
+  async updateWindLayer(
+    { state, commit, dispatch, rootState },
+    wind_scenario
+  ): Promise<void> {
+    console.debug("updating wind!");
+    const { userid } = rootState.cityPyO;
+    wind_scenario["city_pyo_user"] = userid;
     // fetch results, add to map and return boolean whether results are complete or not
-    const windResultUuid = rootState.calculationModules.requestCalculationWind(wind_scenario).then(
-      (windResultUuid) => {
-        console.log("wind result uuid", windResultUuid);
-        return windResultUuid;
-      }
+    const windResultUuid = await calculationModules.requestCalculationWind(
+      wind_scenario,
+      userid
     );
+    console.debug("wind result uuid", windResultUuid);
+    const completed = await calculationModules
+      .getResultForWind(windResultUuid)
+      .then((resultInfo) => {
+        console.log("end result", resultInfo);
 
-    const completed = await rootState.calculationModules.getResultForWind(await windResultUuid)
-    .then((resultInfo) => {
-      console.log("end result", resultInfo);
+        const receivedCompleteResult = resultInfo.complete || false; // was the result complete?
+        const source = resultInfo.source;
 
-      const receivedCompleteResult = resultInfo.complete || false; // was the result complete?
-      const source = resultInfo.source;
+        // results are new if they contain more features than the known result
+        const newResults =
+          !state.windResultGeoJson ||
+          source.options.data.features.length >
+            state.windResultGeoJson["features"].length;
 
-      // results are new if they contain more features than the known result
-      const newResults =
-        !state.windResultGeoJson ||
-        source.options.data.features.length >
-          state.windResultGeoJson["features"].length;
-
-      if (receivedCompleteResult || newResults) {
-        // todo use timestamP??
-        // received an updated result
-        source.id = "wind";
-        commit("windResultGeoJson", Object.freeze(source.options.data));
-        dispatch("addSourceToMap", source, { root: true }).then((source) => {
-          dispatch("addLayerToMap", WindResult.layer, { root: true });
-        });
-      }
-      return receivedCompleteResult;
-    });
+        if (receivedCompleteResult || newResults) {
+          // todo use timestamP??
+          // received an updated result
+          source.id = "wind";
+          commit("windResultGeoJson", Object.freeze(source.options.data));
+          dispatch("addSourceToMap", source, { root: true }).then((source) => {
+            dispatch("addLayerToMap", WindResult.layer, { root: true });
+          });
+        }
+        return receivedCompleteResult;
+      });
 
     if (!completed) {
       // keep fetching new results until the results are complete
