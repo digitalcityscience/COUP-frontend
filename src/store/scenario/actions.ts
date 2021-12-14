@@ -34,14 +34,16 @@ export default {
     { state, commit, dispatch, rootState },
     noiseScenario
   ) {
-    noiseScenario["city_pyo_user"] = rootState.cityPyO.userid;
+    const { userid } = rootState.cityPyO;
 
     return new Promise((resolve, reject) => {
       // request calculation and fetch results
-      rootState.calculationModules
-        .requestCalculationNoise(noiseScenario)
+      calculationModules.requestCalculationNoise(
+        noiseScenario,
+        userid
+        )
         .then((noiseResultUuid) => {
-          return rootState.calculationModules.getResultForNoise(
+          return calculationModules.getResultForNoise(
             noiseResultUuid
           );
         })

@@ -131,7 +131,7 @@ export async function getResultForWind({
 export async function getResultForNoise(task: GenericObject) {
   // TODO make task object
   const result = await getResultForSingleTask(
-    config.endpointsCalculation.noise,
+    config.endpointsResultCollection.noise,
     task["taskId"]
   );
 
@@ -153,7 +153,7 @@ export async function getResultForStormWater(
 ): Promise<StormWaterResult> {
   // TODO make task object
   const result = await getResultForSingleTask(
-    config.endpointsCalculation.stormWater,
+    config.endpointsResultCollection.stormWater,
     task["taskId"]
   );
 
