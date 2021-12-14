@@ -110,53 +110,6 @@ export default {
       addSourceAndLayersToMap(SunExposure.source, [SunExposure.layerConfig], rootState.map)
     });
   },
-  // load layer source from cityPyo and add the layer to the map
-  // Todo : isnt there a way to update the source data without reinstanciating the entire layer?
-  async updateWindLayer(
-    { state, commit, dispatch, rootState },
-    wind_scenario
-  ): Promise<void> {
-    console.debug("updating wind!");
-    const { userid } = rootState.cityPyO;
-    wind_scenario["city_pyo_user"] = userid;
-    // fetch results, add to map and return boolean whether results are complete or not
-    const windResultUuid = await calculationModules.requestCalculationWind(
-      wind_scenario,
-      userid
-    );
-    console.debug("wind result uuid", windResultUuid);
-    const completed = await calculationModules
-      .getResultForWind(windResultUuid)
-      .then((resultInfo) => {
-        console.log("end result", resultInfo);
-
-        const receivedCompleteResult = resultInfo.complete || false; // was the result complete?
-        const source = resultInfo.source;
-
-        // results are new if they contain more features than the known result
-        const newResults =
-          !state.windResultGeoJson ||
-          source.options.data.features.length >
-            state.windResultGeoJson["features"].length;
-
-        if (receivedCompleteResult || newResults) {
-          // todo use timestamP??
-          // received an updated result
-          source.id = "wind";
-          commit("windResultGeoJson", Object.freeze(source.options.data));
-          // will be moved to wind service with rebase
-          WindResultLayerConfig.source.options.data = source.options.data;
-          addSourceAndLayersToMap(WindResultLayerConfig.source, [WindResultLayerConfig.layerConfig], rootState.map)
-        }
-        return receivedCompleteResult;
-      });
-
-    if (!completed) {
-      // keep fetching new results until the results are complete
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      dispatch("updateWindLayer", wind_scenario);
-    }
-  },
   // TODO: how do we realize 1 central function for all users?
   loadScienceCityAbmScenario(
     { state, commit, dispatch, rootState },

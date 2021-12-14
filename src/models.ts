@@ -68,13 +68,18 @@ export type StormWaterRoofType = "extensive" | "intensive";
 export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
 
 export interface WindScenarioConfiguration {
-  windSpeed: number;
-  windDirection: number;
+  wind_speed: number;
+  wind_direction: number;
+}
+
+export interface SavedWindScenarioConfiguration extends WindScenarioConfiguration{
+  label: string;
 }
 
 export interface WindResult {
   geojson: GeoJSON;
   complete: boolean;
+  tasksCompleted: number
 }
 export interface StormWaterScenarioConfiguration {
   returnPeriod: number;
@@ -128,7 +133,7 @@ export interface CityPyO {
   userid: string;
 }
 
-export interface CityPyOTask {
+export interface CalculationTask {
   taskId: string;
 }
 

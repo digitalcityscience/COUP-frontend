@@ -2,9 +2,11 @@ import axios from "axios";
 import type {
   StormWaterScenarioConfiguration,
   StormWaterResult,
-  CityPyOTask,
+  CalculationTask,
   MapSource,
-  GeoJSON
+  WindResult,
+  GeoJSON,
+  WindScenarioConfiguration,
 } from "@/models";
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
@@ -53,7 +55,7 @@ const config = new ApiEndpoints();
 export async function requestCalculationWind(
   windScenario: GenericObject,
   cityPyoUserId: string
-): Promise<CityPyOTask> {
+): Promise<CalculationTask> {
   console.debug(" requesting calc for windScenario", windScenario);
   return await requestCalculation(
     config.endpointsCalculation.wind,
@@ -94,7 +96,7 @@ export async function requestCalculationStormWater(
 /** gets wind result */
 export async function getResultForWind({
   taskId,
-}: CityPyOTask): Promise<{ complete: boolean; source?: MapSource }> {
+}: CalculationTask): Promise<{ complete: boolean, geojson: GeoJSON | null, tasksCompleted: number }> {
   // TODO make groupTask object
 
   // first get result for parent task -> returns a groupTask
@@ -105,7 +107,7 @@ export async function getResultForWind({
 
   // early return
   if (!groupTask) {
-    return { complete: false };
+    return { complete: false, geojson: null, tasksCompleted: 0 };
   }
 
   // get results for tasks in groupTask
@@ -122,9 +124,10 @@ export async function getResultForWind({
     throw new Error("Did not get a valid result");
   }
 
-  return {
-    complete: result["complete"], //  indicator whether all result tiles have beeen received.
-    source: formatResultAsMapSource("wind", result["results"]),
+  return  {
+    complete: result["complete"],
+    geojson: result["results"],
+    tasksCompleted: result["tasksCompleted"]
   };
 }
 
@@ -171,9 +174,10 @@ export async function getResultForStormWater(
 // triggers stormWater calculation and returns the result uuids of the result
 async function requestCalculation(
   url: string,
-  scenario: GenericObject,
+  scenarioConfig: GenericObject,
   cityPyoUserId: string
 ) {
+  let scenario = Object.assign({}, scenarioConfig);
   scenario["city_pyo_user"] = cityPyoUserId;
   scenario["result_format"] = "geojson"; // mapbox front-end always needs geojson results
   const result_uuid = await makePostRequest(url, scenario);
@@ -204,7 +208,6 @@ async function getResultForSingleTask(url, taskUuid) {
 /** gets the results of a wind group task */
 async function getResultsForWindGroupTask(url, groupTaskUuid) {
   const response = await makeGetRequest(url + groupTaskUuid);
-  const resultsComplete = response["grouptaskProcessed"];
 
   console.log(
     "wind calculation has this many completed results ",
@@ -213,7 +216,8 @@ async function getResultsForWindGroupTask(url, groupTaskUuid) {
 
   return {
     results: response["results"],
-    complete: resultsComplete,
+    complete: response["tasksTotal"] == response["tasksCompleted"],
+    tasksCompleted: response["tasksCompleted"]
   };
 }
 
@@ -245,7 +249,7 @@ async function makeGetRequest(requestUrl) {
     });
 }
 
-function formatResultAsMapSource(id: string, responseJson): MapSource {
+export function formatResultAsMapSource(id: string, responseJson): MapSource {
   return {
     id: id,
     options: {

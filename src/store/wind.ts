@@ -1,35 +1,71 @@
 import type {
-  WindResult,
+  CalculationTask,
+  SavedWindScenarioConfiguration,
   WindScenarioConfiguration,
+  WindResult
 } from "@/models";
 import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
 import {
+  Action,
   Module,
   Mutation,
   MutationAction,
   VuexModule,
 } from "vuex-module-decorators";
+import WindLayer from "@/config/windLayer.json";
+
 
 export const defaultWindConfiguration: WindScenarioConfiguration = {
-  windDirection: 270,
-  windSpeed: 5
+  wind_direction: 270,
+  wind_speed: 5
 };
 
+export const defaultWindScenarioConfigs: SavedWindScenarioConfiguration[] = [
+  {
+    wind_speed: 5,
+    wind_direction: 270,
+    label: "ANNUAL AVERAGE",
+  },
+  {
+    wind_speed: 25,
+    wind_direction: 270,
+    label: "LIGHT BREEZE",
+  },
+  {
+    wind_speed: 45,
+    wind_direction: 270,
+    label: "STRONG BREEZE",
+  }
+];
 
-// TODO make an interface CalculationModuleStore which extends VuexModule ;
-//  Wind/Stormwater are then to extend CalculationModuleStore;
+
+// TODO can we avoid duplicate code here? 
+// @DOBO, I tried interface as you know them from not-javascript. but the concept doesnt seem to be the same.
 @Module({ namespaced: true })
 export default class WindStore extends VuexModule {
   scenarioConfig: WindScenarioConfiguration = {
     ...defaultWindConfiguration,
   };
+  
+  savedScenarioConfigs: SavedWindScenarioConfiguration[] = defaultWindScenarioConfigs;
+
+  calcTask: CalculationTask | null = null;
+  
   result: WindResult | null = null;
 
   get scenarioConfiguration(): WindScenarioConfiguration {
     return this.scenarioConfig;
   }
 
+  get savedScenarioConfigurations(): SavedWindScenarioConfiguration[] {
+    return this.savedScenarioConfigs;
+  }
+
+  get calculationTask(): CalculationTask {
+    return this.calcTask;
+  }
+  
   get windResult(): WindResult {
     return this.result;
   }
@@ -42,10 +78,23 @@ export default class WindStore extends VuexModule {
   }
 
   @Mutation
+  addSavedScenarioConfiguration(
+    scenarioToSave: WindScenarioConfiguration
+  ): void {
+    this.savedScenarioConfigs.push(
+      {
+       ... scenarioToSave,
+       label: scenarioToSave.wind_speed.toString() + "km/h" + " | " + scenarioToSave.wind_direction.toString() + "°"  
+      }  
+      );
+  }
+
+  @Mutation
   mutateResult(newResult: WindResult): void {
     this.result = {
       geojson: Object.freeze(newResult.geojson),
       complete: newResult.complete,
+      tasksCompleted: newResult.tasksCompleted
     };
   }
 
@@ -54,19 +103,42 @@ export default class WindStore extends VuexModule {
     this.result = null;
   }
 
+  @MutationAction({ mutate: ["calcTask"] })
+  async triggerWindCalculation(): Promise<{ calcTask: CalculationTask }> {
+    // request calculation and fetch results
+    const task: CalculationTask = 
+      await calcModules.requestCalculationWind(
+        this.scenarioConfiguration,
+        cityPyOUserid()
+    );
+    return { calcTask: task };
+  }
+
   @MutationAction({ mutate: ["result"] })
   async updateWindResult(): Promise<{ result: WindResult }> {
-    // request calculation and fetch results
-    const windResultUuid = await calcModules.requestCalculationWind(
-      this.scenarioConfiguration,
-      cityPyOUserid()
-    );
+    const simulationResult: WindResult = await calcModules.getResultForWind(this.calculationTask);
 
-    // TODO ignore for now, refactor wind update to use this function analog to stormwater
-    // @ts-ignore
-    const simulationResult: WindResult =
-      await calcModules.getResultForWind(windResultUuid);
-
+    // new result? then update wind layer
+    if (!this.windResult || (simulationResult.tasksCompleted > this.windResult.tasksCompleted)) {
+      this.context.dispatch("updateWindLayer", simulationResult)
+      this.context.commit("scenario/windLayer", true, {root: true}); // this is for the layer menu in the viewbar
+      this.context.commit("scenario/windResultGeoJson", Object.freeze(simulationResult.geojson), {root: true});  // TODO replace all usages of this with wind store
+    }
     return { result: simulationResult };
   }
+
+  @Action({})
+  async updateWindLayer(result: WindResult) {
+    // delete old mapSource from map
+    this.context.dispatch("removeSourceFromMap", WindLayer.mapSource.id, { root: true });
+
+    // format result as map source
+    const mapSource = calcModules.formatResultAsMapSource(WindLayer.mapSource.id, result.geojson)
+
+    // add new source and layer to map
+    this.context.dispatch("addSourceToMap", mapSource, { root: true })
+      .then(() => {
+        this.context.dispatch("addLayerToMap", WindLayer.layer, { root: true })
+      });
+  }     
 }

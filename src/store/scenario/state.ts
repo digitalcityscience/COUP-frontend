@@ -59,29 +59,7 @@ export default {
   amenityStats: {},
 
   // wind
-  windScenarioHash: "158d2b824886d908440da5c5f6c4dc4f815cdeba", // hash for annual average setting // TODO DELETE?
-  currentWindScenario: {
-    wind_speed: 5,
-    wind_direction: 270,
-  }, // only gets used to create a description string in "Combine Layers" menu so far.
-  savedWindScenarios: [
-    {
-      wind_speed: 5,
-      wind_direction: 270,
-      label: "ANNUAL AVERAGE",
-    },
-    {
-      wind_speed: 25,
-      wind_direction: 270,
-      label: "LIGHT BREEZE",
-    },
-    {
-      wind_speed: 45,
-      wind_direction: 270,
-      label: "STRONG BREEZE",
-    },
-  ],
-  windResultGeoJson: null,
+  windResultGeoJson: null,  // for multi layer analysis, TODO
 
   // sun
   sunExposureGeoJson: null,
