@@ -1,6 +1,6 @@
 import { workshopScenarioNames } from "@/store/abm";
 import Amenities from "@/config/amenities.json";
-import { StoreState } from "@/models";
+import type { CityPyOUser } from "@/models";
 
 export default class CityPyO {
   url: string;
@@ -11,7 +11,10 @@ export default class CityPyO {
     //this.login(userdata)
   }
 
-  async login(userdata: { username: string; password: string }) {
+  async login(userdata: {
+    username: string;
+    password: string;
+  }): Promise<CityPyOUser> {
     // log login request on cityPyo only if in production
     userdata["log_this_request"] = !(process.env.NODE_ENV === "development");
 

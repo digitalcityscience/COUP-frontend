@@ -1,5 +1,5 @@
 import type { Map as MapboxMap } from "mapbox-gl";
-import CityPyO from "./store/cityPyO";
+import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 
 export type { MapboxMap };
@@ -34,7 +34,7 @@ export interface StoreState {
   currentTime: number;
   view: View;
   accessToken: string;
-  cityPyO: CityPyO | null;
+  cityPyO: CityPyOStore | null;
   mapStyle: string;
   restrictedAccess: boolean;
   focusAreasGeoJson: GeoJSON | null;
@@ -59,10 +59,7 @@ export interface ScenarioStoreState {
   loop: boolean;
   abmSimpleTimes: Record<any, any>;
   currentTimeStamp: number;
-  swResultGeoJson: GeoJSON;
   selectGraph: ScenarioWithTimeSheets;
-  rainAmount: number[];
-  stormWaterScenarioConfiguration: StormWaterScenarioConfiguration;
   resultLoading: boolean;
 }
 
@@ -74,6 +71,12 @@ export interface StormWaterScenarioConfiguration {
   returnPeriod: number;
   flowPath: StormWaterFlowPath;
   roofs: StormWaterRoofType;
+}
+
+export interface StormWaterResult {
+  geojson: GenericObject;
+  rainData: number[];
+  complete: boolean;
 }
 
 export type ScenarioWithTimeSheets = "abm" | "sw";
@@ -102,4 +105,27 @@ export interface MenuLink {
   icon: string;
   hidden?: boolean;
   default?: boolean;
+}
+
+export interface CityPyOUser {
+  authenticated: boolean;
+  restricted?: boolean;
+  context?: Record<string, unknown>;
+}
+
+export interface CityPyO {
+  url: string;
+  userid: string;
+}
+
+export interface CityPyOTask {
+  taskId: string;
+}
+
+export interface MapSource {
+  id: string;
+  options: {
+    type: "geojson" | string;
+    data: Record<string | number, any>;
+  };
 }

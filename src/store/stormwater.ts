@@ -1,9 +1,9 @@
-import { swLayerName } from "@/config/layers";
-import type { GeoJSON, StormWaterScenarioConfiguration } from "@/models";
-import {
-  getSimulationResultForScenario,
-  request_calculation,
-} from "@/store/scenario/calculationModules";
+import type {
+  StormWaterResult,
+  StormWaterScenarioConfiguration,
+} from "@/models";
+import { cityPyOUserid } from "@/services/authn.service";
+import * as calcModules from "@/services/calculationModules.service";
 import {
   Module,
   Mutation,
@@ -22,15 +22,14 @@ export default class StormWaterStore extends VuexModule {
   scenarioConfig: StormWaterScenarioConfiguration = {
     ...defaultStormwaterConfiguration,
   };
-
-  geoJsonResult: GeoJSON | null = null;
-
-  get geoJson(): GeoJSON {
-    return this.geoJsonResult;
-  }
+  result: StormWaterResult | null = null;
 
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
+  }
+
+  get stormWaterResult(): StormWaterResult {
+    return this.result;
   }
 
   @Mutation
@@ -40,30 +39,30 @@ export default class StormWaterStore extends VuexModule {
     this.scenarioConfig = { ...newScenarioConfiguration };
   }
 
-  @MutationAction({ mutate: ["geoJsonResult"] })
-  async updateStormWaterLayer(
-    userId: string
-  ): Promise<{ geoJsonResult: GeoJSON }> {
-    const scenario = {
-      roofs: this.scenarioConfiguration.roofs,
-      flow_path: this.scenarioConfiguration.flowPath,
-      return_period: this.scenarioConfiguration.returnPeriod,
-      result_format: "geojson",
-      city_pyo_user: userId, //rootState.cityPyO.userid,
+  @Mutation
+  mutateResult(newResult: StormWaterResult): void {
+    this.result = {
+      geojson: Object.freeze(newResult.geojson),
+      rainData: newResult.rainData,
+      complete: newResult.complete,
     };
+  }
 
+  @Mutation
+  resetResult(): void {
+    this.result = null;
+  }
+
+  @MutationAction({ mutate: ["result"] })
+  async updateStormWaterResult(): Promise<{ result: StormWaterResult }> {
     // request calculation and fetch results
-    const stormWaterResultUuid = await request_calculation(
-      swLayerName,
-      scenario
+    const stormWaterResultUuid = await calcModules.requestCalculationStormWater(
+      this.scenarioConfiguration,
+      cityPyOUserid()
     );
-    const simulationResult = await getSimulationResultForScenario(
-      swLayerName,
-      stormWaterResultUuid
-    );
+    const simulationResult: StormWaterResult =
+      await calcModules.getResultForStormWater(stormWaterResultUuid);
 
-    return {
-      geoJsonResult: Object.freeze(simulationResult.source.options.data),
-    };
+    return { result: simulationResult };
   }
 }

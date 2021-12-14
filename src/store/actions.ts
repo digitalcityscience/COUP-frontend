@@ -45,7 +45,7 @@ export default {
                         " successfully loaded ... "
                     );
                     if (designLayersLoaded >= layerConfigs.length) {
-                      resolve();
+                      resolve(true);
                     }
                   });
                 });
@@ -175,9 +175,13 @@ export default {
     options: ConnectionOptions
   ) {
     const cityPyo = new CityPyO();
-    commit("cityPyO", cityPyo);
+    const authResponse = await cityPyo.login(options.userdata);
 
-    return await cityPyo.login(options.userdata);
+    if (authResponse.authenticated) {
+      commit("cityPyO", cityPyo);
+    }
+
+    return authResponse;
   },
   addFocusAreasMapLayer({
     state,

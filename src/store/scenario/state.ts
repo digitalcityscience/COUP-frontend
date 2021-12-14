@@ -100,11 +100,7 @@ export default {
   selectGraph: "abm",
 
   // Stormwater
-  junctions: {},
-  swResultGeoJson: {},
-  rainAmount: [],
   rainTime: 0,
   rerenderSwGraph: false,
   savedStormWaterScenarios: [],
-  stormWaterScenarioConfiguration: null,
 };

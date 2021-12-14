@@ -163,12 +163,12 @@
 
 <script lang="ts">
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import Rain from "@/config/rain.json";
-import type { MenuLink, StormWaterScenarioConfiguration } from "@/models";
+import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
 import { StoreStateWithModules } from "@/models";
 import { swLayerName } from "@/config/layers";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
+
 
 @Component({
   components: { MenuComponentDivision },
@@ -257,9 +257,6 @@ export default class StormwaterScenario extends Vue {
       this.scenarioConfiguration
     );
 
-    // update selected rain gage (for TimeSheet only)
-    this.updateRainAmountDisplayedInSWTimeGraph();
-
     // get stormwater result from cityPyo
     this.loadStormwaterMap();
   }
@@ -277,13 +274,6 @@ export default class StormwaterScenario extends Vue {
     );
   }
 
-  updateRainAmountDisplayedInSWTimeGraph(): void {
-    this.$store.commit(
-      "scenario/rainAmount",
-      Rain[this.scenarioConfiguration.returnPeriod]
-    );
-  }
-
   get resultLoading(): boolean {
     return this.$store.state.scenario.resultLoading;
   }
@@ -295,28 +285,25 @@ export default class StormwaterScenario extends Vue {
   async loadStormwaterMap(): Promise<void> {
     this.resultLoading = true;
     this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
-    this.$store.commit("scenario/swResultGeoJson", null);
+    this.$store.commit("stormwater/resetResult");
     this.$store
-      .dispatch(
-        "stormwater/updateStormWaterLayer",
-        this.$store.getters.cityPyO.userid
-      )
-      .then(() => {
-        // success
-        this.$store.commit("scenario/stormWater", true);
-        // adding result to map
-        this.$store.dispatch("scenario/addSWLayer");
-        // update time graph
-        this.$store.commit("scenario/rerenderSwGraph", true);
-        this.resultLoading = false;
-        this.errorMsg = "";
-      })
-      .catch((err) => {
-        console.log("caught error", err);
-        this.$store.commit("scenario/stormWater", false);
-        this.resultLoading = false;
-        this.errorMsg = err;
-      });
+      .dispatch("stormwater/updateStormWaterResult")
+        .then(() => {
+          // success
+          this.$store.commit("scenario/stormWater", true);
+          // adding result to map
+          this.$store.dispatch("scenario/addSWLayer");
+          // update time graph
+          this.$store.commit("scenario/rerenderSwGraph", true);
+          this.resultLoading = false;
+          this.errorMsg = "";
+        })
+        .catch((err) => {
+          console.log("caught error", err);
+          this.$store.commit("scenario/stormWater", false);
+          this.resultLoading = false;
+          this.errorMsg = err;
+        });
   }
 
   get isFormDirty(): boolean {

@@ -4,7 +4,7 @@
       class="sw_panel panel"
       :class="{
         show: mobileTimePanel,
-        dismiss: !didStormWaterRun || !mobileTimePanel,
+        dismiss: !stormWaterResult || !mobileTimePanel,
       }"
     >
       <div class="sw_graph">
@@ -25,7 +25,7 @@
       </div>
     </div>
     <TimeSheetControl
-      v-if="controls && didStormWaterRun"
+      v-if="controls && stormWaterResult"
       @animationSpeed="animationSpeed = $event"
       @trigger-animation="triggerAnimation"
       :animationRunning="swAnimationRunning"
@@ -36,7 +36,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch, Prop } from "vue-property-decorator";
-import type { StoreStateWithModules, GeoJSON } from "@/models";
+import type { StoreStateWithModules, GeoJSON, StormWaterResult } from "@/models";
 import type { Store } from "vuex";
 import { Chart } from "chart.js";
 import TimeSheetControl from "@/components/Scenario/TimeSheetControl.vue";
@@ -62,22 +62,12 @@ export default class SWTimeSheet extends Vue {
   @Prop({ default: true })
   controls!: boolean;
 
-  get didStormWaterRun(): boolean {
-    return (
-      this.swResultGeoJson && Object.entries(this.swResultGeoJson).length > 0
-    );
-  }
-
-  get rainAmount() {
-    return this.$store.state.scenario.rainAmount;
+  get stormWaterResult(): StormWaterResult {
+    return this.$store.state.stormwater.result
   }
 
   get loop() {
     return this.$store.state.scenario.loop;
-  }
-
-  get swResultGeoJson(): GeoJSON {
-    return this.$store.getters["stormwater/geoJson"];
   }
 
   get rerenderSwGraph(): boolean {
@@ -134,7 +124,7 @@ export default class SWTimeSheet extends Vue {
     this.parksRunOffResults = [];
 
     // make time stamps and run off results
-    const features = this.swResultGeoJson.features as any[];
+    const features = this.stormWaterResult.geojson.features as any[];
 
     // calculate total runoff for each point in time
     // iterate over every subcatchment result and add the results to the accumulated up values for the subcatchment type
@@ -322,7 +312,7 @@ export default class SWTimeSheet extends Vue {
   }
 
   renderSWGraphRain() {
-    console.log("rain gage", this.rainAmount);
+    console.log("rain gage", this.stormWaterResult.rainData);
 
     var ctxR = (
       document.getElementById("rainChart") as HTMLCanvasElement
@@ -336,10 +326,10 @@ export default class SWTimeSheet extends Vue {
       type: "bar",
       data: {
         //labels: Array.from(Array(rainDataMinutes.length).keys()),
-        labels: Array.from(Array(this.rainAmount.length).keys()),
+        labels: Array.from(Array(this.stormWaterResult.rainData.length).keys()),
         datasets: [
           {
-            data: this.rainAmount,
+            data: this.stormWaterResult.rainData,
             //borderColor: 'rgba(16,245,229,1)',
             backgroundColor: "rgba(255,255,255,0.5)",
             //            fill: true,
