@@ -11,6 +11,7 @@ import {
   generateSimpleMutations,
 } from "./utils/generators";
 import stormwater from "./stormwater";
+import wind from "./wind";
 
 Vue.use(Vuex);
 
@@ -18,6 +19,7 @@ const store = new Vuex.Store({
   modules: {
     scenario,
     stormwater,
+    wind
   },
   state,
   getters: {
