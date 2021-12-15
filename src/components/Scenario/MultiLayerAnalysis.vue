@@ -360,6 +360,7 @@ export default {
     determineMissingScenarios() {
       // iterate over scenario results, if a result is empty add the topic to missing Input scenarios
       this.getResultsFromStore();
+      console.log("all simresults", this.allSimulationResults)
       this.missingInputScenarios = [];
       this.layersReadyToCompare = [];
       for (const [key, value] of Object.entries(this.allSimulationResults)) {
@@ -376,9 +377,10 @@ export default {
           await this.$store.dispatch("scenario/addSunExposureLayer");
           break;
         case "Wind":
-          this.currentWindScenario = { wind_speed: 5, wind_direction: 270 };
-          this.$store.dispatch("wind/triggerWindCalculation")
-            .then(() => { this.$store.dispatch("wind/updateWindResult") })
+          await this.$store.dispatch("wind/triggerCalculation")
+            .then(async () => { 
+              await this.$store.dispatch("wind/fetchResult") 
+            })
           break;
         case "Noise":
           await this.$store.dispatch(
