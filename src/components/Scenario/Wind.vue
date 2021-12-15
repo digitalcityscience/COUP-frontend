@@ -29,6 +29,7 @@ export default class WindScenario extends Vue {
   }
 
   /** METHODS */
+  
   // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
   // for our scenario name "scenario_1"
   runScenario(): void {

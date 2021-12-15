@@ -58,9 +58,6 @@ export default {
   amenitiesGeoJson: null,
   amenityStats: {},
 
-  // wind
-  windResultGeoJson: null,  // for multi layer analysis, TODO
-
   // sun
   sunExposureGeoJson: null,
 

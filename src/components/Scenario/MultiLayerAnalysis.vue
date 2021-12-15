@@ -118,7 +118,6 @@ export default {
       ["activeMenuComponent", "activeMenuComponent"],
       ["visibleLayers", "visibleLayers"],
       ["noiseScenario", "scenario/noiseScenario"],
-      ["currentWindScenario", "scenario/currentWindScenario"],
       ["windScenarioHash", "scenario/windScenarioHash"],
       ["abmSettings", "scenario/moduleSettings"],
     ]),
@@ -132,7 +131,10 @@ export default {
       return this.$store.state.scenario.currentNoiseGeoJson;
     },
     currentWindResult() {
-      return this.$store.state.scenario.windResultGeoJson;
+      return this.$store.getters["wind/windResult"];
+    },
+    currentWindScenario() {
+      return this.$store.getters["wind/scenarioConfiguration"];
     },
     currentSunResult() {
       return this.$store.state.scenario.sunExposureGeoJson;
@@ -374,9 +376,9 @@ export default {
           await this.$store.dispatch("scenario/addSunExposureLayer");
           break;
         case "Wind":
-          this.windScenarioHash = "158d2b824886d908440da5c5f6c4dc4f815cdeba";
           this.currentWindScenario = { wind_speed: 5, wind_direction: 270 };
-          await this.$store.dispatch("scenario/updateWindLayer");
+          this.$store.dispatch("wind/triggerWindCalculation")
+            .then(() => { this.$store.dispatch("wind/updateWindResult") })
           break;
         case "Noise":
           await this.$store.dispatch(

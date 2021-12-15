@@ -103,6 +103,33 @@ export default class WindStore extends VuexModule {
     this.result = null;
   }
 
+  /** TODO 
+   * For multilayer analysis "addSubSelectionLayer" 
+   * we need to have possibility to only get result without displaying it. 
+   * 
+   * each module should implement these methods 
+   * "triggerCalculation -> CalculationTask"
+   * "fetch Results" -> Result (geojson, tasks_completed, taskCount)
+   * "task completed" => ( tasks_completed && tasks_completed === taskCount) -> boolean
+   * "Add results to map" -> void
+   * 
+   * 
+   * // Mutations
+   * mutateScenarioConfig
+   * addSavedScenarioConfig
+   * mutateResult
+   * 
+   * // getters
+   * scenarioConfig
+   * savedScenarioConfigs
+   * calcTask
+   * isResultComplete
+   * getResult
+   * 
+   * */
+
+
+  // TODO why is this working without a specified @Mutation method?? 
   @MutationAction({ mutate: ["calcTask"] })
   async triggerWindCalculation(): Promise<{ calcTask: CalculationTask }> {
     // request calculation and fetch results
@@ -122,7 +149,6 @@ export default class WindStore extends VuexModule {
     if (!this.windResult || (simulationResult.tasksCompleted > this.windResult.tasksCompleted)) {
       this.context.dispatch("updateWindLayer", simulationResult)
       this.context.commit("scenario/windLayer", true, {root: true}); // this is for the layer menu in the viewbar
-      this.context.commit("scenario/windResultGeoJson", Object.freeze(simulationResult.geojson), {root: true});  // TODO replace all usages of this with wind store
     }
     return { result: simulationResult };
   }
