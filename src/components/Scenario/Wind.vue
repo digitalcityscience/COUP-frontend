@@ -30,53 +30,54 @@ export default class WindScenario extends Vue {
 
   /** METHODS */
   
-  // prop path is the path to the property inside the file that shall be updated. in this case the scenario description
-  // for our scenario name "scenario_1"
   runScenario(): void {
     // update wind scenario in store
     this.scenarioConfigurationGlobal = Object.assign(
       {},
       this.scenarioConfiguration
     );
-    this.calculateWindResult();
+    this.calculateWindResult()
   }
 
   async calculateWindResult() {
     this.errMsg = "";
     this.$store.commit("wind/resetResult");
-    this.$store
-      .dispatch("wind/triggerWindCalculation")
-      .then(() => {
-        this.displayNewWindResults()
+    this.$store.dispatch("wind/triggerCalculation")
+      .then(() => { 
+        this.displayNewWindResults() 
       })
   }
     
-    // is busy until all result complete 
-  async displayNewWindResults() {
+  // is busy until result complete 
+  async displayNewWindResults(completedTasks=0) {
     // TODO do we need to check if activeComponent is wind? onDestroy?
     this.resultLoading = true;
-    const resultComplete = await this.$store
-      .dispatch("wind/updateWindResult")
-        .then(() => {
+
+    this.$store.dispatch("wind/fetchResult")
+      .then(() => {
         // success
-        return this.windResult.complete
-        })
-        .catch((err) => {
+        if (this.windResult.tasksCompleted > completedTasks) {
+          this.$store.commit("scenario/windLayer", true); // this is for the layer menu in the viewbar
+          this.$store.dispatch("wind/addResultToMap")
+          completedTasks = this.windResult.tasksCompleted;
+        }
+      })
+      .catch((err) => {
           // fail
           this.$store.commit("scenario/windLayer", false);
           this.$store.dispatch("removeSourceFromMap", "wind", { root: true });
           this.resultLoading = false;
           this.errMsg = err;
-        });
-
-    // keep getting the wind result until it is complete
-    if (resultComplete === false) {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      this.displayNewWindResults()
-    } else {
-      // when complete or error turn off result loading overlay
-      this.resultLoading = false;
-    }
+      })
+      .finally(async () => {
+          // abort or keep updating the wind result until it is complete
+          if (this.windResult.complete || this.errMsg) {
+                this.resultLoading = false;
+                return  
+              }
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          this.displayNewWindResults(completedTasks)
+      });
   }
     
   loadSavedScenario(savedScenario: SavedWindScenarioConfiguration): void {
