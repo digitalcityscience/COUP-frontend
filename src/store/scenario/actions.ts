@@ -29,6 +29,7 @@ import {
   calculateAmenityStatsForMultiLayerAnalysis,
 } from "@/store/scenario/amenityStats";
 import { ActionContext } from "vuex";
+import { removeSourceAndItsLayersFromMap } from '@/services/map.service';
 export default {
   async updateNoiseScenario(
     { state, commit, dispatch, rootState },
@@ -287,7 +288,7 @@ export default {
     // TODO this part can be deleted?? is already moved when calling "addSourceToMap"
     Bridges.layers.forEach((layer) => {
       if (rootState.map?.getSource(layer.source)) {
-        dispatch("removeSourceFromMap", layer.source, { root: true });
+        removeSourceAndItsLayersFromMap(layer.source, rootState.map)
       }
     });
     // identify new scenario layer and add it to the map

@@ -10,12 +10,12 @@ import Noise from "@/config/noise.json";
 import WindResult from "@/config/windResult.json";
 import SunExposure from "@/config/sunExposureResult.json";
 import TrafficCounts from "@/config/trafficCounts.json";
-import DesignConfigs from "@/config/buildings.json";
 import SpacesConfig from "@/config/spaces.json";
 import {
   abmTripsLayerName,
   abmAggregationLayerName,
 } from "@/store/deck-layers";
+import type { SourceAndLayerConfig } from "@/models";
 
 export const swLayerName = "stormwater";
 
@@ -31,10 +31,6 @@ const addedLayersIds = [
   PerformanceInfosConfig.layer.id,
   CircledFeatures.layer.id,
 ];
-
-const buildingLayerIds = DesignConfigs.layers.map((layer) => {
-  return layer.id;
-});
 
 const bridgeLayerIds = BridgesConfig.layers.map((layer) => {
   return layer.id;
@@ -65,3 +61,69 @@ export function getAbmLayerIds() {
 
   return abmLayers;
 }
+
+export const buildingLayerConfigs: SourceAndLayerConfig[] = [
+  {
+    "source": {
+      "id": "groundfloor",
+      "options": {
+        "type": "geojson",
+        "data": {}
+      }
+    },
+    "layerConfig": {
+      "id": "groundfloor",
+      "type": "fill-extrusion",
+      "source": "groundfloor",
+      "paint": {
+        "fill-extrusion-height": 5,
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFD529", "commercialOffice", "#ab0124", "daycare", "#1380AB", "public", "#1380AB", "specialUse", "#1380AB", "#CDCDCD"], "#f5f5f5"],
+        "fill-extrusion-opacity": 0.8
+      }
+    }
+  },
+  {
+    "source": {
+      "id": "upperfloor",
+      "options": {
+      "type": "geojson",
+      "data": {}
+      }
+    },
+    "layerConfig": {
+      "id": "upperfloor",
+      "type": "fill-extrusion",
+      "source": "upperfloor",
+      "paint": {
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFD529", "commercialOffice", "#ab0124", "industrial", "#ff75cf", "daycare", "#1380AB", "public", "#1380AB", "specialUse", "#1380AB", "#cdcdcd"], "#f5f5f5"],
+        "fill-extrusion-height": ["to-number", ["get", "building_height"]],
+        "fill-extrusion-base": 5,
+        "fill-extrusion-opacity": 0.8
+      }
+    }
+  },
+  {
+    "source": {
+      "id": "rooftops",
+      "options": {
+        "type": "geojson",
+        "data": {}
+      }
+    },
+    "layerConfig": {
+      "id": "rooftops",
+      "type": "fill-extrusion",
+      "source": "rooftops",
+      "paint": {
+        "fill-extrusion-color": ["match", ["get", "selected"], "inactive", "#f5f5f5", "active", ["match", ["get", "land_use_detailed_type"], "residential", "#FFD529", "commercialOffice", "#ab0124", "industrial", "#ff75cf", "daycare", "#1380AB", "public", "#1380AB", "specialUse", "#1380AB", "#cdcdcd"], "#f5f5f5"],
+        "fill-extrusion-height": ["to-number", ["get", "additional_roof_height"]],
+        "fill-extrusion-base": ["to-number", ["get", "building_height"]],
+        "fill-extrusion-opacity": 0.8
+      }
+    }
+  }
+];
+
+const buildingLayerIds = buildingLayerConfigs.map((config) => {
+  return config.layerConfig.id;
+});

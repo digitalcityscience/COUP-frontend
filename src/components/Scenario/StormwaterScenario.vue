@@ -163,11 +163,12 @@
 
 <script lang="ts">
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult } from "@/models";
+import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult, MapboxMap } from "@/models";
 import { StoreStateWithModules } from "@/models";
 import { swLayerName } from "@/config/layers";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
+import { removeSourceAndItsLayersFromMap } from "@/services/map.service";
 
 
 @Component({
@@ -261,6 +262,10 @@ export default class StormwaterScenario extends Vue {
     this.loadStormwaterMap();
   }
 
+  get map(): MapboxMap {
+    return this.$store.state.map;
+  }
+
   get scenarioConfigurationGlobal(): StormWaterScenarioConfiguration {
     return this.$store.getters["stormwater/scenarioConfiguration"];
   }
@@ -284,7 +289,7 @@ export default class StormwaterScenario extends Vue {
 
   async loadStormwaterMap(): Promise<void> {
     this.resultLoading = true;
-    this.$store.dispatch("removeSourceFromMap", swLayerName, { root: true });
+    removeSourceAndItsLayersFromMap(swLayerName, this.map)
     this.$store.commit("stormwater/resetResult");
     this.$store
       .dispatch("stormwater/updateStormWaterResult")

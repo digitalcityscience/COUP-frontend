@@ -3,6 +3,9 @@ import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
+import { mapState } from "vuex";
+import { removeSourceAndItsLayersFromMap } from '@/services/map.service';
+
 
 export default {
   name: "NoiseScenario",
@@ -23,6 +26,7 @@ export default {
     };
   },
   computed: {
+     ...mapState(["map"]), // getter only
     //...mapState('scenario', ['resultLoading']), // getter only
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
@@ -77,7 +81,7 @@ export default {
     },
     async loadNoiseMap() {
       this.resultLoading = true;
-      this.$store.dispatch("removeSourceFromMap", "noise", { root: true });
+      removeSourceAndItsLayersFromMap("noise", this.map)
       this.$store.commit("scenario/currentNoiseGeoJson", null);
       this.$store
         .dispatch("scenario/updateNoiseScenario", this.noiseScenario)

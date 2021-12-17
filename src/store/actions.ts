@@ -1,10 +1,9 @@
-import Buildings from "@/config/buildings.json";
 import CircledFeatures from "@/config/circledFeatures.json";
 import FocusAreasLayer from "@/config/focusAreas.json";
-import { getLayerOrder } from "@/config/layers";
+import { buildingLayerConfigs, getLayerOrder } from "@/config/layers";
 import Spaces from "@/config/spaces.json";
-import { StoreState } from "@/models";
-import { getUserContentLayerIds } from "@/services/map.service";
+import { SourceAndLayerConfig, StoreState } from "@/models";
+import { addSourceAndLayerToMap, getUserContentLayerIds, removeSourceAndItsLayersFromMap } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
 import { Layer } from "mapbox-gl";
 import { ActionContext } from "vuex";
@@ -17,50 +16,23 @@ export default {
   }: ActionContext<StoreState, StoreState>) {
     commit("scenario/loader", true);
     commit("scenario/loaderTxt", "Creating Design Layers ... ");
-    const sourceConfigs = Buildings.sources || [];
-    const layerConfigs = Buildings.layers || [];
+
+    /* 
+    // TODO add spaces later
     sourceConfigs.push(Spaces.source);
     // @ts-ignore
-    layerConfigs.push(Spaces.layer);
+    layerConfigs.push(Spaces.layer); #
+    */
 
-    const loadLayers = new Promise((resolve) => {
-      let designLayersLoaded = 0;
-      // iterate over sources in configs
-      sourceConfigs.forEach((source) => {
-        //console.log("hans", source.id)
-        // if the data should be loaded from city IO
-        if (source.data?.from === "cityPyO") {
-          commit("scenario/loaderTxt", "Getting GeoData from CityPyO ... ");
-          state.cityPyO.getLayer(source.data.id).then((source) => {
-            dispatch("addSourceToMap", source).then((source) => {
-              // add all layers using this source
-              layerConfigs
-                .filter((l) => l.source === source.id)
-                .forEach((l) => {
-                  dispatch("addLayerToMap", l).then(() => {
-                    designLayersLoaded += 1;
-                    commit(
-                      "scenario/loaderTxt",
-                      "Design Layer #" +
-                        designLayersLoaded +
-                        " successfully loaded ... "
-                    );
-                    if (designLayersLoaded >= layerConfigs.length) {
-                      resolve(true);
-                    }
-                  });
-                });
-            });
-          });
-        } else {
-          console.warn("do not know where to load source data from", source);
-        }
+    // iterate over sources in configs
+    buildingLayerConfigs.forEach((config : SourceAndLayerConfig) => {
+      commit("scenario/loaderTxt", "Getting GeoData from CityPyO ... ");
+      state.cityPyO.getLayer(config.source.id, false).then((layerData) => {
+        config.source.options.data = layerData
+        addSourceAndLayerToMap(config.source, config.layerConfig, state.map)
+        commit("scenario/loader", false);
       });
     });
-
-    await loadLayers;
-    commit("scenario/loader", false);
-    return;
   },
   addSourceToMap(
     { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
@@ -68,31 +40,11 @@ export default {
   ) {
     if (state.map?.getSource(source.id)) {
       // remove all layers using this source and the source itself
-      dispatch("removeSourceFromMap", source.id);
+      removeSourceAndItsLayersFromMap(source.id, state.map)
     }
     state.map?.addSource(source.id, source.options);
 
     return source;
-  },
-  removeSourceFromMap(
-    { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
-    sourceId
-  ) {
-    console.log("remove source from map", sourceId);
-
-    if (state.map?.getSource(sourceId)) {
-      const layerIds = getUserContentLayerIds(state.map);
-      // remove all layers using this source
-      layerIds.forEach((layerId) => {
-        if (
-          state.map?.getLayer(layerId) &&
-          state.map?.getLayer(layerId).source === sourceId
-        ) {
-          state.map?.removeLayer(layerId);
-        }
-      });
-      state.map?.removeSource(sourceId);
-    }
   },
   addLayerToMap(
     { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
@@ -105,6 +57,8 @@ export default {
     state.map?.addLayer(layer);
     return dispatch("updateLayerOrder");
   },
+
+ // TODO DO THIS IN MAP SERVICE!!
   /** updates the layer order after a layer was added */
   updateLayerOrder({ state, commit, dispatch }) {
     for (const layerName of getLayerOrder()) {
@@ -114,6 +68,7 @@ export default {
       }
     }
   },
+  // TODO DO THIS IN MAP SERVICE!!
   hideAllLayersButThese(
     { state, dispatch, getters },
     layersToShow: string[] = [],

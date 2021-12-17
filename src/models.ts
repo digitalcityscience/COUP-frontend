@@ -1,4 +1,4 @@
-import type { Map as MapboxMap } from "mapbox-gl";
+import type { Layer, Map as MapboxMap } from "mapbox-gl";
 import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 
@@ -119,6 +119,11 @@ export interface CityPyO {
 
 export interface CityPyOTask {
   taskId: string;
+}
+
+export interface SourceAndLayerConfig {
+  "source": MapSource,
+  "layerConfig": Layer
 }
 
 export interface MapSource {
