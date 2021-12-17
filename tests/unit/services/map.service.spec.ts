@@ -24,3 +24,101 @@ test("hideLayers ", () => {
     "none"
   );
 });
+
+test("getUserContentLayers with not fully loaded map", () => {
+  const mock = {
+    loaded: () => false,
+  } as unknown as MapboxMap;
+  const result = service.getUserContentLayers(mock);
+  expect(result).toHaveLength(0);
+});
+
+test("getUserContentLayers without user-content layers", () => {
+  const mock = {
+    loaded: () => true,
+    getStyle: () => {
+      return {
+        layers: [
+          {
+            metadata: "something",
+          },
+          {
+            metadata: undefined,
+          },
+        ],
+      };
+    },
+  } as unknown as MapboxMap;
+  const result = service.getUserContentLayers(mock);
+  expect(result).toHaveLength(0);
+});
+
+test("getUserContentLayers with user-content layers", () => {
+  const mock = {
+    loaded: () => true,
+    getStyle: () => {
+      return {
+        layers: [
+          {
+            metadata: "something",
+          },
+          {
+            metadata: undefined,
+          },
+          {
+            metadata: "user-content",
+            id: "test",
+          },
+        ],
+      };
+    },
+  } as unknown as MapboxMap;
+  const result = service.getUserContentLayers(mock);
+  expect(result).toHaveLength(1);
+  expect(result[0].id).toBe("test");
+});
+
+test("getUserContentLayerIds with user-content layers", () => {
+  const mock = {
+    loaded: () => true,
+    getStyle: () => {
+      return {
+        layers: [
+          {
+            metadata: "something",
+          },
+          {
+            metadata: undefined,
+          },
+          {
+            metadata: "user-content",
+            id: "test",
+          },
+        ],
+      };
+    },
+  } as unknown as MapboxMap;
+  const result = service.getUserContentLayerIds(mock);
+  expect(result).toHaveLength(1);
+  expect(result[0]).toBe("test");
+});
+
+test("getUserContentLayerIds without user-content layers", () => {
+  const mock = {
+    loaded: () => true,
+    getStyle: () => {
+      return {
+        layers: [
+          {
+            metadata: "something",
+          },
+          {
+            metadata: undefined,
+          },
+        ],
+      };
+    },
+  } as unknown as MapboxMap;
+  const result = service.getUserContentLayerIds(mock);
+  expect(result).toHaveLength(0);
+});

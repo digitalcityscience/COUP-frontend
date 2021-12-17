@@ -5,7 +5,6 @@ import { StoreState, View } from "@/models";
 const initialState: StoreState = {
   map: null,
   activeMenuComponent: "AbmScenario",
-  layerIds: [],
   allFeaturesHighlighted: false,
   showLegend: false,
   selectedMultiFeatures: [],

@@ -38,14 +38,10 @@ export default {
 
     return new Promise((resolve, reject) => {
       // request calculation and fetch results
-      calculationModules.requestCalculationNoise(
-        noiseScenario,
-        userid
-        )
+      calculationModules
+        .requestCalculationNoise(noiseScenario, userid)
         .then((noiseResultUuid) => {
-          return calculationModules.getResultForNoise(
-            noiseResultUuid
-          );
+          return calculationModules.getResultForNoise(noiseResultUuid);
         })
         .then((noiseResult) => {
           // adding result to store
@@ -491,11 +487,8 @@ export default {
       }
 
       // check if scenario is still valid - user input might have changed while loading trips layer
-      dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
-        commit("addLayerId", abmAggregationLayerName, { root: true });
-      });
+      dispatch("addLayerToMap", deckLayer, { root: true });
       console.log("new trips layer loaded");
-      commit("addLayerId", abmTripsLayerName, { root: true });
       commit("animationRunning", true);
       animate(deckLayer, null, null, currentTimeStamp);
     });
@@ -519,9 +512,7 @@ export default {
       }
 
       console.log("new aggregation layer loaded");
-      dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
-        commit("addLayerId", abmAggregationLayerName, { root: true });
-      });
+      dispatch("addLayerToMap", deckLayer, { root: true });
       commit("heatMap", true);
       console.log(state.heatMap);
     });
@@ -542,10 +533,7 @@ export default {
 
         // check if scenario is still valid - user input might have changed while loading trips layer
         // ----> is this comment still at the right place??
-        dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
-          commit("addLayerId", abmTripsLayerName, { root: true });
-          console.log("new trips layer loaded");
-        });
+        dispatch("addLayerToMap", deckLayer, { root: true });
         if (state.animationRunning) {
           animate(deckLayer, null, null, currentTimeStamp);
         }
@@ -580,9 +568,7 @@ export default {
           rootState.map?.removeLayer(abmAggregationLayerName);
         }
         console.log("new aggregation layer loaded");
-        dispatch("addLayerToMap", deckLayer, { root: true }).then(() => {
-          commit("addLayerId", abmAggregationLayerName, { root: true });
-        });
+        dispatch("addLayerToMap", deckLayer, { root: true });
       });
     }
   },

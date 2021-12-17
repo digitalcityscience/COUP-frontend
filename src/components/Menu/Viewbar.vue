@@ -88,8 +88,8 @@ export default class Viewbar extends Vue {
     this.$store.commit("focusAreasShown", newValue);
   }
 
-  get layerIds() {
-    return this.storeState.layerIds;
+  get layerIds(): string[] {
+    return this.$store.getters.layerIds;
   }
 
   get wind() {
@@ -108,7 +108,7 @@ export default class Viewbar extends Vue {
 
   // todo this really needs to be refactored to use a central function which takes layers as arguments
   updateLayerVisibility() {
-    console.log(this.layerIds);
+    console.debug(this.layerIds);
     if (this.layerIds.indexOf("abmTrips") > -1) {
       if (this.visibleLayers.abm) {
         this.map.setLayoutProperty("abmTrips", "visibility", "visible");

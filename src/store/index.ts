@@ -3,7 +3,6 @@ import Vuex from "vuex";
 import VModal from "vue-js-modal";
 import state from "./state";
 import getters from "./getters";
-import mutations from "./mutations";
 import actions from "./actions";
 import scenario from "./scenario";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
@@ -27,7 +26,6 @@ const store = new Vuex.Store({
   },
   mutations: {
     ...generateSimpleMutations(state),
-    ...mutations,
   },
   actions: {
     ...actions,

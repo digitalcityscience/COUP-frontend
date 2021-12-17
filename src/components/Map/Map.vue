@@ -8,6 +8,7 @@ import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import { calculateAbmStatsForFocusArea } from "@/store/scenario/abmStats";
 import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/focusAreas.json";
+import { getUserContentLayerIds } from "@/services/map.service";
 
 export default {
   name: "Map",
@@ -23,14 +24,7 @@ export default {
     };
   },
   computed: {
-    ...mapState([
-      "mapStyle",
-      "view",
-      "accessToken",
-      "map",
-      "layers",
-      "layerIds",
-    ]),
+    ...mapState(["mapStyle", "view", "accessToken", "map"]),
     ...generateStoreGetterSetter([
       ["allFeaturesHighlighted", "allFeaturesHighlighted"],
       ["selectedObjectId", "selectedObjectId"],
@@ -92,19 +86,15 @@ export default {
     onMapClicked(evt: mapboxgl.MapMouseEvent): void {
       console.debug("click!", evt);
       this.recordEventPosition(evt.originalEvent);
-      const bbox = [
+      const bbox: [[number, number], [number, number]] = [
         [evt.point.x - 10, evt.point.y - 10],
         [evt.point.x + 10, evt.point.y + 10],
       ];
-
-      const features = (this.map as mapboxgl.Map).queryRenderedFeatures(
-        bbox as any,
-        {
-          layers: this.layerIds.filter((layerId) => {
-            return this.map.getLayer(layerId);
-          }),
-        }
-      );
+      const features = (this.map as mapboxgl.Map).queryRenderedFeatures(bbox, {
+        layers: getUserContentLayerIds(this.map).filter((layerId) => {
+          return this.map.getLayer(layerId);
+        }),
+      });
 
       if (Array.isArray(features) && features.length > 0) {
         this.actionForClick(features);

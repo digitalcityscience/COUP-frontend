@@ -1,4 +1,5 @@
 import { MapboxMap } from "@/models";
+import { Layer } from "mapbox-gl";
 
 export const buildingsLayers = ["groundfloor", "upperfloor", "rooftops"];
 
@@ -30,4 +31,19 @@ export function hideLayers(map: MapboxMap | null, layers: string[]): void {
   layers.forEach((layer) => {
     map?.setLayoutProperty(layer, "visibility", "none");
   });
+}
+export function getUserContentLayers(map: MapboxMap): Layer[] {
+  if (!map.loaded()) {
+    return [];
+  }
+
+  return (
+    map
+      .getStyle()
+      .layers.filter((layer) => layer.metadata === "user-content") ?? []
+  );
+}
+
+export function getUserContentLayerIds(map: MapboxMap): string[] {
+  return getUserContentLayers(map).map((layer) => layer.id);
 }

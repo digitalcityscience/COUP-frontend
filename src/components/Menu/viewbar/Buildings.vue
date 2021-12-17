@@ -93,7 +93,7 @@ export default class Buildings extends Vue {
   }
 
   get layerIds(): string[] {
-    return this.$store.state.layerIds;
+    return this.$store.getters.layerIds;
   }
 
   showBuildingUses(): void {

@@ -28,7 +28,6 @@ export interface View {
 export interface StoreState {
   map: MapboxMap | null;
   activeMenuComponent: string;
-  layerIds: string[];
   allFeaturesHighlighted: boolean;
   showLegend: boolean;
   currentTime: number;

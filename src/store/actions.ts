@@ -4,6 +4,7 @@ import FocusAreasLayer from "@/config/focusAreas.json";
 import { getLayerOrder } from "@/config/layers";
 import Spaces from "@/config/spaces.json";
 import { StoreState } from "@/models";
+import { getUserContentLayerIds } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
 import { Layer } from "mapbox-gl";
 import { ActionContext } from "vuex";
@@ -80,14 +81,14 @@ export default {
     console.log("remove source from map", sourceId);
 
     if (state.map?.getSource(sourceId)) {
+      const layerIds = getUserContentLayerIds(state.map);
       // remove all layers using this source
-      state.layerIds.forEach((layerId) => {
+      layerIds.forEach((layerId) => {
         if (
           state.map?.getLayer(layerId) &&
           state.map?.getLayer(layerId).source === sourceId
         ) {
           state.map?.removeLayer(layerId);
-          commit("removeLayerId", layerId);
         }
       });
       state.map?.removeSource(sourceId);
@@ -95,15 +96,13 @@ export default {
   },
   addLayerToMap(
     { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
-    layer
+    layer: Layer
   ) {
     if (state.map?.getLayer(layer.id)) {
-      commit("removeLayerId", layer.id);
       state.map?.removeLayer(layer.id);
     }
-    state.map?.addLayer(layer as Layer);
-
-    commit("addLayerId", layer.id);
+    layer.metadata = "user-content";
+    state.map?.addLayer(layer);
     return dispatch("updateLayerOrder");
   },
   /** updates the layer order after a layer was added */
@@ -116,7 +115,7 @@ export default {
     }
   },
   hideAllLayersButThese(
-    { state, dispatch },
+    { state, dispatch, getters },
     layersToShow: string[] = [],
     hideDesignLayers = false
   ) {
@@ -127,12 +126,13 @@ export default {
     }
 
     // iterates over all layers and hides them if not excluded
-    for (const layerId of state.layerIds) {
+    getters.layerIds.map((layerId) => {
       // not in layers to show
       if (layersToShow.indexOf(layerId) === -1) {
         dispatch("hideLayer", layerId);
       }
-    }
+    });
+
     // shows layers in layersToShow
     for (const layerId of layersToShow) {
       dispatch("showLayer", layerId);
