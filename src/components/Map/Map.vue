@@ -1,13 +1,14 @@
 <script lang="ts">
 import mapboxgl from "mapbox-gl";
 import { mapState } from "vuex";
-import amenities from "@/config/amenities.json";
+import amenities from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import { alkisTranslations } from "@/store/abm";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import { calculateAbmStatsForFocusArea } from "@/store/scenario/abmStats";
 import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats";
-import FocusAreasLayer from "@/config/focusAreas.json";
+import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import { getUserContentLayerIds } from "@/services/map.service";
 
 export default {
   name: "Map",
@@ -23,14 +24,7 @@ export default {
     };
   },
   computed: {
-    ...mapState([
-      "mapStyle",
-      "view",
-      "accessToken",
-      "map",
-      "layers",
-      "layerIds",
-    ]),
+    ...mapState(["mapStyle", "view", "accessToken", "map"]),
     ...generateStoreGetterSetter([
       ["allFeaturesHighlighted", "allFeaturesHighlighted"],
       ["selectedObjectId", "selectedObjectId"],
@@ -73,8 +67,8 @@ export default {
     this.map.on("click", this.onMapClicked);
 
     // amenities layer
-    this.map.on("mousemove", amenities.layer.id, this.onAmenitiesHover);
-    this.map.on("mouseleave", amenities.layer.id, this.onAmenitiesHoverLeave);
+    this.map.on("mousemove", amenities.layerConfig.id, this.onAmenitiesHover);
+    this.map.on("mouseleave", amenities.layerConfig.id, this.onAmenitiesHoverLeave);
 
     // focus areas layer
     this.map.on("mousemove", "focusAreas", this.onFocusAreaHover);
@@ -92,19 +86,15 @@ export default {
     onMapClicked(evt: mapboxgl.MapMouseEvent): void {
       console.debug("click!", evt);
       this.recordEventPosition(evt.originalEvent);
-      const bbox = [
+      const bbox: [[number, number], [number, number]] = [
         [evt.point.x - 10, evt.point.y - 10],
         [evt.point.x + 10, evt.point.y + 10],
       ];
-
-      const features = (this.map as mapboxgl.Map).queryRenderedFeatures(
-        bbox as any,
-        {
-          layers: this.layerIds.filter((layerId) => {
-            return this.map.getLayer(layerId);
-          }),
-        }
-      );
+      const features = (this.map as mapboxgl.Map).queryRenderedFeatures(bbox, {
+        layers: getUserContentLayerIds(this.map).filter((layerId) => {
+          return this.map.getLayer(layerId);
+        }),
+      });
 
       if (Array.isArray(features) && features.length > 0) {
         this.actionForClick(features);
@@ -115,7 +105,7 @@ export default {
       const initialLayerId = initialFeature.layer.id;
 
       // calculate stats for focus area
-      if (initialLayerId === FocusAreasLayer.layer.id) {
+      if (initialLayerId === FocusAreasLayer.layerConfig.id) {
         this.onFocusAreaClick(initialFeature.id);
         return;
       }
@@ -155,9 +145,9 @@ export default {
       this.createModal();
     },
     onMapLoaded() {
-      this.$store.dispatch("addFocusAreasMapLayer");
       console.log("create design layers");
       this.$store.dispatch("createDesignLayers");
+      this.$store.dispatch("addFocusAreasMapLayer");
     },
     createModal() {
       this.openModalsIds.push(this.selectedObjectId);

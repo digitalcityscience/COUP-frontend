@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const circledFeaturesLayerConfig: SourceAndLayerConfig = {
+  "layerConfig": {
   "id": "featureCircles",
   "type": "line",
   "source": "featureCircles",
@@ -12,7 +14,7 @@
     "line-cap": "square"
     }
   },
-  "mapSource": {
+  "source": {
     "id": "featureCircles",
     "options": {
       "type": "geojson",
@@ -23,3 +25,5 @@
     }
   }
 }
+
+export default circledFeaturesLayerConfig;

@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const windResultLayerConfig: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "wind",
     "type": "fill-extrusion",
     "source": "wind",
@@ -27,12 +29,13 @@
       ]
     }
   },
-  "mapSource": {
+  "source": {
     "id": "wind",
-    "type": "geojson",
-    "data": {
-      "from": "cityPyO",
-      "id": "wind"
+    "options": {
+      "type": "geojson",
+      "data": {}
     }
   }
 }
+
+export default windResultLayerConfig;

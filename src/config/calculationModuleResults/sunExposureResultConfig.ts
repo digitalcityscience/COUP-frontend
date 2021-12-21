@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const sunExposureResultConfig: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "sun_exposure",
     "type": "fill-extrusion",
     "source": "sun_exposure",
@@ -37,12 +39,13 @@
       ]
     }
   },
-  "mapSource": {
+  "source": {
     "id": "sun_exposure",
-    "type": "geojson",
-    "data": {
-      "from": "cityPyO",
-      "id": "sun_exposure"
+    "options": {
+      "type": "geojson",
+      "data": {}
     }
   }
 }
+
+export default sunExposureResultConfig;

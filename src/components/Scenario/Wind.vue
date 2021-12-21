@@ -4,6 +4,8 @@ import hash from "object-hash";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
+import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from '@/services/map.service';
+import { mapState } from 'vuex';
 
 export default {
   name: "WindScenario",
@@ -23,7 +25,7 @@ export default {
   },
   computed: {
     //...mapState('scenario', ['resultLoading']), // getter only
-
+    ...mapState(["map"]),
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
       ["windScenarioHash", "scenario/" + "windScenarioHash"], // todo wind store
@@ -68,7 +70,7 @@ export default {
   },
   mounted: function () {
     // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", ["wind"]);
+    hideAllLayersButThese(this.map, ["wind"]);
   },
   methods: {
     isResultOutdated() {
@@ -99,7 +101,7 @@ export default {
     },
     async getWindResults() {
       this.resultLoading = true;
-      this.$store.dispatch("removeSourceFromMap", "wind", { root: true });
+      removeSourceAndItsLayersFromMap("wind", this.map)
       this.$store.commit("scenario/windResultGeoJson", null);
       this.$store
         .dispatch("scenario/updateWindLayer", this.currentScenario)

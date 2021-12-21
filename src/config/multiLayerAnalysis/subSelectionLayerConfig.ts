@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const subSelectionLayerConfig: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "layerSubSelection",
     "type": "fill-extrusion",
     "source": "layerSubSelection",
@@ -20,7 +22,7 @@
       }
     }
   },
-  "mapSource": {
+  "source": {
     "id": "layerSubSelection",
     "options": {
       "type": "geojson",
@@ -31,3 +33,5 @@
     }
   }
 }
+
+export default subSelectionLayerConfig;

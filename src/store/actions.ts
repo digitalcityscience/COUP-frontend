@@ -1,153 +1,48 @@
-import Buildings from "@/config/buildings.json";
-import CircledFeatures from "@/config/circledFeatures.json";
-import FocusAreasLayer from "@/config/focusAreas.json";
-import { getLayerOrder } from "@/config/layers";
-import Spaces from "@/config/spaces.json";
-import { StoreState } from "@/models";
+import CircledFeatures from "@/config/userInteraction/circledFeaturesLayerConfig";
+import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import BuildingLayerConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
+import {  SourceAndLayerConfig, StoreState } from "@/models";
+import { addSourceAndLayerToMap } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
-import { Layer } from "mapbox-gl";
 import { ActionContext } from "vuex";
 
 export default {
   async createDesignLayers({
     state,
     commit,
-    dispatch,
-  }: ActionContext<StoreState, StoreState>) {
+  }: ActionContext<StoreState, StoreState>) { 
     commit("scenario/loader", true);
     commit("scenario/loaderTxt", "Creating Design Layers ... ");
-    const sourceConfigs = Buildings.sources || [];
-    const layerConfigs = Buildings.layers || [];
-    sourceConfigs.push(Spaces.source);
-    // @ts-ignore
-    layerConfigs.push(Spaces.layer);
 
-    const loadLayers = new Promise((resolve) => {
-      let designLayersLoaded = 0;
-      // iterate over sources in configs
-      sourceConfigs.forEach((source) => {
-        //console.log("hans", source.id)
-        // if the data should be loaded from city IO
-        if (source.data?.from === "cityPyO") {
-          commit("scenario/loaderTxt", "Getting GeoData from CityPyO ... ");
-          state.cityPyO.getLayer(source.data.id).then((source) => {
-            dispatch("addSourceToMap", source).then((source) => {
-              // add all layers using this source
-              layerConfigs
-                .filter((l) => l.source === source.id)
-                .forEach((l) => {
-                  dispatch("addLayerToMap", l).then(() => {
-                    designLayersLoaded += 1;
-                    commit(
-                      "scenario/loaderTxt",
-                      "Design Layer #" +
-                        designLayersLoaded +
-                        " successfully loaded ... "
-                    );
-                    if (designLayersLoaded >= layerConfigs.length) {
-                      resolve(true);
-                    }
-                  });
-                });
-            });
-          });
-        } else {
-          console.warn("do not know where to load source data from", source);
-        }
+    const designConfigs = [...BuildingLayerConfigs, LandscapeLayerConfig];
+    // iterate over sources in configs
+    designConfigs.forEach((config : SourceAndLayerConfig) => {
+    // get layer data from cityPyo
+      state.cityPyO.getLayer(config.source.id).then((layerData) => {
+        // merge layer data and config
+        config.source.options.data = layerData
+        // add to map
+        addSourceAndLayerToMap(config.source, [config.layerConfig], state.map)
       });
     });
-
-    await loadLayers;
+    // finally remove loading screen
     commit("scenario/loader", false);
-    return;
   },
-  addSourceToMap(
-    { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
-    source
-  ) {
-    if (state.map?.getSource(source.id)) {
-      // remove all layers using this source and the source itself
-      dispatch("removeSourceFromMap", source.id);
-    }
-    state.map?.addSource(source.id, source.options);
-
-    return source;
+  addFocusAreasMapLayer({
+    state,
+    commit,
+  }: ActionContext<StoreState, StoreState>) {
+    // get layer data from cityPyo
+    state.cityPyO.getLayer("focusAreas").then((geojson) => {
+      commit("focusAreasGeoJson", geojson);
+      // merge layer data and config
+      FocusAreasLayerConfig.source.options.data = geojson
+      // add to map
+      addSourceAndLayerToMap(FocusAreasLayerConfig.source, [FocusAreasLayerConfig.layerConfig], state.map)
+    });
   },
-  removeSourceFromMap(
-    { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
-    sourceId
-  ) {
-    console.log("remove source from map", sourceId);
-
-    if (state.map?.getSource(sourceId)) {
-      // remove all layers using this source
-      state.layerIds.forEach((layerId) => {
-        if (
-          state.map?.getLayer(layerId) &&
-          state.map?.getLayer(layerId).source === sourceId
-        ) {
-          state.map?.removeLayer(layerId);
-          commit("removeLayerId", layerId);
-        }
-      });
-      state.map?.removeSource(sourceId);
-    }
-  },
-  addLayerToMap(
-    { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
-    layer
-  ) {
-    if (state.map?.getLayer(layer.id)) {
-      commit("removeLayerId", layer.id);
-      state.map?.removeLayer(layer.id);
-    }
-    state.map?.addLayer(layer as Layer);
-
-    commit("addLayerId", layer.id);
-    return dispatch("updateLayerOrder");
-  },
-  /** updates the layer order after a layer was added */
-  updateLayerOrder({ state, commit, dispatch }) {
-    for (const layerName of getLayerOrder()) {
-      if (state.map.getLayer(layerName)) {
-        //console.log("putting layer on top ", layerName)
-        state.map.moveLayer(layerName);
-      }
-    }
-  },
-  hideAllLayersButThese(
-    { state, dispatch },
-    layersToShow: string[] = [],
-    hideDesignLayers = false
-  ) {
-    // TODO: design layer names as global variable add in createDesignLayers
-    const designLayers = ["spaces", "groundfloor", "upperfloor", "rooftops"];
-    if (!hideDesignLayers) {
-      layersToShow.push(...designLayers);
-    }
-
-    // iterates over all layers and hides them if not excluded
-    for (const layerId of state.layerIds) {
-      // not in layers to show
-      if (layersToShow.indexOf(layerId) === -1) {
-        dispatch("hideLayer", layerId);
-      }
-    }
-    // shows layers in layersToShow
-    for (const layerId of layersToShow) {
-      dispatch("showLayer", layerId);
-    }
-  },
-  hideLayer({ state }, layerId: string) {
-    if (state.map.getLayer(layerId)) {
-      state.map.setLayoutProperty(layerId, "visibility", "none");
-    }
-  },
-  showLayer({ state }, layerId: string) {
-    if (state.map.getLayer(layerId)) {
-      state.map.setLayoutProperty(layerId, "visibility", "visible");
-    }
-  },
+  // TODO do this in layer service?
   editFeatureProps({ state }, feature) {
     if (feature) {
       try {
@@ -183,26 +78,7 @@ export default {
 
     return authResponse;
   },
-  addFocusAreasMapLayer({
-    state,
-    commit,
-    dispatch,
-  }: ActionContext<StoreState, StoreState>) {
-    state.cityPyO.getLayer("focusAreas").then((source) => {
-      commit("focusAreasGeoJson", source.options.data);
-      dispatch("addSourceToMap", source, { root: true })
-        .then((source) => {
-          dispatch("addLayerToMap", FocusAreasLayer.layer, { root: true });
-        })
-        .then(() => {
-          state.map.setLayoutProperty(
-            FocusAreasLayer.mapSource.data.id,
-            "visibility",
-            "none"
-          );
-        });
-    });
-  },
+
   updateCircledFeaturesLayer(
     { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
     featureBuffer
@@ -227,34 +103,9 @@ export default {
     }
 
     // update layer on map
-    const source = CircledFeatures.mapSource;
+    const source = CircledFeatures.source;
     source.options.data.features = featureCircles;
-    dispatch("addSourceToMap", source, { root: true }).then((source) => {
-      dispatch("addLayerToMap", CircledFeatures.layer, { root: true });
-    });
+    addSourceAndLayerToMap(source, [CircledFeatures.layerConfig], state.map)
     commit("featureCircles", featureCircles);
   },
-
-  /***** DO WE STILL NEED THIS?
-   /**
-   * Parses the module configs to the respective store modules
-   * @param {*} state - the module store state
-   * @param {*} moduleName - the module to parse the config data to
-   * @param {*} [config=Config] - the config.json, defaults to "./config.json"
-   * @returns {void}
-   *
-   parseConfig({state, commit}: ActionContext<StoreState, StoreState>, moduleName: string, config: GenericObject = Config) {
-    if (state[moduleName]) {
-      const moduleConfig = config?.modules?.[moduleName]
-
-      for (const attr in moduleConfig) {
-        try {
-          commit(`${moduleName}/${attr}`, moduleConfig[attr])
-        } catch (e) {
-          state[moduleName][attr] = moduleConfig[attr]
-        }
-      }
-    }
-  }
-   *****/
 };

@@ -1,5 +1,7 @@
-{
-  "layer":
+import type { SourceAndLayerConfig } from "@/models";
+
+const amenitiesLayerConfig: SourceAndLayerConfig = {
+  "layerConfig":
     {
       "id": "abmAmenities",
       "type": "circle",
@@ -26,13 +28,14 @@
         ]
       }
     },
-  "mapSource":
+  "source":
     {
       "id": "abmAmenities",
-      "type": "geojson",
-      "data": {
-        "from": "cityPyO",
-        "id": "abmAmenities"
+      "options": {
+        "type": "geojson",
+        "data": {}
       }
     }
 }
+
+export default amenitiesLayerConfig;

@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const trafficCountLayerConfig: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "trafficCounts",
     "type": "symbol",
     "source": "trafficCounts",
@@ -22,12 +24,13 @@
       "text-anchor": "top"
     }
   },
-  "mapSource": {
+  "source": {
     "id": "trafficCounts",
-    "type": "geojson",
-    "data": {
-      "from": "cityPyO",
-      "id": "trafficCounts"
+    "options": {
+      "type": "geojson",
+      "data": {}
     }
   }
 }
+
+export default trafficCountLayerConfig;

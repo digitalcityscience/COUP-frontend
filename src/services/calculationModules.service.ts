@@ -4,6 +4,7 @@ import type {
   StormWaterResult,
   CityPyOTask,
   MapSource,
+  GeoJSON
 } from "@/models";
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
@@ -128,7 +129,7 @@ export async function getResultForWind({
 }
 
 /** gets noise result */
-export async function getResultForNoise(task: GenericObject) {
+export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
   // TODO make task object
   const result = await getResultForSingleTask(
     config.endpointsResultCollection.noise,
@@ -141,10 +142,7 @@ export async function getResultForNoise(task: GenericObject) {
     throw new Error("Did not get a valid result");
   }
 
-  return {
-    complete: true, // noise result does not come in parts
-    source: formatResultAsMapSource("noise", result),
-  };
+  return result
 }
 
 /** gets stormwater result */

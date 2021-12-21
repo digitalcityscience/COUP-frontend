@@ -20,7 +20,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import legends from "@/config/legends.json";
+import legends from "@/config/userInteraction/legends";
 import LegendLine from "@/components/Menu/viewbar/LegendLine.vue";
 
 @Component({

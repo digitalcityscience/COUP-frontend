@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const multiLayerAnalysisResultConfig: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "multiLayerAnalysis",
     "type": "fill-extrusion",
     "source": "multiLayerAnalysis",
@@ -20,7 +22,7 @@
       }
     }
   },
-  "mapSource": {
+  "source": {
     "id": "multiLayerAnalysis",
     "options": {
       "type": "geojson",
@@ -31,3 +33,5 @@
     }
   }
 }
+
+export default multiLayerAnalysisResultConfig;

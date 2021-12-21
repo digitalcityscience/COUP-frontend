@@ -1,8 +1,11 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const focusAreasLayerConfig: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "focusAreas",
     "type": "fill",
     "source": "focusAreas",
+    "layout": {"visibility": "none" },
     "paint": {
       "fill-color":[
         "case",
@@ -26,12 +29,13 @@
       ]
     }
   },
-  "mapSource": {
+  "source": {
     "id": "focusAreas",
-    "type": "geojson",
-    "data": {
-      "from": "cityPyO",
-      "id": "focusAreas"
+    "options": {
+      "type": "geojson",
+      "data": { }
     }
   }
 }
+
+export default focusAreasLayerConfig;

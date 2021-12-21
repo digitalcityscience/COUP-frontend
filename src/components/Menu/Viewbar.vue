@@ -1,6 +1,6 @@
 <script lang="ts">
-import FocusAreasLayerConfig from "@/config/focusAreas.json";
-import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
+import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
 import Layers from "@/components/Menu/viewbar/Layers.vue";
 import LegendLine from "@/components/Menu/viewbar/LegendLine.vue";
 import ResetView from "@/components/Menu/viewbar/ResetView.vue";
@@ -88,8 +88,8 @@ export default class Viewbar extends Vue {
     this.$store.commit("focusAreasShown", newValue);
   }
 
-  get layerIds() {
-    return this.storeState.layerIds;
+  get layerIds(): string[] {
+    return this.$store.getters.layerIds;
   }
 
   get wind() {
@@ -108,7 +108,7 @@ export default class Viewbar extends Vue {
 
   // todo this really needs to be refactored to use a central function which takes layers as arguments
   updateLayerVisibility() {
-    console.log(this.layerIds);
+    console.debug(this.layerIds);
     if (this.layerIds.indexOf("abmTrips") > -1) {
       if (this.visibleLayers.abm) {
         this.map.setLayoutProperty("abmTrips", "visibility", "visible");
@@ -178,13 +178,13 @@ export default class Viewbar extends Vue {
       console.log("visible layers", this.visibleLayers);
       if (this.visibleLayers.focusAreas) {
         this.map.setLayoutProperty(
-          FocusAreasLayerConfig.mapSource.data.id,
+          FocusAreasLayerConfig.layerConfig.id,
           "visibility",
           "visible"
         );
       } else {
         this.map.setLayoutProperty(
-          FocusAreasLayerConfig.mapSource.data.id,
+          FocusAreasLayerConfig.layerConfig.id,
           "visibility",
           "none"
         );
@@ -194,13 +194,13 @@ export default class Viewbar extends Vue {
       console.log("visible layers", this.visibleLayers);
       if (this.visibleLayers.multiLayerAnalysis) {
         this.map.setLayoutProperty(
-          MultiLayerAnalysisConfig.layer.id,
+          MultiLayerAnalysisConfig.layerConfig.id,
           "visibility",
           "visible"
         );
       } else {
         this.map.setLayoutProperty(
-          MultiLayerAnalysisConfig.layer.id,
+          MultiLayerAnalysisConfig.layerConfig.id,
           "visibility",
           "none"
         );

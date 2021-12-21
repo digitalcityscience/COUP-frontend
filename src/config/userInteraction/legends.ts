@@ -1,4 +1,5 @@
-{
+
+export default {
   "buildingUses": {
     "headline": "Building Use Types",
     "icon": "mdi-city",

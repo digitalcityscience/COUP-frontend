@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const noiseResultLayerConfig: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "noise",
     "type": "fill-extrusion",
     "source": "noise",
@@ -33,12 +35,13 @@
       ]
     }
   },
-  "mapSource": {
+  "source": {
     "id": "noise",
-    "type": "geojson",
-    "data": {
-      "from": "cityPyO",
-      "id": "noise"
+    "options": {
+      "type": "geojson",
+      "data": {}
     }
   }
 }
+
+export default noiseResultLayerConfig;

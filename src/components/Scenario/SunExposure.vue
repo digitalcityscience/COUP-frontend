@@ -6,6 +6,7 @@ import hash from "object-hash";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
+import { hideAllLayersButThese } from '@/services/map.service';
 
 export default {
   name: "SunExposureResults",
@@ -22,6 +23,7 @@ export default {
   },
   computed: {
     ...mapState("scenario", ["resultLoading"]), // getter only
+    ...mapState(["map"]), // getter only
 
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     /*...generateStoreGetterSetter([
@@ -51,7 +53,7 @@ export default {
   watch: {},
   mounted: function () {
     // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", ["sun_exposure"]);
+   hideAllLayersButThese(this.map, ["sun_exposure"]);
   },
   methods: {
     async loadResult() {

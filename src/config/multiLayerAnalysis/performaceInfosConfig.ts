@@ -1,5 +1,7 @@
-{
-  "layer": {
+import type { SourceAndLayerConfig } from "@/models";
+
+const config: SourceAndLayerConfig = {
+  "layerConfig": {
     "id": "performanceInfos",
     "type": "symbol",
     "source": "performanceInfos",
@@ -24,7 +26,7 @@
         "text-halo-width": 5
       }
     },
-  "mapSource": {
+  "source": {
     "id": "performanceInfos",
     "options": {
       "type": "geojson",
@@ -35,3 +37,5 @@
     }
   }
 }
+
+export default config;
