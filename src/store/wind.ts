@@ -13,7 +13,7 @@ import {
   MutationAction,
   VuexModule,
 } from "vuex-module-decorators";
-import WindLayer from "@/config/windLayer.json";
+import WindLayer from "@/config/calculationModuleResults/windResultLayerConfig";
 
 
 export const defaultWindConfiguration: WindScenarioConfiguration = {
@@ -121,19 +121,4 @@ export default class WindStore extends VuexModule {
 
     return { result: simulationResult };
   }
-
-  @Action({})
-  async addResultToMap() {
-    // delete old mapSource from map
-    this.context.dispatch("removeSourceFromMap", WindLayer.mapSource.id, { root: true });
-
-    // format result as map source
-    const mapSource = calcModules.formatResultAsMapSource(WindLayer.mapSource.id, this.result.geojson)
-
-    // add new source and layer to map
-    this.context.dispatch("addSourceToMap", mapSource, { root: true })
-      .then(() => {
-        this.context.dispatch("addLayerToMap", WindLayer.layer, { root: true })
-      });
-  }     
 }

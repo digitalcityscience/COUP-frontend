@@ -3,11 +3,12 @@ import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
-import { SavedWindScenarioConfiguration, StoreStateWithModules } from "@/models";
-import type { MenuLink, WindScenarioConfiguration, WindResult } from "@/models";
+import { MapboxMap, SavedWindScenarioConfiguration, StoreStateWithModules } from "@/models";
+import type { MenuLink, WindScenarioConfiguration, WindResult, GeoJSON } from "@/models";
 import { defaultWindScenarioConfigs } from "@/store/wind";
 import * as calcModules from "@/services/calculationModules.service";
-
+import { addSourceAndLayerToMap, hideAllLayersButThese, removeSourceAndItsLayersFromMap } from "@/services/map.service";
+import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig"
 
 @Component({
   components: { MenuComponentDivision },
@@ -25,7 +26,7 @@ export default class WindScenario extends Vue {
   mounted(): void {
     this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
     // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", ["wind"]);
+    hideAllLayersButThese(this.map, ["wind"]);
   }
 
   /** METHODS */
@@ -58,14 +59,14 @@ export default class WindScenario extends Vue {
         // success
         if (this.windResult.tasksCompleted > completedTasks) {
           this.$store.commit("scenario/windLayer", true); // this is for the layer menu in the viewbar
-          this.$store.dispatch("wind/addResultToMap")
+          this.addResultToMap(this.windResult.geojson)
           completedTasks = this.windResult.tasksCompleted;
         }
       })
       .catch((err) => {
           // fail
           this.$store.commit("scenario/windLayer", false);
-          this.$store.dispatch("removeSourceFromMap", "wind", { root: true });
+          removeSourceAndItsLayersFromMap("wind", this.map);
           this.resultLoading = false;
           this.errMsg = err;
       })
@@ -79,6 +80,19 @@ export default class WindScenario extends Vue {
           this.displayNewWindResults(completedTasks)
       });
   }
+
+  addResultToMap(resultGeoJSON: GeoJSON): void {
+    // delete old mapSource from map
+    removeSourceAndItsLayersFromMap(WindResultLayerConfig.source.id, this.map);
+    // add result data to map source
+    WindResultLayerConfig.source.options.data = resultGeoJSON;
+    // add new source and layer to map
+    addSourceAndLayerToMap(
+      WindResultLayerConfig.source,
+      [WindResultLayerConfig.layerConfig],
+      this.map
+    )
+  }     
     
   loadSavedScenario(savedScenario: SavedWindScenarioConfiguration): void {
     this.scenarioConfiguration.wind_speed = savedScenario.wind_speed;
@@ -97,6 +111,10 @@ export default class WindScenario extends Vue {
 
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
   // is changed via "addSavedScenario Mutation"
+  get map(): MapboxMap {
+    return this.$store.state.map;
+  }
+
   get savedScenarioConfigurations(): SavedWindScenarioConfiguration[] {
     return this.$store.getters["wind/savedScenarioConfigurations"];
   }
