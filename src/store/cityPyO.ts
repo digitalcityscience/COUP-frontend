@@ -1,6 +1,5 @@
 import { workshopScenarioNames } from "@/store/abm";
-import Amenities from "@/config/amenities.json";
-import type { CityPyOUser } from "@/models";
+import type { CityPyOUser, GeoJSON } from "@/models";
 
 export default class CityPyO {
   url: string;
@@ -64,7 +63,7 @@ export default class CityPyO {
     return await res;
   }
 
-  async getLayer(id: string, formattedAsSource = true) {
+  async getLayer(id: string): Promise<GeoJSON> {
     console.log("getting layer id from cityPyo", id);
 
     const requestUrl = this.url + "getLayer";
@@ -79,14 +78,10 @@ export default class CityPyO {
     if (response.status == 200) {
       const responseJson = await response.json();
 
-      if (formattedAsSource) {
-        return this.formatResponse(id, responseJson);
-      }
-
       return await responseJson;
     }
 
-    return await response.status;
+    throw Error("Could not get layer " + id + "from CityPyo " + await response.status.toString());
   }
 
   /**
@@ -111,9 +106,9 @@ export default class CityPyO {
   async getAbmResultLayer(id: string, scenario?: AbmScenario) {
     // fetch predefined workshop scenario layer
     if (!scenario) {
-      const responseJson = await this.getLayer(id, false);
+      const responseJson = await this.getLayer(id);
 
-      return this.formatResponse(id, responseJson.data);
+      return responseJson.data;
     }
 
     // fetch abm scenario based on module settings and view filters
@@ -128,17 +123,17 @@ export default class CityPyO {
     if (response.status == 200) {
       const responseJson = await response.json();
 
-      return this.formatResponse(id, responseJson.data);
+      return responseJson.data
     }
   }
 
   // the amenities layer is dependent on the chosen scenario
   async getAbmAmenitiesLayer(id: string, scenario: AbmScenario) {
     // fetch predefined workshop scenario layer
+    // TODO can we throw away the WORKSHOP stuff?
     if (workshopScenarioNames.includes(id)) {
-      const responseJson = await this.getLayer("amenities_" + id);
-      responseJson.id = Amenities.mapSource.data.id;
-      return responseJson;
+      const responseGeoJson = await this.getLayer("amenities_" + id);
+      return responseGeoJson
     }
 
     // else: fetch abmScenario file, including all scenarios from CityPyo
@@ -156,7 +151,7 @@ export default class CityPyO {
     if (response.status == 200) {
       const responseJson = await response.json();
 
-      return this.formatResponse(id, responseJson.data);
+      return responseJson.data;
     }
   }
 
@@ -176,15 +171,5 @@ export default class CityPyO {
     } else {
       return null;
     }
-  }
-
-  async formatResponse(id, responseJson) {
-    return {
-      id: id,
-      options: {
-        type: "geojson",
-        data: await responseJson,
-      },
-    };
   }
 }

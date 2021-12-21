@@ -17,19 +17,20 @@ import {
 } from "@/store/deck-layers";
 import type { SourceAndLayerConfig } from "@/models";
 
+
 export const swLayerName = "stormwater";
 
 const addedLayersIds = [
-  LayerSubselectionConfig.layer.id,
-  WindResult.layer.id,
-  SunExposure.layer.id,
-  Noise.layer.id,
-  TrafficCounts.layer.id,
+  LayerSubselectionConfig.layerConfig.id,
+  WindResult.layerConfig.id,
+  SunExposure.layerConfig.id,
+  Noise.layerConfig.id,
+  TrafficCounts.layerConfig.id,
   swLayerName,
-  Trees.layer.id,
-  MultiLayerAnalysisConfig.layer.id,
-  PerformanceInfosConfig.layer.id,
-  CircledFeatures.layer.id,
+  Trees.layerConfig.id,
+  MultiLayerAnalysisConfig.layerConfig.id,
+  PerformanceInfosConfig.layerConfig.id,
+  CircledFeatures.layerConfig.id,
 ];
 
 const bridgeLayerIds = BridgesConfig.layers.map((layer) => {
@@ -38,9 +39,9 @@ const bridgeLayerIds = BridgesConfig.layers.map((layer) => {
 
 export function getLayerOrder() {
   let layerOrder = [
-    FocusAreasConfig.layer.id,
+    FocusAreasConfig.layerConfig.id,
     SpacesConfig.layer.id,
-    AmenitiesConfig.layer.id,
+    AmenitiesConfig.layerConfig.id,
   ];
 
   layerOrder = layerOrder.concat(bridgeLayerIds);
@@ -53,13 +54,42 @@ export function getLayerOrder() {
   return layerOrder;
 }
 
-export function getAbmLayerIds() {
-  let abmLayers = [];
-  abmLayers = abmLayers.concat(buildingLayerIds);
-  abmLayers = abmLayers.concat([abmAggregationLayerName, abmTripsLayerName]);
-  abmLayers.push(AmenitiesConfig.layer.id);
-
-  return abmLayers;
+export const landscapeLayerConfig: SourceAndLayerConfig = {
+  "source":
+  {
+    "id": "spaces",
+    "options": {
+      "type": "geojson",
+      "data": {}
+    }
+  },
+  "layerConfig":
+  {
+    "id": "spaces",
+    "type": "fill",
+    "source": "spaces",
+    "paint": {
+      "fill-opacity": 0.65,
+      "fill-color": [
+        "match",
+        [
+          "get",
+          "land_use_detailed_type"
+        ],
+        "promenade",
+        "#0D1118",
+        "street",
+        "#3e4141",
+        "bridge",
+        "#3e4141",
+        "park",
+        "#131714",
+        "plaza",
+        "#0D1118",
+        "#04070F"
+      ]
+    }
+  }
 }
 
 export const buildingLayerConfigs: SourceAndLayerConfig[] = [
@@ -86,8 +116,8 @@ export const buildingLayerConfigs: SourceAndLayerConfig[] = [
     "source": {
       "id": "upperfloor",
       "options": {
-      "type": "geojson",
-      "data": {}
+        "type": "geojson",
+        "data": {}
       }
     },
     "layerConfig": {
@@ -124,6 +154,13 @@ export const buildingLayerConfigs: SourceAndLayerConfig[] = [
   }
 ];
 
-const buildingLayerIds = buildingLayerConfigs.map((config) => {
+export const buildingLayerIds = buildingLayerConfigs.map((config) => {
   return config.layerConfig.id;
 });
+
+export const abmLayerIds = [
+  ...buildingLayerIds,
+  abmAggregationLayerName,
+  abmTripsLayerName,
+  AmenitiesConfig.layerConfig.id
+];

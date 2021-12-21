@@ -68,13 +68,12 @@
       ]
     }
   ],
-  "mapSource":
+  "source":
     {
       "id": "bridges",
-      "type": "geojson",
-      "data": {
-        "from": "cityPyO",
-        "id": "bridges"
+      "options": {
+        "type": "geojson",
+        "data": {}
       }
     }
 }

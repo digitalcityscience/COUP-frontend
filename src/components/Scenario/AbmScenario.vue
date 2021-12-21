@@ -11,10 +11,11 @@ import {
 } from "@/store/abm.ts";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/focusAreas.json";
-import { getAbmLayerIds } from "@/config/layers";
+import { abmLayerIds } from "@/config/layers";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
+import { hideAllResultLayers } from '@/services/map.service';
 
 export default {
   name: "AbmScenario",
@@ -133,16 +134,16 @@ export default {
       if (this.activeDivision === "Dashboard") {
         // load map layer with focus areas
         this.map.setLayoutProperty(
-          FocusAreasLayer.mapSource.data.id,
+          FocusAreasLayer.source.id,
           "visibility",
           "visible"
         );
         this.focusAreasShown = true;
       } else {
-        if (this.map.getLayer(FocusAreasLayer.mapSource.data.id)) {
+        if (this.map.getLayer(FocusAreasLayer.layerConfig.id)) {
           // remove map layer with focus areas
           this.map.setLayoutProperty(
-            FocusAreasLayer.mapSource.data.id,
+            FocusAreasLayer.source.id,
             "visibility",
             "none"
           );
@@ -153,7 +154,7 @@ export default {
   },
   mounted: function () {
     // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", getAbmLayerIds());
+    hideAllResultLayers(this.map);
     // switch time graph to ABM
     this.$store.commit("scenario/selectGraph", "abm");
     console.warn("context??", this.context);

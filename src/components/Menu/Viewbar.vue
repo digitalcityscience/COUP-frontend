@@ -178,13 +178,13 @@ export default class Viewbar extends Vue {
       console.log("visible layers", this.visibleLayers);
       if (this.visibleLayers.focusAreas) {
         this.map.setLayoutProperty(
-          FocusAreasLayerConfig.mapSource.data.id,
+          FocusAreasLayerConfig.layerConfig.id,
           "visibility",
           "visible"
         );
       } else {
         this.map.setLayoutProperty(
-          FocusAreasLayerConfig.mapSource.data.id,
+          FocusAreasLayerConfig.layerConfig.id,
           "visibility",
           "none"
         );
@@ -194,13 +194,13 @@ export default class Viewbar extends Vue {
       console.log("visible layers", this.visibleLayers);
       if (this.visibleLayers.multiLayerAnalysis) {
         this.map.setLayoutProperty(
-          MultiLayerAnalysisConfig.layer.id,
+          MultiLayerAnalysisConfig.layerConfig.id,
           "visibility",
           "visible"
         );
       } else {
         this.map.setLayoutProperty(
-          MultiLayerAnalysisConfig.layer.id,
+          MultiLayerAnalysisConfig.layerConfig.id,
           "visibility",
           "none"
         );

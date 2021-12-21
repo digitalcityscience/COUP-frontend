@@ -11,6 +11,7 @@ import CombinedLayersConfig from "@/config/multiLayerAnalysis.json";
 import PerformanceInfoLayerConfig from "@/config/performanceInfos.json";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
+import { hideAllLayersButThese, hideLayers, hideAllResultLayers } from '@/services/map.service';
 
 export default {
   name: "MultiLayerAnalysis",
@@ -110,6 +111,7 @@ export default {
     };
   },
   computed: {
+    ...mapState(["map"]), // getter only
     ...mapState("scenario", ["resultLoading"]), // getter only
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
@@ -245,23 +247,21 @@ export default {
           "scenario/addSubSelectionLayer",
           this.criteriaLayer_1.features
         );
-        this.$store.dispatch("hideAllLayersButThese", [
-          SubSelectionLayerConfig.layer.id,
-        ]);
+        hideAllLayersButThese(this.map,[SubSelectionLayerConfig.layerConfig.id])
       } else {
         // hide subSelectionLayer, if subSelection is not to be shown
         if (!this.enableCriteriaLayer_2) {
-          this.$store.state.map?.setLayoutProperty(
-            SubSelectionLayerConfig.layer.id,
-            "visibility",
-            "none"
-          );
+          hideLayers(this.map, [SubSelectionLayerConfig.layerConfig.id])
+          
           if (this.combinedLayers) {
             // show the combined layer if available
-            this.$store.dispatch("hideAllLayersButThese", [
-              CombinedLayersConfig.layer.id,
-              PerformanceInfoLayerConfig.layer.id,
-            ]);
+            hideAllLayersButThese(
+              this.map,
+              [
+                CombinedLayersConfig.layerConfig.id,
+                PerformanceInfoLayerConfig.layerConfig.id,
+              ]
+            );  
           }
         }
       }
@@ -275,23 +275,23 @@ export default {
           "scenario/addSubSelectionLayer",
           this.criteriaLayer_2.features
         );
-        this.$store.dispatch("hideAllLayersButThese", [
-          SubSelectionLayerConfig.layer.id,
-        ]);
+        hideAllLayersButThese(this.map, [SubSelectionLayerConfig.layerConfig.id]);
       } else {
         // hide subSelectionLayer, if subSelection is not to be shown
         if (!this.enableCriteriaLayer_1) {
           this.$store.state.map?.setLayoutProperty(
-            SubSelectionLayerConfig.layer.id,
+            SubSelectionLayerConfig.layerConfig.id,
             "visibility",
             "none"
           );
           if (this.combinedLayers) {
             // show the combined layer if available
-            this.$store.dispatch("hideAllLayersButThese", [
-              CombinedLayersConfig.layer.id,
-              PerformanceInfoLayerConfig.layer.id,
-            ]);
+            hideAllLayersButThese(this.map , 
+              [
+                   CombinedLayersConfig.layerConfig.id,
+                PerformanceInfoLayerConfig.layerConfig.id,
+              ]
+            );
           }
         }
       }
@@ -334,9 +334,7 @@ export default {
     if (this.currentAbmResult) {
       this.$store.dispatch("scenario/calculateStatsForMultiLayerAnalysis");
     }
-
-    // hide all layers
-    this.$store.dispatch("hideAllLayersButThese");
+    hideAllResultLayers(this.map);
   },
   methods: {
     addImageToMap() {
@@ -388,7 +386,7 @@ export default {
           break;
         case "Abm":
           await this.$store.dispatch("scenario/updateAbmDesignScenario");
-          this.$store.dispatch("hideAllLayersButThese");
+          hideAllResultLayers(this.map);
           this.$store
             .dispatch("scenario/calculateStatsForMultiLayerAnalysis")
             .then(() => {
@@ -406,7 +404,7 @@ export default {
       // then update missing scenarios and hide result layers
       this.determineMissingScenarios();
       //this.updateLayerSelectionDropdowns()
-      this.$store.dispatch("hideAllLayersButThese");
+      hideAllResultLayers(this.map)
     },
     updateAbmCriteriaLayer() {
       // check if at least to layers are available for analysis
@@ -520,10 +518,12 @@ export default {
 
       this.$store.commit("scenario/resultLoading", false);
       this.$store.commit("scenario/loader", false);
-      this.$store.dispatch("hideAllLayersButThese", [
-        CombinedLayersConfig.layer.id,
-        PerformanceInfoLayerConfig.layer.id,
-      ]);
+      hideAllLayersButThese(this.map,
+       [
+        CombinedLayersConfig.layerConfig.id,
+        PerformanceInfoLayerConfig.layerConfig.id,
+        ]
+      );
     },
   },
 };

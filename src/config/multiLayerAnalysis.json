@@ -1,5 +1,5 @@
 {
-  "layer": {
+  "layerConfig": {
     "id": "multiLayerAnalysis",
     "type": "fill-extrusion",
     "source": "multiLayerAnalysis",
@@ -20,7 +20,7 @@
       }
     }
   },
-  "mapSource": {
+  "source": {
     "id": "multiLayerAnalysis",
     "options": {
       "type": "geojson",

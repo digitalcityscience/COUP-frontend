@@ -1,15 +1,20 @@
-import { getLayerOrder } from '@/config/layers';
+import { buildingLayerIds, getLayerOrder, landscapeLayerConfig } from '@/config/layers';
 import { MapboxMap } from "@/models";
 import { Layer } from "mapbox-gl";
+import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 
-export const buildingsLayers = ["groundfloor", "upperfloor", "rooftops"];
+
 
 export function showBuildings(map: MapboxMap | null): void {
-  showLayers(map, buildingsLayers);
+  showLayers(map, buildingLayerIds);
 }
 
 export function hideBuildings(map: MapboxMap | null): void {
-  hideLayers(map, buildingsLayers);
+  hideLayers(map, buildingLayerIds);
+}
+
+export function showLandscapeDesign(map: MapboxMap | null): void {
+  showLayers(map, [landscapeLayerConfig.layerConfig.id]);
 }
 
 const amenityLayers = ["abmAmenities"];
@@ -22,28 +27,68 @@ export function hideAmenities(map: MapboxMap | null): void {
   hideLayers(map, amenityLayers);
 }
 
+export function mapHasLayer(map: MapboxMap, layerId: string): boolean {
+  if (map.getLayer(layerId)) {
+    return true;
+  }
+
+  return false;
+}
 
 export function showLayers(map: MapboxMap | null, layers: string[]): void {
   layers.forEach((layer) => {
-    map?.setLayoutProperty(layer, "visibility", "visible");
+    if (mapHasLayer(map, layer)) {
+      map?.setLayoutProperty(layer, "visibility", "visible");
+    }
   });
 }
 
 export function hideLayers(map: MapboxMap | null, layers: string[]): void {
   layers.forEach((layer) => {
-    map?.setLayoutProperty(layer, "visibility", "none");
+    if (mapHasLayer(map, layer)) {
+      map?.setLayoutProperty(layer, "visibility", "none");
+    }
   });
 }
 
+// hide all layers but buildings and landscape
+export function hideAllResultLayers(map: MapboxMap) {
+  hideAllLayersButThese(map, [])
+}
+
+export function hideAllLayersButThese(
+  map: MapboxMap,
+  layersToShow: string[] = [],
+  hideDesignLayers = false
+) {
+  // TODO: design layer names as global variable add in createDesignLayers
+  const designLayers = ["spaces", "groundfloor", "upperfloor", "rooftops"];
+  if (!hideDesignLayers) {
+    layersToShow.push(...designLayers);
+  }
+  // first hide all user-content layers
+  hideLayers(map, getUserContentLayerIds(map))
+
+  if (!hideDesignLayers) {
+    showBuildings(map);
+    showLandscapeDesign(map);
+  }
+  // then show layers in layersToShow
+  showLayers(map, layersToShow)
+}
+
 // get all layers that had been added by the user (like buildings, calculation results, ..)
-export function getUserContentLayers(map: MapboxMap | null ): Layer[] {
+export function getUserContentLayers(map: MapboxMap | null): Layer[] {
   try {
+    // @ts-ignore  - only this map.style._layers includes custom layers like DeckLayer (TripsLayer, Aggregration, ..)
+    const allLayers: GenericObject = map.style._layers;
     return (
-      map
-        .getStyle()
-        .layers.filter((layer) => layer.metadata === "user-content") ?? []
-    );
-  } 
+      Object.values(allLayers).filter(
+        (layer) => layer.metadata === "user-content" || layer.type === "custom")
+        ??
+        []
+      );
+  }
   catch {
     // getStyle fails when the map is not fully initated yet. 
     // Unfortunately there is no way of knowing whether the map is ready or not.
@@ -51,31 +96,36 @@ export function getUserContentLayers(map: MapboxMap | null ): Layer[] {
   }
 }
 
-export function getUserContentLayerIds(map: MapboxMap | null ): string[] {
-  return getUserContentLayers(map).map((layer) => { 
+export function getUserContentLayerIds(map: MapboxMap | null): string[] {
+  return getUserContentLayers(map).map((layer) => {
     return layer.id
   });
 }
 
+export function addDeckLayerToMap(layer: DeckLayer<any>, map: MapboxMap) {
+  addLayerToMap(layer, map)
+}
+
 
 /** Adds a source and a layer to the map */
-export function addSourceAndLayerToMap(source: any, layer: any, map:MapboxMap | null ): void {
+export function addSourceAndLayerToMap(source: any, layers: any[], map: MapboxMap | null): void {
   if (map?.getSource(source.id)) {
     // remove all layers using this source and the source itself
-    this.removeSourceAndItsLayersFromMap(source.id);
+    removeSourceAndItsLayersFromMap(source.id, map);
   }
   map?.addSource(source.id, source.options);
-  addLayerToMap(layer, map)
+
+  layers.forEach((layer) => { addLayerToMap(layer, map) })
   updateLayerOrder(map)
 }
 
 /** removes a source and all its layers from map  */
-export function removeSourceAndItsLayersFromMap(sourceId: string, map: MapboxMap | null ): void {
+export function removeSourceAndItsLayersFromMap(sourceId: string, map: MapboxMap | null): void {
   if (!map?.getSource(sourceId)) {
     // source is not on map
     return
   }
-  
+
   // remove all layers using this source first
   const layerIds = getUserContentLayerIds(map);
 
@@ -90,18 +140,23 @@ export function removeSourceAndItsLayersFromMap(sourceId: string, map: MapboxMap
 }
 
 // adds layer to map
-function addLayerToMap(layer: Layer, map:MapboxMap | null ): void {
+function addLayerToMap(layer: Layer | DeckLayer<any>, map: MapboxMap | null): void {
   // remove layer first if exits
   if (map?.getLayer(layer.id)) {
     map?.removeLayer(layer.id);
   }
 
+  if (typeof layer === typeof DeckLayer) {
+    debugger;
+  }
+
+  // @ts-ignore
   layer.metadata = "user-content";  // differentiate layer from mapbox base layers like "sattelite" , ...
-  map?.addLayer(layer);  
+  map?.addLayer(layer);
 }
 
 // ensures the right layer order
-export function updateLayerOrder(map: MapboxMap | null ): void {
+export function updateLayerOrder(map: MapboxMap | null): void {
   for (const layerName of getLayerOrder()) {
     if (map?.getLayer(layerName)) {
       //console.log("putting layer on top ", layerName)
@@ -109,5 +164,3 @@ export function updateLayerOrder(map: MapboxMap | null ): void {
     }
   }
 }
-
-

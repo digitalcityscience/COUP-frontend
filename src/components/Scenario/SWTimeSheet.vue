@@ -308,7 +308,7 @@ export default class SWTimeSheet extends Vue {
   // update the time-dependend stormwater deck.gl layer, if the time in the slider changes.
   updateSWLayer() {
     this.$store.commit("scenario/rainTime", this.rainTime);
-    this.$store.dispatch("scenario/transformSWLayerData");
+    this.$store.dispatch("scenario/updateStormWaterLayer");
   }
 
   renderSWGraphRain() {

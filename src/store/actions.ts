@@ -1,9 +1,8 @@
 import CircledFeatures from "@/config/circledFeatures.json";
-import FocusAreasLayer from "@/config/focusAreas.json";
-import { buildingLayerConfigs, getLayerOrder } from "@/config/layers";
-import Spaces from "@/config/spaces.json";
-import { SourceAndLayerConfig, StoreState } from "@/models";
-import { addSourceAndLayerToMap, getUserContentLayerIds, removeSourceAndItsLayersFromMap } from "@/services/map.service";
+import FocusAreasLayerConfig from "@/config/focusAreas.json";
+import { buildingLayerConfigs, landscapeLayerConfig, getLayerOrder } from "@/config/layers";
+import {  SourceAndLayerConfig, StoreState } from "@/models";
+import { addSourceAndLayerToMap } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
 import { Layer } from "mapbox-gl";
 import { ActionContext } from "vuex";
@@ -12,97 +11,38 @@ export default {
   async createDesignLayers({
     state,
     commit,
-    dispatch,
-  }: ActionContext<StoreState, StoreState>) {
+  }: ActionContext<StoreState, StoreState>) { 
     commit("scenario/loader", true);
     commit("scenario/loaderTxt", "Creating Design Layers ... ");
 
-    /* 
-    // TODO add spaces later
-    sourceConfigs.push(Spaces.source);
-    // @ts-ignore
-    layerConfigs.push(Spaces.layer); #
-    */
-
+    const designConfigs = [...buildingLayerConfigs, landscapeLayerConfig];
     // iterate over sources in configs
-    buildingLayerConfigs.forEach((config : SourceAndLayerConfig) => {
-      commit("scenario/loaderTxt", "Getting GeoData from CityPyO ... ");
-      state.cityPyO.getLayer(config.source.id, false).then((layerData) => {
+    designConfigs.forEach((config : SourceAndLayerConfig) => {
+    // get layer data from cityPyo
+      state.cityPyO.getLayer(config.source.id).then((layerData) => {
+        // merge layer data and config
         config.source.options.data = layerData
-        addSourceAndLayerToMap(config.source, config.layerConfig, state.map)
-        commit("scenario/loader", false);
+        // add to map
+        addSourceAndLayerToMap(config.source, [config.layerConfig], state.map)
       });
     });
+    // finally remove loading screen
+    commit("scenario/loader", false);
   },
-  addSourceToMap(
-    { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
-    source
-  ) {
-    if (state.map?.getSource(source.id)) {
-      // remove all layers using this source and the source itself
-      removeSourceAndItsLayersFromMap(source.id, state.map)
-    }
-    state.map?.addSource(source.id, source.options);
-
-    return source;
-  },
-  addLayerToMap(
-    { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
-    layer: Layer
-  ) {
-    if (state.map?.getLayer(layer.id)) {
-      state.map?.removeLayer(layer.id);
-    }
-    layer.metadata = "user-content";
-    state.map?.addLayer(layer);
-    return dispatch("updateLayerOrder");
-  },
-
- // TODO DO THIS IN MAP SERVICE!!
-  /** updates the layer order after a layer was added */
-  updateLayerOrder({ state, commit, dispatch }) {
-    for (const layerName of getLayerOrder()) {
-      if (state.map.getLayer(layerName)) {
-        //console.log("putting layer on top ", layerName)
-        state.map.moveLayer(layerName);
-      }
-    }
-  },
-  // TODO DO THIS IN MAP SERVICE!!
-  hideAllLayersButThese(
-    { state, dispatch, getters },
-    layersToShow: string[] = [],
-    hideDesignLayers = false
-  ) {
-    // TODO: design layer names as global variable add in createDesignLayers
-    const designLayers = ["spaces", "groundfloor", "upperfloor", "rooftops"];
-    if (!hideDesignLayers) {
-      layersToShow.push(...designLayers);
-    }
-
-    // iterates over all layers and hides them if not excluded
-    getters.layerIds.map((layerId) => {
-      // not in layers to show
-      if (layersToShow.indexOf(layerId) === -1) {
-        dispatch("hideLayer", layerId);
-      }
+  addFocusAreasMapLayer({
+    state,
+    commit,
+  }: ActionContext<StoreState, StoreState>) {
+    // get layer data from cityPyo
+    state.cityPyO.getLayer("focusAreas").then((geojson) => {
+      commit("focusAreasGeoJson", geojson);
+      // merge layer data and config
+      FocusAreasLayerConfig.source.options.data = geojson
+      // add to map
+      addSourceAndLayerToMap(FocusAreasLayerConfig.source, [FocusAreasLayerConfig.layerConfig], state.map)
     });
-
-    // shows layers in layersToShow
-    for (const layerId of layersToShow) {
-      dispatch("showLayer", layerId);
-    }
   },
-  hideLayer({ state }, layerId: string) {
-    if (state.map.getLayer(layerId)) {
-      state.map.setLayoutProperty(layerId, "visibility", "none");
-    }
-  },
-  showLayer({ state }, layerId: string) {
-    if (state.map.getLayer(layerId)) {
-      state.map.setLayoutProperty(layerId, "visibility", "visible");
-    }
-  },
+  // TODO do this in layer service?
   editFeatureProps({ state }, feature) {
     if (feature) {
       try {
@@ -138,26 +78,7 @@ export default {
 
     return authResponse;
   },
-  addFocusAreasMapLayer({
-    state,
-    commit,
-    dispatch,
-  }: ActionContext<StoreState, StoreState>) {
-    state.cityPyO.getLayer("focusAreas").then((source) => {
-      commit("focusAreasGeoJson", source.options.data);
-      dispatch("addSourceToMap", source, { root: true })
-        .then((source) => {
-          dispatch("addLayerToMap", FocusAreasLayer.layer, { root: true });
-        })
-        .then(() => {
-          state.map.setLayoutProperty(
-            FocusAreasLayer.mapSource.data.id,
-            "visibility",
-            "none"
-          );
-        });
-    });
-  },
+
   updateCircledFeaturesLayer(
     { state, commit, dispatch }: ActionContext<StoreState, StoreState>,
     featureBuffer
@@ -182,11 +103,9 @@ export default {
     }
 
     // update layer on map
-    const source = CircledFeatures.mapSource;
+    const source = CircledFeatures.source;
     source.options.data.features = featureCircles;
-    dispatch("addSourceToMap", source, { root: true }).then((source) => {
-      dispatch("addLayerToMap", CircledFeatures.layer, { root: true });
-    });
+    addSourceAndLayerToMap(source, [CircledFeatures.layerConfig], state.map)
     commit("featureCircles", featureCircles);
   },
 

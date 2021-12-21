@@ -1,5 +1,5 @@
 {
-  "layer": {
+  "layerConfig": {
     "id": "trafficCounts",
     "type": "symbol",
     "source": "trafficCounts",
@@ -22,7 +22,7 @@
       "text-anchor": "top"
     }
   },
-  "mapSource": {
+  "source": {
     "id": "trafficCounts",
     "type": "geojson",
     "data": {

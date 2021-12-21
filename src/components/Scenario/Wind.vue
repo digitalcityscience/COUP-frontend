@@ -4,7 +4,7 @@ import hash from "object-hash";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
-import { removeSourceAndItsLayersFromMap } from '@/services/map.service';
+import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from '@/services/map.service';
 import { mapState } from 'vuex';
 
 export default {
@@ -70,7 +70,7 @@ export default {
   },
   mounted: function () {
     // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", ["wind"]);
+    hideAllLayersButThese(this.map, ["wind"]);
   },
   methods: {
     isResultOutdated() {

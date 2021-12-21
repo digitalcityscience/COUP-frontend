@@ -4,7 +4,7 @@ import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
 import { mapState } from "vuex";
-import { removeSourceAndItsLayersFromMap } from '@/services/map.service';
+import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from '@/services/map.service';
 
 
 export default {
@@ -70,7 +70,7 @@ export default {
   },
   mounted: function () {
     // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", ["noise", "trafficCounts"]);
+    hideAllLayersButThese(this.map, ["noise", "trafficCounts"]);
   },
   methods: {
     isResultOutdated() {

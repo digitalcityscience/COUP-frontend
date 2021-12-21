@@ -3,12 +3,12 @@ import Bridges from "@/config/bridges.json";
 import { swLayerName } from "@/config/layers";
 import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
-import NoiseLayer from "@/config/noise.json";
+import NoiseResultLayerConfig from "@/config/noise.json";
 import PerformanceInfosConfig from "@/config/performanceInfos.json";
 import SunExposure from "@/config/sunExposureResult.json";
 import TrafficCountLayer from "@/config/trafficCounts.json";
 import Trees from "@/config/trees.json";
-import WindResult from "@/config/windResult.json";
+import WindResultLayerConfig from "@/config/windResult.json";
 import { StoreState } from "@/models";
 import { buildSWLayer } from "@/services/deck.service";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
@@ -29,7 +29,8 @@ import {
   calculateAmenityStatsForMultiLayerAnalysis,
 } from "@/store/scenario/amenityStats";
 import { ActionContext } from "vuex";
-import { removeSourceAndItsLayersFromMap } from '@/services/map.service';
+import type { GeoJSON } from "@/models";
+import { addDeckLayerToMap, addSourceAndLayerToMap as addSourceAndLayersToMap, removeSourceAndItsLayersFromMap } from '@/services/map.service';
 export default {
   async updateNoiseScenario(
     { state, commit, dispatch, rootState },
@@ -48,25 +49,24 @@ export default {
           // adding result to store
           commit(
             "currentNoiseGeoJson",
-            Object.freeze(noiseResult.source.options.data)
+            Object.freeze(noiseResult)
           );
           // adding result to map
-          dispatch("addSourceToMap", noiseResult.source, { root: true })
-            .then((noiseResultSource) => {
-              dispatch("addLayerToMap", NoiseLayer.layer, { root: true });
-              dispatch("addTrafficCountLayer");
+          NoiseResultLayerConfig.source.options.data = noiseResult
+          addSourceAndLayersToMap(NoiseResultLayerConfig.source, [NoiseResultLayerConfig.layerConfig], rootState.map ) 
+          dispatch("addTrafficCountLayer");
             })
             .then((response) => {
-              return resolve(response);
+          return resolve(response);
             })
-            .catch((error) => {
+        .catch((error) => {
               console.log("error when getting results");
               return reject(error);
             });
-        });
     });
   },
-  async addTrafficCountLayer({ state, commit, dispatch, rootState }) {
+  // TODO refactor with noise module!
+  async addTrafficCountLayer({ state, commit, rootState }) {
     // check if traffic counts already in store, otherwise load them from cityPyo
     const scenarioTraffic =
       JSON.parse(JSON.stringify(state.trafficCounts)) ||
@@ -92,29 +92,24 @@ export default {
     });
 
     const source = {
-      id: TrafficCountLayer.mapSource.data.id,
+      id: TrafficCountLayer.source.data.id,
       options: {
         type: "geojson",
         data: scenarioTraffic,
       },
     };
-    return dispatch("addSourceToMap", source, { root: true }).then((source) => {
-      return dispatch("addLayerToMap", TrafficCountLayer.layer, { root: true });
-    });
+    addSourceAndLayersToMap(source, [TrafficCountLayer.layerConfig], rootState.map )
+    return true
   },
-  addSunExposureLayer({
-    state,
+  async addSunExposureLayer({
     rootState,
     commit,
-    dispatch,
   }: ActionContext<StoreState, StoreState>) {
-    return rootState.cityPyO.getLayer("sun_exposure").then((source) => {
-      commit("sunExposureGeoJson", source.options.data);
-      return dispatch("addSourceToMap", source, { root: true }).then(
-        (source) => {
-          return dispatch("addLayerToMap", SunExposure.layer, { root: true });
-        }
-      );
+    return rootState.cityPyO.getLayer("sun_exposure").then((result) => {
+      commit("sunExposureGeoJson", result.results);
+      SunExposure.source.options.data = result.results;
+
+      addSourceAndLayersToMap(SunExposure.source, [SunExposure.layerConfig], rootState.map)
     });
   },
   // load layer source from cityPyo and add the layer to the map
@@ -151,9 +146,9 @@ export default {
           // received an updated result
           source.id = "wind";
           commit("windResultGeoJson", Object.freeze(source.options.data));
-          dispatch("addSourceToMap", source, { root: true }).then((source) => {
-            dispatch("addLayerToMap", WindResult.layer, { root: true });
-          });
+          // will be moved to wind service with rebase
+          WindResultLayerConfig.source.options.data = source.options.data;
+          addSourceAndLayersToMap(WindResultLayerConfig.source, [WindResultLayerConfig.layerConfig], rootState.map)
         }
         return receivedCompleteResult;
       });
@@ -267,76 +262,60 @@ export default {
   // load layer source from cityPyo and add the layer to the map
   updateAmenitiesLayer({ state, commit, dispatch, rootState }, workshopId) {
     // load new data from cityPyo
-    const amenitiesLayerName = workshopId || Amenities.mapSource.data.id;
+    const amenitiesLayerName = workshopId || Amenities.source.id;
 
     return rootState.cityPyO
       .getAbmAmenitiesLayer(amenitiesLayerName, state)
-      .then((source) => {
-        console.log("got amenities", source);
-        commit("amenitiesGeoJson", Object.freeze(source.options.data));
-        return dispatch("addSourceToMap", source, { root: true }).then(
-          (source) => {
-            return dispatch("addLayerToMap", Amenities.layer, { root: true });
-          }
-        );
+        .then((amenitiesGeoJSON) => {
+          console.log("got amenities", amenitiesGeoJSON);
+          commit("amenitiesGeoJson", Object.freeze(amenitiesGeoJSON));
+          Amenities.source.options.data = amenitiesGeoJSON
+          addSourceAndLayersToMap(Amenities.source, [Amenities.layerConfig], rootState.map)
       });
   },
   // load layer source from cityPyo and add the layer to the map
   updateBridgeLayer({ state, commit, dispatch, rootState }, payload) {
-    // delete any bridge layer that is still on the map, before adding a new one
-
-    // TODO this part can be deleted?? is already moved when calling "addSourceToMap"
-    Bridges.layers.forEach((layer) => {
-      if (rootState.map?.getSource(layer.source)) {
-        removeSourceAndItsLayersFromMap(layer.source, rootState.map)
-      }
-    });
     // identify new scenario layer and add it to the map
     const layers = [];
     for (const bridgeName of state.bridges) {
-      console.log("bridgeToCheck", bridgeName);
       layers.push(Bridges.layers.filter((layer) => layer.id === bridgeName)[0]);
     }
-    console.log("found layers", layers);
     if (layers) {
-      const mapSource = Bridges.mapSource;
-      rootState.cityPyO.getLayer(mapSource.data.id).then((source) => {
-        dispatch("addSourceToMap", source, { root: true }).then((source) => {
-          layers.forEach((layer) => {
-            dispatch("addLayerToMap", layer, { root: true });
-          });
-        });
+      const source = Bridges.source;
+      rootState.cityPyO.getLayer(source.id, false).then((geojson) => {
+          source.options.data = geojson
+          addSourceAndLayersToMap(source, layers, rootState.map)
       });
     }
   },
-  addMultiLayerAnalysisLayer({ state, commit, dispatch, rootState }, features) {
+  addMultiLayerAnalysisLayer({rootState }, features) {
     // update layer on map
-    const source = MultiLayerAnalysisConfig.mapSource;
+    const source = MultiLayerAnalysisConfig.source;
     source.options.data.features = features;
-    return dispatch("addSourceToMap", source, { root: true }).then((source) => {
-      return dispatch("addLayerToMap", MultiLayerAnalysisConfig.layer, {
-        root: true,
-      });
-    });
+    addSourceAndLayersToMap(source, [MultiLayerAnalysisConfig.layerConfig], rootState.map)
   },
   addSubSelectionLayer({ state, commit, dispatch, rootState }, features) {
     // update layer on map
-    const source = SubSelectionLayerConfig.mapSource;
+    const source = SubSelectionLayerConfig.source;
     source.options.data.features = features;
-    dispatch("addSourceToMap", source, { root: true }).then((source) => {
-      dispatch("addLayerToMap", SubSelectionLayerConfig.layer, { root: true });
-    });
+    addSourceAndLayersToMap(
+      source, 
+      [SubSelectionLayerConfig.layerConfig],
+      rootState.map
+      )
   },
   addMultiLayerPerformanceInfos(
     { state, commit, dispatch, rootState },
     features
   ) {
     // update layer on map
-    const source = PerformanceInfosConfig.mapSource;
+    const source = PerformanceInfosConfig.source;
     source.options.data.features = features;
-    dispatch("addSourceToMap", source, { root: true }).then((source) => {
-      dispatch("addLayerToMap", PerformanceInfosConfig.layer, { root: true });
-    });
+    addSourceAndLayersToMap(
+      source, 
+      [PerformanceInfosConfig.layerConfig],
+      rootState.map
+      )
   },
   //LOADING INITIAL ABM DATA
   initialAbmComputing(
@@ -354,8 +333,8 @@ export default {
     commit("loaderTxt", "Getting ABM Simulation Data from CityPyO ... ");
     return rootState.cityPyO
       .getAbmResultLayer(scenarioName, state)
-      .then((result) => {
-        if (!result) {
+      .then((resultGeoJson: GeoJSON) => {
+        if (!resultGeoJson) {
           alert(
             "There was an error requesting the data from the server. Please get in contact with the admins."
           );
@@ -365,7 +344,7 @@ export default {
         }
 
         commit("loaderTxt", "Serving Abm Data ... ");
-        return dispatch("computeLoop", result.options?.data).then(
+        return dispatch("computeLoop", resultGeoJson).then(
           dispatch("calculateStatsForGrasbrook")
         );
       });
@@ -488,7 +467,7 @@ export default {
       }
 
       // check if scenario is still valid - user input might have changed while loading trips layer
-      dispatch("addLayerToMap", deckLayer, { root: true });
+      addDeckLayerToMap(deckLayer, rootState.map)
       console.log("new trips layer loaded");
       commit("animationRunning", true);
       animate(deckLayer, null, null, currentTimeStamp);
@@ -513,7 +492,7 @@ export default {
       }
 
       console.log("new aggregation layer loaded");
-      dispatch("addLayerToMap", deckLayer, { root: true });
+      addDeckLayerToMap(deckLayer, rootState.map)
       commit("heatMap", true);
       console.log(state.heatMap);
     });
@@ -532,9 +511,7 @@ export default {
           rootState.map?.removeLayer(abmTripsLayerName);
         }
 
-        // check if scenario is still valid - user input might have changed while loading trips layer
-        // ----> is this comment still at the right place??
-        dispatch("addLayerToMap", deckLayer, { root: true });
+        addDeckLayerToMap(deckLayer, rootState.map)
         if (state.animationRunning) {
           animate(deckLayer, null, null, currentTimeStamp);
         }
@@ -569,51 +546,28 @@ export default {
           rootState.map?.removeLayer(abmAggregationLayerName);
         }
         console.log("new aggregation layer loaded");
-        dispatch("addLayerToMap", deckLayer, { root: true });
+        addDeckLayerToMap(deckLayer, rootState.map)
       });
     }
   },
-  async transformSWLayerData({ state, commit, dispatch, rootState }) {
+  async updateStormWaterLayer({ state, commit, dispatch, rootState }) {
     const deckLayer = buildSWLayer(
       rootState.stormwater.result.geojson,
       state.rainTime
     );
-    console.info("stormwater layer loaded");
-    await dispatch("addLayerToMap", deckLayer, { root: true });
-  },
-  async addSWLayer({ state, commit, dispatch, rootState }) {
-    dispatch("transformSWLayerData");
-    console.log("adding trees", Trees.source, Trees.layer);
-
-    // add trees
-    rootState.cityPyO.getLayer(Trees.source.data.id).then((source) => {
-      dispatch("addSourceToMap", source, { root: true }).then(() => {
-        dispatch("addLayerToMap", Trees.layer, { root: true }).then(() => {
-          // hide tree layer for now
-          dispatch("hideAllLayersButThese", [swLayerName], { root: true });
-        });
-      });
-    });
-  },
+    addDeckLayerToMap(deckLayer, rootState.map)
+  }
 };
 
 function updateBridges(bridge_hafencity, underpass_veddel) {
-  const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there
+    const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there
 
-  if (bridge_hafencity) {
-    bridges.push(bridgeNames.bridge_hafencity);
+    if (bridge_hafencity) {
+      bridges.push(bridgeNames.bridge_hafencity);
+    }
+    if (underpass_veddel) {
+      bridges.push(bridgeNames.underpass_veddel_north);
+    }
+
+    return bridges;
   }
-  if (underpass_veddel) {
-    bridges.push(bridgeNames.underpass_veddel_north);
-  }
-
-  return bridges;
-}
-
-function isNoiseScenarioMatching(noiseDataSet, noiseScenario) {
-  return (
-    noiseDataSet["noise_scenario"]["traffic_quota"] ==
-      noiseScenario.traffic_quota &&
-    noiseDataSet["noise_scenario"]["max_speed"] == noiseScenario.max_speed
-  );
-}

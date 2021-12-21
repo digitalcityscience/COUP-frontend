@@ -168,7 +168,7 @@ import { StoreStateWithModules } from "@/models";
 import { swLayerName } from "@/config/layers";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
-import { removeSourceAndItsLayersFromMap } from "@/services/map.service";
+import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from "@/services/map.service";
 
 
 @Component({
@@ -229,7 +229,7 @@ export default class StormwaterScenario extends Vue {
   mounted(): void {
     this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
     // hide all other layers
-    this.$store.dispatch("hideAllLayersButThese", ["stormwater"]);
+    hideAllLayersButThese(this.map, ["stormwater"]);
   }
 
   get componentDivisions(): MenuLink[] {
@@ -295,9 +295,7 @@ export default class StormwaterScenario extends Vue {
       .dispatch("stormwater/updateStormWaterResult")
         .then(() => {
           // success
-          this.$store.commit("scenario/stormWater", true);
-          // adding result to map
-          this.$store.dispatch("scenario/addSWLayer");
+          this.$store.dispatch("scenario/updateStormWaterLayer");
           // update time graph
           this.$store.commit("scenario/rerenderSwGraph", true);
           this.resultLoading = false;

@@ -67,8 +67,8 @@ export default {
     this.map.on("click", this.onMapClicked);
 
     // amenities layer
-    this.map.on("mousemove", amenities.layer.id, this.onAmenitiesHover);
-    this.map.on("mouseleave", amenities.layer.id, this.onAmenitiesHoverLeave);
+    this.map.on("mousemove", amenities.layerConfig.id, this.onAmenitiesHover);
+    this.map.on("mouseleave", amenities.layerConfig.id, this.onAmenitiesHoverLeave);
 
     // focus areas layer
     this.map.on("mousemove", "focusAreas", this.onFocusAreaHover);
@@ -105,7 +105,7 @@ export default {
       const initialLayerId = initialFeature.layer.id;
 
       // calculate stats for focus area
-      if (initialLayerId === FocusAreasLayer.layer.id) {
+      if (initialLayerId === FocusAreasLayer.layerConfig.id) {
         this.onFocusAreaClick(initialFeature.id);
         return;
       }
@@ -145,9 +145,9 @@ export default {
       this.createModal();
     },
     onMapLoaded() {
-      this.$store.dispatch("addFocusAreasMapLayer");
       console.log("create design layers");
       this.$store.dispatch("createDesignLayers");
+      this.$store.dispatch("addFocusAreasMapLayer");
     },
     createModal() {
       this.openModalsIds.push(this.selectedObjectId);
