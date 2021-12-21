@@ -1,4 +1,6 @@
-{
+import type { SourceAndLayerConfig } from "@/models";
+
+const multiLayerAnalysisResultConfig: SourceAndLayerConfig = {
   "layerConfig": {
     "id": "multiLayerAnalysis",
     "type": "fill-extrusion",
@@ -31,3 +33,5 @@
     }
   }
 }
+
+export default multiLayerAnalysisResultConfig;

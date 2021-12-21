@@ -1,4 +1,6 @@
-{
+import type { SourceAndLayerConfig } from "@/models";
+
+const circledFeaturesLayerConfig: SourceAndLayerConfig = {
   "layerConfig": {
   "id": "featureCircles",
   "type": "line",
@@ -23,3 +25,5 @@
     }
   }
 }
+
+export default circledFeaturesLayerConfig;

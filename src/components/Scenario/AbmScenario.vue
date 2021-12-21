@@ -10,8 +10,8 @@ import {
   workshopScenarioNames,
 } from "@/store/abm.ts";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
-import FocusAreasLayer from "@/config/focusAreas.json";
-import { abmLayerIds } from "@/config/layers";
+import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import { abmLayerIds } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";

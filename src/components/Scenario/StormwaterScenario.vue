@@ -165,7 +165,7 @@
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult, MapboxMap } from "@/models";
 import { StoreStateWithModules } from "@/models";
-import { swLayerName } from "@/config/layers";
+import { swLayerName } from "@/services/layers.service";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from "@/services/map.service";

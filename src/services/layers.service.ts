@@ -1,19 +1,66 @@
-import store from "@/store";
+import PerformanceInfosConfig from "@/config/multiLayerAnalysis/performaceInfosConfig";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
+import LayerSubselectionConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
+import AmenitiesConfig from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
+import BridgesConfig from "@/config/bridges.json";
+import CircledFeatures from "@/config/userInteraction/circledFeaturesLayerConfig";
+import FocusAreasConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import NoiseResultLayerConfig from "@/config/calculationModuleResults/noiseResultLayerConfig";
+import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig";
+import SunExposureResultLayerConfig from "@/config/calculationModuleResults/sunExposureResultConfig";
+import TrafficCounts from "@/config/calculationModuleResults/trafficCountsLayerConfig";
+import {
+    abmTripsLayerName,
+    abmAggregationLayerName,
+} from "@/store/deck-layers";
+import buildingLayersConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import landscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 
 
-/* export function createDesignLayers() {
-    commit("scenario/loader", true);
-    commit("scenario/loaderTxt", "Creating Design Layers ... ");
+export const swLayerName = "stormwater";
 
-    const designConfigs = [...buildingLayerConfigs, landscapeLayerConfig];
-    
-    // iterate over sources in configs
-    designConfigs.forEach((config : SourceAndLayerConfig) => {
-      commit("scenario/loaderTxt", "Getting GeoData from CityPyO ... ");
-      state.cityPyO.getLayer(config.source.id, false).then((layerData) => {
-        config.source.options.data = layerData
-        addSourceAndLayerToMap(config.source, config.layerConfig, state.map)
-        commit("scenario/loader", false);
-      });
-    });
-} */
+const addedLayersIds = [
+  LayerSubselectionConfig.layerConfig.id,
+  WindResultLayerConfig.layerConfig.id,
+  SunExposureResultLayerConfig.layerConfig.id,
+  NoiseResultLayerConfig.layerConfig.id,
+  TrafficCounts.layerConfig.id,
+  swLayerName,
+  MultiLayerAnalysisConfig.layerConfig.id,
+  PerformanceInfosConfig.layerConfig.id,
+  CircledFeatures.layerConfig.id,
+];
+
+const bridgeLayerIds: string[] = BridgesConfig.layers.map((layer) => {
+  return layer.id;
+});
+
+export function getLayerOrder(): string[] {
+  let layerOrder = [
+    FocusAreasConfig.layerConfig.id,
+    landscapeLayerConfig.layerConfig.id,
+    AmenitiesConfig.layerConfig.id,
+  ];
+
+  layerOrder = layerOrder.concat(bridgeLayerIds);
+  layerOrder = layerOrder.concat([abmAggregationLayerName, abmTripsLayerName]);
+  layerOrder = layerOrder.concat(buildingLayerIds);
+  layerOrder = layerOrder.concat(addedLayersIds);
+
+  console.log("layerOrder", layerOrder);
+
+  return layerOrder;
+}
+
+export const landscapeLayerId: string = landscapeLayerConfig.layerConfig.id;
+export const buildingLayerIds: string[] = buildingLayersConfigs.map((config) => {
+    return config.layerConfig.id;
+  });
+  
+  export const abmLayerIds: string[] = [
+    ...buildingLayerIds,
+    abmAggregationLayerName,
+    abmTripsLayerName,
+    AmenitiesConfig.layerConfig.id
+  ];
+  

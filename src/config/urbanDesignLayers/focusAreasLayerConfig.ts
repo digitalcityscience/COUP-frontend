@@ -1,4 +1,6 @@
-{
+import type { SourceAndLayerConfig } from "@/models";
+
+const focusAreasLayerConfig: SourceAndLayerConfig = {
   "layerConfig": {
     "id": "focusAreas",
     "type": "fill",
@@ -35,3 +37,5 @@
     }
   }
 }
+
+export default focusAreasLayerConfig;

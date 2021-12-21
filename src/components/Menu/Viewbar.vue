@@ -1,6 +1,6 @@
 <script lang="ts">
-import FocusAreasLayerConfig from "@/config/focusAreas.json";
-import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
+import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
 import Layers from "@/components/Menu/viewbar/Layers.vue";
 import LegendLine from "@/components/Menu/viewbar/LegendLine.vue";
 import ResetView from "@/components/Menu/viewbar/ResetView.vue";

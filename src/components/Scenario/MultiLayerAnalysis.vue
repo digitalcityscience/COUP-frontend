@@ -5,10 +5,10 @@ import {
   filterAndScaleLayerData,
   showMultiLayerAnalysis,
 } from "@/store/scenario/multiLayerAnalysis";
-import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
+import SubSelectionLayerConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
 import mdiInformationPng from "@/assets/mdi-information.png";
-import CombinedLayersConfig from "@/config/multiLayerAnalysis.json";
-import PerformanceInfoLayerConfig from "@/config/performanceInfos.json";
+import CombinedLayersConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
+import PerformanceInfoLayerConfig from "@/config/multiLayerAnalysis/performaceInfosConfig";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
 import { hideAllLayersButThese, hideLayers, hideAllResultLayers } from '@/services/map.service';

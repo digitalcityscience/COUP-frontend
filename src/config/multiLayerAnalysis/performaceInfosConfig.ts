@@ -1,4 +1,6 @@
-{
+import type { SourceAndLayerConfig } from "@/models";
+
+const config: SourceAndLayerConfig = {
   "layerConfig": {
     "id": "performanceInfos",
     "type": "symbol",
@@ -35,3 +37,5 @@
     }
   }
 }
+
+export default config;

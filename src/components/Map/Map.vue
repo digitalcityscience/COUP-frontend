@@ -1,13 +1,13 @@
 <script lang="ts">
 import mapboxgl from "mapbox-gl";
 import { mapState } from "vuex";
-import amenities from "@/config/amenities.json";
+import amenities from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import { alkisTranslations } from "@/store/abm";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
 import Contextmenu from "@/components/Menu/Contextmenu.vue";
 import { calculateAbmStatsForFocusArea } from "@/store/scenario/abmStats";
 import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats";
-import FocusAreasLayer from "@/config/focusAreas.json";
+import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { getUserContentLayerIds } from "@/services/map.service";
 
 export default {

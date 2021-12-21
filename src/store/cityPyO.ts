@@ -80,8 +80,6 @@ export default class CityPyO {
 
       return await responseJson;
     }
-
-    throw Error("Could not get layer " + id + "from CityPyo " + await response.status.toString());
   }
 
   /**

@@ -1,7 +1,9 @@
-import { buildingLayerIds, getLayerOrder, landscapeLayerConfig } from '@/config/layers';
+import { buildingLayerIds, getLayerOrder } from '@/services/layers.service';
 import { MapboxMap } from "@/models";
 import { Layer } from "mapbox-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
+
+import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig"
 
 
 
@@ -14,7 +16,7 @@ export function hideBuildings(map: MapboxMap | null): void {
 }
 
 export function showLandscapeDesign(map: MapboxMap | null): void {
-  showLayers(map, [landscapeLayerConfig.layerConfig.id]);
+  showLayers(map, [LandscapeLayerConfig.layerConfig.id]);
 }
 
 const amenityLayers = ["abmAmenities"];
@@ -144,10 +146,6 @@ function addLayerToMap(layer: Layer | DeckLayer<any>, map: MapboxMap | null): vo
   // remove layer first if exits
   if (map?.getLayer(layer.id)) {
     map?.removeLayer(layer.id);
-  }
-
-  if (typeof layer === typeof DeckLayer) {
-    debugger;
   }
 
   // @ts-ignore

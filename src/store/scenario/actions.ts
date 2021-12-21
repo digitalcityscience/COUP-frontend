@@ -1,14 +1,12 @@
-import Amenities from "@/config/amenities.json";
+import Amenities from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import Bridges from "@/config/bridges.json";
-import { swLayerName } from "@/config/layers";
-import SubSelectionLayerConfig from "@/config/layerSubSelection.json";
-import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis.json";
-import NoiseResultLayerConfig from "@/config/noise.json";
-import PerformanceInfosConfig from "@/config/performanceInfos.json";
-import SunExposure from "@/config/sunExposureResult.json";
-import TrafficCountLayer from "@/config/trafficCounts.json";
-import Trees from "@/config/trees.json";
-import WindResultLayerConfig from "@/config/windResult.json";
+import SubSelectionLayerConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
+import NoiseResultLayerConfig from "@/config/calculationModuleResults/noiseResultLayerConfig";
+import PerformanceInfosConfig from "@/config/multiLayerAnalysis/performaceInfosConfig";
+import SunExposure from "@/config/calculationModuleResults/sunExposureResultConfig";
+import TrafficCountLayer from "@/config/calculationModuleResults/trafficCountsLayerConfig";
+import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig";
 import { StoreState } from "@/models";
 import { buildSWLayer } from "@/services/deck.service";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
@@ -92,7 +90,7 @@ export default {
     });
 
     const source = {
-      id: TrafficCountLayer.source.data.id,
+      id: TrafficCountLayer.source.id,
       options: {
         type: "geojson",
         data: scenarioTraffic,
@@ -232,17 +230,8 @@ export default {
     calculateAmenityStatsForFocusArea();
     calculateAbmStatsForFocusArea();
   },
-  showLoadingScreen(
-    { state, commit, dispatch, rootState },
-    message = "loading"
-  ) {
-    // TODO: is this still needed?
-  },
   async calculateStatsForMultiLayerAnalysis({
-    state,
     commit,
-    dispatch,
-    rootState,
   }) {
     commit("resultLoading", true);
     commit("loader", true);

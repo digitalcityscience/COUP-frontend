@@ -64,7 +64,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import legends from "@/config/legends.json";
+import legends from "@/config/userInteraction/legends";
 import { Legend as LegendModel } from "@/models";
 
 @Component

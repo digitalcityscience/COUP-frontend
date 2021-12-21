@@ -1,4 +1,6 @@
-{
+import type { SourceAndLayerConfig } from "@/models";
+
+const amenitiesLayerConfig: SourceAndLayerConfig = {
   "layerConfig":
     {
       "id": "abmAmenities",
@@ -35,3 +37,5 @@
       }
     }
 }
+
+export default amenitiesLayerConfig;

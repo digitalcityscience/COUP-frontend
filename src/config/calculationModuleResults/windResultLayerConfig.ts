@@ -1,4 +1,6 @@
-{
+import type { SourceAndLayerConfig } from "@/models";
+
+const windResultLayerConfig: SourceAndLayerConfig = {
   "layerConfig": {
     "id": "wind",
     "type": "fill-extrusion",
@@ -35,3 +37,5 @@
     }
   }
 }
+
+export default windResultLayerConfig;

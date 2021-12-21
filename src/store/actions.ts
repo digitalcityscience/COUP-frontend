@@ -1,10 +1,10 @@
-import CircledFeatures from "@/config/circledFeatures.json";
-import FocusAreasLayerConfig from "@/config/focusAreas.json";
-import { buildingLayerConfigs, landscapeLayerConfig, getLayerOrder } from "@/config/layers";
+import CircledFeatures from "@/config/userInteraction/circledFeaturesLayerConfig";
+import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import BuildingLayerConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 import {  SourceAndLayerConfig, StoreState } from "@/models";
 import { addSourceAndLayerToMap } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
-import { Layer } from "mapbox-gl";
 import { ActionContext } from "vuex";
 
 export default {
@@ -15,7 +15,7 @@ export default {
     commit("scenario/loader", true);
     commit("scenario/loaderTxt", "Creating Design Layers ... ");
 
-    const designConfigs = [...buildingLayerConfigs, landscapeLayerConfig];
+    const designConfigs = [...BuildingLayerConfigs, LandscapeLayerConfig];
     // iterate over sources in configs
     designConfigs.forEach((config : SourceAndLayerConfig) => {
     // get layer data from cityPyo
@@ -108,27 +108,4 @@ export default {
     addSourceAndLayerToMap(source, [CircledFeatures.layerConfig], state.map)
     commit("featureCircles", featureCircles);
   },
-
-  /***** DO WE STILL NEED THIS?
-   /**
-   * Parses the module configs to the respective store modules
-   * @param {*} state - the module store state
-   * @param {*} moduleName - the module to parse the config data to
-   * @param {*} [config=Config] - the config.json, defaults to "./config.json"
-   * @returns {void}
-   *
-   parseConfig({state, commit}: ActionContext<StoreState, StoreState>, moduleName: string, config: GenericObject = Config) {
-    if (state[moduleName]) {
-      const moduleConfig = config?.modules?.[moduleName]
-
-      for (const attr in moduleConfig) {
-        try {
-          commit(`${moduleName}/${attr}`, moduleConfig[attr])
-        } catch (e) {
-          state[moduleName][attr] = moduleConfig[attr]
-        }
-      }
-    }
-  }
-   *****/
 };

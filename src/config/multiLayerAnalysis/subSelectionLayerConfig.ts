@@ -1,4 +1,6 @@
-{
+import type { SourceAndLayerConfig } from "@/models";
+
+const subSelectionLayerConfig: SourceAndLayerConfig = {
   "layerConfig": {
     "id": "layerSubSelection",
     "type": "fill-extrusion",
@@ -31,3 +33,5 @@
     }
   }
 }
+
+export default subSelectionLayerConfig;
