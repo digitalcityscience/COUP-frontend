@@ -93,8 +93,6 @@ export default class WindStore extends VuexModule {
   mutateResult(newResult: WindResult): void {
     this.result = {
       geojson: Object.freeze(newResult.geojson),
-      complete: newResult.complete,
-      tasksCompleted: newResult.tasksCompleted
     };
   }
 

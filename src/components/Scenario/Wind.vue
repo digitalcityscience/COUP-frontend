@@ -45,40 +45,29 @@ export default class WindScenario extends Vue {
     this.$store.commit("wind/resetResult");
     this.$store.dispatch("wind/triggerCalculation")
       .then(() => { 
-        this.displayNewWindResults() 
+        this.waitForResults() 
       })
   }
     
   // is busy until result complete 
-  async displayNewWindResults(completedTasks=0) {
+  async waitForResults() {
     // TODO do we need to check if activeComponent is wind? onDestroy?
     this.resultLoading = true;
-
     this.$store.dispatch("wind/fetchResult")
       .then(() => {
         // success
-        if (this.windResult.tasksCompleted > completedTasks) {
           this.$store.commit("scenario/windLayer", true); // this is for the layer menu in the viewbar
           this.addResultToMap(this.windResult.geojson)
-          completedTasks = this.windResult.tasksCompleted;
-        }
       })
       .catch((err) => {
           // fail
-          this.$store.commit("scenario/windLayer", false);
+          this.$store.commit("scenario/windLayer", false); // // this is for the layer menu in the viewba
           removeSourceAndItsLayersFromMap("wind", this.map);
-          this.resultLoading = false;
           this.errMsg = err;
       })
-      .finally(async () => {
-          // abort or keep updating the wind result until it is complete
-          if (this.windResult.complete || this.errMsg) {
-                this.resultLoading = false;
-                return  
-              }
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-          this.displayNewWindResults(completedTasks)
-      });
+      .finally(() => {
+        this.resultLoading = false;
+      })
   }
 
   addResultToMap(resultGeoJSON: GeoJSON): void {
@@ -138,8 +127,15 @@ export default class WindScenario extends Vue {
   get resultLoading(): boolean {
     return this.$store.state.scenario.resultLoading;
   }
+
   set resultLoading(loadingState: boolean) {
+    // TODO - only 1 loader variable
     this.$store.commit("scenario/resultLoading", loadingState);
+    this.$store.commit("scenario/loader", loadingState);
+    if (loadingState) {
+      // TODO we could have a "percent ready here." ,make a backend route returning only status.
+      this.$store.commit("scenario/loaderTxt", "Fetching wind results. May take up to 2 min.");
+    }
   }
 
   /** GETTERS FOR LOCAL VARIABLES */

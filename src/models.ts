@@ -78,8 +78,6 @@ export interface SavedWindScenarioConfiguration extends WindScenarioConfiguratio
 
 export interface WindResult {
   geojson: GeoJSON;
-  complete: boolean;
-  tasksCompleted: number
 }
 export interface StormWaterScenarioConfiguration {
   returnPeriod: number;
@@ -90,7 +88,6 @@ export interface StormWaterScenarioConfiguration {
 export interface StormWaterResult {
   geojson: GeoJSON;
   rainData: number[];
-  complete: boolean;
 }
 
 export type ScenarioWithTimeSheets = "abm" | "sw";

@@ -4,9 +4,8 @@ import type {
   StormWaterResult,
   CalculationTask,
   MapSource,
-  WindResult,
   GeoJSON,
-  WindScenarioConfiguration,
+  WindResult,
 } from "@/models";
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
@@ -96,24 +95,19 @@ export async function requestCalculationStormWater(
 /** gets wind result */
 export async function getResultForWind({
   taskId,
-}: CalculationTask): Promise<{ complete: boolean, geojson: GeoJSON | null, tasksCompleted: number }> {
+}: CalculationTask): Promise<WindResult> {
   // TODO make groupTask object
 
-  // first get result for parent task -> returns a groupTask
-  const groupTask = await getResultForSingleTask(
+  // first get result object for parent task -> returns a groupTask
+  const groupTask = await getResultWhenReady(
     config.endpointsResultCollection["wind_single_task"],
     taskId
   );
 
-  // early return
-  if (!groupTask) {
-    return { complete: false, geojson: null, tasksCompleted: 0 };
-  }
-
   // get results for tasks in groupTask
-  const result = await getResultsForWindGroupTask(
+  const result = await getResultWhenReady(
     config.endpointsResultCollection.wind_group_task,
-    groupTask
+    groupTask["result"]
   ).then((result) => {
     return result;
   });
@@ -125,16 +119,14 @@ export async function getResultForWind({
   }
 
   return  {
-    complete: result["complete"],
-    geojson: result["results"],
-    tasksCompleted: result["tasksCompleted"]
+    geojson: result["results"]
   };
 }
 
 /** gets noise result */
 export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
   // TODO make task object
-  const result = await getResultForSingleTask(
+  const result = await getResultWhenReady(
     config.endpointsResultCollection.noise,
     task["taskId"]
   );
@@ -145,7 +137,7 @@ export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
     throw new Error("Did not get a valid result");
   }
 
-  return result
+  return result["result"]
 }
 
 /** gets stormwater result */
@@ -153,7 +145,7 @@ export async function getResultForStormWater(
   task: GenericObject
 ): Promise<StormWaterResult> {
   // TODO make task object
-  const result = await getResultForSingleTask(
+  const result = await getResultWhenReady(
     config.endpointsResultCollection.stormWater,
     task["taskId"]
   );
@@ -165,9 +157,8 @@ export async function getResultForStormWater(
   }
 
   return {
-    complete: true, // stormwater result does not come in parts
-    geojson: result["geojson"], // geojson with subcatchments to be shown as map layer
-    rainData: result["rain"], // rain data to be shown in time TimeSheet
+    geojson: result["result"]["geojson"], // geojson with subcatchments to be shown as map layer
+    rainData: result["result"]["rain"], // rain data to be shown in time TimeSheet
   };
 }
 
@@ -185,40 +176,24 @@ async function requestCalculation(
   return result_uuid;
 }
 
-/** gets a result for a task. Retries to get a result until timeout */
-async function getResultForSingleTask(url, taskUuid) {
-  const sleepTime = 5000;
-  const maxTries = 120000 / sleepTime; // give up after 2 min
-
-  let task_succeeded = false;
+/** polls the api for the result until ready */
+async function getResultWhenReady(url, taskUuid) {
+  const initialSleepTime = 1000;
+  const maxTries = 120000 / initialSleepTime;
+  
+  let result_ready = false;
 
   return (async () => {
-    const generator = getResultGenerator(0, maxTries, url, taskUuid);
+    const generator = getResultGenerator(0, maxTries, url, taskUuid, initialSleepTime);
     for await (const response of generator) {
-      task_succeeded = response["taskSucceeded"];
-      if (task_succeeded) {
-        return response["result"];
+      result_ready = response["resultReady"] || response["grouptaskProcessed"]  // TODO rename at endpoint
+      if (result_ready) {
+        return response;
       }
     }
     console.error("could not get result for url, uuid", url, taskUuid);
     throw new Error("Could not get result from server");
   })();
-}
-
-/** gets the results of a wind group task */
-async function getResultsForWindGroupTask(url, groupTaskUuid) {
-  const response = await makeGetRequest(url + groupTaskUuid);
-
-  console.log(
-    "wind calculation has this many completed results ",
-    response["tasksCompleted"]
-  );
-
-  return {
-    results: response["results"],
-    complete: response["tasksTotal"] == response["tasksCompleted"],
-    tasksCompleted: response["tasksCompleted"]
-  };
 }
 
 async function makePostRequest(requestUrl, scenario) {
@@ -259,9 +234,10 @@ export function formatResultAsMapSource(id: string, responseJson): MapSource {
   };
 }
 
-async function* getResultGenerator(start, end, url, taskUuid) {
+async function* getResultGenerator(start, end, url, taskUuid, sleepTime) {
   for (let i = start; i <= end; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, sleepTime));
+    sleepTime = Math.max(sleepTime + 1000, 5000)
     yield await makeGetRequest(url + taskUuid);
   }
 }
