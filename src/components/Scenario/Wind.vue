@@ -8,7 +8,7 @@ import { MapboxMap, SavedWindScenarioConfiguration, StoreStateWithModules } from
 import type { MenuLink, WindScenarioConfiguration, WindResult, GeoJSON } from "@/models";
 import { defaultWindScenarioConfigs } from "@/store/wind";
 import * as calcModules from "@/services/calculationModules.service";
-import { addSourceAndLayerToMap, hideAllLayersButThese, removeSourceAndItsLayersFromMap } from "@/services/map.service";
+import { addSourceAndLayerToMap, hideAllLayersButThese, hideLayers, removeSourceAndItsLayersFromMap } from "@/services/map.service";
 import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig"
 import DashboardCharts from "./DashboardCharts.vue";
 import ScenarioComponentNames from '@/config/scenarioComponentNames';
@@ -62,6 +62,11 @@ export default class WindScenario extends Vue {
         // success
           this.$store.commit("scenario/windLayer", true); // this is for the layer menu in the viewbar
           this.addResultToMap(this.windResult.geojson)
+          // hide the wind layer, if the user meanwhile has switched to another component 
+          if (!this.activeComponentIsWind) {
+            hideLayers(this.map, [WindResultLayerConfig.layerConfig.id])
+            alert("Wind is ready")
+          }
       })
       .catch((err) => {
           // fail
@@ -105,6 +110,10 @@ export default class WindScenario extends Vue {
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
   get map(): MapboxMap {
     return this.$store.state.map;
+  }
+
+  get activeComponentIsWind(): boolean {
+      return this.$store.state.activeMenuComponent === ScenarioComponentNames.wind;
   }
 
   get savedScenarioConfigurations(): SavedWindScenarioConfiguration[] {

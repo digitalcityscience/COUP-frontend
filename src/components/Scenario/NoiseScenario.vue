@@ -4,9 +4,10 @@ import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
 import { mapState } from "vuex";
-import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from '@/services/map.service';
+import { hideAllLayersButThese, removeSourceAndItsLayersFromMap, hideLayers } from '@/services/map.service';
 import ScenarioComponentNames from '@/config/scenarioComponentNames';
 import { ScenegraphLayer } from '@deck.gl/mesh-layers';
+import NoiseResultLayerConfig from '@/config/calculationModuleResults/noiseResultLayerConfig';
 
 
 export default {
@@ -51,6 +52,9 @@ export default {
         loadingStati.noise = loadingState;
         this.$store.commit("scenario/resultLoadingStati", loadingStati);
       }
+    },
+    activeComponentIsNoise(): boolean {
+      return this.$store.state.activeMenuComponent === ScenarioComponentNames.noise;
     },
     componentDivisions(): MenuLink[] {
       return [
@@ -106,6 +110,10 @@ export default {
           this.resultLoading = false;
           this.resultOutdated = this.isResultOutdated();
           this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
+          if (!this.activeComponentIsNoise) {
+            hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id])
+            alert("Noise is ready")
+          }
         })
         .catch((err) => {
           this.$store.commit("scenario/noiseMap", false);
