@@ -16,9 +16,10 @@ import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
 import { hideAllResultLayers } from '@/services/map.service';
+import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 export default {
-  name: "AbmScenario",
+  name: ScenarioComponentNames.pedestrian,
   components: {
     DashboardCharts: DashboardCharts,
     MenuDivision,
@@ -51,13 +52,11 @@ export default {
   },
   computed: {
     ...mapState(["map"]), // getter only
-    ...mapState("scenario", ["resultLoading"]), // getter only
     ...mapState("scenario", ["moduleSettings"]), // getter only
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
       ["resultOutdated", "scenario/resultOutdated"],
       ["focusAreasShown", "focusAreasShown"],
-      ["loader", "scenario/loader"],
       ["updateAbmStatsChart", "scenario/updateAbmStatsChart"],
       ["updateAmenityStatsChart", "scenario/updateAmenityStatsChart"],
       [
@@ -117,6 +116,21 @@ export default {
         },
       ];
     },
+    resultLoading: {
+      // getter
+      get: function () {
+      return this.$store.state.scenario.resultLoadingStati.pedestrian
+      },
+      // setter
+      set: function (loadingState) {
+        let loadingStati = Object.assign(
+          {}, 
+          this.$store.state.scenario.resultLoadingStati
+        );
+        loadingStati.pedestrian = loadingState;
+        this.$store.commit("scenario/resultLoadingStati", loadingStati);
+      }
+    },
   },
   watch: {
     resultsOutdated(newVal, oldVal) {
@@ -167,8 +181,10 @@ export default {
       );
       this.changesMade = false;
       this.resultOutdated = false;
+      this.resultLoading = true;
       this.$store.commit("scenario/activeAbmSet", null);
-      this.$store.dispatch("scenario/updateAbmDesignScenario");
+      this.$store.dispatch("scenario/updateAbmDesignScenario")
+        .then(() => { this.resultLoading = false; });
     },
     changeHeatMapData() {
       if (this.adjustRange[0] > 8 || this.adjustRange[1] < 23) {
@@ -192,7 +208,9 @@ export default {
     },
     // TODO there is so much embedded logic in calling an ABM scenario for grasbrook. needs to be properly refactored
     loadScienceCityScenario(scenarioId) {
-      this.$store.dispatch("scenario/loadScienceCityAbmScenario", scenarioId);
+      this.resultLoading = true;
+      this.$store.dispatch("scenario/loadScienceCityAbmScenario", scenarioId)
+        .then(() => { this.resultLoading = false; });
     },
   },
 };
@@ -232,6 +250,7 @@ export default {
           >
             <header class="text-sm-left">BRIDGES</header>
             <v-switch
+              :disabled="resultLoading"
               v-model="bridge_hafencity"
               flat
               label="Bridge to HafenCity"
@@ -250,6 +269,7 @@ export default {
               "
             />
             <v-switch
+              :disabled="resultLoading"
               v-model="underpass_veddel_north"
               flat
               label="Underpass to Veddel North"
@@ -289,6 +309,7 @@ export default {
             >
               <v-radio
                 :value="mainStreetOrientationOptions.vertical"
+                :disabled="resultLoading"
                 flat
                 label="North-South Axes"
                 dark
@@ -301,6 +322,7 @@ export default {
               />
               <v-radio
                 :value="mainStreetOrientationOptions.horizontal"
+                :disabled="resultLoading"
                 flat
                 label="East-West Axes"
                 dark
@@ -332,6 +354,7 @@ export default {
             >
               <v-radio
                 :value="blockOptions.open"
+                :disabled="resultLoading"
                 flat
                 label="Permeable"
                 dark
@@ -343,6 +366,7 @@ export default {
               />
               <v-radio
                 :value="blockOptions.closed"
+                :disabled="resultLoading"
                 flat
                 label="Private"
                 dark
@@ -373,6 +397,7 @@ export default {
             >
               <v-radio
                 :value="roofAmenitiesOptions.complementary"
+                :disabled="resultLoading"
                 flat
                 label="Clustered by Type"
                 dark
@@ -385,6 +410,7 @@ export default {
               />
               <v-radio
                 :value="roofAmenitiesOptions.random"
+                :disabled="resultLoading"
                 flat
                 label="Mixed Distribution"
                 dark
@@ -401,14 +427,10 @@ export default {
             @click="confirmSettings"
             class="confirm_btn mt-2"
             :class="{ changesMade: resultOutdated }"
+            :disabled="resultLoading"
           >
             Run Scenario
           </v-btn>
-
-          <v-overlay :value="resultLoading">
-            <div>Loading results</div>
-            <v-progress-linear>...</v-progress-linear>
-          </v-overlay>
         </v-container>
       </div>
       <!--component_content end-->
@@ -429,18 +451,16 @@ export default {
           @click="loadScienceCityScenario('abm_scenario_status_quo')"
           class="scenario_main_btn"
           block
+          :disabled="resultLoading"
           >Status Quo</v-btn
         >
         <v-btn
           @click="loadScienceCityScenario('abm_scenario_schb')"
           class="scenario_main_btn"
           block
+          :disabled="resultLoading"
           >ScienceCity</v-btn
         >
-        <v-overlay :value="resultLoading">
-          <div>Loading results</div>
-          <v-progress-linear>...</v-progress-linear>
-        </v-overlay>
       </div>
     </div>
     <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
@@ -457,25 +477,23 @@ export default {
           @click="loadScenarioByName(workshopScenarioNames[0])"
           class="scenario_main_btn"
           block
+          :disabled="resultLoading"
           >Scenario I</v-btn
         >
         <v-btn
           @click="loadScenarioByName(workshopScenarioNames[1])"
           class="scenario_main_btn"
           block
+          :disabled="resultLoading"
           >Scenario II</v-btn
         >
         <v-btn
           @click="loadScenarioByName(workshopScenarioNames[2])"
           class="scenario_main_btn"
           block
+          :disabled="resultLoading"
           >Scenario III</v-btn
         >
-
-        <v-overlay :value="resultLoading">
-          <div>Loading results</div>
-          <v-progress-linear>...</v-progress-linear>
-        </v-overlay>
       </div>
     </div>
     <!--division-end-->

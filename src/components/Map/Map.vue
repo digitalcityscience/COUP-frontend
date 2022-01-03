@@ -41,6 +41,21 @@ export default {
     heatMapActive() {
       return this.$store.state.scenario.heatMap;
     },
+    showLoader: {
+      // getter
+      get: function () {
+      return this.$store.state.scenario.resultLoadingStati.map
+      },
+      // setter
+      set: function (loadingState) {
+        let loadingStati = Object.assign(
+          {}, 
+          this.$store.state.scenario.resultLoadingStati
+        );
+        loadingStati.map = loadingState;
+        this.$store.commit("scenario/resultLoadingStati", loadingStati);
+      }
+    },
   },
   mounted(): void {
     mapboxgl.accessToken = this.accessToken;
@@ -146,7 +161,9 @@ export default {
     },
     onMapLoaded() {
       console.log("create design layers");
-      this.$store.dispatch("createDesignLayers");
+      this.showLoader = true;
+      this.$store.dispatch("createDesignLayers")
+        .then(() => { this.showLoader = false; } );
       this.$store.dispatch("addFocusAreasMapLayer");
     },
     createModal() {

@@ -115,21 +115,14 @@ export default {
     { state, commit, dispatch, rootState },
     scenarioId: string
   ) {
-    //show loading screen
-    commit("resultLoading", true);
-    commit("loader", true);
-
     rootState.cityPyO.getLayer(scenarioId, false).then((result) => {
       if (!result) {
         alert(
           "There was an error requesting the data from the server. Please get in contact with the admins."
         );
-        //remove loading screen
-        commit("resultLoading", false);
         return;
       }
 
-      commit("loaderTxt", "Serving Abm Data ... ");
       return dispatch("computeLoop", result.data);
     });
 
@@ -183,22 +176,13 @@ export default {
     calculateAmenityStatsForFocusArea();
     calculateAbmStatsForFocusArea();
   },
-  async calculateStatsForMultiLayerAnalysis({
-    commit,
-  }) {
-    commit("resultLoading", true);
-    commit("loader", true);
-    commit("loaderTxt", "Calculating statistics for each focus area (slow)");
-
+  async calculateStatsForMultiLayerAnalysis({}) {
     // the timeout just gives time for the commits above to persist and the app to be rerendered
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    calculateAmenityStatsForMultiLayerAnalysis().then(() => {
-      calcAbmStatsForMultiLayer().then(() => {
-        commit("resultLoading", false);
-        commit("loader", false);
-        commit("loaderTxt", "loading");
-      });
+    await calculateAmenityStatsForMultiLayerAnalysis().then(() => {
+      calcAbmStatsForMultiLayer()
+      return;
     });
   },
   // load layer source from cityPyo and add the layer to the map
@@ -264,15 +248,10 @@ export default {
     { state, commit, dispatch, rootState },
     workshopScenario
   ) {
-    //show loading screen
-    commit("resultLoading", true);
-    commit("loader", true);
-
     //check if special workshop Scenario should be loaded
     const scenarioName = workshopScenario || abmTripsLayerName;
 
     //LOAD DATA FROM CITYPYO
-    commit("loaderTxt", "Getting ABM Simulation Data from CityPyO ... ");
     return rootState.cityPyO
       .getAbmResultLayer(scenarioName, state)
       .then((resultGeoJson: GeoJSON) => {
@@ -285,7 +264,6 @@ export default {
           return;
         }
 
-        commit("loaderTxt", "Serving Abm Data ... ");
         return dispatch("computeLoop", resultGeoJson).then(
           dispatch("calculateStatsForGrasbrook")
         );
@@ -301,7 +279,7 @@ export default {
     console.log("abmCore size: ", abmCore?.length);
     //go through each agent inside the abm set (agent, index, array)
 
-    commit("loaderTxt", "Clustering ABM Data for functional purposes ... ");
+    // Clustering ABM Data for functional purposes
     abmCore.forEach((who, index, array) => {
       const agent_id = who.agent.id;
 
@@ -320,7 +298,7 @@ export default {
       // #2 Clustering TIME DATA for Aggregation Layer
       // ---------------- TIME DATA ------------------------------
       // TODO refactor!!!
-      commit("loaderTxt", "Analyzing Time Data ... ");
+      // Analyzing Time Data
       who.timestamps.forEach((v, i, a) => {
         /*round timestamps to full hours*/
         const h = Math.floor(v / 3600) + 8;
@@ -342,7 +320,7 @@ export default {
 
         // TODO 300 ?? what is 300??
 
-        commit("loaderTxt", "Creating Simple Time Data Arrays ... ");
+        // Creating Simple Time Data Arrays
         simpleTimeData[Math.floor(v / 300) * 300] =
           simpleTimeData[Math.floor(v / 300) * 300] || {};
         simpleTimeData[Math.floor(v / 300) * 300]["all"] =
@@ -368,7 +346,7 @@ export default {
           who.agent.resident_or_visitor
         ].push(agent_id);
 
-        commit("loaderTxt", "Creating Busy Agents ... ");
+        // Creating Busy Agents
         if (i == 0) {
           timePaths[h].busyAgents.push(agent_id);
         }
@@ -391,11 +369,7 @@ export default {
     commit("activeAbmSet", Object.freeze(abmCore));
 
     //buildLayers
-    return dispatch("buildLayers").then(
-      // hide loading screen
-      commit("resultLoading", false),
-      commit("loader", false)
-    );
+    return dispatch("buildLayers");
   },
   buildLayers({ state, commit, dispatch, rootState }) {
     const tripsLayerData = state.activeAbmSet;

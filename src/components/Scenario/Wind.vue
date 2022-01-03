@@ -1,6 +1,7 @@
 <script lang="ts">
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import LoaderScreen from "@/components/Loader/Loader.vue";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 import { MapboxMap, SavedWindScenarioConfiguration, StoreStateWithModules } from "@/models";
@@ -9,9 +10,12 @@ import { defaultWindScenarioConfigs } from "@/store/wind";
 import * as calcModules from "@/services/calculationModules.service";
 import { addSourceAndLayerToMap, hideAllLayersButThese, removeSourceAndItsLayersFromMap } from "@/services/map.service";
 import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig"
+import DashboardCharts from "./DashboardCharts.vue";
+import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 @Component({
-  components: { MenuComponentDivision },
+  name: ScenarioComponentNames.wind,
+  components: { MenuComponentDivision, LoaderScreen, DashboardCharts },
 })
 
 export default class WindScenario extends Vue {
@@ -99,7 +103,6 @@ export default class WindScenario extends Vue {
   
 
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
-  // is changed via "addSavedScenario Mutation"
   get map(): MapboxMap {
     return this.$store.state.map;
   }
@@ -125,17 +128,16 @@ export default class WindScenario extends Vue {
   }
 
   get resultLoading(): boolean {
-    return this.$store.state.scenario.resultLoading;
+    return this.$store.state.scenario.resultLoadingStati.wind;
   }
 
   set resultLoading(loadingState: boolean) {
-    // TODO - only 1 loader variable
-    this.$store.commit("scenario/resultLoading", loadingState);
-    this.$store.commit("scenario/loader", loadingState);
-    if (loadingState) {
-      // TODO we could have a "percent ready here." ,make a backend route returning only status.
-      this.$store.commit("scenario/loaderTxt", "Fetching wind results. May take up to 2 min.");
-    }
+    let loadingStati = Object.assign(
+      {}, 
+      this.$store.state.scenario.resultLoadingStati
+    );
+    loadingStati.wind = loadingState;
+    this.$store.commit("scenario/resultLoadingStati", loadingStati);
   }
 
   /** GETTERS FOR LOCAL VARIABLES */
@@ -247,6 +249,7 @@ export default class WindScenario extends Vue {
               max="345"
               dark
               flat
+              :disabled="resultLoading"
             ></v-slider>
           </div>
           <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
@@ -284,6 +287,7 @@ export default class WindScenario extends Vue {
               max="80"
               dark
               flat
+              :disabled="resultLoading"
             ></v-slider>
           </div>
           <p v-if="errMsg" class="warning">
@@ -306,7 +310,7 @@ export default class WindScenario extends Vue {
             "
             @click="saveWindScenario"
             class="confirm_btn"
-            :disabled="isFormDirty || isScenarioAlreadySaved"
+            :disabled="isFormDirty || isScenarioAlreadySaved || resultLoading"
             :dark="isFormDirty || isScenarioAlreadySaved"
           >
             Save
@@ -328,6 +332,7 @@ export default class WindScenario extends Vue {
                     outlined
                     dark
                     small
+                    :disabled="resultLoading"
                   >
                     <span v-if="scenario.label">
                       {{ scenario.label }}
@@ -342,10 +347,6 @@ export default class WindScenario extends Vue {
             </v-data-iterator>
           </div>
         </v-container>
-        <v-overlay :value="resultLoading">
-          <div>Loading results</div>
-          <v-progress-linear style="margin-top: 50px">...</v-progress-linear>
-        </v-overlay>
       </div>
       <!--component_content end-->
     </div>

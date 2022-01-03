@@ -1,4 +1,16 @@
+import { DataLoadingStati } from '@/models';
 import { bridges, roofAmenitiesOptions } from "@/store/abm";
+
+
+const initialResultLoadingStati: DataLoadingStati = {
+  pedestrian: false,
+  sun: false,
+  wind: false,
+  multiLayer: false,
+  stormwater: false,
+  noise: false
+};
+
 
 export default {
   // ABM
@@ -49,10 +61,7 @@ export default {
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
-  selectedFocusAreas: [],
-  resultLoading: false,
-  loader: true,
-  loaderTxt: "data is loading ... ",
+  selectedFocusAreas: [],  
 
   // Amenities
   amenitiesGeoJson: null,
@@ -73,6 +82,7 @@ export default {
 
   // UI
   selectGraph: "abm",
+  resultLoadingStati: initialResultLoadingStati,
 
   // Stormwater
   rainTime: 0,

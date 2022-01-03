@@ -2,6 +2,7 @@ import type { Layer, Map as MapboxMap } from "mapbox-gl";
 import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 import type Wind from "./store/wind";
+import ComponentNames from "@/config/scenarioComponentNames"
 
 export type { MapboxMap };
 export type GeoJSON = Record<string, unknown>;
@@ -28,7 +29,7 @@ export interface View {
 
 export interface StoreState {
   map: MapboxMap | null;
-  activeMenuComponent: string;
+  activeMenuComponent: ScenarioComponentName;
   allFeaturesHighlighted: boolean;
   showLegend: boolean;
   currentTime: number;
@@ -60,11 +61,15 @@ export interface ScenarioStoreState {
   abmSimpleTimes: Record<any, any>;
   currentTimeStamp: number;
   selectGraph: ScenarioWithTimeSheets;
-  resultLoading: boolean;
+  resultLoadingStati: DataLoadingStati;
 }
 
-export type StormWaterRoofType = "extensive" | "intensive";
+export type ScenarioComponentName = "wind" | "sun" | "stormwater" | "noise" | "pedestrian" | "multiLayer";
+export type ScenarioComponentNames = Record<ScenarioComponentName, ScenarioComponentName>;
 
+export type DataLoadingStati = Record<ScenarioComponentName | "map", boolean>;
+
+export type StormWaterRoofType = "extensive" | "intensive";
 export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
 
 export interface WindScenarioConfiguration {

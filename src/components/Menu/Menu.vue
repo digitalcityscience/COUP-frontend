@@ -2,9 +2,10 @@
 import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import StormwaterScenario from "@/components/Scenario/StormwaterScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
-import SunExposureResults from "@/components/Scenario/SunExposure.vue";
+import SunExposureScenario from "@/components/Scenario/SunExposure.vue";
 import WindScenario from "@/components/Scenario/Wind.vue";
 import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
+import scenarioComponentNames from "@/config/scenarioComponentNames";
 
 export default {
   name: "Menu",
@@ -13,7 +14,7 @@ export default {
     StormwaterScenario,
     NoiseScenario,
     WindScenario,
-    SunExposureResults,
+    SunExposureScenario,
     MultiLayerAnalysis,
   },
   props: {
@@ -24,6 +25,7 @@ export default {
     return {
       windowWidth: window.innerWidth,
       menuOpen: false,
+      componentNames: {...scenarioComponentNames}
     };
   },
   computed: {
@@ -72,49 +74,47 @@ export default {
           <ul class="component_list">
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'AbmScenario' }"
-              @click="activeComponent = 'AbmScenario'"
+              v-bind:class="{ highlight: activeComponent === componentNames.pedestrian }"
+              @click="activeComponent = componentNames.pedestrian"
             >
               <p>Pedestrians</p>
             </li>
             <li
               class="component_link"
               v-bind:class="{
-                highlight: activeComponent === 'StormwaterScenario',
+                highlight: activeComponent === componentNames.stormwater,
               }"
-              @click="activeComponent = 'StormwaterScenario'"
+              @click="activeComponent = componentNames.stormwater"
             >
               <p>Stormwater</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }"
-              @click="activeComponent = 'NoiseScenario'"
+              v-bind:class="{ highlight: activeComponent === componentNames.noise }"
+              @click="activeComponent = componentNames.noise"
             >
               <p>Noise</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'WindScenario' }"
-              @click="activeComponent = 'WindScenario'"
+              v-bind:class="{ highlight: activeComponent === componentNames.wind }"
+              @click="activeComponent = componentNames.wind"
             >
               <p>Wind</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{
-                highlight: activeComponent === 'SunExposureResults',
-              }"
-              @click="activeComponent = 'SunExposureResults'"
+              v-bind:class="{ highlight: activeComponent === componentNames.sun }"
+              @click="activeComponent = componentNames.sun"
             >
               <p>Sun</p>
             </li>
             <li
               class="component_link"
               v-bind:class="{
-                highlight: activeComponent === 'MultiLayerAnalysis',
+                highlight: activeComponent === componentNames.multiLayer,
               }"
-              @click="activeComponent = 'MultiLayerAnalysis'"
+              @click="activeComponent = componentNames.multiLayer"
             >
               <p>Combine Layers</p>
             </li>
@@ -122,35 +122,35 @@ export default {
         </template>
         <template v-else>
           <select class="mobile_select" v-model="activeComponent">
-            <option value="AbmScenario">Pedestrians</option>
-            <option value="StormwaterScenario">Stormwater</option>
-            <option value="NoiseScenario">Noise</option>
-            <option value="WindScenario">Wind</option>
-            <option value="SunExposureResults">Sun</option>
-            <option value="MultiLayerAnalysis">Combine Layers</option>
+            <option :value="componentNames.pedestrian">Pedestrians</option>
+            <option :value="componentNames.stormwater">Stormwater</option>
+            <option :value="componentNames.noise">Noise</option>
+            <option :value="componentNames.wind">Wind</option>
+            <option :value="componentNames.sun">Sun</option>
+            <option :value="componentNames.multiLayer">Combine Layers</option>
           </select>
         </template>
       </div>
       <div class="body_scope">
-        <div v-if="activeComponent === 'AbmScenario'">
+        <div v-if="activeComponent === componentNames.pedestrian">
           <AbmScenario
             :restrictedAccess="restrictedAccess"
             :context="context"
           />
         </div>
-        <div v-if="activeComponent === 'StormwaterScenario'">
+        <div v-if="activeComponent === componentNames.stormwater">
           <StormwaterScenario />
         </div>
-        <div v-if="activeComponent === 'NoiseScenario'">
+        <div v-if="activeComponent === componentNames.noise">
           <NoiseScenario />
         </div>
-        <div v-if="activeComponent === 'WindScenario'">
+        <div v-if="activeComponent === componentNames.wind">
           <WindScenario />
         </div>
-        <div v-if="activeComponent === 'SunExposureResults'">
-          <SunExposureResults />
+        <div v-if="activeComponent === componentNames.sun">
+          <SunExposureScenario/>
         </div>
-        <div v-if="activeComponent === 'MultiLayerAnalysis'">
+        <div v-if="activeComponent === componentNames.multiLayer">
           <MultiLayerAnalysis />
         </div>
       </div>

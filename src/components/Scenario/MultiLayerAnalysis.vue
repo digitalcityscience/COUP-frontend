@@ -12,9 +12,10 @@ import PerformanceInfoLayerConfig from "@/config/multiLayerAnalysis/performaceIn
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
 import { hideAllLayersButThese, hideLayers, hideAllResultLayers } from '@/services/map.service';
+import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 export default {
-  name: "MultiLayerAnalysis",
+  name: ScenarioComponentNames.multiLayer,
   components: { MenuComponentDivision },
   data() {
     return {
@@ -112,7 +113,6 @@ export default {
   },
   computed: {
     ...mapState(["map"]), // getter only
-    ...mapState("scenario", ["resultLoading"]), // getter only
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
       ["activeMenuComponent", "activeMenuComponent"],
@@ -148,6 +148,21 @@ export default {
           default: true,
         },
       ];
+    },
+    resultLoading: {
+      // getter
+      get: function () {
+      return this.$store.state.scenario.resultLoadingStati.multiLayer
+      },
+      // setter
+      set: function (loadingState) {
+        let loadingStati = Object.assign(
+          {}, 
+          this.$store.state.scenario.resultLoadingStati
+        );
+        loadingStati.multiLayer = loadingState;
+        this.$store.commit("scenario/resultLoadingStati", loadingStati);
+      }
     },
   },
   watch: {
@@ -334,7 +349,9 @@ export default {
 
     // calc input statistics, if all scenarios chosen
     if (this.currentAbmResult) {
-      this.$store.dispatch("scenario/calculateStatsForMultiLayerAnalysis");
+      this.resultLoading = true;
+      this.$store.dispatch("scenario/calculateStatsForMultiLayerAnalysis")
+        .then(() => { this.resultLoading = false; })
     }
     hideAllResultLayers(this.map);
   },
@@ -372,6 +389,7 @@ export default {
       }
     },
     async loadDefaultResultFor(layerName) {
+      this.resultLoading = true;
       switch (layerName) {
         case "Sun":
           await this.$store.dispatch("scenario/addSunExposureLayer");
@@ -405,6 +423,7 @@ export default {
           );
           this.updateLayerSelectionDropdowns();
       }
+      this.resultLoading = false;
       // then update missing scenarios and hide result layers
       this.determineMissingScenarios();
       //this.updateLayerSelectionDropdowns()
@@ -496,9 +515,7 @@ export default {
       }
     },
     async showCombinedLayers() {
-      this.$store.commit("scenario/resultLoading", true);
-      this.$store.commit("scenario/loader", true);
-      this.$store.commit("scenario/loaderTxt", "Combining Layers");
+      this.resultLoading = true;
 
       // disable editing of layer criteria
       this.enableCriteriaLayer_1 = this.enableCriteriaLayer_2 = false;
@@ -520,8 +537,7 @@ export default {
         this.$store.commit("scenario/multiLayerAnalysisMap", true);
       }
 
-      this.$store.commit("scenario/resultLoading", false);
-      this.$store.commit("scenario/loader", false);
+      this.resultLoading = false;
       hideAllLayersButThese(this.map,
        [
         CombinedLayersConfig.layerConfig.id,
@@ -562,6 +578,7 @@ export default {
             <div v-if="layersReadyToCompare.length >= 2">
               <v-row no-gutters>
                 <v-select
+                  :disabled="resultLoading"
                   :items="layersReadyToCompare"
                   v-model="layerChoice_1"
                   @change="inputChanged()"
@@ -575,6 +592,7 @@ export default {
                   hide-details
                 ></v-select>
                 <v-select
+                  :disabled="resultLoading"
                   :items="layersReadyToCompare"
                   v-model="layerChoice_2"
                   @change="inputChanged()"
@@ -698,6 +716,7 @@ export default {
                   v-if="!enableCriteriaLayer_1"
                   color="grey"
                   @click="enableCriteriaLayer_1 = !enableCriteriaLayer_1"
+                  :disabled="resultLoading"
                   >mdi-eye-off</v-icon
                 >
                 <v-icon
@@ -809,6 +828,7 @@ export default {
                   v-if="!enableCriteriaLayer_2"
                   color="grey"
                   @click="enableCriteriaLayer_2 = !enableCriteriaLayer_2"
+                  :disabled="resultLoading"
                   >mdi-eye-off</v-icon
                 >
                 <v-icon
@@ -898,7 +918,7 @@ export default {
                 @click="showCombinedLayers"
                 class="confirm_btn"
                 :class="{ changesMade: resultOutdated }"
-                :disabled="emptyDataWarning || showError"
+                :disabled="emptyDataWarning || showError || resultLoading"
               >
                 Visualize Selection
               </v-btn>
@@ -907,10 +927,6 @@ export default {
           <!-- v-if="allDataProvided" end -->
         </v-container>
       </div>
-      <v-overlay :value="resultLoading">
-        <div>Loading results</div>
-        <v-progress-linear>...</v-progress-linear>
-      </v-overlay>
     </div>
     <!--component_content end-->
   </div>
