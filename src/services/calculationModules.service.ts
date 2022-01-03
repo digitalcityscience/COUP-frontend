@@ -99,7 +99,7 @@ export async function getResultForWind({
   // TODO make groupTask object
 
   // first get result object for parent task -> returns a groupTask
-  const groupTask = await getResultWhenReady(
+  const groupTaskResult = await getResultWhenReady(
     config.endpointsResultCollection["wind_single_task"],
     taskId
   );
@@ -107,19 +107,19 @@ export async function getResultForWind({
   // get results for tasks in groupTask
   const result = await getResultWhenReady(
     config.endpointsResultCollection.wind_group_task,
-    groupTask["result"]
+    groupTaskResult
   ).then((result) => {
     return result;
   });
 
   // check result validity
-  if (!result["results"]) {
+  if (!result["features"]) {
     console.error("Invalid result", result);
     throw new Error("Did not get a valid result");
   }
 
   return  {
-    geojson: result["results"]
+    geojson: result
   };
 }
 
@@ -132,12 +132,12 @@ export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
   );
 
   // check result validity
-  if (!result) {
+  if (!result["features"]) {
     console.error("Invalid result", result);
     throw new Error("Did not get a valid result");
   }
 
-  return result["result"]
+  return result
 }
 
 /** gets stormwater result */
@@ -157,8 +157,8 @@ export async function getResultForStormWater(
   }
 
   return {
-    geojson: result["result"]["geojson"], // geojson with subcatchments to be shown as map layer
-    rainData: result["result"]["rain"], // rain data to be shown in time TimeSheet
+    geojson: result["geojson"], // geojson with subcatchments to be shown as map layer
+    rainData: result["rain"], // rain data to be shown in time TimeSheet
   };
 }
 
@@ -188,7 +188,7 @@ async function getResultWhenReady(url, taskUuid) {
     for await (const response of generator) {
       result_ready = response["resultReady"] || response["grouptaskProcessed"]  // TODO rename at endpoint
       if (result_ready) {
-        return response;
+        return response["result"] || response["results"];  // "results" for group tasks 
       }
     }
     console.error("could not get result for url, uuid", url, taskUuid);
