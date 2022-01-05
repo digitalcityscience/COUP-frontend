@@ -59,7 +59,7 @@ export default {
       const loginResult = await this.$store.dispatch("connect", userdata);
       this.authenticated = loginResult.authenticated;
       if (this.authenticated) {
-        this.context = loginResult.context;
+        this.context = loginResult.context || "grasbrook";
         this.restrictedAccess = loginResult.restricted;
         this.applyCustomMapSettings();
 

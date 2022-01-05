@@ -27,23 +27,23 @@ export default class LoaderScreen extends Vue {
       return this.dataLoadingStati[this.activeScenarioComponent] || this.dataLoadingStati.map
     }
 
+    /** looks for which loading status is true and returns associated text */
     get loaderTxt(): string {
       if (this.dataLoadingStati.map) {
         return "....Loading...Please wait.."
       }
 
       const loaderTexts: Record<ScenarioComponentName, string> = {
-        sun: "Fetching sun exposure results. May take up to 2 min.",
-        wind: "Fetching wind comfort results. May take up to 2 min.",
-        noise: "Fetching traffic noise results. May take up to 2 min.",
-        pedestrian: "Fetching ABM results. May take up to 2 min.",
-        stormwater: "Fetching stormwater results. May take up to 30sec.",
-        multiLayer: "Calculation in progress. May take up to 2 min.",
+        sun: "Fetching sun exposure results.",
+        wind: "Fetching wind-comfort results from Infrared.",
+        noise: "Fetching traffic noise results.",
+        pedestrian: "Fetching ABM results.",
+        stormwater: "Fetching stormwater results.",
+        multiLayer: "Calculation in progress.",
       }
 
       return loaderTexts[this.activeScenarioComponent]
     }
-
 }
 </script>
 

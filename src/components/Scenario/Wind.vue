@@ -67,7 +67,6 @@ export default class WindScenario extends Vue {
           // hide the wind layer, if the user meanwhile has switched to another component 
           if (!this.activeComponentIsWind) {
             hideLayers(this.map, [WindResultLayerConfig.layerConfig.id])
-            alert("Wind is ready")
           }
       })
       .catch((err) => {

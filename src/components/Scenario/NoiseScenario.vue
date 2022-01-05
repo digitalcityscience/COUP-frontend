@@ -112,7 +112,6 @@ export default {
           this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
           if (!this.activeComponentIsNoise) {
             hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id])
-            alert("Noise is ready")
           }
         })
         .catch((err) => {
