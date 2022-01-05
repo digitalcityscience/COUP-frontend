@@ -21,8 +21,6 @@ import ScenarioComponentNames from '@/config/scenarioComponentNames';
 export default class WindScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   activeDivision = null;
-  errMsg = "";
-  
   scenarioConfiguration: WindScenarioConfiguration | null = null;
 
 
@@ -50,6 +48,10 @@ export default class WindScenario extends Vue {
     this.$store.dispatch("wind/triggerCalculation")
       .then(() => { 
         this.waitForResults() 
+      })
+      .catch(() => {
+          // fail
+          this.errMsg = "Failed to trigger calculation. Try again.";
       })
   }
     
@@ -105,15 +107,10 @@ export default class WindScenario extends Vue {
       this.$store.commit("wind/addSavedScenarioConfiguration", this.scenarioConfiguration)
     }
   }
-  
 
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
   get map(): MapboxMap {
     return this.$store.state.map;
-  }
-
-  get activeComponentIsWind(): boolean {
-      return this.$store.state.activeMenuComponent === ScenarioComponentNames.wind;
   }
 
   get savedScenarioConfigurations(): SavedWindScenarioConfiguration[] {
@@ -123,7 +120,7 @@ export default class WindScenario extends Vue {
   get windResult(): WindResult {
     return this.$store.getters["wind/windResult"];
   }
-  
+
   get scenarioConfigurationGlobal(): WindScenarioConfiguration {
     return this.$store.getters["wind/scenarioConfiguration"];
   }
@@ -147,6 +144,14 @@ export default class WindScenario extends Vue {
     );
     loadingStati.wind = loadingState;
     this.$store.commit("scenario/resultLoadingStati", loadingStati);
+  }
+  
+  get errMsg(): string {
+    return this.$store.state.wind.errMsg;
+  }
+
+  set errMsg(msg: string) {
+    this.$store.commit("wind/mutateErrMsg", msg);
   }
 
   /** GETTERS FOR LOCAL VARIABLES */
@@ -188,6 +193,10 @@ export default class WindScenario extends Vue {
         }).length > 0;
 
       return isSaved;
+  }
+
+  get activeComponentIsWind(): boolean {
+      return this.$store.state.activeMenuComponent === ScenarioComponentNames.wind;
   }
 }
 </script>

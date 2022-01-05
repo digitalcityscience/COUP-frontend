@@ -54,6 +54,8 @@ export default class WindStore extends VuexModule {
   
   result: WindResult | null = null;
 
+  errMsg: string = "";
+
   get scenarioConfiguration(): WindScenarioConfiguration {
     return this.scenarioConfig;
   }
@@ -70,6 +72,13 @@ export default class WindStore extends VuexModule {
     return this.result;
   }
 
+  @Mutation
+  mutateErrMsg(
+    msg: string
+  ): void {
+    this.errMsg = msg;
+  }
+  
   @Mutation
   mutateScenarioConfiguration(
     newScenarioConfiguration: WindScenarioConfiguration
