@@ -8,7 +8,8 @@ const initialResultLoadingStati: DataLoadingStati = {
   wind: false,
   multiLayer: false,
   stormwater: false,
-  noise: false
+  noise: false,
+  map: false
 };
 
 
