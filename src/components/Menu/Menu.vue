@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import StormwaterScenario from "@/components/Scenario/StormwaterScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
@@ -6,6 +6,7 @@ import SunExposureScenario from "@/components/Scenario/SunExposure.vue";
 import WindScenario from "@/components/Scenario/Wind.vue";
 import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
 import scenarioComponentNames from "@/config/scenarioComponentNames";
+import { DataLoadingStati, ScenarioComponentName } from '@/models';
 
 export default {
   name: "Menu",
@@ -25,7 +26,9 @@ export default {
     return {
       windowWidth: window.innerWidth,
       menuOpen: false,
-      componentNames: {...scenarioComponentNames}
+      componentNames: {...scenarioComponentNames},
+      resultLoadingStati: {},
+      notifyNewResult: {}
     };
   },
   computed: {
@@ -40,9 +43,26 @@ export default {
     showUi() {
       return this.$store.state.scenario.showUi;
     },
+    resultLoadingStatiGlobal(): DataLoadingStati {
+      return this.$store.state.scenario.resultLoadingStati;
+    }
   },
-  watch: {},
-  methods: {},
+
+  watch: {
+    resultLoadingStatiGlobal: {
+      // check if new a pending result has finished loading. 
+      // If so, add a notification for new result for that component
+      handler(newStati: DataLoadingStati){
+            Object.entries(newStati).forEach(([componentName, isLoading]) => {
+              if (!isLoading && this.resultLoadingStati[componentName]) {
+                if (this.activeComponent !== componentName)
+                this.notifyNewResult[componentName] = true;
+              }
+            })
+          this.resultLoadingStati = { ...this.resultLoadingStatiGlobal };
+        }, deep: true
+    }
+  }
 };
 </script>
 
@@ -74,47 +94,68 @@ export default {
           <ul class="component_list">
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === componentNames.pedestrian }"
-              @click="activeComponent = componentNames.pedestrian"
+              v-bind:class="{ 
+                selected: activeComponent === componentNames.pedestrian,
+                waitingForResult: resultLoadingStati.pedestrian,
+                newResultNotification: notifyNewResult.pedestrian
+              }"
+              @click="activeComponent = componentNames.pedestrian, notifyNewResult.pedestrian = false"
             >
               <p>Pedestrians</p>
             </li>
             <li
               class="component_link"
               v-bind:class="{
-                highlight: activeComponent === componentNames.stormwater,
+                selected: activeComponent === componentNames.stormwater,
+                waitingForResult: resultLoadingStati.stormwater,
+                newResultNotification: notifyNewResult.stormwater
               }"
-              @click="activeComponent = componentNames.stormwater"
+              @click="activeComponent = componentNames.stormwater, notifyNewResult.stormwater = false"
             >
               <p>Stormwater</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === componentNames.noise }"
-              @click="activeComponent = componentNames.noise"
+              v-bind:class="{ 
+                selected: activeComponent === componentNames.noise,
+                waitingForResult: resultLoadingStati.noise,
+                newResultNotification: notifyNewResult.noise
+                }"
+              @click="activeComponent = componentNames.noise, notifyNewResult.noise = false"
             >
               <p>Noise</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === componentNames.wind }"
-              @click="activeComponent = componentNames.wind"
+              v-bind:class="{ 
+                selected: activeComponent === componentNames.wind,
+                waitingForResult: resultLoadingStati.wind,
+                newResultNotification: notifyNewResult.wind
+
+                }"
+              @click="activeComponent = componentNames.wind, notifyNewResult.wind = false"
             >
               <p>Wind</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === componentNames.sun }"
-              @click="activeComponent = componentNames.sun"
+              v-bind:class="{
+                selected: activeComponent === componentNames.sun,
+                waitingForResult: resultLoadingStati.sun,
+                newResultNotification: notifyNewResult.sun
+              }"
+              @click="activeComponent = componentNames.sun, notifyNewResult.sun = false"
             >
               <p>Sun</p>
             </li>
             <li
               class="component_link"
               v-bind:class="{
-                highlight: activeComponent === componentNames.multiLayer,
+                selected: activeComponent === componentNames.multiLayer,
+                waitingForResult: resultLoadingStati.multiLayer,
+                newResultNotification: notifyNewResult.multiLayer
               }"
-              @click="activeComponent = componentNames.multiLayer"
+              @click="activeComponent = componentNames.multiLayer, notifyNewResult.multiLayer = false"
             >
               <p>Combine Layers</p>
             </li>
@@ -239,12 +280,37 @@ export default {
           }
         }
 
-        &.highlight {
+        &.selected {
           outline: 1px solid $bright1;
 
           &:after {
             opacity: 0.65;
           }
+        }
+
+        &.waitingForResult {
+          overflow:hidden;
+          background: $reversed;
+          opacity: 0.35;
+          color: $bright1;
+          
+          &:hover {
+              animation:none;
+              -webkit-animation: none;
+          }
+
+          &:after {
+            background:linear-gradient(45deg, white, $darkred);
+            animation:pulse-border 2.5s infinite;
+            -webkit-animation:pulse-border 2.5s infinite;
+          }
+        }
+        
+        &.newResultNotification {
+          overflow:hidden;
+          background:linear-gradient(45deg, white, green);
+          opacity: 0.35;
+          color: $bright1;
         }
       }
     }
