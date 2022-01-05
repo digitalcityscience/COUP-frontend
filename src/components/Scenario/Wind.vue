@@ -108,6 +108,11 @@ export default class WindScenario extends Vue {
     }
   }
 
+  isWindLayerVisible(): boolean {
+    //@ts-ignore
+    return this.map?.getLayer(WindResultLayerConfig.layerConfig.id)?.visibility === "visible";
+  }
+
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
   get map(): MapboxMap {
     return this.$store.state.map;
@@ -340,14 +345,12 @@ export default class WindScenario extends Vue {
             style="font-weight: bold;"
           >Already saved
           </span>
-          <span
+          <span v-if="isWindLayerVisible()"
             class="ml-auto"
             style="font-weight: bold;"
           >
             Showing results for: {{ scenarioConfigurationGlobal.wind_speed }}km/h | {{ scenarioConfigurationGlobal.wind_direction}}°
           </span>
-          
-          
         </v-card-actions>
 
 
