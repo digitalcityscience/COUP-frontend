@@ -27,18 +27,21 @@
                 flat
                 :label="returnPeriodOptions[0].label"
                 dark
+                :disabled="resultLoading"
               />
               <v-radio
                 :value="returnPeriodOptions[1].value"
                 flat
                 :label="returnPeriodOptions[1].label"
                 dark
+                :disabled="resultLoading"
               />
               <v-radio
                 :value="returnPeriodOptions[2].value"
                 flat
                 :label="returnPeriodOptions[2].label"
                 dark
+                :disabled="resultLoading"
               />
             </v-radio-group>
           </div>
@@ -50,12 +53,14 @@
                 flat
                 :label="flowPathOptions[0].label"
                 dark
+                :disabled="resultLoading"
               />
               <v-radio
                 :value="flowPathOptions[1].value"
                 flat
                 :label="flowPathOptions[1].label"
                 dark
+                :disabled="resultLoading"
               />
             </v-radio-group>
           </div>
@@ -67,12 +72,14 @@
                 flat
                 :label="greenRoofOptions[0].label"
                 dark
+                :disabled="resultLoading"
               />
               <v-radio
                 :value="greenRoofOptions[1].value"
                 flat
                 :label="greenRoofOptions[1].label"
                 dark
+                :disabled="resultLoading"
               />
             </v-radio-group>
           </div>
@@ -86,11 +93,6 @@
             Run Scenario
           </v-btn>
         </v-container>
-
-        <v-overlay :value="resultLoading">
-          <div>Loading results</div>
-          <v-progress-linear>...</v-progress-linear>
-        </v-overlay>
       </div>
       <!--component content end -->
     </div>
@@ -164,14 +166,15 @@
 <script lang="ts">
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult, MapboxMap } from "@/models";
-import { StoreStateWithModules } from "@/models";
 import { swLayerName } from "@/services/layers.service";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
+import { StoreStateWithModules } from "@/models";
 import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from "@/services/map.service";
-
+import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 @Component({
+  name: ScenarioComponentNames.stormwater,
   components: { MenuComponentDivision },
 })
 export default class StormwaterScenario extends Vue {
@@ -280,12 +283,20 @@ export default class StormwaterScenario extends Vue {
   }
 
   get resultLoading(): boolean {
-    return this.$store.state.scenario.resultLoading;
+    return this.$store.state.scenario.resultLoadingStati.stormwater;
   }
 
   set resultLoading(loadingState: boolean) {
-    this.$store.commit("scenario/resultLoading", loadingState);
+    let loadingStati = Object.assign(
+      {}, 
+      this.$store.state.scenario.resultLoadingStati
+    );
+    
+    loadingStati.stormwater = loadingState;
+
+    this.$store.commit("scenario/resultLoadingStati", loadingStati);
   }
+
 
   async loadStormwaterMap(): Promise<void> {
     this.resultLoading = true;

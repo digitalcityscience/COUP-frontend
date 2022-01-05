@@ -4,11 +4,14 @@ import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
 import { mapState } from "vuex";
-import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from '@/services/map.service';
+import { hideAllLayersButThese, removeSourceAndItsLayersFromMap, hideLayers } from '@/services/map.service';
+import ScenarioComponentNames from '@/config/scenarioComponentNames';
+import { ScenegraphLayer } from '@deck.gl/mesh-layers';
+import NoiseResultLayerConfig from '@/config/calculationModuleResults/noiseResultLayerConfig';
 
 
 export default {
-  name: "NoiseScenario",
+  name: ScenarioComponentNames.noise,
   components: {
     Legend,
     MenuComponentDivision,
@@ -27,16 +30,32 @@ export default {
   },
   computed: {
      ...mapState(["map"]), // getter only
-    //...mapState('scenario', ['resultLoading']), // getter only
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
       ["noiseMap", "scenario/" + "noiseMap"],
       ["noiseScenario", "scenario/noiseScenario"],
       ["savedNoiseScenarios", "scenario/" + "savedNoiseScenarios"], // todo manage stores
-      ["resultLoading", "scenario/" + "resultLoading"], // todo manage stores
       //['trafficPercent', 'scenario/noiseScenario/' + noiseSettingsNames.trafficPercent],
       //['maxSpeed', 'scenario/noiseScenario/' + noiseSettingsNames.maxSpeed],
     ]),
+    resultLoading: {
+      // getter
+      get: function () {
+      return this.$store.state.scenario.resultLoadingStati.noise
+      },
+      // setter
+      set: function (loadingState) {
+        let loadingStati = Object.assign(
+          {}, 
+          this.$store.state.scenario.resultLoadingStati
+        );
+        loadingStati.noise = loadingState;
+        this.$store.commit("scenario/resultLoadingStati", loadingStati);
+      }
+    },
+    activeComponentIsNoise(): boolean {
+      return this.$store.state.activeMenuComponent === ScenarioComponentNames.noise;
+    },
     componentDivisions(): MenuLink[] {
       return [
         {
@@ -91,6 +110,9 @@ export default {
           this.resultLoading = false;
           this.resultOutdated = this.isResultOutdated();
           this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
+          if (!this.activeComponentIsNoise) {
+            hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id])
+          }
         })
         .catch((err) => {
           this.$store.commit("scenario/noiseMap", false);
@@ -178,6 +200,7 @@ export default {
               max="1"
               dark
               flat
+              :disabled="resultLoading"
             ></v-slider>
           </div>
           <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
@@ -186,8 +209,8 @@ export default {
               In project area
             </header>
             <v-radio-group v-model="maxSpeed">
-              <v-radio :value="30" flat label="30 kmh/h" dark />
-              <v-radio :value="50" flat label="50 kmh/h" dark />
+              <v-radio :value="30" flat label="30 kmh/h" dark :disabled="resultLoading"/>
+              <v-radio :value="50" flat label="50 kmh/h" dark :disabled="resultLoading"/>
             </v-radio-group>
           </div>
           <p v-if="showError" class="warning">{{ errMsg }}</p>
@@ -208,7 +231,7 @@ export default {
             "
             @click="saveNoiseScenario"
             class="confirm_btn"
-            :disabled="resultOutdated || scenarioAlreadySaved"
+            :disabled="resultOutdated || scenarioAlreadySaved || resultLoading"
             :dark="resultOutdated || scenarioAlreadySaved"
           >
             Save
@@ -235,6 +258,7 @@ export default {
                     outlined
                     dark
                     small
+                    :disabled="resultLoading"
                   >
                     <span v-if="scenario.label">
                       {{ scenario.label }}
@@ -249,11 +273,6 @@ export default {
             </v-data-iterator>
           </div>
         </v-container>
-
-        <v-overlay :value="resultLoading">
-          <div>Loading results</div>
-          <v-progress-linear style="margin-top: 50px">...</v-progress-linear>
-        </v-overlay>
       </div>
       <!--component_content end-->
     </div>

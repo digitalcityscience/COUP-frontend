@@ -1,4 +1,16 @@
+import { DataLoadingStati } from '@/models';
 import { bridges, roofAmenitiesOptions } from "@/store/abm";
+
+
+const initialResultLoadingStati: DataLoadingStati = {
+  pedestrian: false,
+  sun: false,
+  wind: false,
+  multiLayer: false,
+  stormwater: false,
+  noise: false
+};
+
 
 export default {
   // ABM
@@ -49,39 +61,11 @@ export default {
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
-  selectedFocusAreas: [],
-  resultLoading: false,
-  loader: true,
-  loaderTxt: "data is loading ... ",
+  selectedFocusAreas: [],  
 
   // Amenities
   amenitiesGeoJson: null,
   amenityStats: {},
-
-  // wind
-  windScenarioHash: "158d2b824886d908440da5c5f6c4dc4f815cdeba", // hash for annual average setting // TODO DELETE?
-  currentWindScenario: {
-    wind_speed: 5,
-    wind_direction: 270,
-  }, // only gets used to create a description string in "Combine Layers" menu so far.
-  savedWindScenarios: [
-    {
-      wind_speed: 5,
-      wind_direction: 270,
-      label: "ANNUAL AVERAGE",
-    },
-    {
-      wind_speed: 25,
-      wind_direction: 270,
-      label: "LIGHT BREEZE",
-    },
-    {
-      wind_speed: 45,
-      wind_direction: 270,
-      label: "STRONG BREEZE",
-    },
-  ],
-  windResultGeoJson: null,
 
   // sun
   sunExposureGeoJson: null,
@@ -98,6 +82,7 @@ export default {
 
   // UI
   selectGraph: "abm",
+  resultLoadingStati: initialResultLoadingStati,
 
   // Stormwater
   rainTime: 0,

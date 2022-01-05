@@ -1,10 +1,12 @@
-<script>
+<script lang="ts">
 import AbmScenario from "@/components/Scenario/AbmScenario.vue";
 import StormwaterScenario from "@/components/Scenario/StormwaterScenario.vue";
 import NoiseScenario from "@/components/Scenario/NoiseScenario.vue";
-import SunExposureResults from "@/components/Scenario/SunExposure.vue";
+import SunExposureScenario from "@/components/Scenario/SunExposure.vue";
 import WindScenario from "@/components/Scenario/Wind.vue";
 import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
+import scenarioComponentNames from "@/config/scenarioComponentNames";
+import { DataLoadingStati, ScenarioComponentName } from '@/models';
 
 export default {
   name: "Menu",
@@ -13,7 +15,7 @@ export default {
     StormwaterScenario,
     NoiseScenario,
     WindScenario,
-    SunExposureResults,
+    SunExposureScenario,
     MultiLayerAnalysis,
   },
   props: {
@@ -24,6 +26,9 @@ export default {
     return {
       windowWidth: window.innerWidth,
       menuOpen: false,
+      componentNames: {...scenarioComponentNames},
+      resultLoadingStati: {},
+      notifyNewResult: {}
     };
   },
   computed: {
@@ -38,9 +43,26 @@ export default {
     showUi() {
       return this.$store.state.scenario.showUi;
     },
+    resultLoadingStatiGlobal(): DataLoadingStati {
+      return this.$store.state.scenario.resultLoadingStati;
+    }
   },
-  watch: {},
-  methods: {},
+
+  watch: {
+    resultLoadingStatiGlobal: {
+      // check if new a pending result has finished loading. 
+      // If so, add a notification for new result for that component
+      handler(newStati: DataLoadingStati){
+            Object.entries(newStati).forEach(([componentName, isLoading]) => {
+              if (!isLoading && this.resultLoadingStati[componentName]) {
+                if (this.activeComponent !== componentName)
+                this.notifyNewResult[componentName] = true;
+              }
+            })
+          this.resultLoadingStati = { ...this.resultLoadingStatiGlobal };
+        }, deep: true
+    }
+  }
 };
 </script>
 
@@ -72,49 +94,68 @@ export default {
           <ul class="component_list">
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'AbmScenario' }"
-              @click="activeComponent = 'AbmScenario'"
+              v-bind:class="{ 
+                selected: activeComponent === componentNames.pedestrian,
+                waitingForResult: resultLoadingStati.pedestrian,
+                newResultNotification: notifyNewResult.pedestrian
+              }"
+              @click="activeComponent = componentNames.pedestrian, notifyNewResult.pedestrian = false"
             >
               <p>Pedestrians</p>
             </li>
             <li
               class="component_link"
               v-bind:class="{
-                highlight: activeComponent === 'StormwaterScenario',
+                selected: activeComponent === componentNames.stormwater,
+                waitingForResult: resultLoadingStati.stormwater,
+                newResultNotification: notifyNewResult.stormwater
               }"
-              @click="activeComponent = 'StormwaterScenario'"
+              @click="activeComponent = componentNames.stormwater, notifyNewResult.stormwater = false"
             >
               <p>Stormwater</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'NoiseScenario' }"
-              @click="activeComponent = 'NoiseScenario'"
+              v-bind:class="{ 
+                selected: activeComponent === componentNames.noise,
+                waitingForResult: resultLoadingStati.noise,
+                newResultNotification: notifyNewResult.noise
+                }"
+              @click="activeComponent = componentNames.noise, notifyNewResult.noise = false"
             >
               <p>Noise</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ highlight: activeComponent === 'WindScenario' }"
-              @click="activeComponent = 'WindScenario'"
+              v-bind:class="{ 
+                selected: activeComponent === componentNames.wind,
+                waitingForResult: resultLoadingStati.wind,
+                newResultNotification: notifyNewResult.wind
+
+                }"
+              @click="activeComponent = componentNames.wind, notifyNewResult.wind = false"
             >
               <p>Wind</p>
             </li>
             <li
               class="component_link"
               v-bind:class="{
-                highlight: activeComponent === 'SunExposureResults',
+                selected: activeComponent === componentNames.sun,
+                waitingForResult: resultLoadingStati.sun,
+                newResultNotification: notifyNewResult.sun
               }"
-              @click="activeComponent = 'SunExposureResults'"
+              @click="activeComponent = componentNames.sun, notifyNewResult.sun = false"
             >
               <p>Sun</p>
             </li>
             <li
               class="component_link"
               v-bind:class="{
-                highlight: activeComponent === 'MultiLayerAnalysis',
+                selected: activeComponent === componentNames.multiLayer,
+                waitingForResult: resultLoadingStati.multiLayer,
+                newResultNotification: notifyNewResult.multiLayer
               }"
-              @click="activeComponent = 'MultiLayerAnalysis'"
+              @click="activeComponent = componentNames.multiLayer, notifyNewResult.multiLayer = false"
             >
               <p>Combine Layers</p>
             </li>
@@ -122,35 +163,35 @@ export default {
         </template>
         <template v-else>
           <select class="mobile_select" v-model="activeComponent">
-            <option value="AbmScenario">Pedestrians</option>
-            <option value="StormwaterScenario">Stormwater</option>
-            <option value="NoiseScenario">Noise</option>
-            <option value="WindScenario">Wind</option>
-            <option value="SunExposureResults">Sun</option>
-            <option value="MultiLayerAnalysis">Combine Layers</option>
+            <option :value="componentNames.pedestrian">Pedestrians</option>
+            <option :value="componentNames.stormwater">Stormwater</option>
+            <option :value="componentNames.noise">Noise</option>
+            <option :value="componentNames.wind">Wind</option>
+            <option :value="componentNames.sun">Sun</option>
+            <option :value="componentNames.multiLayer">Combine Layers</option>
           </select>
         </template>
       </div>
       <div class="body_scope">
-        <div v-if="activeComponent === 'AbmScenario'">
+        <div v-if="activeComponent === componentNames.pedestrian">
           <AbmScenario
             :restrictedAccess="restrictedAccess"
             :context="context"
           />
         </div>
-        <div v-if="activeComponent === 'StormwaterScenario'">
+        <div v-if="activeComponent === componentNames.stormwater">
           <StormwaterScenario />
         </div>
-        <div v-if="activeComponent === 'NoiseScenario'">
+        <div v-if="activeComponent === componentNames.noise">
           <NoiseScenario />
         </div>
-        <div v-if="activeComponent === 'WindScenario'">
+        <div v-if="activeComponent === componentNames.wind">
           <WindScenario />
         </div>
-        <div v-if="activeComponent === 'SunExposureResults'">
-          <SunExposureResults />
+        <div v-if="activeComponent === componentNames.sun">
+          <SunExposureScenario/>
         </div>
-        <div v-if="activeComponent === 'MultiLayerAnalysis'">
+        <div v-if="activeComponent === componentNames.multiLayer">
           <MultiLayerAnalysis />
         </div>
       </div>
@@ -239,12 +280,37 @@ export default {
           }
         }
 
-        &.highlight {
+        &.selected {
           outline: 1px solid $bright1;
 
           &:after {
             opacity: 0.65;
           }
+        }
+
+        &.waitingForResult {
+          overflow:hidden;
+          background: $reversed;
+          opacity: 0.35;
+          color: $bright1;
+          
+          &:hover {
+              animation:none;
+              -webkit-animation: none;
+          }
+
+          &:after {
+            background:linear-gradient(45deg, white, $darkred);
+            animation:pulse-border 2.5s infinite;
+            -webkit-animation:pulse-border 2.5s infinite;
+          }
+        }
+        
+        &.newResultNotification {
+          overflow:hidden;
+          background:linear-gradient(45deg, white, green);
+          opacity: 0.35;
+          color: $bright1;
         }
       }
     }

@@ -2,9 +2,10 @@ import Config from "@/config/config.json";
 import Defaults from "@/defaults";
 import { StoreState, View } from "@/models";
 
+
 const initialState: StoreState = {
   map: null,
-  activeMenuComponent: "AbmScenario",
+  activeMenuComponent: "pedestrian",
   allFeaturesHighlighted: false,
   showLegend: false,
   selectedMultiFeatures: [],

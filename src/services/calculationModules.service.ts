@@ -2,9 +2,10 @@ import axios from "axios";
 import type {
   StormWaterScenarioConfiguration,
   StormWaterResult,
-  CityPyOTask,
+  CalculationTask,
   MapSource,
-  GeoJSON
+  GeoJSON,
+  WindResult,
 } from "@/models";
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
@@ -53,7 +54,7 @@ const config = new ApiEndpoints();
 export async function requestCalculationWind(
   windScenario: GenericObject,
   cityPyoUserId: string
-): Promise<CityPyOTask> {
+): Promise<CalculationTask> {
   console.debug(" requesting calc for windScenario", windScenario);
   return await requestCalculation(
     config.endpointsCalculation.wind,
@@ -94,50 +95,42 @@ export async function requestCalculationStormWater(
 /** gets wind result */
 export async function getResultForWind({
   taskId,
-}: CityPyOTask): Promise<{ complete: boolean; source?: MapSource }> {
-  // TODO make groupTask object
-
-  // first get result for parent task -> returns a groupTask
-  const groupTask = await getResultForSingleTask(
+}: CalculationTask): Promise<WindResult> {
+  // first get result object for parent task -> returns a groupTask
+  const groupTaskResult = await getResultWhenReady(
     config.endpointsResultCollection["wind_single_task"],
     taskId
   );
 
-  // early return
-  if (!groupTask) {
-    return { complete: false };
-  }
-
   // get results for tasks in groupTask
-  const result = await getResultsForWindGroupTask(
+  const result = await getResultWhenReady(
     config.endpointsResultCollection.wind_group_task,
-    groupTask
+    groupTaskResult
   ).then((result) => {
     return result;
   });
 
   // check result validity
-  if (!result["results"]) {
+  if (!result["features"]) {
     console.error("Invalid result", result);
     throw new Error("Did not get a valid result");
   }
 
-  return {
-    complete: result["complete"], //  indicator whether all result tiles have beeen received.
-    source: formatResultAsMapSource("wind", result["results"]),
+  return  {
+    geojson: result
   };
 }
 
 /** gets noise result */
 export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
   // TODO make task object
-  const result = await getResultForSingleTask(
+  const result = await getResultWhenReady(
     config.endpointsResultCollection.noise,
     task["taskId"]
   );
 
   // check result validity
-  if (!result) {
+  if (!result["features"]) {
     console.error("Invalid result", result);
     throw new Error("Did not get a valid result");
   }
@@ -150,7 +143,7 @@ export async function getResultForStormWater(
   task: GenericObject
 ): Promise<StormWaterResult> {
   // TODO make task object
-  const result = await getResultForSingleTask(
+  const result = await getResultWhenReady(
     config.endpointsResultCollection.stormWater,
     task["taskId"]
   );
@@ -162,7 +155,6 @@ export async function getResultForStormWater(
   }
 
   return {
-    complete: true, // stormwater result does not come in parts
     geojson: result["geojson"], // geojson with subcatchments to be shown as map layer
     rainData: result["rain"], // rain data to be shown in time TimeSheet
   };
@@ -171,9 +163,10 @@ export async function getResultForStormWater(
 // triggers stormWater calculation and returns the result uuids of the result
 async function requestCalculation(
   url: string,
-  scenario: GenericObject,
+  scenarioConfig: GenericObject,
   cityPyoUserId: string
 ) {
+  let scenario = Object.assign({}, scenarioConfig);
   scenario["city_pyo_user"] = cityPyoUserId;
   scenario["result_format"] = "geojson"; // mapbox front-end always needs geojson results
   const result_uuid = await makePostRequest(url, scenario);
@@ -181,40 +174,24 @@ async function requestCalculation(
   return result_uuid;
 }
 
-/** gets a result for a task. Retries to get a result until timeout */
-async function getResultForSingleTask(url, taskUuid) {
-  const sleepTime = 5000;
-  const maxTries = 120000 / sleepTime; // give up after 2 min
-
-  let task_succeeded = false;
+/** polls the api for the result until ready */
+async function getResultWhenReady(url, taskUuid) {
+  const initialSleepTime = 1000;
+  const maxTries = 120000 / initialSleepTime;
+  
+  let result_ready = false;
 
   return (async () => {
-    const generator = getResultGenerator(0, maxTries, url, taskUuid);
+    const generator = getResultGenerator(0, maxTries, url, taskUuid, initialSleepTime);
     for await (const response of generator) {
-      task_succeeded = response["taskSucceeded"];
-      if (task_succeeded) {
-        return response["result"];
+      result_ready = response["resultReady"] || response["grouptaskProcessed"]  // TODO rename at endpoint
+      if (result_ready) {
+        return response["result"] || response["results"];  // "results" for group tasks 
       }
     }
     console.error("could not get result for url, uuid", url, taskUuid);
     throw new Error("Could not get result from server");
   })();
-}
-
-/** gets the results of a wind group task */
-async function getResultsForWindGroupTask(url, groupTaskUuid) {
-  const response = await makeGetRequest(url + groupTaskUuid);
-  const resultsComplete = response["grouptaskProcessed"];
-
-  console.log(
-    "wind calculation has this many completed results ",
-    response["tasksCompleted"]
-  );
-
-  return {
-    results: response["results"],
-    complete: resultsComplete,
-  };
 }
 
 async function makePostRequest(requestUrl, scenario) {
@@ -245,7 +222,7 @@ async function makeGetRequest(requestUrl) {
     });
 }
 
-function formatResultAsMapSource(id: string, responseJson): MapSource {
+export function formatResultAsMapSource(id: string, responseJson): MapSource {
   return {
     id: id,
     options: {
@@ -255,9 +232,10 @@ function formatResultAsMapSource(id: string, responseJson): MapSource {
   };
 }
 
-async function* getResultGenerator(start, end, url, taskUuid) {
+async function* getResultGenerator(start, end, url, taskUuid, sleepTime) {
   for (let i = start; i <= end; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, sleepTime));
+    sleepTime = Math.max(sleepTime + 1000, 5000)
     yield await makeGetRequest(url + taskUuid);
   }
 }

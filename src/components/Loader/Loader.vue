@@ -1,35 +1,55 @@
-<script>
+<script lang="ts">
 import { mapState } from "vuex";
+import { Component, Vue } from "vue-property-decorator";
+import { Store } from "vuex";
+import { DataLoadingStati, ScenarioComponentName, StoreStateWithModules } from "@/models";
 
-export default {
-  name: "Contextmenu",
-  components: {},
-  data() {
-    return {
-      loading: this.loader,
-    };
-  },
-  computed: {
-    ...mapState(["allFeaturesHighlighted", "map"]),
-    loader() {
-      return this.$store.state.scenario.loader;
-    },
-    loaderTxt() {
-      return this.$store.state.scenario.loaderTxt;
-    },
-  },
-  watch: {
-    loader(val) {
-      console.log("iam logging", val);
-      this.loading = val;
-    },
-  },
-  methods: {},
-};
+
+@Component({
+  name: "LoaderScreen",
+  components: {}
+})
+
+export default class LoaderScreen extends Vue {
+    $store: Store<StoreStateWithModules>;
+
+    // TODO rename menucomponent to scenarioComponent
+    get activeScenarioComponent(): string {
+    return this.$store.state.activeMenuComponent;
+    }
+
+    get dataLoadingStati(): DataLoadingStati {
+      return this.$store.state.scenario.resultLoadingStati;
+    }
+
+    /** show loader if result data for the current scenario component is loading - or for general/misc data loading */
+    get showLoader(): boolean {
+      return this.dataLoadingStati[this.activeScenarioComponent] || this.dataLoadingStati.map
+    }
+
+    /** looks for which loading status is true and returns associated text */
+    get loaderTxt(): string {
+      if (this.dataLoadingStati.map) {
+        return "....Loading...Please wait.."
+      }
+
+      const loaderTexts: Record<ScenarioComponentName, string> = {
+        sun: "Fetching sun exposure results.",
+        wind: "Fetching wind-comfort results from Infrared.",
+        noise: "Fetching traffic noise results.",
+        pedestrian: "Fetching ABM results.",
+        stormwater: "Fetching stormwater results.",
+        multiLayer: "Calculation in progress.",
+      }
+
+      return loaderTexts[this.activeScenarioComponent]
+    }
+}
 </script>
 
+
 <template>
-  <div id="big_loader" :class="loading ? '' : 'hidden'">
+  <div id="big_loader" :class="showLoader ? '' : 'hidden'">
     <div class="css-loader">
       <div></div>
       <div></div>
@@ -49,7 +69,7 @@ export default {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 3;
+  z-index: 1;
   backdrop-filter: blur(5px) saturate(180%);
   transform: scale(1);
   background: radial-gradient(

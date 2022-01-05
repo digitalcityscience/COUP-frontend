@@ -7,9 +7,11 @@ import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
 import { hideAllLayersButThese } from '@/services/map.service';
+import ScenarioComponentNames from '@/config/scenarioComponentNames';
+
 
 export default {
-  name: "SunExposureResults",
+  name: ScenarioComponentNames.sun,
   components: {
     Legend,
     MenuComponentDivision,
@@ -29,6 +31,22 @@ export default {
     /*...generateStoreGetterSetter([
         ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
       ])*/
+
+    resultLoading: {
+      // getter
+      get: function () {
+      return this.$store.state.scenario.resultLoadingStati.sun
+      },
+      // setter
+      set: function (loadingState) {
+        let loadingStati = Object.assign(
+          {}, 
+          this.$store.state.scenario.resultLoadingStati
+        );
+        loadingStati.sun = loadingState;
+        this.$store.commit("scenario/resultLoadingStati", loadingStati);
+      }
+    },
     componentDivisions(): MenuLink[] {
       return [
         {
@@ -57,9 +75,11 @@ export default {
   },
   methods: {
     async loadResult() {
+      this.resultLoading = true;
       this.$store.dispatch("scenario/addSunExposureLayer").then(() => {
         this.$store.commit("scenario/sunExposureLayer", true);
         this.sunExposureLoaded = true;
+        this.resultLoading = false;
       });
     },
   },
@@ -101,16 +121,12 @@ export default {
               Hours of sunlight per day averaged over a year
             </header>
           </div>
-          <v-btn @click="loadResult()" class="confirm_btn mt-2">
+          <v-btn @click="loadResult()" class="confirm_btn mt-2" :disabled="resultLoading">
             Run Scenario
           </v-btn>
         </v-container>
       </div>
       <!--component_content end-->
-      <v-overlay :value="resultLoading">
-        <div>Loading results</div>
-        <v-progress-linear style="margin-top: 50px">...</v-progress-linear>
-      </v-overlay>
     </div>
     <!--division end-->
 

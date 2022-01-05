@@ -39,6 +39,8 @@ declare global {
     max_speed: number;
   }
 
+  
+
   interface AbmScenarioSettings {
     bridge_hafencity: boolean;
     bridge_veddel: "horizontal" | "diagonal";

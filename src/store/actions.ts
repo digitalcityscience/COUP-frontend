@@ -10,11 +10,7 @@ import { ActionContext } from "vuex";
 export default {
   async createDesignLayers({
     state,
-    commit,
   }: ActionContext<StoreState, StoreState>) { 
-    commit("scenario/loader", true);
-    commit("scenario/loaderTxt", "Creating Design Layers ... ");
-
     const designConfigs = [...BuildingLayerConfigs, LandscapeLayerConfig];
     // iterate over sources in configs
     designConfigs.forEach((config : SourceAndLayerConfig) => {
@@ -26,8 +22,6 @@ export default {
         addSourceAndLayerToMap(config.source, [config.layerConfig], state.map)
       });
     });
-    // finally remove loading screen
-    commit("scenario/loader", false);
   },
   addFocusAreasMapLayer({
     state,

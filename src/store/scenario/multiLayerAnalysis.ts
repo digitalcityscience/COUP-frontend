@@ -238,7 +238,7 @@ const noiseLookup = [45, 50, 55, 60, 65, 70, 75, 80];
 function layerLookup(layerName: string) {
   switch (layerName) {
     case "wind":
-      return store.state.scenario.windResultGeoJson;
+      return store.getters["wind/windResult"].geojson;
     case "sun":
       return store.state.scenario.sunExposureGeoJson;
     case "noise":

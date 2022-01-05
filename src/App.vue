@@ -64,10 +64,6 @@ TimeSheet {
   z-index: 2;
 }
 
-Loader {
-  z-index: 5;
-}
-
 Menu,
 Viewbar {
   z-index: 7;
