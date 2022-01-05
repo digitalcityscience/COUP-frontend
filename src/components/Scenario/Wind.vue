@@ -57,7 +57,6 @@ export default class WindScenario extends Vue {
     
   // is busy until result complete 
   async waitForResults() {
-    // TODO do we need to check if activeComponent is wind? onDestroy?
     this.resultLoading = true;
     this.$store.dispatch("wind/fetchResult")
       .then(() => {
@@ -74,6 +73,8 @@ export default class WindScenario extends Vue {
           this.$store.commit("scenario/windLayer", false); // // this is for the layer menu in the viewba
           removeSourceAndItsLayersFromMap("wind", this.map);
           this.errMsg = err;
+          console.error(err.stack);
+          //debugger;
       })
       .finally(() => {
         this.resultLoading = false;
@@ -186,8 +187,8 @@ export default class WindScenario extends Vue {
         savedScenarios
         .filter((savedScen: SavedWindScenarioConfiguration) => {
           return (
-            savedScen.wind_speed === this.scenarioConfiguration.wind_speed
-            && savedScen.wind_direction === this.scenarioConfiguration.wind_direction
+            savedScen.wind_speed === this.scenarioConfigurationGlobal.wind_speed
+            && savedScen.wind_direction === this.scenarioConfigurationGlobal.wind_direction
           );
         }).length > 0;
 
@@ -318,6 +319,8 @@ export default class WindScenario extends Vue {
           >
             RUN SCENARIO
           </v-btn>
+          
+        <v-card-actions class="d-flex flex-column">
           <v-btn
             style="
               margin-top: 1vh;
@@ -326,12 +329,27 @@ export default class WindScenario extends Vue {
               max-width: 30px;
             "
             @click="saveWindScenario"
-            class="confirm_btn"
+            class="confirm_btn ml-auto"
             :disabled="isFormDirty || isScenarioAlreadySaved || resultLoading"
-            :dark="isFormDirty || isScenarioAlreadySaved"
-          >
-            Save
+            :dark="isScenarioAlreadySaved"
+          >         
+          SAVE
           </v-btn>
+          <span v-if="isScenarioAlreadySaved"
+            class="ml-auto"
+            style="font-weight: bold;"
+          >Already saved
+          </span>
+          <span
+            class="ml-auto"
+            style="font-weight: bold;"
+          >
+            Showing results for: {{ scenarioConfigurationGlobal.wind_speed }}km/h | {{ scenarioConfigurationGlobal.wind_direction}}°
+          </span>
+          
+          
+        </v-card-actions>
+
 
           <!--saved scenarios -->
           <div class="saved_scenarios" style="margin-top: 5vh">
@@ -343,22 +361,29 @@ export default class WindScenario extends Vue {
               <template v-slot:default="{ items }">
                 {{/* Use the items to iterate */}}
                 <v-flex v-for="(scenario, index) in items" :key="index">
-                  <v-btn
-                    style="margin: 1vh auto"
-                    @click="loadSavedScenario(scenario)"
-                    outlined
-                    dark
-                    small
-                    :disabled="resultLoading"
-                  >
-                    <span v-if="scenario.label">
-                      {{ scenario.label }}
-                    </span>
-                    <span v-if="!scenario.label">
-                      Direction: {{ scenario.wind_direction }} | Speed:
-                      {{ scenario.wind_speed }}
-                    </span>
-                  </v-btn>
+                <v-tooltip left>
+                    <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      style="margin: 1vh auto"
+                      @click="loadSavedScenario(scenario)"
+                      outlined
+                      dark
+                      small
+                      :disabled="resultLoading"
+                      v-bind="attrs"
+                      v-on="on"
+                      >
+                        <span v-if="scenario.label">
+                          {{ scenario.label }}
+                        </span>
+                        <span v-if="!scenario.label">
+                          Direction: {{ scenario.wind_direction }} | Speed:
+                          {{ scenario.wind_speed }}
+                        </span>
+                      </v-btn>
+                    </template>
+                    <span>{{ scenario.wind_speed }}km/h | {{ scenario.wind_direction}}°</span>
+                </v-tooltip>
                 </v-flex>
               </template>
             </v-data-iterator>

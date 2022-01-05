@@ -96,8 +96,6 @@ export async function requestCalculationStormWater(
 export async function getResultForWind({
   taskId,
 }: CalculationTask): Promise<WindResult> {
-  // TODO make groupTask object
-
   // first get result object for parent task -> returns a groupTask
   const groupTaskResult = await getResultWhenReady(
     config.endpointsResultCollection["wind_single_task"],
