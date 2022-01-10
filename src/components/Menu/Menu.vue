@@ -97,7 +97,7 @@ export default {
               v-bind:class="{ 
                 selected: activeComponent === componentNames.pedestrian,
                 waitingForResult: resultLoadingStati.pedestrian,
-                newResultNotification: notifyNewResult.pedestrian
+                //newResultNotification: notifyNewResult.pedestrian
               }"
               @click="activeComponent = componentNames.pedestrian, notifyNewResult.pedestrian = false"
             >
@@ -108,7 +108,7 @@ export default {
               v-bind:class="{
                 selected: activeComponent === componentNames.stormwater,
                 waitingForResult: resultLoadingStati.stormwater,
-                newResultNotification: notifyNewResult.stormwater
+                //newResultNotification: notifyNewResult.stormwater
               }"
               @click="activeComponent = componentNames.stormwater, notifyNewResult.stormwater = false"
             >
@@ -119,7 +119,7 @@ export default {
               v-bind:class="{ 
                 selected: activeComponent === componentNames.noise,
                 waitingForResult: resultLoadingStati.noise,
-                newResultNotification: notifyNewResult.noise
+                //newResultNotification: notifyNewResult.noise
                 }"
               @click="activeComponent = componentNames.noise, notifyNewResult.noise = false"
             >
@@ -130,7 +130,7 @@ export default {
               v-bind:class="{ 
                 selected: activeComponent === componentNames.wind,
                 waitingForResult: resultLoadingStati.wind,
-                newResultNotification: notifyNewResult.wind
+                //newResultNotification: notifyNewResult.wind
 
                 }"
               @click="activeComponent = componentNames.wind, notifyNewResult.wind = false"
@@ -142,7 +142,7 @@ export default {
               v-bind:class="{
                 selected: activeComponent === componentNames.sun,
                 waitingForResult: resultLoadingStati.sun,
-                newResultNotification: notifyNewResult.sun
+                //newResultNotification: notifyNewResult.sun
               }"
               @click="activeComponent = componentNames.sun, notifyNewResult.sun = false"
             >
@@ -153,7 +153,7 @@ export default {
               v-bind:class="{
                 selected: activeComponent === componentNames.multiLayer,
                 waitingForResult: resultLoadingStati.multiLayer,
-                newResultNotification: notifyNewResult.multiLayer
+                //newResultNotification: notifyNewResult.multiLayer
               }"
               @click="activeComponent = componentNames.multiLayer, notifyNewResult.multiLayer = false"
             >
