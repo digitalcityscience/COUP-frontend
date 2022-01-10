@@ -31,6 +31,7 @@ export default class TimeSheet extends Vue {
   loopSetter = false;
   windowWidth = window.innerWidth;
   showGraph = true;
+  hasAbmResult= false;
 
   triggerAnimation(): void {
     /*functionality for play button*/
@@ -61,6 +62,8 @@ export default class TimeSheet extends Vue {
       this.timeCoords.push(coords.length);
     });
 
+
+    this.hasAbmResult = true;
     this.renderTimeGraph();
   }
 
@@ -235,13 +238,12 @@ export default class TimeSheet extends Vue {
     }"
   >
     <span
-      :hidden="selectGraph !== 'abm'"
+      :hidden="selectGraph !== 'abm' || !hasAbmResult"
       :class="{ dismiss: selectGraph !== 'abm' }"
     >
       <div
         class="time_panel panel"
         :class="{
-          show: showGraph,
           dismiss: selectGraph !== 'abm' || !showGraph,
         }"
       >
