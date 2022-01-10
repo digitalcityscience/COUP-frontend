@@ -6,7 +6,7 @@ import hash from "object-hash";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
-import { hideAllLayersButThese } from '@/services/map.service';
+import { hideAllLayersButThese, hideLayers } from '@/services/map.service';
 import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 
@@ -31,7 +31,11 @@ export default {
     /*...generateStoreGetterSetter([
         ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
       ])*/
-
+    isSunExposureActiveComponent: {
+        get: function () {
+          return this.$store.state.activeMenuComponent === ScenarioComponentNames.sun;
+          } 
+    },
     resultLoading: {
       // getter
       get: function () {
@@ -80,6 +84,9 @@ export default {
         this.$store.commit("scenario/sunExposureLayer", true);
         this.sunExposureLoaded = true;
         this.resultLoading = false;
+        if (!this.isSunExposureActiveComponent)
+        hideLayers(this.map, ["sun_exposure"]);
+
       });
     },
   },

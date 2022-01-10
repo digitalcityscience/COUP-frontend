@@ -170,7 +170,7 @@ import { swLayerName } from "@/services/layers.service";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 import { StoreStateWithModules } from "@/models";
-import { hideAllLayersButThese, removeSourceAndItsLayersFromMap } from "@/services/map.service";
+import { hideAllLayersButThese, hideLayers, removeSourceAndItsLayersFromMap } from "@/services/map.service";
 import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 @Component({
@@ -269,6 +269,10 @@ export default class StormwaterScenario extends Vue {
     return this.$store.state.map;
   }
 
+  get isStormwaterActiveComponent(): boolean {
+    return this.$store.state.activeMenuComponent === ScenarioComponentNames.stormwater;
+  }
+
   get scenarioConfigurationGlobal(): StormWaterScenarioConfiguration {
     return this.$store.getters["stormwater/scenarioConfiguration"];
   }
@@ -306,7 +310,12 @@ export default class StormwaterScenario extends Vue {
       .dispatch("stormwater/updateStormWaterResult")
         .then(() => {
           // success
-          this.$store.dispatch("scenario/updateStormWaterLayer");
+          this.$store.dispatch("scenario/updateStormWaterLayer")
+            .then(() => {
+              if (!this.isStormwaterActiveComponent) {
+                hideLayers(this.map, [swLayerName])
+              }
+            });
           // update time graph
           this.$store.commit("scenario/rerenderSwGraph", true);
           this.resultLoading = false;

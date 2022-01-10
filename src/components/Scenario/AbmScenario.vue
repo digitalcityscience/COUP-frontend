@@ -15,7 +15,7 @@ import { abmLayerIds } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
-import { hideAllResultLayers } from '@/services/map.service';
+import { hideAllLayersButThese, hideAllResultLayers, hideLayers } from '@/services/map.service';
 import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 export default {
@@ -131,6 +131,11 @@ export default {
         this.$store.commit("scenario/resultLoadingStati", loadingStati);
       }
     },
+    isPedestrianActiveComponent: {
+     get: function () {
+      return this.$store.state.activeMenuComponent === ScenarioComponentNames.pedestrian;
+      } 
+    }
   },
   watch: {
     resultsOutdated(newVal, oldVal) {
@@ -168,7 +173,7 @@ export default {
   },
   mounted: function () {
     // hide all other layers
-    hideAllResultLayers(this.map);
+    hideAllLayersButThese(this.map, ["abmHeat", "abmTrips", "abmAmenities"])
     // switch time graph to ABM
     this.$store.commit("scenario/selectGraph", "abm");
     console.warn("context??", this.context);
@@ -184,7 +189,12 @@ export default {
       this.resultLoading = true;
       this.$store.commit("scenario/activeAbmSet", null);
       this.$store.dispatch("scenario/updateAbmDesignScenario")
-        .then(() => { this.resultLoading = false; });
+        .then(() => { 
+          this.resultLoading = false;
+          if (!this.isPedestrianActiveComponent) {
+            hideLayers(this.map, ["abmHeat", "abmTrips", "abmAmenities"])
+          }
+        });
     },
     changeHeatMapData() {
       if (this.adjustRange[0] > 8 || this.adjustRange[1] < 23) {
