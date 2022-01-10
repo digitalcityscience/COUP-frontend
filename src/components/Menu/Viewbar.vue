@@ -32,11 +32,6 @@ export default class Viewbar extends Vue {
   brightness = 1;
   legendVisible = false;
 
-  @Watch("wind")
-  onWind(newVal) {
-    this.visibleLayers.wind = newVal;
-  }
-
   @Watch("focusAreasShown")
   onFocusAreasShown(newVal) {
     this.visibleLayers.focusAreas = newVal;
@@ -90,10 +85,6 @@ export default class Viewbar extends Vue {
 
   get layerIds(): string[] {
     return this.$store.getters.layerIds;
-  }
-
-  get wind() {
-    return this.$store.state.scenario.windLayer;
   }
 
   /** TODO completely unused ??
