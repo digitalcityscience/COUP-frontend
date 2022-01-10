@@ -108,10 +108,9 @@ export default class WindScenario extends Vue {
     }
   }
 
-  isWindLayerVisible(): boolean {
-    //@ts-ignore
-    return this.map?.getLayer(WindResultLayerConfig.layerConfig.id)?.visibility === "visible";
-  }
+  get hasWindResult(): boolean {
+    return this.$store.getters["wind/hasWindResult"];
+    }
 
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
   get map(): MapboxMap {
@@ -335,17 +334,17 @@ export default class WindScenario extends Vue {
             "
             @click="saveWindScenario"
             class="confirm_btn ml-auto"
-            :disabled="isFormDirty || isScenarioAlreadySaved || resultLoading"
+            :disabled="isFormDirty || isScenarioAlreadySaved || resultLoading || !hasWindResult"
             :dark="isScenarioAlreadySaved"
           >         
           SAVE
           </v-btn>
-          <span v-if="isScenarioAlreadySaved"
+          <span v-if="isScenarioAlreadySaved && hasWindResult"
             class="ml-auto"
             style="font-weight: bold;"
-          >Already saved
+          >Scenario already saved
           </span>
-          <span v-if="isWindLayerVisible()"
+          <span v-if="hasWindResult"
             class="ml-auto"
             style="font-weight: bold;"
           >

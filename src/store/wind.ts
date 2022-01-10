@@ -7,13 +7,11 @@ import type {
 import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
 import {
-  Action,
   Module,
   Mutation,
   MutationAction,
   VuexModule,
 } from "vuex-module-decorators";
-import WindLayer from "@/config/calculationModuleResults/windResultLayerConfig";
 
 
 export const defaultWindConfiguration: WindScenarioConfiguration = {
@@ -70,6 +68,11 @@ export default class WindStore extends VuexModule {
   
   get windResult(): WindResult {
     return this.result;
+  }
+
+  // somehow we cannot directly check this on the component, as 
+  get hasWindResult(): boolean {
+    return this.windResult !== null;
   }
 
   @Mutation
