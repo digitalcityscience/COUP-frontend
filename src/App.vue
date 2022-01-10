@@ -20,6 +20,7 @@ import LogosAIT from "./components/Scenario/LogosAIT.vue";
 import Loader from "./components/Loader/Loader.vue";
 import type { StoreState } from "@/models";
 import type { Store } from "vuex";
+import ScenarioComponentNames from "./config/scenarioComponentNames";
 
 @Component({
   components: {
@@ -44,7 +45,10 @@ export default class App extends Vue {
   }
 
   get showTimeSheet(): boolean {
-    return ["AbmScenario", "StormwaterScenario"].includes(this.activeComponent);
+    return (
+      this.activeComponent === ScenarioComponentNames.pedestrian 
+      || this.activeComponent === ScenarioComponentNames.stormwater
+    )
   }
 }
 </script>
