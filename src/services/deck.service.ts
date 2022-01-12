@@ -1,6 +1,7 @@
 import { PolygonLayer } from "@deck.gl/layers";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 import { GeoJSON } from "@/models";
+// @ts-ignore
 import { MapboxLayerProps } from "@deck.gl/mapbox/mapbox-layer";
 export interface FeatureCollection {
   features: GeoJSON[];
