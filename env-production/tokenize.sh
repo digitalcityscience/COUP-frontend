@@ -2,7 +2,7 @@
 
 set -e
 
-envs=($(grep -oPe "process\.env\.\K[A-Z_]+" $(pwd)/src/config.js|sort|uniq))
+envs=($(grep -oPe "process\.env\.\K[A-Z_]+" $(pwd)/env-production/env-variables.ts|sort|uniq))
 
 for item in ${envs[*]}
 do
