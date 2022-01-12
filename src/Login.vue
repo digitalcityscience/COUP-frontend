@@ -30,6 +30,7 @@ export default {
     };
   },
   mounted() {
+    // auto login with default user
     if (process.env.NODE_ENV === "development") {
       this.form.username = CityPyoDefaultUser.username;
       this.form.password = CityPyoDefaultUser.password;
