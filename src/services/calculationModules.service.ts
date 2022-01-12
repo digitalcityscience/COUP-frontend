@@ -11,6 +11,12 @@ import type {
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
 export default class ApiEndpoints {
   apiURL: string;
+  
+  auth: {
+    username: string;
+    password: string;
+  };
+
   endpointsCalculation: {
     wind: string;
     noise: string;
@@ -26,6 +32,11 @@ export default class ApiEndpoints {
   constructor() {
     // base url api
     this.apiURL = process.env.VUE_APP_CALCULATIONS_API_URL;
+
+    this.auth = {
+      username: process.env.VUE_APP_CALCULATIONS_API_USER,
+      password: process.env.VUE_APP_CALCULATIONS_API_PW
+    }
 
     // endpoints to request calculation
     this.endpointsCalculation = {
@@ -197,22 +208,24 @@ async function getResultWhenReady(url, taskUuid) {
 async function makePostRequest(requestUrl, scenario) {
   console.log("performing request with scneario ", scenario);
 
+  
+
   const response = await axios
-    .post(requestUrl, scenario)
-    .then((res) => {
-      return res.data;
-    })
-    .catch((error) => {
-      console.error("Error when posting calculation request", error);
-      throw new Error("Could not post calculation request");
-    });
+    .post(requestUrl, scenario, {auth: config.auth})
+      .then((res) => {
+        return res.data;
+      })
+      .catch((error) => {
+        console.error("Error when posting calculation request", error);
+        throw new Error("Could not post calculation request");
+      });
 
   return response;
 }
 
 async function makeGetRequest(requestUrl) {
   return await axios
-    .get(requestUrl)
+    .get(requestUrl, {auth: config.auth})
     .then((res) => {
       return res.data;
     })
