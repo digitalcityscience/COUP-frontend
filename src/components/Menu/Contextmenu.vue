@@ -99,6 +99,7 @@ export default {
 
       return headlines[layerName];
     },
+
     gatherModalInfo() {
       this.modalInfo = {
         objectType: "",
@@ -116,7 +117,7 @@ export default {
               turf.polygon(feature.geometry.coordinates)
             ).geometry.coordinates;
             this.modalInfo["generalContent"].push({
-              "building ID": feature.properties["building_id"],
+              "Building ID": feature.properties["building_id"],
             });
             this.addBuildingFloorInfo(feature);
             break;
@@ -127,7 +128,7 @@ export default {
           case "upperfloor":
             this.addBuildingFloorInfo(feature);
             this.modalInfo["generalContent"].push({
-              "building height":
+              "Building Height":
                 feature.properties["building_height"].toString() + "m",
             });
             break;
@@ -135,25 +136,26 @@ export default {
       });
     },
     addBuildingFloorInfo(feature, floorType) {
-      console.warn("suggested use detail ", feature.properties);
-
       this.modalInfo["detailContent"][feature.layer.id] = [
-        { use: feature.properties.land_use_detailed_type },
-        { "suggested use detail": feature.properties["land_use_suggested"] },
-        {
-          "floor area":
-            Math.round(feature.properties["floor_area"]).toString() + "m²",
-        },
-      ];
+        { "Use": feature.properties.land_use_detailed_type },
+        { "Suggested Use Detail": feature.properties["land_use_suggested"] }
+        ];
+
+        if (feature.layer.id === "groundfloor") {
+          this.modalInfo["detailContent"][feature.layer.id].push({
+            "Gross Floor Area":
+              Math.round(feature.properties["floor_area"]).toString() + "m²",
+          })
+        }
 
       if (feature.layer.id === "upperfloor") {
         const upperFloorsCount = feature.properties["number_of_stories"] - 1;
         // if upperfloors count is specified, provide more info
         if (upperFloorsCount) {
           this.modalInfo["detailContent"][feature.layer.id].push(
-            { "upper floors count (excl. groundfloor)": upperFloorsCount },
+            { "Upper Floors Count": upperFloorsCount },
             {
-              "total floor area upperfloors":
+              "Gross Floor Area":
                 Math.floor(
                   upperFloorsCount * feature.properties["floor_area"]
                 ) + "m²",
@@ -299,7 +301,7 @@ export default {
     <div class="wrapper">
       <div class="ctx_bar">
         <v-icon size="18px">mdi-city</v-icon>
-        <p>{{ modalInfo.objectType }} - {{ objectId }}</p>
+        <p>{{ modalInfo.objectType.toUpperCase() }} - {{ objectId }}</p>
         <div class="close_btn" @click="$emit('close')">
           <v-icon>mdi-close</v-icon>
         </div>
