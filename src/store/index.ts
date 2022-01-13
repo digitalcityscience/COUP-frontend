@@ -12,6 +12,7 @@ import {
 } from "./utils/generators";
 import stormwater from "./stormwater";
 import wind from "./wind";
+import noise from "./noise";
 
 Vue.use(Vuex);
 
@@ -19,7 +20,8 @@ const store = new Vuex.Store({
   modules: {
     scenario,
     stormwater,
-    wind
+    wind, 
+    noise
   },
   state,
   getters: {

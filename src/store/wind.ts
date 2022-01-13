@@ -38,8 +38,6 @@ export const defaultWindScenarioConfigs: SavedWindScenarioConfiguration[] = [
 ];
 
 
-// TODO can we avoid duplicate code here? 
-// @DOBO, I tried interface as you know them from not-javascript. but the concept doesnt seem to be the same.
 @Module({ namespaced: true })
 export default class WindStore extends VuexModule {
   scenarioConfig: WindScenarioConfiguration = {

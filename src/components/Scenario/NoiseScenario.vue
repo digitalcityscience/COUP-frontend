@@ -1,63 +1,163 @@
 <script lang="ts">
-import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
+import { Component, Vue } from "vue-property-decorator";
+import { mapState, Store } from "vuex";
+import { MapboxMap, SavedNoiseScenarioConfiguration, StoreStateWithModules } from "@/models";
+import type { MenuLink, NoiseScenarioConfiguration, NoiseResult, GeoJSON } from "@/models";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import type { MenuLink } from "@/models";
-import { mapState } from "vuex";
-import { hideAllLayersButThese, removeSourceAndItsLayersFromMap, hideLayers } from '@/services/map.service';
+import LoaderScreen from "@/components/Loader/Loader.vue";
+import DashboardCharts from "./DashboardCharts.vue";
 import ScenarioComponentNames from '@/config/scenarioComponentNames';
-import { ScenegraphLayer } from '@deck.gl/mesh-layers';
 import NoiseResultLayerConfig from '@/config/calculationModuleResults/noiseResultLayerConfig';
+import { hideAllLayersButThese, removeSourceAndItsLayersFromMap, hideLayers, addSourceAndLayerToMap } from '@/services/map.service';
 
-
-export default {
+@Component({
   name: ScenarioComponentNames.noise,
-  components: {
-    Legend,
-    MenuComponentDivision,
-  },
-  data() {
-    return {
-      activeDivision: null,
-      trafficPercent_labels: ["0%", "25%", "50%", "75%", "100%"],
-      trafficPercent: 1,
-      maxSpeed: 50,
-      resultOutdated: true,
-      showError: false,
-      errMsg: "",
-      scenarioAlreadySaved: false,
-    };
-  },
-  computed: {
-     ...mapState(["map"]), // getter only
-    // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
-    ...generateStoreGetterSetter([
-      ["noiseMap", "scenario/" + "noiseMap"],
-      ["noiseScenario", "scenario/noiseScenario"],
-      ["savedNoiseScenarios", "scenario/" + "savedNoiseScenarios"], // todo manage stores
-      //['trafficPercent', 'scenario/noiseScenario/' + noiseSettingsNames.trafficPercent],
-      //['maxSpeed', 'scenario/noiseScenario/' + noiseSettingsNames.maxSpeed],
-    ]),
-    resultLoading: {
-      // getter
-      get: function () {
-      return this.$store.state.scenario.resultLoadingStati.noise
-      },
-      // setter
-      set: function (loadingState) {
-        let loadingStati = Object.assign(
-          {}, 
-          this.$store.state.scenario.resultLoadingStati
-        );
-        loadingStati.noise = loadingState;
-        this.$store.commit("scenario/resultLoadingStati", loadingStati);
-      }
-    },
-    activeComponentIsNoise(): boolean {
-      return this.$store.state.activeMenuComponent === ScenarioComponentNames.noise;
-    },
-    componentDivisions(): MenuLink[] {
-      return [
+  components: { MenuComponentDivision, LoaderScreen, DashboardCharts }
+})
+
+export default class NoiseScenario extends Vue {
+  $store: Store<StoreStateWithModules>;
+  activeDivision = null;
+  scenarioConfiguration: NoiseScenarioConfiguration | null = null;
+
+  /** LIFE CYCLE   */
+  mounted(): void {
+    this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
+    // hide all other layers
+    hideAllLayersButThese(this.map, ["noise", "trafficCounts"]);
+  }
+
+  /** METHODS */
+  runScenario(): void {
+    // update noise scenario in store
+    this.scenarioConfigurationGlobal = Object.assign(
+      {},
+      this.scenarioConfiguration
+    );
+    this.calculateNoiseResult()
+  }
+
+  async calculateNoiseResult() {
+    this.errMsg = "";
+    this.$store.commit("noise/resetResult");
+    this.$store.dispatch("noise/triggerCalculation")
+      .then(() => { 
+        this.waitForResults() 
+      })
+      .catch(() => {
+          // fail
+          this.errMsg = "Failed to trigger calculation. Try again.";
+      })
+  }
+
+  // is busy until result complete 
+  async waitForResults() {
+    this.resultLoading = true;
+    this.$store.dispatch("noise/fetchResult")
+      .then(() => {
+        // success
+          this.$store.commit("scenario/noiseLayer", true); // this is for the layer menu in the viewbar
+          this.addResultToMap(this.noiseResult.geojson)
+          // hide the noise layer, if the user meanwhile has switched to another component 
+          if (!this.activeComponentIsNoise) {
+            hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id])
+          }
+      })
+      .catch((err) => {
+          // fail
+          this.$store.commit("scenario/noiseLayer", false); // // this is for the layer menu in the viewba
+          removeSourceAndItsLayersFromMap("noise", this.map);
+          // TODO what about traffic infos
+          this.errMsg = err;
+          console.error(err.stack);
+          //debugger;
+      })
+      .finally(() => {
+        this.resultLoading = false;
+      })
+  }
+
+  addResultToMap(resultGeoJSON: GeoJSON): void {
+    // delete old mapSource from map
+    removeSourceAndItsLayersFromMap(NoiseResultLayerConfig.source.id, this.map);
+    // add result data to map source
+    NoiseResultLayerConfig.source.options.data = resultGeoJSON;
+    // add new source and layer to map
+    addSourceAndLayerToMap(
+      NoiseResultLayerConfig.source,
+      [NoiseResultLayerConfig.layerConfig],
+      this.map
+    )
+  }     
+    
+  loadSavedScenario(savedScenario: SavedNoiseScenarioConfiguration): void {
+    this.scenarioConfiguration.max_speed = savedScenario.max_speed;
+    this.scenarioConfiguration.traffic_percentage = savedScenario.traffic_percentage;
+    
+    this.runScenario()
+  }
+
+  saveNoiseScenario() {
+    if (!this.isScenarioAlreadySaved) {
+      // add current scenario to saved scenarios
+      this.$store.commit("noise/addSavedScenarioConfiguration", this.scenarioConfiguration)
+    }
+  }
+
+  get hasNoiseResult(): boolean {
+    return this.$store.getters["noise/hasNoiseResult"];
+    }
+
+  /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
+  get map(): MapboxMap {
+    return this.$store.state.map;
+  }
+
+  get savedScenarioConfigurations(): SavedNoiseScenarioConfiguration[] {
+    return this.$store.getters["noise/savedScenarioConfigurations"];
+  }
+  
+  get noiseResult(): NoiseResult {
+    return this.$store.getters["noise/noiseResult"];
+  }
+
+  get scenarioConfigurationGlobal(): NoiseScenarioConfiguration {
+    return this.$store.getters["noise/scenarioConfiguration"];
+  }
+  set scenarioConfigurationGlobal(
+    newScenarioConfiguration: NoiseScenarioConfiguration
+  ) {
+    this.$store.commit(
+      "noise/mutateScenarioConfiguration",
+      newScenarioConfiguration
+    );
+  }
+
+  get resultLoading(): boolean {
+    return this.$store.state.scenario.resultLoadingStati.noise;
+  }
+
+  set resultLoading(loadingState: boolean) {
+    let loadingStati = Object.assign(
+      {}, 
+      this.$store.state.scenario.resultLoadingStati
+    );
+    loadingStati.noise = loadingState;
+    this.$store.commit("scenario/resultLoadingStati", loadingStati);
+  }
+  
+  get errMsg(): string {
+    return this.$store.state.noise.errMsg;
+  }
+
+  set errMsg(msg: string) {
+    this.$store.commit("noise/mutateErrMsg", msg);
+  }
+
+  /** GETTERS FOR LOCAL VARIABLES */
+  get componentDivisions(): MenuLink[] {
+    return [
         {
           title: "Scenario",
           icon: "mdi-map-marker-radius",
@@ -75,87 +175,33 @@ export default {
           hidden: false,
         },
       ];
-    },
-  },
-  watch: {
-    maxSpeed(newVal, old) {
-      this.resultOutdated = this.isResultOutdated();
-      this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
-    },
-    trafficPercent(newVal, old) {
-      this.resultOutdated = this.isResultOutdated();
-      this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
-    },
-  },
-  mounted: function () {
-    // hide all other layers
-    hideAllLayersButThese(this.map, ["noise", "trafficCounts"]);
-  },
-  methods: {
-    isResultOutdated() {
-      return (
-        this.trafficPercent !== this.noiseScenario["traffic_quota"] ||
-        this.maxSpeed !== this.noiseScenario["max_speed"]
-      );
-    },
-    async loadNoiseMap() {
-      this.resultLoading = true;
-      removeSourceAndItsLayersFromMap("noise", this.map)
-      this.$store.commit("scenario/currentNoiseGeoJson", null);
-      this.$store
-        .dispatch("scenario/updateNoiseScenario", this.noiseScenario)
-        .then(() => {
-          // success
-          this.$store.commit("scenario/noiseMap", true);
-          this.resultLoading = false;
-          this.resultOutdated = this.isResultOutdated();
-          this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
-          if (!this.activeComponentIsNoise) {
-            hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id])
-          }
-        })
-        .catch((err) => {
-          this.$store.commit("scenario/noiseMap", false);
-          this.resultLoading = false;
-          this.showError = true;
-          this.errMsg = err;
-        });
-    },
-    loadNoiseResults() {
-      this.$store.commit("scenario/noiseScenario", {
-        traffic_quota: this.trafficPercent,
-        max_speed: this.maxSpeed,
-      });
-      this.loadNoiseMap();
-    },
-    loadSavedScenario(savedScenario) {
-      this.trafficPercent = savedScenario["traffic_quota"];
-      this.maxSpeed = savedScenario["max_speed"];
-      this.loadNoiseResults();
-    },
-    saveNoiseScenario() {
-      console.log("saved scenarios", this.savedNoiseScenarios);
-      if (!this.scenarioAlreadySaved) {
-        // add current scenario to saved scenarios
-        this.savedNoiseScenarios.push(this.noiseScenario);
-      }
-      // update scenarioAlreadySaved variable
-      this.scenarioAlreadySaved = this.isScenarioAlreadySaved();
-      console.log(this.savedNoiseScenarios);
-    },
-    isScenarioAlreadySaved() {
+  }
+
+  get isFormDirty(): boolean {
+    return (
+      JSON.stringify(this.scenarioConfiguration) !==
+      JSON.stringify(this.scenarioConfigurationGlobal)
+    );
+  }
+
+  get isScenarioAlreadySaved() {
+      const savedScenarios = this.savedScenarioConfigurations;
       const isSaved =
-        this.savedNoiseScenarios.filter((savedScen) => {
+        savedScenarios
+        .filter((savedScen: SavedNoiseScenarioConfiguration) => {
           return (
-            JSON.stringify(savedScen) === JSON.stringify(this.noiseScenario)
+            savedScen.max_speed === this.scenarioConfigurationGlobal.max_speed
+            && savedScen.traffic_percentage === this.scenarioConfigurationGlobal.traffic_percentage
           );
         }).length > 0;
 
-      console.log("is saved", isSaved);
       return isSaved;
-    },
-  },
-};
+  }
+
+  get activeComponentIsNoise(): boolean {
+      return this.$store.state.activeMenuComponent === ScenarioComponentNames.noise;
+  }
+}
 </script>
 
 <template>
@@ -195,7 +241,7 @@ export default {
               thumb-size="25"
               ticks="always"
               tick-size="4"
-              :tick-labels="trafficPercent_labels"
+              :tick-labels='["0%", "25%", "50%", "75%", "100%"]'
               min="0"
               max="1"
               dark
@@ -213,12 +259,12 @@ export default {
               <v-radio :value="50" flat label="50 kmh/h" dark :disabled="resultLoading"/>
             </v-radio-group>
           </div>
-          <p v-if="showError" class="warning">{{ errMsg }}</p>
+          <p v-if="errMsg" class="warning">{{ errMsg }}</p>
           <v-btn
-            @click="loadNoiseResults"
+            @click="runScenario"
             class="confirm_btn mt-2"
             :class="{ changesMade: resultOutdated }"
-            :disabled="resultLoading || showError"
+            :disabled="resultLoading"
           >
             Run Scenario
           </v-btn>

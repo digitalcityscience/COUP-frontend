@@ -2,7 +2,7 @@ import type { Layer, Map as MapboxMap } from "mapbox-gl";
 import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 import type Wind from "./store/wind";
-import ComponentNames from "@/config/scenarioComponentNames"
+import type Noise from "./store/noise";
 
 export type { MapboxMap };
 export type GeoJSON = Record<string, unknown>;
@@ -84,6 +84,21 @@ export interface SavedWindScenarioConfiguration extends WindScenarioConfiguratio
 export interface WindResult {
   geojson: GeoJSON;
 }
+
+export interface NoiseScenarioConfiguration {
+  max_speed: number;
+  traffic_percentage: number;
+}
+
+export interface SavedNoiseScenarioConfiguration extends NoiseScenarioConfiguration{
+  label: string;
+}
+
+export interface NoiseResult {
+  geojson: GeoJSON;
+  // TODO ist da noch mehr??
+}
+
 export interface StormWaterScenarioConfiguration {
   returnPeriod: number;
   flowPath: StormWaterFlowPath;
@@ -101,6 +116,7 @@ export interface StoreStateWithModules extends StoreState {
   scenario: ScenarioStoreState;
   stormwater: StormWater;
   wind: Wind;
+  noise: Noise;
 }
 
 export interface Legend {
