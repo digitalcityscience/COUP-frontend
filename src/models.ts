@@ -96,7 +96,6 @@ export interface SavedNoiseScenarioConfiguration extends NoiseScenarioConfigurat
 
 export interface NoiseResult {
   geojson: GeoJSON;
-  // TODO ist da noch mehr??
 }
 
 export interface StormWaterScenarioConfiguration {

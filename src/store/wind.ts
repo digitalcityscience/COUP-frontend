@@ -111,7 +111,6 @@ export default class WindStore extends VuexModule {
     this.result = null;
   }
 
-  // TODO why is this working without a specified @Mutation method?? 
   @MutationAction({ mutate: ["calcTask"] })
   async triggerCalculation(): Promise<{ calcTask: CalculationTask }> {
     // request calculation and fetch results
