@@ -128,7 +128,7 @@ export default {
       return this.$store.state.scenario.abmStatsMultiLayer;
     },
     currentNoiseResult() {
-      return this.$store.state.scenario.currentNoiseGeoJson;
+      return this.$store.getters["noise/noiseResult"];
     },
     currentWindResult() {
       return this.$store.getters["wind/windResult"];
@@ -390,11 +390,11 @@ export default {
             })
           break;
         case "Noise":
-          await this.$store.dispatch(
-            "scenario/updateNoiseScenario",
-            this.$store.state.scenario.noiseScenario
-          );
-          break;
+          await this.$store.dispatch("noise/triggerCalculation")
+            .then(async () => { 
+              await this.$store.dispatch("noise/fetchResult") 
+            })
+            break;
         case "Abm":
           await this.$store.dispatch("scenario/updateAbmDesignScenario");
           hideAllResultLayers(this.map);
