@@ -7,7 +7,7 @@ import type {
 } from "@/models";
 import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
-import { Point } from 'mapbox-gl';
+import type { Feature } from 'geojson';
 import {
   Module,
   Mutation,
@@ -53,13 +53,13 @@ export function applyTrafficQuota(
   trafficCountPointsGeoJSON: GeoJSON,
   trafficQuota: number
 ): GeoJSON {
-  const pointFeaturesWithTrafficData = trafficCountPointsGeoJSON.features as Point[];
-  pointFeaturesWithTrafficData.forEach((point: Point) => {
-    point["properties"]["description"] = 
+  const pointFeaturesWithTrafficData = trafficCountPointsGeoJSON.features as Feature[];
+  pointFeaturesWithTrafficData.forEach((point: Feature) => {
+    point.properties["description"] = 
       "Cars: " 
-      + Math.floor(point["properties"]["car_traffic_daily"] * trafficQuota).toLocaleString()
+      + Math.floor(point.properties["car_traffic_daily"] * trafficQuota).toLocaleString()
       + " Trucks: " 
-      + Math.floor(point["properties"]["truck_traffic_daily"] * trafficQuota).toLocaleString()
+      + Math.floor(point.properties["truck_traffic_daily"] * trafficQuota).toLocaleString()
   });
 
   trafficCountPointsGeoJSON.features = pointFeaturesWithTrafficData;
