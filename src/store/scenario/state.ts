@@ -71,16 +71,6 @@ export default {
   // sun
   sunExposureGeoJson: null,
 
-  // noise
-  savedNoiseScenarios: [],
-  noiseScenario: {
-    traffic_quota: 1,
-    max_speed: 50,
-  },
-  noiseResults: [],
-  currentNoiseGeoJson: null,
-  trafficCounts: null,
-
   // UI
   selectGraph: "abm",
   resultLoadingStati: initialResultLoadingStati,
