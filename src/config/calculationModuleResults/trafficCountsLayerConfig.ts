@@ -7,7 +7,7 @@ const trafficCountLayerConfig: SourceAndLayerConfig = {
     "source": "trafficCounts",
     "minzoom": 15.5,
     "layout": {
-      "icon-image": "mdi-car-multiple",
+      "icon-image": "mdi-information",
       "text-field": [
         "get",
         "description"

@@ -10,6 +10,8 @@ import DashboardCharts from "./DashboardCharts.vue";
 import ScenarioComponentNames from '@/config/scenarioComponentNames';
 import NoiseResultLayerConfig from '@/config/calculationModuleResults/noiseResultLayerConfig';
 import { hideAllLayersButThese, removeSourceAndItsLayersFromMap, hideLayers, addSourceAndLayerToMap } from '@/services/map.service';
+import trafficCountLayerConfig from "@/config/calculationModuleResults/trafficCountsLayerConfig";
+import { applyTrafficQuota } from "@/store/noise";
 
 @Component({
   name: ScenarioComponentNames.noise,
@@ -26,6 +28,8 @@ export default class NoiseScenario extends Vue {
     this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
     // hide all other layers
     hideAllLayersButThese(this.map, ["noise", "trafficCounts"]);
+    // fetching static geoJSON with trafficCountPoints
+    this.$store.dispatch("noise/fetchTrafficCountPointsGeoJSON");
   }
 
   /** METHODS */
@@ -43,7 +47,7 @@ export default class NoiseScenario extends Vue {
     this.$store.commit("noise/resetResult");
     this.$store.dispatch("noise/triggerCalculation")
       .then(() => { 
-        this.waitForResults() 
+        this.waitForResults()
       })
       .catch(() => {
           // fail
@@ -71,7 +75,6 @@ export default class NoiseScenario extends Vue {
           // TODO what about traffic infos
           this.errMsg = err;
           console.error(err.stack);
-          //debugger;
       })
       .finally(() => {
         this.resultLoading = false;
@@ -87,6 +90,25 @@ export default class NoiseScenario extends Vue {
     addSourceAndLayerToMap(
       NoiseResultLayerConfig.source,
       [NoiseResultLayerConfig.layerConfig],
+      this.map
+    )
+    this.addTrafficCountLayerToMap()
+  }     
+  
+  addTrafficCountLayerToMap(): void {
+    // delete old mapSource from map
+    removeSourceAndItsLayersFromMap(trafficCountLayerConfig.source.id, this.map);
+
+    // add result data to map source
+    trafficCountLayerConfig.source.options.data = applyTrafficQuota(
+      this.trafficCountPointsGeoJSON,
+      this.scenarioConfigurationGlobal.traffic_quota
+    );
+
+    // add new source and layer to map
+    addSourceAndLayerToMap(
+      trafficCountLayerConfig.source,
+      [trafficCountLayerConfig.layerConfig],
       this.map
     )
   }     
@@ -107,7 +129,7 @@ export default class NoiseScenario extends Vue {
 
   get hasNoiseResult(): boolean {
     return this.$store.getters["noise/hasNoiseResult"];
-    }
+  }
 
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
   get map(): MapboxMap {
@@ -120,6 +142,10 @@ export default class NoiseScenario extends Vue {
   
   get noiseResult(): NoiseResult {
     return this.$store.getters["noise/noiseResult"];
+  }
+  
+  get trafficCountPointsGeoJSON(): GeoJSON {
+      return this.$store.getters["noise/trafficCountPointsGeoJSON"];
   }
 
   get scenarioConfigurationGlobal(): NoiseScenarioConfiguration {

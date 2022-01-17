@@ -339,7 +339,6 @@ export default {
     },
   },
   async beforeMount() {
-    this.addImageToMap();
     this.getResultsFromStore();
     this.determineMissingScenarios();
     this.updateLayerSelectionDropdowns();
@@ -356,16 +355,6 @@ export default {
     hideAllResultLayers(this.map);
   },
   methods: {
-    addImageToMap() {
-      // add image to map if necessary . For result annotation layer.
-      if (!this.$store.state.map.hasImage("mdi-information")) {
-        const map = this.$store.state.map;
-        map.loadImage(mdiInformationPng, function (error, image) {
-          if (error) throw error;
-          map.addImage("mdi-information", image);
-        });
-      }
-    },
     getResultsFromStore() {
       this.allSimulationResults = {
         Noise: this.currentNoiseResult,

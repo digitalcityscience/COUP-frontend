@@ -9,6 +9,7 @@ import { calculateAbmStatsForFocusArea } from "@/store/scenario/abmStats";
 import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats";
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { getUserContentLayerIds } from "@/services/map.service";
+import mdiInformationPng from "@/assets/mdi-information.png";
 
 export default {
   name: "Map",
@@ -70,6 +71,7 @@ export default {
     };
 
     this.$store.state.map = new mapboxgl.Map(options);
+    this.addInfoIconToMap();
 
     // Create a popup, but don't add it to the map yet.
     this.popup = new mapboxgl.Popup({
@@ -88,8 +90,18 @@ export default {
     // focus areas layer
     this.map.on("mousemove", "focusAreas", this.onFocusAreaHover);
     this.map.on("mouseleave", "focusAreas", this.onFocusAreaLeave);
+
+    // images
+    this.map.on("styleimagemissing", this.notifyMissingImage)
   },
   methods: {
+    addInfoIconToMap() {
+      const map = this.$store.state.map;
+      map.loadImage(mdiInformationPng, function (error, image) {
+          if (error) throw error;
+          map.addImage("mdi-information", image);
+      })
+    },
     recordEventPosition(evt: MouseEvent): void {
       console.log("recordEventPosition clicked: ", evt);
 
@@ -255,6 +267,10 @@ export default {
         calculateAbmStatsForFocusArea(selectedFocusArea);
       }
     },
+    notifyMissingImage(error) {
+      const imgName = error.id; // id of the missing image
+      console.error("Please add your image to the map", imgName)
+    }
   },
 };
 </script>
