@@ -87,7 +87,7 @@ export interface WindResult {
 
 export interface NoiseScenarioConfiguration {
   max_speed: number;
-  traffic_percentage: number;
+  traffic_quota: number;
 }
 
 export interface SavedNoiseScenarioConfiguration extends NoiseScenarioConfiguration{

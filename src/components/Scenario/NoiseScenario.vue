@@ -93,7 +93,7 @@ export default class NoiseScenario extends Vue {
     
   loadSavedScenario(savedScenario: SavedNoiseScenarioConfiguration): void {
     this.scenarioConfiguration.max_speed = savedScenario.max_speed;
-    this.scenarioConfiguration.traffic_percentage = savedScenario.traffic_percentage;
+    this.scenarioConfiguration.traffic_quota = savedScenario.traffic_quota;
     
     this.runScenario()
   }
@@ -191,7 +191,7 @@ export default class NoiseScenario extends Vue {
         .filter((savedScen: SavedNoiseScenarioConfiguration) => {
           return (
             savedScen.max_speed === this.scenarioConfigurationGlobal.max_speed
-            && savedScen.traffic_percentage === this.scenarioConfigurationGlobal.traffic_percentage
+            && savedScen.traffic_quota === this.scenarioConfigurationGlobal.traffic_quota
           );
         }).length > 0;
 
@@ -234,7 +234,7 @@ export default class NoiseScenario extends Vue {
               In project area
             </header>
             <v-slider
-              v-model="trafficPercent"
+              v-model="scenarioConfiguration.traffic_quota"
               step="0.25"
               thumb-label="always"
               label="%"
@@ -254,7 +254,7 @@ export default class NoiseScenario extends Vue {
               SPEED LIMIT <br />
               In project area
             </header>
-            <v-radio-group v-model="maxSpeed">
+            <v-radio-group v-model="scenarioConfiguration.max_speed">
               <v-radio :value="30" flat label="30 kmh/h" dark :disabled="resultLoading"/>
               <v-radio :value="50" flat label="50 kmh/h" dark :disabled="resultLoading"/>
             </v-radio-group>

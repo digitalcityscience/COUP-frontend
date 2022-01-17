@@ -20,23 +20,23 @@ export const noiseSettingsNames = {
 
 export const defaultNoiseConfiguration: NoiseScenarioConfiguration = {
   max_speed: 50,
-  traffic_percentage: 100
+  traffic_quota: 1
 };
 
 export const defaultNoiseScenarioConfigs: SavedNoiseScenarioConfiguration[] = [
   {
     max_speed: 50,
-    traffic_percentage: 100,
-    label: "PLANNED TRAFFIC",
+    traffic_quota: 1,
+    label: "FULL TRAFFIC",
   },
   {
     max_speed: 30,
-    traffic_percentage: 100,
-    label: "PLANNED TRAFFIC, 30 km/h",
+    traffic_quota: 1,
+    label: "FULL TRAFFIC, 30 km/h",
   },
   {
     max_speed: 30,
-    traffic_percentage: 0,
+    traffic_quota: 0,
     label: "NO TRAFFIC",
   }
 ];
@@ -119,7 +119,7 @@ export default class NoiseStore extends VuexModule {
     this.savedScenarioConfigs.push(
       {
        ... scenarioToSave,
-       label: scenarioToSave.max_speed.toString() + "km/h" + " | " + scenarioToSave.traffic_percentage.toString() + "%"  
+       label: scenarioToSave.max_speed.toString() + "km/h" + " | " + (scenarioToSave.traffic_quota * 100).toString() + "%"  
       }  
       );
   }
@@ -141,7 +141,7 @@ export default class NoiseStore extends VuexModule {
   async triggerCalculation(): Promise<{ calcTask: CalculationTask }> {
     // request calculation and fetch results
     const task: CalculationTask = 
-      await calcModules.requestCalculationWind(
+      await calcModules.requestCalculationNoise(
         this.scenarioConfiguration,
         cityPyOUserid()
     );
@@ -150,7 +150,7 @@ export default class NoiseStore extends VuexModule {
     
   @MutationAction({ mutate: ["result"] , rawError: true })
   async fetchResult(): Promise<{ result: NoiseResult }> {
-    const simulationResult: NoiseResult = await calcModules.getResultForWind(this.calculationTask);
+    const simulationResult: NoiseResult = await calcModules.getResultForNoise(this.calculationTask);
 
     return { result: simulationResult };
   }

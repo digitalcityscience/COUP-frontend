@@ -4,8 +4,10 @@ import type {
   StormWaterResult,
   CalculationTask,
   MapSource,
-  GeoJSON,
   WindResult,
+  NoiseResult,
+  WindScenarioConfiguration,
+  NoiseScenarioConfiguration,
 } from "@/models";
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
@@ -63,7 +65,7 @@ const config = new ApiEndpoints();
 
 // triggers wind calculation and returns the result uuids of the result
 export async function requestCalculationWind(
-  windScenario: GenericObject,
+  windScenario: WindScenarioConfiguration,
   cityPyoUserId: string
 ): Promise<CalculationTask> {
   console.debug(" requesting calc for windScenario", windScenario);
@@ -76,7 +78,7 @@ export async function requestCalculationWind(
 
 // triggers noise calculation and returns the result uuids of the result
 export async function requestCalculationNoise(
-  noiseScenario: GenericObject,
+  noiseScenario: NoiseScenarioConfiguration,
   cityPyoUserId: string
 ) {
   console.log(" requesting calc for noiseScenario", noiseScenario);
@@ -133,11 +135,11 @@ export async function getResultForWind({
 }
 
 /** gets noise result */
-export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
+export async function getResultForNoise(task: CalculationTask): Promise<NoiseResult> {
   // TODO make task object
   const result = await getResultWhenReady(
     config.endpointsResultCollection.noise,
-    task["taskId"]
+    task.taskId
   );
 
   // check result validity
@@ -146,7 +148,9 @@ export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
     throw new Error("Did not get a valid result");
   }
 
-  return result
+  return  {
+    geojson: result
+  };
 }
 
 /** gets stormwater result */
@@ -174,7 +178,7 @@ export async function getResultForStormWater(
 // triggers stormWater calculation and returns the result uuids of the result
 async function requestCalculation(
   url: string,
-  scenarioConfig: GenericObject,
+  scenarioConfig: NoiseScenarioConfiguration | StormWaterScenarioConfiguration | WindScenarioConfiguration,
   cityPyoUserId: string
 ) {
   let scenario = Object.assign({}, scenarioConfig);
@@ -207,8 +211,6 @@ async function getResultWhenReady(url, taskUuid) {
 
 async function makePostRequest(requestUrl, scenario) {
   console.log("performing request with scneario ", scenario);
-
-  
 
   const response = await axios
     .post(requestUrl, scenario, {auth: config.auth})
