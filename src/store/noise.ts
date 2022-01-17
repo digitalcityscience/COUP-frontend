@@ -25,20 +25,20 @@ export const defaultNoiseConfiguration: NoiseScenarioConfiguration = {
 
 export const defaultNoiseScenarioConfigs: SavedNoiseScenarioConfiguration[] = [
   {
-    max_speed: 50,
-    traffic_quota: 1,
-    label: "FULL TRAFFIC",
-  },
-  {
-    max_speed: 30,
-    traffic_quota: 1,
-    label: "FULL TRAFFIC, 30 km/h",
-  },
-  {
     max_speed: 30,
     traffic_quota: 0,
-    label: "NO TRAFFIC",
-  }
+    label: "NO GRASBROOK TRAFFIC",
+  },
+  {
+    max_speed: 30,
+    traffic_quota: 1,
+    label: "100% TRAFFIC | 30 km/h",
+  },
+  {
+    max_speed: 50,
+    traffic_quota: 1,
+    label: "100% TRAFFIC | 50 km/h",
+  },
 ];
 
 
