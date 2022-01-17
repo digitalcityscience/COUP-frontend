@@ -15,7 +15,7 @@ import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 @Component({
   name: ScenarioComponentNames.wind,
-  components: { MenuComponentDivision, LoaderScreen, DashboardCharts },
+  components: { MenuComponentDivision, LoaderScreen, DashboardCharts, Legend },
 })
 
 export default class WindScenario extends Vue {

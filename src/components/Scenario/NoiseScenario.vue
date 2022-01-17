@@ -198,7 +198,7 @@ import { applyTrafficQuota } from "@/store/noise";
 
 @Component({
   name: ScenarioComponentNames.noise,
-  components: { MenuComponentDivision, LoaderScreen, DashboardCharts }
+  components: { MenuComponentDivision, LoaderScreen, DashboardCharts, Legend }
 })
 
 export default class NoiseScenario extends Vue {
