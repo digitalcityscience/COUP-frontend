@@ -57,7 +57,7 @@ export default class NoiseScenario extends Vue {
     this.$store.dispatch("noise/fetchResult")
       .then(() => {
         // success
-          this.$store.commit("scenario/noiseLayer", true); // this is for the layer menu in the viewbar
+          this.$store.commit("scenario/noiseMap", true); // this is for the layer menu in the viewbar
           this.addResultToMap(this.noiseResult.geojson)
           // hide the noise layer, if the user meanwhile has switched to another component 
           if (!this.activeComponentIsNoise) {
@@ -66,7 +66,7 @@ export default class NoiseScenario extends Vue {
       })
       .catch((err) => {
           // fail
-          this.$store.commit("scenario/noiseLayer", false); // // this is for the layer menu in the viewba
+          this.$store.commit("scenario/noiseMap", false); // // this is for the layer menu in the viewba
           removeSourceAndItsLayersFromMap("noise", this.map);
           // TODO what about traffic infos
           this.errMsg = err;
@@ -228,7 +228,7 @@ export default class NoiseScenario extends Vue {
         <v-container fluid>
           <h2>Traffic Noise | Scenario Settings</h2>
           <!-- Traffic Percentage -->
-          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">
               TRAFFIC VOLUME <br />
               In project area
@@ -249,7 +249,7 @@ export default class NoiseScenario extends Vue {
               :disabled="resultLoading"
             ></v-slider>
           </div>
-          <div class="scenario_box" :class="resultOutdated ? 'highlight' : ''">
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">
               SPEED LIMIT <br />
               In project area
@@ -263,7 +263,7 @@ export default class NoiseScenario extends Vue {
           <v-btn
             @click="runScenario"
             class="confirm_btn mt-2"
-            :class="{ changesMade: resultOutdated }"
+            :class="{ changesMade: isFormDirty }"
             :disabled="resultLoading"
           >
             Run Scenario
@@ -277,43 +277,44 @@ export default class NoiseScenario extends Vue {
             "
             @click="saveNoiseScenario"
             class="confirm_btn"
-            :disabled="resultOutdated || scenarioAlreadySaved || resultLoading"
-            :dark="resultOutdated || scenarioAlreadySaved"
+            :disabled="isFormDirty || isScenarioAlreadySaved || resultLoading"
+            :dark="isFormDirty || isScenarioAlreadySaved"
           >
             Save
           </v-btn>
           <!--saved scenarios -->
-          <div
-            class="saved_scenarios"
-            style="margin-top: 10vh"
-            v-if="savedNoiseScenarios && savedNoiseScenarios.length > 0"
-          >
-            <!-- todo : make this the same as headers of info section! -->
+          <div class="saved_scenarios" style="margin-top: 5vh">
             <h4>RELOAD A SAVED SCENARIO</h4>
             <v-data-iterator
-              :items="savedNoiseScenarios"
+              :items="savedScenarioConfigurations"
               :hide-default-footer="true"
             >
               <template v-slot:default="{ items }">
                 {{/* Use the items to iterate */}}
                 <v-flex v-for="(scenario, index) in items" :key="index">
-                  <v-btn
-                    v-if="index <= 2"
-                    style="margin: 1vh auto"
-                    @click="loadSavedScenario(scenario)"
-                    outlined
-                    dark
-                    small
-                    :disabled="resultLoading"
-                  >
-                    <span v-if="scenario.label">
-                      {{ scenario.label }}
-                    </span>
-                    <span v-if="!scenario.label">
-                      VOLUME: {{ 100 * scenario.traffic_quota }} % | SPEED:
-                      {{ scenario.max_speed }}
-                    </span>
-                  </v-btn>
+                <v-tooltip left>
+                    <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      style="margin: 1vh auto"
+                      @click="loadSavedScenario(scenario)"
+                      outlined
+                      dark
+                      small
+                      :disabled="resultLoading"
+                      v-bind="attrs"
+                      v-on="on"
+                      >
+                        <span v-if="scenario.label">
+                          {{ scenario.label }}
+                        </span>
+                        <span v-if="!scenario.label">
+                          {{ scenario.traffic_quota * 100 }}% Traffic
+                          | Max Speed: {{ scenario.max_speed }}
+                        </span>
+                      </v-btn>
+                    </template>
+                    <span>{{ scenario.traffic_quota * 100 }}% Traffic| {{ scenario.max_speed}}km/h</span>
+                </v-tooltip>
                 </v-flex>
               </template>
             </v-data-iterator>
