@@ -10,12 +10,11 @@ import WindResultLayerConfig from "@/config/calculationModuleResults/windResultL
 import SunExposureResultLayerConfig from "@/config/calculationModuleResults/sunExposureResultConfig";
 import TrafficCounts from "@/config/calculationModuleResults/trafficCountsLayerConfig";
 import {
-    abmTripsLayerName,
-    abmAggregationLayerName,
+  abmTripsLayerName,
+  abmAggregationLayerName,
 } from "@/store/deck-layers";
 import buildingLayersConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import landscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
-
 
 export const swLayerName = "stormwater";
 
@@ -53,14 +52,15 @@ export function getLayerOrder(): string[] {
 }
 
 export const landscapeLayerId: string = landscapeLayerConfig.layerConfig.id;
-export const buildingLayerIds: string[] = buildingLayersConfigs.map((config) => {
+export const buildingLayerIds: string[] = buildingLayersConfigs.map(
+  (config) => {
     return config.layerConfig.id;
-  });
-  
-  export const abmLayerIds: string[] = [
-    ...buildingLayerIds,
-    abmAggregationLayerName,
-    abmTripsLayerName,
-    AmenitiesConfig.layerConfig.id
-  ];
-  
+  }
+);
+
+export const abmLayerIds: string[] = [
+  ...buildingLayerIds,
+  abmAggregationLayerName,
+  abmTripsLayerName,
+  AmenitiesConfig.layerConfig.id,
+];

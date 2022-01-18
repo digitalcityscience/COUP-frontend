@@ -36,7 +36,11 @@
 
 <script lang="ts">
 import { Component, Vue, Watch, Prop } from "vue-property-decorator";
-import type { StoreStateWithModules, GeoJSON, StormWaterResult } from "@/models";
+import type {
+  StoreStateWithModules,
+  GeoJSON,
+  StormWaterResult,
+} from "@/models";
 import type { Store } from "vuex";
 import { Chart } from "chart.js";
 import TimeSheetControl from "@/components/Scenario/TimeSheetControl.vue";
@@ -63,7 +67,7 @@ export default class SWTimeSheet extends Vue {
   controls!: boolean;
 
   get stormWaterResult(): StormWaterResult {
-    return this.$store.state.stormwater.result
+    return this.$store.state.stormwater.result;
   }
 
   get loop() {

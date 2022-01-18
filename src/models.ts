@@ -64,8 +64,17 @@ export interface ScenarioStoreState {
   resultLoadingStati: DataLoadingStati;
 }
 
-export type ScenarioComponentName = "wind" | "sun" | "stormwater" | "noise" | "pedestrian" | "multiLayer";
-export type ScenarioComponentNames = Record<ScenarioComponentName, ScenarioComponentName>;
+export type ScenarioComponentName =
+  | "wind"
+  | "sun"
+  | "stormwater"
+  | "noise"
+  | "pedestrian"
+  | "multiLayer";
+export type ScenarioComponentNames = Record<
+  ScenarioComponentName,
+  ScenarioComponentName
+>;
 
 export type DataLoadingStati = Record<ScenarioComponentName | "map", boolean>;
 
@@ -77,7 +86,8 @@ export interface WindScenarioConfiguration {
   wind_direction: number;
 }
 
-export interface SavedWindScenarioConfiguration extends WindScenarioConfiguration{
+export interface SavedWindScenarioConfiguration
+  extends WindScenarioConfiguration {
   label: string;
 }
 
@@ -90,7 +100,8 @@ export interface NoiseScenarioConfiguration {
   traffic_quota: number;
 }
 
-export interface SavedNoiseScenarioConfiguration extends NoiseScenarioConfiguration{
+export interface SavedNoiseScenarioConfiguration
+  extends NoiseScenarioConfiguration {
   label: string;
 }
 
@@ -155,8 +166,8 @@ export interface CalculationTask {
 }
 
 export interface SourceAndLayerConfig {
-  "source": MapSource,
-  "layerConfig": Layer
+  source: MapSource;
+  layerConfig: Layer;
 }
 
 export interface MapSource {

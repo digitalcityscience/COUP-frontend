@@ -20,8 +20,8 @@ const store = new Vuex.Store({
   modules: {
     scenario,
     stormwater,
-    wind, 
-    noise
+    wind,
+    noise,
   },
   state,
   getters: {

@@ -2,7 +2,7 @@ import type {
   CalculationTask,
   SavedWindScenarioConfiguration,
   WindScenarioConfiguration,
-  WindResult
+  WindResult,
 } from "@/models";
 import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
@@ -13,10 +13,9 @@ import {
   VuexModule,
 } from "vuex-module-decorators";
 
-
 export const defaultWindConfiguration: WindScenarioConfiguration = {
   wind_direction: 270,
-  wind_speed: 5
+  wind_speed: 5,
 };
 
 export const defaultWindScenarioConfigs: SavedWindScenarioConfiguration[] = [
@@ -34,23 +33,23 @@ export const defaultWindScenarioConfigs: SavedWindScenarioConfiguration[] = [
     wind_speed: 45,
     wind_direction: 270,
     label: "STRONG BREEZE",
-  }
+  },
 ];
-
 
 @Module({ namespaced: true })
 export default class WindStore extends VuexModule {
   scenarioConfig: WindScenarioConfiguration = {
     ...defaultWindConfiguration,
   };
-  
-  savedScenarioConfigs: SavedWindScenarioConfiguration[] = defaultWindScenarioConfigs;
+
+  savedScenarioConfigs: SavedWindScenarioConfiguration[] =
+    defaultWindScenarioConfigs;
 
   calcTask: CalculationTask | null = null;
-  
+
   result: WindResult | null = null;
 
-  errMsg: string = "";
+  errMsg = "";
 
   get scenarioConfiguration(): WindScenarioConfiguration {
     return this.scenarioConfig;
@@ -63,23 +62,21 @@ export default class WindStore extends VuexModule {
   get calculationTask(): CalculationTask {
     return this.calcTask;
   }
-  
+
   get windResult(): WindResult {
     return this.result;
   }
 
-  // somehow we cannot directly check this on the component, as 
+  // somehow we cannot directly check this on the component, as
   get hasWindResult(): boolean {
     return this.windResult !== null;
   }
 
   @Mutation
-  mutateErrMsg(
-    msg: string
-  ): void {
+  mutateErrMsg(msg: string): void {
     this.errMsg = msg;
   }
-  
+
   @Mutation
   mutateScenarioConfiguration(
     newScenarioConfiguration: WindScenarioConfiguration
@@ -91,12 +88,15 @@ export default class WindStore extends VuexModule {
   addSavedScenarioConfiguration(
     scenarioToSave: WindScenarioConfiguration
   ): void {
-    this.savedScenarioConfigs.push(
-      {
-       ... scenarioToSave,
-       label: scenarioToSave.wind_speed.toString() + "km/h" + " | " + scenarioToSave.wind_direction.toString() + "°"  
-      }  
-      );
+    this.savedScenarioConfigs.push({
+      ...scenarioToSave,
+      label:
+        scenarioToSave.wind_speed.toString() +
+        "km/h" +
+        " | " +
+        scenarioToSave.wind_direction.toString() +
+        "°",
+    });
   }
 
   @Mutation
@@ -114,17 +114,18 @@ export default class WindStore extends VuexModule {
   @MutationAction({ mutate: ["calcTask"] })
   async triggerCalculation(): Promise<{ calcTask: CalculationTask }> {
     // request calculation and fetch results
-    const task: CalculationTask = 
-      await calcModules.requestCalculationWind(
-        this.scenarioConfiguration,
-        cityPyOUserid()
+    const task: CalculationTask = await calcModules.requestCalculationWind(
+      this.scenarioConfiguration,
+      cityPyOUserid()
     );
     return { calcTask: task };
   }
-    
-  @MutationAction({ mutate: ["result"] , rawError: true })
+
+  @MutationAction({ mutate: ["result"], rawError: true })
   async fetchResult(): Promise<{ result: WindResult }> {
-    const simulationResult: WindResult = await calcModules.getResultForWind(this.calculationTask);
+    const simulationResult: WindResult = await calcModules.getResultForWind(
+      this.calculationTask
+    );
 
     return { result: simulationResult };
   }

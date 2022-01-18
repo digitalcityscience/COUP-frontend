@@ -2,7 +2,6 @@ import Config from "@/config/config.json";
 import Defaults from "@/defaults";
 import { StoreState, View } from "@/models";
 
-
 const initialState: StoreState = {
   map: null,
   activeMenuComponent: "pedestrian",

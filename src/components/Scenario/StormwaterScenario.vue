@@ -167,9 +167,17 @@
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
 import { StoreStateWithModules } from "@/models";
-import type { MapboxMap, MenuLink, StormWaterScenarioConfiguration } from "@/models";
+import type {
+  MapboxMap,
+  MenuLink,
+  StormWaterScenarioConfiguration,
+} from "@/models";
 import { swLayerName } from "@/services/layers.service";
-import { hideAllLayersButThese, hideLayers, removeSourceAndItsLayersFromMap } from "@/services/map.service";
+import {
+  hideAllLayersButThese,
+  hideLayers,
+  removeSourceAndItsLayersFromMap,
+} from "@/services/map.service";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
 

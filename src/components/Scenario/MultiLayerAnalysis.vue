@@ -11,8 +11,12 @@ import CombinedLayersConfig from "@/config/multiLayerAnalysis/multiLayerAnalysis
 import PerformanceInfoLayerConfig from "@/config/multiLayerAnalysis/performaceInfosConfig";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
-import { hideAllLayersButThese, hideLayers, hideAllResultLayers } from '@/services/map.service';
-import ScenarioComponentNames from '@/config/scenarioComponentNames';
+import {
+  hideAllLayersButThese,
+  hideLayers,
+  hideAllResultLayers,
+} from "@/services/map.service";
+import ScenarioComponentNames from "@/config/scenarioComponentNames";
 
 export default {
   name: ScenarioComponentNames.multiLayer,
@@ -152,17 +156,17 @@ export default {
     resultLoading: {
       // getter
       get: function () {
-      return this.$store.state.scenario.resultLoadingStati.multiLayer
+        return this.$store.state.scenario.resultLoadingStati.multiLayer;
       },
       // setter
       set: function (loadingState) {
         let loadingStati = Object.assign(
-          {}, 
+          {},
           this.$store.state.scenario.resultLoadingStati
         );
         loadingStati.multiLayer = loadingState;
         this.$store.commit("scenario/resultLoadingStati", loadingStati);
-      }
+      },
     },
   },
   watch: {
@@ -264,21 +268,20 @@ export default {
           "scenario/addSubSelectionLayer",
           this.criteriaLayer_1.features
         );
-        hideAllLayersButThese(this.map,[SubSelectionLayerConfig.layerConfig.id])
+        hideAllLayersButThese(this.map, [
+          SubSelectionLayerConfig.layerConfig.id,
+        ]);
       } else {
         // hide subSelectionLayer, if subSelection is not to be shown
         if (!this.enableCriteriaLayer_2) {
-          hideLayers(this.map, [SubSelectionLayerConfig.layerConfig.id])
-          
+          hideLayers(this.map, [SubSelectionLayerConfig.layerConfig.id]);
+
           if (this.combinedLayers) {
             // show the combined layer if available
-            hideAllLayersButThese(
-              this.map,
-              [
-                CombinedLayersConfig.layerConfig.id,
-                PerformanceInfoLayerConfig.layerConfig.id,
-              ]
-            );  
+            hideAllLayersButThese(this.map, [
+              CombinedLayersConfig.layerConfig.id,
+              PerformanceInfoLayerConfig.layerConfig.id,
+            ]);
           }
         }
       }
@@ -292,7 +295,9 @@ export default {
           "scenario/addSubSelectionLayer",
           this.criteriaLayer_2.features
         );
-        hideAllLayersButThese(this.map, [SubSelectionLayerConfig.layerConfig.id]);
+        hideAllLayersButThese(this.map, [
+          SubSelectionLayerConfig.layerConfig.id,
+        ]);
       } else {
         // hide subSelectionLayer, if subSelection is not to be shown
         if (!this.enableCriteriaLayer_1) {
@@ -303,12 +308,10 @@ export default {
           );
           if (this.combinedLayers) {
             // show the combined layer if available
-            hideAllLayersButThese(this.map , 
-              [
-                   CombinedLayersConfig.layerConfig.id,
-                PerformanceInfoLayerConfig.layerConfig.id,
-              ]
-            );
+            hideAllLayersButThese(this.map, [
+              CombinedLayersConfig.layerConfig.id,
+              PerformanceInfoLayerConfig.layerConfig.id,
+            ]);
           }
         }
       }
@@ -349,8 +352,11 @@ export default {
     // calc input statistics, if all scenarios chosen
     if (this.currentAbmResult) {
       this.resultLoading = true;
-      this.$store.dispatch("scenario/calculateStatsForMultiLayerAnalysis")
-        .then(() => { this.resultLoading = false; })
+      this.$store
+        .dispatch("scenario/calculateStatsForMultiLayerAnalysis")
+        .then(() => {
+          this.resultLoading = false;
+        });
     }
     hideAllResultLayers(this.map);
   },
@@ -366,7 +372,7 @@ export default {
     determineMissingScenarios() {
       // iterate over scenario results, if a result is empty add the topic to missing Input scenarios
       this.getResultsFromStore();
-      console.log("all simresults", this.allSimulationResults)
+      console.log("all simresults", this.allSimulationResults);
       this.missingInputScenarios = [];
       this.layersReadyToCompare = [];
       for (const [key, value] of Object.entries(this.allSimulationResults)) {
@@ -384,17 +390,19 @@ export default {
           await this.$store.dispatch("scenario/addSunExposureLayer");
           break;
         case "Wind":
-          await this.$store.dispatch("wind/triggerCalculation")
-            .then(async () => { 
-              await this.$store.dispatch("wind/fetchResult") 
-            })
+          await this.$store
+            .dispatch("wind/triggerCalculation")
+            .then(async () => {
+              await this.$store.dispatch("wind/fetchResult");
+            });
           break;
         case "Noise":
-          await this.$store.dispatch("noise/triggerCalculation")
-            .then(async () => { 
-              await this.$store.dispatch("noise/fetchResult") 
-            })
-            break;
+          await this.$store
+            .dispatch("noise/triggerCalculation")
+            .then(async () => {
+              await this.$store.dispatch("noise/fetchResult");
+            });
+          break;
         case "Abm":
           await this.$store.dispatch("scenario/updateAbmDesignScenario");
           hideAllResultLayers(this.map);
@@ -416,7 +424,7 @@ export default {
       // then update missing scenarios and hide result layers
       this.determineMissingScenarios();
       //this.updateLayerSelectionDropdowns()
-      hideAllResultLayers(this.map)
+      hideAllResultLayers(this.map);
     },
     updateAbmCriteriaLayer() {
       // check if at least to layers are available for analysis
@@ -527,12 +535,10 @@ export default {
       }
 
       this.resultLoading = false;
-      hideAllLayersButThese(this.map,
-       [
+      hideAllLayersButThese(this.map, [
         CombinedLayersConfig.layerConfig.id,
         PerformanceInfoLayerConfig.layerConfig.id,
-        ]
-      );
+      ]);
     },
   },
 };

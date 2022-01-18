@@ -45,17 +45,17 @@ export default {
     showLoader: {
       // getter
       get: function () {
-      return this.$store.state.scenario.resultLoadingStati.map
+        return this.$store.state.scenario.resultLoadingStati.map;
       },
       // setter
       set: function (loadingState) {
         let loadingStati = Object.assign(
-          {}, 
+          {},
           this.$store.state.scenario.resultLoadingStati
         );
         loadingStati.map = loadingState;
         this.$store.commit("scenario/resultLoadingStati", loadingStati);
-      }
+      },
     },
   },
   mounted(): void {
@@ -85,22 +85,26 @@ export default {
 
     // amenities layer
     this.map.on("mousemove", amenities.layerConfig.id, this.onAmenitiesHover);
-    this.map.on("mouseleave", amenities.layerConfig.id, this.onAmenitiesHoverLeave);
+    this.map.on(
+      "mouseleave",
+      amenities.layerConfig.id,
+      this.onAmenitiesHoverLeave
+    );
 
     // focus areas layer
     this.map.on("mousemove", "focusAreas", this.onFocusAreaHover);
     this.map.on("mouseleave", "focusAreas", this.onFocusAreaLeave);
 
     // images
-    this.map.on("styleimagemissing", this.notifyMissingImage)
+    this.map.on("styleimagemissing", this.notifyMissingImage);
   },
   methods: {
     addInfoIconToMap() {
       const map = this.$store.state.map;
       map.loadImage(mdiInformationPng, function (error, image) {
-          if (error) throw error;
-          map.addImage("mdi-information", image);
-      })
+        if (error) throw error;
+        map.addImage("mdi-information", image);
+      });
     },
     recordEventPosition(evt: MouseEvent): void {
       console.log("recordEventPosition clicked: ", evt);
@@ -174,8 +178,9 @@ export default {
     onMapLoaded() {
       console.log("create design layers");
       this.showLoader = true;
-      this.$store.dispatch("createDesignLayers")
-        .then(() => { this.showLoader = false; } );
+      this.$store.dispatch("createDesignLayers").then(() => {
+        this.showLoader = false;
+      });
       this.$store.dispatch("addFocusAreasMapLayer");
     },
     createModal() {
@@ -269,8 +274,8 @@ export default {
     },
     notifyMissingImage(error) {
       const imgName = error.id; // id of the missing image
-      console.error("Please add your image to the map", imgName)
-    }
+      console.error("Please add your image to the map", imgName);
+    },
   },
 };
 </script>

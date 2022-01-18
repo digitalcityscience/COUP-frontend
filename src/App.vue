@@ -46,9 +46,9 @@ export default class App extends Vue {
 
   get showTimeSheet(): boolean {
     return (
-      this.activeComponent === ScenarioComponentNames.pedestrian 
-      || this.activeComponent === ScenarioComponentNames.stormwater
-    )
+      this.activeComponent === ScenarioComponentNames.pedestrian ||
+      this.activeComponent === ScenarioComponentNames.stormwater
+    );
   }
 }
 </script>

@@ -3,11 +3,11 @@ import type {
   SavedNoiseScenarioConfiguration,
   NoiseScenarioConfiguration,
   NoiseResult,
-  GeoJSON
+  GeoJSON,
 } from "@/models";
 import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
-import type { Feature } from 'geojson';
+import type { Feature } from "geojson";
 import {
   Module,
   Mutation,
@@ -22,7 +22,7 @@ export const noiseSettingsNames = {
 
 export const defaultNoiseConfiguration: NoiseScenarioConfiguration = {
   max_speed: 50,
-  traffic_quota: 1
+  traffic_quota: 1,
 };
 
 export const defaultNoiseScenarioConfigs: SavedNoiseScenarioConfiguration[] = [
@@ -43,7 +43,6 @@ export const defaultNoiseScenarioConfigs: SavedNoiseScenarioConfiguration[] = [
   },
 ];
 
-
 /**
  * Applies the traffic percentage to the traffic count points geojson
  * @param trafficCountPointsGeoJSON GeoJSON
@@ -53,13 +52,18 @@ export function applyTrafficQuota(
   trafficCountPointsGeoJSON: GeoJSON,
   trafficQuota: number
 ): GeoJSON {
-  const pointFeaturesWithTrafficData = trafficCountPointsGeoJSON.features as Feature[];
+  const pointFeaturesWithTrafficData =
+    trafficCountPointsGeoJSON.features as Feature[];
   pointFeaturesWithTrafficData.forEach((point: Feature) => {
-    point.properties["description"] = 
-      "Cars: " 
-      + Math.floor(point.properties["car_traffic_daily"] * trafficQuota).toLocaleString()
-      + " Trucks: " 
-      + Math.floor(point.properties["truck_traffic_daily"] * trafficQuota).toLocaleString()
+    point.properties["description"] =
+      "Cars: " +
+      Math.floor(
+        point.properties["car_traffic_daily"] * trafficQuota
+      ).toLocaleString() +
+      " Trucks: " +
+      Math.floor(
+        point.properties["truck_traffic_daily"] * trafficQuota
+      ).toLocaleString();
   });
 
   trafficCountPointsGeoJSON.features = pointFeaturesWithTrafficData;
@@ -67,23 +71,22 @@ export function applyTrafficQuota(
   return trafficCountPointsGeoJSON;
 }
 
-
 @Module({ namespaced: true })
 export default class NoiseStore extends VuexModule {
   scenarioConfig: NoiseScenarioConfiguration = {
     ...defaultNoiseConfiguration,
   };
-  
-  savedScenarioConfigs: SavedNoiseScenarioConfiguration[] = defaultNoiseScenarioConfigs;
+
+  savedScenarioConfigs: SavedNoiseScenarioConfiguration[] =
+    defaultNoiseScenarioConfigs;
 
   calcTask: CalculationTask | null = null;
-  
+
   result: NoiseResult | null = null;
 
   trafficCountPoints: GeoJSON | null = null;
 
-  errMsg: string = "";
-
+  errMsg = "";
 
   get scenarioConfiguration(): NoiseScenarioConfiguration {
     return this.scenarioConfig;
@@ -96,27 +99,25 @@ export default class NoiseStore extends VuexModule {
   get calculationTask(): CalculationTask {
     return this.calcTask;
   }
-  
+
   get noiseResult(): NoiseResult {
     return this.result;
   }
-  
+
   get trafficCountPointsGeoJSON(): GeoJSON {
     return this.trafficCountPoints;
   }
 
-  // somehow we cannot directly check this on the component, as 
+  // somehow we cannot directly check this on the component, as
   get hasNoiseResult(): boolean {
     return this.noiseResult !== null;
   }
 
   @Mutation
-  mutateErrMsg(
-    msg: string
-  ): void {
+  mutateErrMsg(msg: string): void {
     this.errMsg = msg;
   }
-  
+
   @Mutation
   mutateScenarioConfiguration(
     newScenarioConfiguration: NoiseScenarioConfiguration
@@ -128,12 +129,15 @@ export default class NoiseStore extends VuexModule {
   addSavedScenarioConfiguration(
     scenarioToSave: NoiseScenarioConfiguration
   ): void {
-    this.savedScenarioConfigs.push(
-      {
-       ... scenarioToSave,
-       label: scenarioToSave.max_speed.toString() + "km/h" + " | " + (scenarioToSave.traffic_quota * 100).toString() + "%"  
-      }  
-      );
+    this.savedScenarioConfigs.push({
+      ...scenarioToSave,
+      label:
+        scenarioToSave.max_speed.toString() +
+        "km/h" +
+        " | " +
+        (scenarioToSave.traffic_quota * 100).toString() +
+        "%",
+    });
   }
 
   @Mutation
@@ -151,23 +155,26 @@ export default class NoiseStore extends VuexModule {
   @MutationAction({ mutate: ["calcTask"] })
   async triggerCalculation(): Promise<{ calcTask: CalculationTask }> {
     // request calculation and fetch results
-    const task: CalculationTask = 
-      await calcModules.requestCalculationNoise(
-        this.scenarioConfiguration,
-        cityPyOUserid()
+    const task: CalculationTask = await calcModules.requestCalculationNoise(
+      this.scenarioConfiguration,
+      cityPyOUserid()
     );
     return { calcTask: task };
   }
-    
-  @MutationAction({ mutate: ["result"] , rawError: true })
+
+  @MutationAction({ mutate: ["result"], rawError: true })
   async fetchResult(): Promise<{ result: NoiseResult }> {
-    const simulationResult: NoiseResult = await calcModules.getResultForNoise(this.calculationTask);
+    const simulationResult: NoiseResult = await calcModules.getResultForNoise(
+      this.calculationTask
+    );
 
     return { result: simulationResult };
   }
-  
-  @MutationAction({ mutate: ["trafficCountPoints"] , rawError: true })
-  async fetchTrafficCountPointsGeoJSON(): Promise<{ trafficCountPoints: GeoJSON }> {
+
+  @MutationAction({ mutate: ["trafficCountPoints"], rawError: true })
+  async fetchTrafficCountPointsGeoJSON(): Promise<{
+    trafficCountPoints: GeoJSON;
+  }> {
     const cityPyo = this.context.rootState.cityPyO;
     const trafficCountPoints: GeoJSON = await cityPyo.getLayer("trafficCounts");
 

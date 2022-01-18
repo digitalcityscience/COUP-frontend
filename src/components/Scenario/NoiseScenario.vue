@@ -1,4 +1,3 @@
-
 <template>
   <div id="scenario" ref="scenario">
     <!-- google maps style legend at bottom -->
@@ -36,7 +35,7 @@
               thumb-size="25"
               ticks="always"
               tick-size="4"
-              :tick-labels='["0%", "25%", "50%", "75%", "100%"]'
+              :tick-labels="['0%', '25%', '50%', '75%', '100%']"
               min="0"
               max="1"
               dark
@@ -50,8 +49,20 @@
               In project area
             </header>
             <v-radio-group v-model="scenarioConfiguration.max_speed">
-              <v-radio :value="30" flat label="30 kmh/h" dark :disabled="resultLoading"/>
-              <v-radio :value="50" flat label="50 kmh/h" dark :disabled="resultLoading"/>
+              <v-radio
+                :value="30"
+                flat
+                label="30 kmh/h"
+                dark
+                :disabled="resultLoading"
+              />
+              <v-radio
+                :value="50"
+                flat
+                label="50 kmh/h"
+                dark
+                :disabled="resultLoading"
+              />
             </v-radio-group>
           </div>
           <p v-if="errMsg" class="warning">{{ errMsg }}</p>
@@ -87,29 +98,32 @@
               <template v-slot:default="{ items }">
                 {{/* Use the items to iterate */}}
                 <v-flex v-for="(scenario, index) in items" :key="index">
-                <v-tooltip left>
+                  <v-tooltip left>
                     <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      style="margin: 1vh auto"
-                      @click="loadSavedScenario(scenario)"
-                      outlined
-                      dark
-                      small
-                      :disabled="resultLoading"
-                      v-bind="attrs"
-                      v-on="on"
+                      <v-btn
+                        style="margin: 1vh auto"
+                        @click="loadSavedScenario(scenario)"
+                        outlined
+                        dark
+                        small
+                        :disabled="resultLoading"
+                        v-bind="attrs"
+                        v-on="on"
                       >
                         <span v-if="scenario.label">
                           {{ scenario.label }}
                         </span>
                         <span v-if="!scenario.label">
-                          {{ scenario.traffic_quota * 100 }}% Traffic
-                          | Max Speed: {{ scenario.max_speed }}
+                          {{ scenario.traffic_quota * 100 }}% Traffic | Max
+                          Speed: {{ scenario.max_speed }}
                         </span>
                       </v-btn>
                     </template>
-                    <span>{{ scenario.traffic_quota * 100 }}% Traffic| {{ scenario.max_speed}}km/h</span>
-                </v-tooltip>
+                    <span
+                      >{{ scenario.traffic_quota * 100 }}% Traffic|
+                      {{ scenario.max_speed }}km/h</span
+                    >
+                  </v-tooltip>
                 </v-flex>
               </template>
             </v-data-iterator>
@@ -184,23 +198,36 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { mapState, Store } from "vuex";
-import { MapboxMap, SavedNoiseScenarioConfiguration, StoreStateWithModules } from "@/models";
-import type { MenuLink, NoiseScenarioConfiguration, NoiseResult, GeoJSON } from "@/models";
+import {
+  MapboxMap,
+  SavedNoiseScenarioConfiguration,
+  StoreStateWithModules,
+} from "@/models";
+import type {
+  MenuLink,
+  NoiseScenarioConfiguration,
+  NoiseResult,
+  GeoJSON,
+} from "@/models";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import LoaderScreen from "@/components/Loader/Loader.vue";
 import DashboardCharts from "./DashboardCharts.vue";
-import ScenarioComponentNames from '@/config/scenarioComponentNames';
-import NoiseResultLayerConfig from '@/config/calculationModuleResults/noiseResultLayerConfig';
-import { hideAllLayersButThese, removeSourceAndItsLayersFromMap, hideLayers, addSourceAndLayerToMap } from '@/services/map.service';
+import ScenarioComponentNames from "@/config/scenarioComponentNames";
+import NoiseResultLayerConfig from "@/config/calculationModuleResults/noiseResultLayerConfig";
+import {
+  hideAllLayersButThese,
+  removeSourceAndItsLayersFromMap,
+  hideLayers,
+  addSourceAndLayerToMap,
+} from "@/services/map.service";
 import trafficCountLayerConfig from "@/config/calculationModuleResults/trafficCountsLayerConfig";
 import { applyTrafficQuota } from "@/store/noise";
 
 @Component({
   name: ScenarioComponentNames.noise,
-  components: { MenuComponentDivision, LoaderScreen, DashboardCharts, Legend }
+  components: { MenuComponentDivision, LoaderScreen, DashboardCharts, Legend },
 })
-
 export default class NoiseScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   activeDivision = null;
@@ -222,46 +249,48 @@ export default class NoiseScenario extends Vue {
       {},
       this.scenarioConfiguration
     );
-    this.calculateNoiseResult()
+    this.calculateNoiseResult();
   }
 
   async calculateNoiseResult() {
     this.errMsg = "";
     this.$store.commit("noise/resetResult");
-    this.$store.dispatch("noise/triggerCalculation")
-      .then(() => { 
-        this.waitForResults()
+    this.$store
+      .dispatch("noise/triggerCalculation")
+      .then(() => {
+        this.waitForResults();
       })
       .catch(() => {
-          // fail
-          this.errMsg = "Failed to trigger calculation. Try again.";
-      })
+        // fail
+        this.errMsg = "Failed to trigger calculation. Try again.";
+      });
   }
 
-  // is busy until result complete 
+  // is busy until result complete
   async waitForResults() {
     this.resultLoading = true;
-    this.$store.dispatch("noise/fetchResult")
+    this.$store
+      .dispatch("noise/fetchResult")
       .then(() => {
         // success
-          this.$store.commit("scenario/noiseMap", true); // this is for the layer menu in the viewbar
-          this.addResultToMap(this.noiseResult.geojson)
-          // hide the noise layer, if the user meanwhile has switched to another component 
-          if (!this.activeComponentIsNoise) {
-            hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id])
-          }
+        this.$store.commit("scenario/noiseMap", true); // this is for the layer menu in the viewbar
+        this.addResultToMap(this.noiseResult.geojson);
+        // hide the noise layer, if the user meanwhile has switched to another component
+        if (!this.activeComponentIsNoise) {
+          hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id]);
+        }
       })
       .catch((err) => {
-          // fail
-          this.$store.commit("scenario/noiseMap", false); // // this is for the layer menu in the viewba
-          removeSourceAndItsLayersFromMap("noise", this.map);
-          // TODO what about traffic infos
-          this.errMsg = err;
-          console.error(err.stack);
+        // fail
+        this.$store.commit("scenario/noiseMap", false); // // this is for the layer menu in the viewba
+        removeSourceAndItsLayersFromMap("noise", this.map);
+        // TODO what about traffic infos
+        this.errMsg = err;
+        console.error(err.stack);
       })
       .finally(() => {
         this.resultLoading = false;
-      })
+      });
   }
 
   addResultToMap(resultGeoJSON: GeoJSON): void {
@@ -274,13 +303,16 @@ export default class NoiseScenario extends Vue {
       NoiseResultLayerConfig.source,
       [NoiseResultLayerConfig.layerConfig],
       this.map
-    )
-    this.addTrafficCountLayerToMap()
-  }     
-  
+    );
+    this.addTrafficCountLayerToMap();
+  }
+
   addTrafficCountLayerToMap(): void {
     // delete old mapSource from map
-    removeSourceAndItsLayersFromMap(trafficCountLayerConfig.source.id, this.map);
+    removeSourceAndItsLayersFromMap(
+      trafficCountLayerConfig.source.id,
+      this.map
+    );
 
     // add result data to map source
     trafficCountLayerConfig.source.options.data = applyTrafficQuota(
@@ -293,20 +325,23 @@ export default class NoiseScenario extends Vue {
       trafficCountLayerConfig.source,
       [trafficCountLayerConfig.layerConfig],
       this.map
-    )
-  }     
-    
+    );
+  }
+
   loadSavedScenario(savedScenario: SavedNoiseScenarioConfiguration): void {
     this.scenarioConfiguration.max_speed = savedScenario.max_speed;
     this.scenarioConfiguration.traffic_quota = savedScenario.traffic_quota;
-    
-    this.runScenario()
+
+    this.runScenario();
   }
 
   saveNoiseScenario() {
     if (!this.isScenarioAlreadySaved) {
       // add current scenario to saved scenarios
-      this.$store.commit("noise/addSavedScenarioConfiguration", this.scenarioConfiguration)
+      this.$store.commit(
+        "noise/addSavedScenarioConfiguration",
+        this.scenarioConfiguration
+      );
     }
   }
 
@@ -322,13 +357,13 @@ export default class NoiseScenario extends Vue {
   get savedScenarioConfigurations(): SavedNoiseScenarioConfiguration[] {
     return this.$store.getters["noise/savedScenarioConfigurations"];
   }
-  
+
   get noiseResult(): NoiseResult {
     return this.$store.getters["noise/noiseResult"];
   }
-  
+
   get trafficCountPointsGeoJSON(): GeoJSON {
-      return this.$store.getters["noise/trafficCountPointsGeoJSON"];
+    return this.$store.getters["noise/trafficCountPointsGeoJSON"];
   }
 
   get scenarioConfigurationGlobal(): NoiseScenarioConfiguration {
@@ -349,13 +384,13 @@ export default class NoiseScenario extends Vue {
 
   set resultLoading(loadingState: boolean) {
     let loadingStati = Object.assign(
-      {}, 
+      {},
       this.$store.state.scenario.resultLoadingStati
     );
     loadingStati.noise = loadingState;
     this.$store.commit("scenario/resultLoadingStati", loadingStati);
   }
-  
+
   get errMsg(): string {
     return this.$store.state.noise.errMsg;
   }
@@ -367,23 +402,23 @@ export default class NoiseScenario extends Vue {
   /** GETTERS FOR LOCAL VARIABLES */
   get componentDivisions(): MenuLink[] {
     return [
-        {
-          title: "Scenario",
-          icon: "mdi-map-marker-radius",
-          hidden: false,
-          default: true,
-        },
-        {
-          title: "Dashboard",
-          icon: "mdi-view-dashboard",
-          hidden: false,
-        },
-        {
-          title: "info",
-          icon: "mdi-information-variant",
-          hidden: false,
-        },
-      ];
+      {
+        title: "Scenario",
+        icon: "mdi-map-marker-radius",
+        hidden: false,
+        default: true,
+      },
+      {
+        title: "Dashboard",
+        icon: "mdi-view-dashboard",
+        hidden: false,
+      },
+      {
+        title: "info",
+        icon: "mdi-information-variant",
+        hidden: false,
+      },
+    ];
   }
 
   get isFormDirty(): boolean {
@@ -394,21 +429,23 @@ export default class NoiseScenario extends Vue {
   }
 
   get isScenarioAlreadySaved() {
-      const savedScenarios = this.savedScenarioConfigurations;
-      const isSaved =
-        savedScenarios
-        .filter((savedScen: SavedNoiseScenarioConfiguration) => {
-          return (
-            savedScen.max_speed === this.scenarioConfigurationGlobal.max_speed
-            && savedScen.traffic_quota === this.scenarioConfigurationGlobal.traffic_quota
-          );
-        }).length > 0;
+    const savedScenarios = this.savedScenarioConfigurations;
+    const isSaved =
+      savedScenarios.filter((savedScen: SavedNoiseScenarioConfiguration) => {
+        return (
+          savedScen.max_speed === this.scenarioConfigurationGlobal.max_speed &&
+          savedScen.traffic_quota ===
+            this.scenarioConfigurationGlobal.traffic_quota
+        );
+      }).length > 0;
 
-      return isSaved;
+    return isSaved;
   }
 
   get activeComponentIsNoise(): boolean {
-      return this.$store.state.activeMenuComponent === ScenarioComponentNames.noise;
+    return (
+      this.$store.state.activeMenuComponent === ScenarioComponentNames.noise
+    );
   }
 }
 </script>

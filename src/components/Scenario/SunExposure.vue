@@ -6,9 +6,8 @@ import hash from "object-hash";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
-import { hideAllLayersButThese, hideLayers } from '@/services/map.service';
-import ScenarioComponentNames from '@/config/scenarioComponentNames';
-
+import { hideAllLayersButThese, hideLayers } from "@/services/map.service";
+import ScenarioComponentNames from "@/config/scenarioComponentNames";
 
 export default {
   name: ScenarioComponentNames.sun,
@@ -32,24 +31,26 @@ export default {
         ['resultLoading', 'scenario/' + 'resultLoading'],  // todo manage stores
       ])*/
     isSunExposureActiveComponent: {
-        get: function () {
-          return this.$store.state.activeMenuComponent === ScenarioComponentNames.sun;
-          } 
+      get: function () {
+        return (
+          this.$store.state.activeMenuComponent === ScenarioComponentNames.sun
+        );
+      },
     },
     resultLoading: {
       // getter
       get: function () {
-      return this.$store.state.scenario.resultLoadingStati.sun
+        return this.$store.state.scenario.resultLoadingStati.sun;
       },
       // setter
       set: function (loadingState) {
         let loadingStati = Object.assign(
-          {}, 
+          {},
           this.$store.state.scenario.resultLoadingStati
         );
         loadingStati.sun = loadingState;
         this.$store.commit("scenario/resultLoadingStati", loadingStati);
-      }
+      },
     },
     componentDivisions(): MenuLink[] {
       return [
@@ -75,7 +76,7 @@ export default {
   watch: {},
   mounted: function () {
     // hide all other layers
-   hideAllLayersButThese(this.map, ["sun_exposure"]);
+    hideAllLayersButThese(this.map, ["sun_exposure"]);
   },
   methods: {
     async loadResult() {
@@ -85,8 +86,7 @@ export default {
         this.sunExposureLoaded = true;
         this.resultLoading = false;
         if (!this.isSunExposureActiveComponent)
-        hideLayers(this.map, ["sun_exposure"]);
-
+          hideLayers(this.map, ["sun_exposure"]);
       });
     },
   },
@@ -128,7 +128,11 @@ export default {
               Hours of sunlight per day averaged over a year
             </header>
           </div>
-          <v-btn @click="loadResult()" class="confirm_btn mt-2" :disabled="resultLoading">
+          <v-btn
+            @click="loadResult()"
+            class="confirm_btn mt-2"
+            :disabled="resultLoading"
+          >
             Run Scenario
           </v-btn>
         </v-container>

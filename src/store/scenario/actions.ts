@@ -1,16 +1,17 @@
 import Amenities from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import Bridges from "@/config/bridges.json";
-import SubSelectionLayerConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
-import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
-import NoiseResultLayerConfig from "@/config/calculationModuleResults/noiseResultLayerConfig";
-import PerformanceInfosConfig from "@/config/multiLayerAnalysis/performaceInfosConfig";
 import SunExposure from "@/config/calculationModuleResults/sunExposureResultConfig";
-import TrafficCountLayer from "@/config/calculationModuleResults/trafficCountsLayerConfig";
-import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig";
+import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
+import PerformanceInfosConfig from "@/config/multiLayerAnalysis/performaceInfosConfig";
+import SubSelectionLayerConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
+import type { GeoJSON } from "@/models";
 import { StoreState } from "@/models";
 import { buildSWLayer } from "@/services/deck.service";
+import {
+  addDeckLayerToMap,
+  addSourceAndLayerToMap as addSourceAndLayersToMap,
+} from "@/services/map.service";
 import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
-import * as calculationModules from "@/services/calculationModules.service";
 import {
   abmAggregationLayerName,
   abmTripsLayerName,
@@ -27,8 +28,6 @@ import {
   calculateAmenityStatsForMultiLayerAnalysis,
 } from "@/store/scenario/amenityStats";
 import { ActionContext } from "vuex";
-import type { GeoJSON } from "@/models";
-import { addDeckLayerToMap, addSourceAndLayerToMap as addSourceAndLayersToMap, removeSourceAndItsLayersFromMap } from '@/services/map.service';
 export default {
   async addSunExposureLayer({
     rootState,
@@ -38,7 +37,11 @@ export default {
       commit("sunExposureGeoJson", result);
       SunExposure.source.options.data = result;
 
-      addSourceAndLayersToMap(SunExposure.source, [SunExposure.layerConfig], rootState.map)
+      addSourceAndLayersToMap(
+        SunExposure.source,
+        [SunExposure.layerConfig],
+        rootState.map
+      );
     });
   },
   // TODO: how do we realize 1 central function for all users?
@@ -107,12 +110,12 @@ export default {
     calculateAmenityStatsForFocusArea();
     calculateAbmStatsForFocusArea();
   },
-  async calculateStatsForMultiLayerAnalysis({}) {
+  async calculateStatsForMultiLayerAnalysis(): Promise<void> {
     // the timeout just gives time for the commits above to persist and the app to be rerendered
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     await calculateAmenityStatsForMultiLayerAnalysis().then(() => {
-      calcAbmStatsForMultiLayer()
+      calcAbmStatsForMultiLayer();
       return;
     });
   },
@@ -123,11 +126,15 @@ export default {
 
     return rootState.cityPyO
       .getAbmAmenitiesLayer(amenitiesLayerName, state)
-        .then((amenitiesGeoJSON) => {
-          console.log("got amenities", amenitiesGeoJSON);
-          commit("amenitiesGeoJson", Object.freeze(amenitiesGeoJSON));
-          Amenities.source.options.data = amenitiesGeoJSON
-          addSourceAndLayersToMap(Amenities.source, [Amenities.layerConfig], rootState.map)
+      .then((amenitiesGeoJSON) => {
+        console.log("got amenities", amenitiesGeoJSON);
+        commit("amenitiesGeoJson", Object.freeze(amenitiesGeoJSON));
+        Amenities.source.options.data = amenitiesGeoJSON;
+        addSourceAndLayersToMap(
+          Amenities.source,
+          [Amenities.layerConfig],
+          rootState.map
+        );
       });
   },
   // load layer source from cityPyo and add the layer to the map
@@ -140,26 +147,30 @@ export default {
     if (layers) {
       const source = Bridges.source;
       rootState.cityPyO.getLayer(source.id, false).then((geojson) => {
-          source.options.data = geojson
-          addSourceAndLayersToMap(source, layers, rootState.map)
+        source.options.data = geojson;
+        addSourceAndLayersToMap(source, layers, rootState.map);
       });
     }
   },
-  addMultiLayerAnalysisLayer({rootState }, features) {
+  addMultiLayerAnalysisLayer({ rootState }, features) {
     // update layer on map
     const source = MultiLayerAnalysisConfig.source;
     source.options.data.features = features;
-    addSourceAndLayersToMap(source, [MultiLayerAnalysisConfig.layerConfig], rootState.map)
+    addSourceAndLayersToMap(
+      source,
+      [MultiLayerAnalysisConfig.layerConfig],
+      rootState.map
+    );
   },
   addSubSelectionLayer({ state, commit, dispatch, rootState }, features) {
     // update layer on map
     const source = SubSelectionLayerConfig.source;
     source.options.data.features = features;
     addSourceAndLayersToMap(
-      source, 
+      source,
       [SubSelectionLayerConfig.layerConfig],
       rootState.map
-      )
+    );
   },
   addMultiLayerPerformanceInfos(
     { state, commit, dispatch, rootState },
@@ -169,10 +180,10 @@ export default {
     const source = PerformanceInfosConfig.source;
     source.options.data.features = features;
     addSourceAndLayersToMap(
-      source, 
+      source,
       [PerformanceInfosConfig.layerConfig],
       rootState.map
-      )
+    );
   },
   //LOADING INITIAL ABM DATA
   initialAbmComputing(
@@ -314,7 +325,7 @@ export default {
       }
 
       // check if scenario is still valid - user input might have changed while loading trips layer
-      addDeckLayerToMap(deckLayer, rootState.map)
+      addDeckLayerToMap(deckLayer, rootState.map);
       console.log("new trips layer loaded");
       commit("animationRunning", true);
       animate(deckLayer, null, null, currentTimeStamp);
@@ -339,7 +350,7 @@ export default {
       }
 
       console.log("new aggregation layer loaded");
-      addDeckLayerToMap(deckLayer, rootState.map)
+      addDeckLayerToMap(deckLayer, rootState.map);
       commit("heatMap", true);
       console.log(state.heatMap);
     });
@@ -358,7 +369,7 @@ export default {
           rootState.map?.removeLayer(abmTripsLayerName);
         }
 
-        addDeckLayerToMap(deckLayer, rootState.map)
+        addDeckLayerToMap(deckLayer, rootState.map);
         if (state.animationRunning) {
           animate(deckLayer, null, null, currentTimeStamp);
         }
@@ -393,7 +404,7 @@ export default {
           rootState.map?.removeLayer(abmAggregationLayerName);
         }
         console.log("new aggregation layer loaded");
-        addDeckLayerToMap(deckLayer, rootState.map)
+        addDeckLayerToMap(deckLayer, rootState.map);
       });
     }
   },
@@ -402,19 +413,19 @@ export default {
       rootState.stormwater.result.geojson,
       state.rainTime
     );
-    addDeckLayerToMap(deckLayer, rootState.map)
-  }
+    addDeckLayerToMap(deckLayer, rootState.map);
+  },
 };
 
 function updateBridges(bridge_hafencity, underpass_veddel) {
-    const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there
+  const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there
 
-    if (bridge_hafencity) {
-      bridges.push(bridgeNames.bridge_hafencity);
-    }
-    if (underpass_veddel) {
-      bridges.push(bridgeNames.underpass_veddel_north);
-    }
-
-    return bridges;
+  if (bridge_hafencity) {
+    bridges.push(bridgeNames.bridge_hafencity);
   }
+  if (underpass_veddel) {
+    bridges.push(bridgeNames.underpass_veddel_north);
+  }
+
+  return bridges;
+}
