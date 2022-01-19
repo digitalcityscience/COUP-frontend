@@ -2,7 +2,7 @@ import type { Layer, Map as MapboxMap } from "mapbox-gl";
 import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 import type Wind from "./store/wind";
-import ComponentNames from "@/config/scenarioComponentNames"
+import type Noise from "./store/noise";
 
 export type { MapboxMap };
 export type GeoJSON = Record<string, unknown>;
@@ -64,8 +64,17 @@ export interface ScenarioStoreState {
   resultLoadingStati: DataLoadingStati;
 }
 
-export type ScenarioComponentName = "wind" | "sun" | "stormwater" | "noise" | "pedestrian" | "multiLayer";
-export type ScenarioComponentNames = Record<ScenarioComponentName, ScenarioComponentName>;
+export type ScenarioComponentName =
+  | "wind"
+  | "sun"
+  | "stormwater"
+  | "noise"
+  | "pedestrian"
+  | "multiLayer";
+export type ScenarioComponentNames = Record<
+  ScenarioComponentName,
+  ScenarioComponentName
+>;
 
 export type DataLoadingStati = Record<ScenarioComponentName | "map", boolean>;
 
@@ -77,13 +86,29 @@ export interface WindScenarioConfiguration {
   wind_direction: number;
 }
 
-export interface SavedWindScenarioConfiguration extends WindScenarioConfiguration{
+export interface SavedWindScenarioConfiguration
+  extends WindScenarioConfiguration {
   label: string;
 }
 
 export interface WindResult {
   geojson: GeoJSON;
 }
+
+export interface NoiseScenarioConfiguration {
+  max_speed: number;
+  traffic_quota: number;
+}
+
+export interface SavedNoiseScenarioConfiguration
+  extends NoiseScenarioConfiguration {
+  label: string;
+}
+
+export interface NoiseResult {
+  geojson: GeoJSON;
+}
+
 export interface StormWaterScenarioConfiguration {
   returnPeriod: number;
   flowPath: StormWaterFlowPath;
@@ -101,6 +126,7 @@ export interface StoreStateWithModules extends StoreState {
   scenario: ScenarioStoreState;
   stormwater: StormWater;
   wind: Wind;
+  noise: Noise;
 }
 
 export interface Legend {
@@ -140,8 +166,8 @@ export interface CalculationTask {
 }
 
 export interface SourceAndLayerConfig {
-  "source": MapSource,
-  "layerConfig": Layer
+  source: MapSource;
+  layerConfig: Layer;
 }
 
 export interface MapSource {

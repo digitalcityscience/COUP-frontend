@@ -15,8 +15,12 @@ import { abmLayerIds } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";
-import { hideAllLayersButThese, hideAllResultLayers, hideLayers } from '@/services/map.service';
-import ScenarioComponentNames from '@/config/scenarioComponentNames';
+import {
+  hideAllLayersButThese,
+  hideAllResultLayers,
+  hideLayers,
+} from "@/services/map.service";
+import ScenarioComponentNames from "@/config/scenarioComponentNames";
 
 export default {
   name: ScenarioComponentNames.pedestrian,
@@ -119,23 +123,26 @@ export default {
     resultLoading: {
       // getter
       get: function () {
-      return this.$store.state.scenario.resultLoadingStati.pedestrian
+        return this.$store.state.scenario.resultLoadingStati.pedestrian;
       },
       // setter
       set: function (loadingState) {
         let loadingStati = Object.assign(
-          {}, 
+          {},
           this.$store.state.scenario.resultLoadingStati
         );
         loadingStati.pedestrian = loadingState;
         this.$store.commit("scenario/resultLoadingStati", loadingStati);
-      }
+      },
     },
     isPedestrianActiveComponent: {
-     get: function () {
-      return this.$store.state.activeMenuComponent === ScenarioComponentNames.pedestrian;
-      } 
-    }
+      get: function () {
+        return (
+          this.$store.state.activeMenuComponent ===
+          ScenarioComponentNames.pedestrian
+        );
+      },
+    },
   },
   watch: {
     resultsOutdated(newVal, oldVal) {
@@ -173,7 +180,7 @@ export default {
   },
   mounted: function () {
     // hide all other layers
-    hideAllLayersButThese(this.map, ["abmHeat", "abmTrips", "abmAmenities"])
+    hideAllLayersButThese(this.map, ["abmHeat", "abmTrips", "abmAmenities"]);
     // switch time graph to ABM
     this.$store.commit("scenario/selectGraph", "abm");
     console.warn("context??", this.context);
@@ -188,13 +195,12 @@ export default {
       this.resultOutdated = false;
       this.resultLoading = true;
       this.$store.commit("scenario/activeAbmSet", null);
-      this.$store.dispatch("scenario/updateAbmDesignScenario")
-        .then(() => { 
-          this.resultLoading = false;
-          if (!this.isPedestrianActiveComponent) {
-            hideLayers(this.map, ["abmHeat", "abmTrips", "abmAmenities"])
-          }
-        });
+      this.$store.dispatch("scenario/updateAbmDesignScenario").then(() => {
+        this.resultLoading = false;
+        if (!this.isPedestrianActiveComponent) {
+          hideLayers(this.map, ["abmHeat", "abmTrips", "abmAmenities"]);
+        }
+      });
     },
     changeHeatMapData() {
       if (this.adjustRange[0] > 8 || this.adjustRange[1] < 23) {
@@ -219,8 +225,11 @@ export default {
     // TODO there is so much embedded logic in calling an ABM scenario for grasbrook. needs to be properly refactored
     loadScienceCityScenario(scenarioId) {
       this.resultLoading = true;
-      this.$store.dispatch("scenario/loadScienceCityAbmScenario", scenarioId)
-        .then(() => { this.resultLoading = false; });
+      this.$store
+        .dispatch("scenario/loadScienceCityAbmScenario", scenarioId)
+        .then(() => {
+          this.resultLoading = false;
+        });
     },
   },
 };

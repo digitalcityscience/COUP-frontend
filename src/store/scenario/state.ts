@@ -1,6 +1,5 @@
-import { DataLoadingStati } from '@/models';
+import { DataLoadingStati } from "@/models";
 import { bridges, roofAmenitiesOptions } from "@/store/abm";
-
 
 const initialResultLoadingStati: DataLoadingStati = {
   pedestrian: false,
@@ -9,9 +8,8 @@ const initialResultLoadingStati: DataLoadingStati = {
   multiLayer: false,
   stormwater: false,
   noise: false,
-  map: false
+  map: false,
 };
-
 
 export default {
   // ABM
@@ -62,7 +60,7 @@ export default {
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
-  selectedFocusAreas: [],  
+  selectedFocusAreas: [],
 
   // Amenities
   amenitiesGeoJson: null,
@@ -70,16 +68,6 @@ export default {
 
   // sun
   sunExposureGeoJson: null,
-
-  // noise
-  savedNoiseScenarios: [],
-  noiseScenario: {
-    traffic_quota: 1,
-    max_speed: 50,
-  },
-  noiseResults: [],
-  currentNoiseGeoJson: null,
-  trafficCounts: null,
 
   // UI
   selectGraph: "abm",

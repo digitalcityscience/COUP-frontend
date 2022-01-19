@@ -1,11 +1,9 @@
-import { buildingLayerIds, getLayerOrder } from '@/services/layers.service';
+import { buildingLayerIds, getLayerOrder } from "@/services/layers.service";
 import { MapboxMap } from "@/models";
 import { Layer } from "mapbox-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 
-import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig"
-
-
+import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 
 export function showBuildings(map: MapboxMap | null): void {
   showLayers(map, buildingLayerIds);
@@ -29,8 +27,8 @@ export function hideAmenities(map: MapboxMap | null): void {
   hideLayers(map, amenityLayers);
 }
 
-export function mapHasLayer(map: MapboxMap, layerId: string): boolean {
-  if (map.getLayer(layerId)) {
+export function mapHasLayer(map: MapboxMap | null, layerId: string): boolean {
+  if (map?.getLayer(layerId)) {
     return true;
   }
 
@@ -55,7 +53,7 @@ export function hideLayers(map: MapboxMap | null, layers: string[]): void {
 
 // hide all layers but buildings and landscape
 export function hideAllResultLayers(map: MapboxMap) {
-  hideAllLayersButThese(map, [])
+  hideAllLayersButThese(map, []);
 }
 
 export function hideAllLayersButThese(
@@ -69,14 +67,14 @@ export function hideAllLayersButThese(
     layersToShow.push(...designLayers);
   }
   // first hide all user-content layers
-  hideLayers(map, getUserContentLayerIds(map))
+  hideLayers(map, getUserContentLayerIds(map));
 
   if (!hideDesignLayers) {
     showBuildings(map);
     showLandscapeDesign(map);
   }
   // then show layers in layersToShow
-  showLayers(map, layersToShow)
+  showLayers(map, layersToShow);
 }
 
 // get all layers that had been added by the user (like buildings, calculation results, ..)
@@ -86,46 +84,52 @@ export function getUserContentLayers(map: MapboxMap | null): Layer[] {
     const allLayers: GenericObject = map.style._layers;
     return (
       Object.values(allLayers).filter(
-        (layer) => layer.metadata === "user-content" || layer.type === "custom")
-        ??
-        []
-      );
-  }
-  catch {
-    // getStyle fails when the map is not fully initated yet. 
+        (layer) => layer.metadata === "user-content" || layer.type === "custom"
+      ) ?? []
+    );
+  } catch {
+    // getStyle fails when the map is not fully initated yet.
     // Unfortunately there is no way of knowing whether the map is ready or not.
-    return []
+    return [];
   }
 }
 
 export function getUserContentLayerIds(map: MapboxMap | null): string[] {
   return getUserContentLayers(map).map((layer) => {
-    return layer.id
+    return layer.id;
   });
 }
 
 export function addDeckLayerToMap(layer: DeckLayer<any>, map: MapboxMap) {
-  addLayerToMap(layer, map)
+  addLayerToMap(layer, map);
 }
 
-
 /** Adds a source and a layer to the map */
-export function addSourceAndLayerToMap(source: any, layers: any[], map: MapboxMap | null): void {
+export function addSourceAndLayerToMap(
+  source: any,
+  layers: any[],
+  map: MapboxMap | null
+): void {
   if (map?.getSource(source.id)) {
     // remove all layers using this source and the source itself
     removeSourceAndItsLayersFromMap(source.id, map);
   }
   map?.addSource(source.id, source.options);
 
-  layers.forEach((layer) => { addLayerToMap(layer, map) })
-  updateLayerOrder(map)
+  layers.forEach((layer) => {
+    addLayerToMap(layer, map);
+  });
+  updateLayerOrder(map);
 }
 
 /** removes a source and all its layers from map  */
-export function removeSourceAndItsLayersFromMap(sourceId: string, map: MapboxMap | null): void {
+export function removeSourceAndItsLayersFromMap(
+  sourceId: string,
+  map: MapboxMap | null
+): void {
   if (!map?.getSource(sourceId)) {
     // source is not on map
-    return
+    return;
   }
 
   // remove all layers using this source first
@@ -142,14 +146,17 @@ export function removeSourceAndItsLayersFromMap(sourceId: string, map: MapboxMap
 }
 
 // adds layer to map
-function addLayerToMap(layer: Layer | DeckLayer<any>, map: MapboxMap | null): void {
+function addLayerToMap(
+  layer: Layer | DeckLayer<any>,
+  map: MapboxMap | null
+): void {
   // remove layer first if exits
   if (map?.getLayer(layer.id)) {
     map?.removeLayer(layer.id);
   }
 
   // @ts-ignore
-  layer.metadata = "user-content";  // differentiate layer from mapbox base layers like "sattelite" , ...
+  layer.metadata = "user-content"; // differentiate layer from mapbox base layers like "sattelite" , ...
   map?.addLayer(layer);
 }
 

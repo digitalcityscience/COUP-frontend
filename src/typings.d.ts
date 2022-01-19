@@ -34,13 +34,6 @@ declare global {
     moduleSettings: AbmScenarioSettings;
   }
 
-  interface NoiseScenario {
-    traffic_quota: number;
-    max_speed: number;
-  }
-
-  
-
   interface AbmScenarioSettings {
     bridge_hafencity: boolean;
     bridge_veddel: "horizontal" | "diagonal";

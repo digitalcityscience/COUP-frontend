@@ -43,7 +43,7 @@ export default class StormWaterStore extends VuexModule {
   mutateResult(newResult: StormWaterResult): void {
     this.result = {
       geojson: Object.freeze(newResult.geojson),
-      rainData: newResult.rainData
+      rainData: newResult.rainData,
     };
   }
 

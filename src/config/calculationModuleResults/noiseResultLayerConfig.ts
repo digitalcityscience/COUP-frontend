@@ -1,20 +1,17 @@
 import type { SourceAndLayerConfig } from "@/models";
 
 const noiseResultLayerConfig: SourceAndLayerConfig = {
-  "layerConfig": {
-    "id": "noise",
-    "type": "fill-extrusion",
-    "source": "noise",
-    "paint": {
+  layerConfig: {
+    id: "noise",
+    type: "fill-extrusion",
+    source: "noise",
+    paint: {
       "fill-extrusion-height": 0.2,
       "fill-extrusion-base": 0.25,
       "fill-extrusion-opacity": 0.8,
       "fill-extrusion-color": [
         "match",
-        [
-          "get",
-          "idiso"
-        ],
+        ["get", "idiso"],
         0,
         "#B8D6D1",
         1,
@@ -31,17 +28,17 @@ const noiseResultLayerConfig: SourceAndLayerConfig = {
         "#A11A4D",
         7,
         "#75085C",
-        "black"
-      ]
-    }
+        "black",
+      ],
+    },
   },
-  "source": {
-    "id": "noise",
-    "options": {
-      "type": "geojson",
-      "data": {}
-    }
-  }
-}
+  source: {
+    id: "noise",
+    options: {
+      type: "geojson",
+      data: {},
+    },
+  },
+};
 
 export default noiseResultLayerConfig;

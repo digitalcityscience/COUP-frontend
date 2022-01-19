@@ -6,7 +6,7 @@ import SunExposureScenario from "@/components/Scenario/SunExposure.vue";
 import WindScenario from "@/components/Scenario/Wind.vue";
 import MultiLayerAnalysis from "@/components/Scenario/MultiLayerAnalysis.vue";
 import scenarioComponentNames from "@/config/scenarioComponentNames";
-import { DataLoadingStati, ScenarioComponentName } from '@/models';
+import { DataLoadingStati, ScenarioComponentName } from "@/models";
 
 export default {
   name: "Menu",
@@ -26,9 +26,9 @@ export default {
     return {
       windowWidth: window.innerWidth,
       menuOpen: false,
-      componentNames: {...scenarioComponentNames},
+      componentNames: { ...scenarioComponentNames },
       resultLoadingStati: {},
-      notifyNewResult: {}
+      notifyNewResult: {},
     };
   },
   computed: {
@@ -45,24 +45,25 @@ export default {
     },
     resultLoadingStatiGlobal(): DataLoadingStati {
       return this.$store.state.scenario.resultLoadingStati;
-    }
+    },
   },
 
   watch: {
     resultLoadingStatiGlobal: {
-      // check if new a pending result has finished loading. 
+      // check if new a pending result has finished loading.
       // If so, add a notification for new result for that component
-      handler(newStati: DataLoadingStati){
-            Object.entries(newStati).forEach(([componentName, isLoading]) => {
-              if (!isLoading && this.resultLoadingStati[componentName]) {
-                if (this.activeComponent !== componentName)
-                this.notifyNewResult[componentName] = true;
-              }
-            })
-          this.resultLoadingStati = { ...this.resultLoadingStatiGlobal };
-        }, deep: true
-    }
-  }
+      handler(newStati: DataLoadingStati) {
+        Object.entries(newStati).forEach(([componentName, isLoading]) => {
+          if (!isLoading && this.resultLoadingStati[componentName]) {
+            if (this.activeComponent !== componentName)
+              this.notifyNewResult[componentName] = true;
+          }
+        });
+        this.resultLoadingStati = { ...this.resultLoadingStatiGlobal };
+      },
+      deep: true,
+    },
+  },
 };
 </script>
 
@@ -94,12 +95,15 @@ export default {
           <ul class="component_list">
             <li
               class="component_link"
-              v-bind:class="{ 
+              v-bind:class="{
                 selected: activeComponent === componentNames.pedestrian,
                 waitingForResult: resultLoadingStati.pedestrian,
                 //newResultNotification: notifyNewResult.pedestrian
               }"
-              @click="activeComponent = componentNames.pedestrian, notifyNewResult.pedestrian = false"
+              @click="
+                (activeComponent = componentNames.pedestrian),
+                  (notifyNewResult.pedestrian = false)
+              "
             >
               <p>Pedestrians</p>
             </li>
@@ -110,30 +114,38 @@ export default {
                 waitingForResult: resultLoadingStati.stormwater,
                 //newResultNotification: notifyNewResult.stormwater
               }"
-              @click="activeComponent = componentNames.stormwater, notifyNewResult.stormwater = false"
+              @click="
+                (activeComponent = componentNames.stormwater),
+                  (notifyNewResult.stormwater = false)
+              "
             >
               <p>Stormwater</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ 
+              v-bind:class="{
                 selected: activeComponent === componentNames.noise,
                 waitingForResult: resultLoadingStati.noise,
                 //newResultNotification: notifyNewResult.noise
-                }"
-              @click="activeComponent = componentNames.noise, notifyNewResult.noise = false"
+              }"
+              @click="
+                (activeComponent = componentNames.noise),
+                  (notifyNewResult.noise = false)
+              "
             >
               <p>Noise</p>
             </li>
             <li
               class="component_link"
-              v-bind:class="{ 
+              v-bind:class="{
                 selected: activeComponent === componentNames.wind,
                 waitingForResult: resultLoadingStati.wind,
                 //newResultNotification: notifyNewResult.wind
-
-                }"
-              @click="activeComponent = componentNames.wind, notifyNewResult.wind = false"
+              }"
+              @click="
+                (activeComponent = componentNames.wind),
+                  (notifyNewResult.wind = false)
+              "
             >
               <p>Wind</p>
             </li>
@@ -144,7 +156,10 @@ export default {
                 waitingForResult: resultLoadingStati.sun,
                 //newResultNotification: notifyNewResult.sun
               }"
-              @click="activeComponent = componentNames.sun, notifyNewResult.sun = false"
+              @click="
+                (activeComponent = componentNames.sun),
+                  (notifyNewResult.sun = false)
+              "
             >
               <p>Sun</p>
             </li>
@@ -155,7 +170,10 @@ export default {
                 waitingForResult: resultLoadingStati.multiLayer,
                 //newResultNotification: notifyNewResult.multiLayer
               }"
-              @click="activeComponent = componentNames.multiLayer, notifyNewResult.multiLayer = false"
+              @click="
+                (activeComponent = componentNames.multiLayer),
+                  (notifyNewResult.multiLayer = false)
+              "
             >
               <p>Combine Layers</p>
             </li>
@@ -189,7 +207,7 @@ export default {
           <WindScenario />
         </div>
         <div v-if="activeComponent === componentNames.sun">
-          <SunExposureScenario/>
+          <SunExposureScenario />
         </div>
         <div v-if="activeComponent === componentNames.multiLayer">
           <MultiLayerAnalysis />
@@ -289,26 +307,26 @@ export default {
         }
 
         &.waitingForResult {
-          overflow:hidden;
+          overflow: hidden;
           background: $reversed;
           opacity: 0.35;
           color: $bright1;
-          
+
           &:hover {
-              animation:none;
-              -webkit-animation: none;
+            animation: none;
+            -webkit-animation: none;
           }
 
           &:after {
-            background:linear-gradient(45deg, white, $darkred);
-            animation:pulse-border 2.5s infinite;
-            -webkit-animation:pulse-border 2.5s infinite;
+            background: linear-gradient(45deg, white, $darkred);
+            animation: pulse-border 2.5s infinite;
+            -webkit-animation: pulse-border 2.5s infinite;
           }
         }
-        
+
         &.newResultNotification {
-          overflow:hidden;
-          background:linear-gradient(45deg, white, green);
+          overflow: hidden;
+          background: linear-gradient(45deg, white, green);
           opacity: 0.35;
           color: $bright1;
         }

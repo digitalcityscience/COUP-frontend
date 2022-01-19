@@ -2,24 +2,22 @@ import CircledFeatures from "@/config/userInteraction/circledFeaturesLayerConfig
 import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import BuildingLayerConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
-import {  SourceAndLayerConfig, StoreState } from "@/models";
+import { SourceAndLayerConfig, StoreState } from "@/models";
 import { addSourceAndLayerToMap } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
 import { ActionContext } from "vuex";
 
 export default {
-  async createDesignLayers({
-    state,
-  }: ActionContext<StoreState, StoreState>) { 
+  async createDesignLayers({ state }: ActionContext<StoreState, StoreState>) {
     const designConfigs = [...BuildingLayerConfigs, LandscapeLayerConfig];
     // iterate over sources in configs
-    designConfigs.forEach((config : SourceAndLayerConfig) => {
-    // get layer data from cityPyo
+    designConfigs.forEach((config: SourceAndLayerConfig) => {
+      // get layer data from cityPyo
       state.cityPyO.getLayer(config.source.id).then((layerData) => {
         // merge layer data and config
-        config.source.options.data = layerData
+        config.source.options.data = layerData;
         // add to map
-        addSourceAndLayerToMap(config.source, [config.layerConfig], state.map)
+        addSourceAndLayerToMap(config.source, [config.layerConfig], state.map);
       });
     });
   },
@@ -31,9 +29,13 @@ export default {
     state.cityPyO.getLayer("focusAreas").then((geojson) => {
       commit("focusAreasGeoJson", geojson);
       // merge layer data and config
-      FocusAreasLayerConfig.source.options.data = geojson
+      FocusAreasLayerConfig.source.options.data = geojson;
       // add to map
-      addSourceAndLayerToMap(FocusAreasLayerConfig.source, [FocusAreasLayerConfig.layerConfig], state.map)
+      addSourceAndLayerToMap(
+        FocusAreasLayerConfig.source,
+        [FocusAreasLayerConfig.layerConfig],
+        state.map
+      );
     });
   },
   // TODO do this in layer service?
@@ -99,7 +101,7 @@ export default {
     // update layer on map
     const source = CircledFeatures.source;
     source.options.data.features = featureCircles;
-    addSourceAndLayerToMap(source, [CircledFeatures.layerConfig], state.map)
+    addSourceAndLayerToMap(source, [CircledFeatures.layerConfig], state.map);
     commit("featureCircles", featureCircles);
   },
 };

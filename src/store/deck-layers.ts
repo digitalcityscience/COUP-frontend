@@ -80,7 +80,6 @@ export async function buildAggregationLayer(
   return aggregationLayer;
 }
 
-
 // animate deck trips layer
 export function animate(
   layer: DeckLayer<any>,

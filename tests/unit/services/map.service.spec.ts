@@ -4,6 +4,7 @@ import * as service from "@/services/map.service";
 test("showLayers ", () => {
   const mock = {
     setLayoutProperty: jest.fn(),
+    getLayer: () => true,
   } as unknown as MapboxMap;
   service.showLayers(mock, ["test"]);
   expect(mock.setLayoutProperty).toHaveBeenCalledWith(
@@ -16,6 +17,7 @@ test("showLayers ", () => {
 test("hideLayers ", () => {
   const mock = {
     setLayoutProperty: jest.fn(),
+    getLayer: () => true,
   } as unknown as MapboxMap;
   service.hideLayers(mock, ["test"]);
   expect(mock.setLayoutProperty).toHaveBeenCalledWith(
@@ -36,17 +38,15 @@ test("getUserContentLayers with not fully loaded map", () => {
 test("getUserContentLayers without user-content layers", () => {
   const mock = {
     loaded: () => true,
-    getStyle: () => {
-      return {
-        layers: [
-          {
-            metadata: "something",
-          },
-          {
-            metadata: undefined,
-          },
-        ],
-      };
+    style: {
+      _layers: [
+        {
+          metadata: "something",
+        },
+        {
+          metadata: undefined,
+        },
+      ],
     },
   } as unknown as MapboxMap;
   const result = service.getUserContentLayers(mock);
@@ -56,21 +56,19 @@ test("getUserContentLayers without user-content layers", () => {
 test("getUserContentLayers with user-content layers", () => {
   const mock = {
     loaded: () => true,
-    getStyle: () => {
-      return {
-        layers: [
-          {
-            metadata: "something",
-          },
-          {
-            metadata: undefined,
-          },
-          {
-            metadata: "user-content",
-            id: "test",
-          },
-        ],
-      };
+    style: {
+      _layers: [
+        {
+          metadata: "something",
+        },
+        {
+          metadata: undefined,
+        },
+        {
+          metadata: "user-content",
+          id: "test",
+        },
+      ],
     },
   } as unknown as MapboxMap;
   const result = service.getUserContentLayers(mock);
@@ -81,21 +79,19 @@ test("getUserContentLayers with user-content layers", () => {
 test("getUserContentLayerIds with user-content layers", () => {
   const mock = {
     loaded: () => true,
-    getStyle: () => {
-      return {
-        layers: [
-          {
-            metadata: "something",
-          },
-          {
-            metadata: undefined,
-          },
-          {
-            metadata: "user-content",
-            id: "test",
-          },
-        ],
-      };
+    style: {
+      _layers: [
+        {
+          metadata: "something",
+        },
+        {
+          metadata: undefined,
+        },
+        {
+          metadata: "user-content",
+          id: "test",
+        },
+      ],
     },
   } as unknown as MapboxMap;
   const result = service.getUserContentLayerIds(mock);
@@ -106,17 +102,15 @@ test("getUserContentLayerIds with user-content layers", () => {
 test("getUserContentLayerIds without user-content layers", () => {
   const mock = {
     loaded: () => true,
-    getStyle: () => {
-      return {
-        layers: [
-          {
-            metadata: "something",
-          },
-          {
-            metadata: undefined,
-          },
-        ],
-      };
+    style: {
+      layers: [
+        {
+          metadata: "something",
+        },
+        {
+          metadata: undefined,
+        },
+      ],
     },
   } as unknown as MapboxMap;
   const result = service.getUserContentLayerIds(mock);

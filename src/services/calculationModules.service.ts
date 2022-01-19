@@ -4,14 +4,16 @@ import type {
   StormWaterResult,
   CalculationTask,
   MapSource,
-  GeoJSON,
   WindResult,
+  NoiseResult,
+  WindScenarioConfiguration,
+  NoiseScenarioConfiguration,
 } from "@/models";
 
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
 export default class ApiEndpoints {
   apiURL: string;
-  
+
   auth: {
     username: string;
     password: string;
@@ -35,8 +37,8 @@ export default class ApiEndpoints {
 
     this.auth = {
       username: process.env.VUE_APP_CALCULATIONS_API_USER,
-      password: process.env.VUE_APP_CALCULATIONS_API_PW
-    }
+      password: process.env.VUE_APP_CALCULATIONS_API_PW,
+    };
 
     // endpoints to request calculation
     this.endpointsCalculation = {
@@ -63,7 +65,7 @@ const config = new ApiEndpoints();
 
 // triggers wind calculation and returns the result uuids of the result
 export async function requestCalculationWind(
-  windScenario: GenericObject,
+  windScenario: WindScenarioConfiguration,
   cityPyoUserId: string
 ): Promise<CalculationTask> {
   console.debug(" requesting calc for windScenario", windScenario);
@@ -76,7 +78,7 @@ export async function requestCalculationWind(
 
 // triggers noise calculation and returns the result uuids of the result
 export async function requestCalculationNoise(
-  noiseScenario: GenericObject,
+  noiseScenario: NoiseScenarioConfiguration,
   cityPyoUserId: string
 ) {
   console.log(" requesting calc for noiseScenario", noiseScenario);
@@ -127,17 +129,19 @@ export async function getResultForWind({
     throw new Error("Did not get a valid result");
   }
 
-  return  {
-    geojson: result
+  return {
+    geojson: result,
   };
 }
 
 /** gets noise result */
-export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
+export async function getResultForNoise(
+  task: CalculationTask
+): Promise<NoiseResult> {
   // TODO make task object
   const result = await getResultWhenReady(
     config.endpointsResultCollection.noise,
-    task["taskId"]
+    task.taskId
   );
 
   // check result validity
@@ -146,7 +150,9 @@ export async function getResultForNoise(task: GenericObject): Promise<GeoJSON> {
     throw new Error("Did not get a valid result");
   }
 
-  return result
+  return {
+    geojson: result,
+  };
 }
 
 /** gets stormwater result */
@@ -174,10 +180,13 @@ export async function getResultForStormWater(
 // triggers stormWater calculation and returns the result uuids of the result
 async function requestCalculation(
   url: string,
-  scenarioConfig: GenericObject,
+  scenarioConfig:
+    | NoiseScenarioConfiguration
+    | StormWaterScenarioConfiguration
+    | WindScenarioConfiguration,
   cityPyoUserId: string
 ) {
-  let scenario = Object.assign({}, scenarioConfig);
+  const scenario = Object.assign({}, scenarioConfig);
   scenario["city_pyo_user"] = cityPyoUserId;
   scenario["result_format"] = "geojson"; // mapbox front-end always needs geojson results
   const result_uuid = await makePostRequest(url, scenario);
@@ -189,15 +198,21 @@ async function requestCalculation(
 async function getResultWhenReady(url, taskUuid) {
   const initialSleepTime = 1000;
   const maxTries = 120000 / initialSleepTime;
-  
+
   let result_ready = false;
 
   return (async () => {
-    const generator = getResultGenerator(0, maxTries, url, taskUuid, initialSleepTime);
+    const generator = getResultGenerator(
+      0,
+      maxTries,
+      url,
+      taskUuid,
+      initialSleepTime
+    );
     for await (const response of generator) {
-      result_ready = response["resultReady"] || response["grouptaskProcessed"]  // TODO rename at endpoint
+      result_ready = response["resultReady"] || response["grouptaskProcessed"]; // TODO rename at endpoint
       if (result_ready) {
-        return response["result"] || response["results"];  // "results" for group tasks 
+        return response["result"] || response["results"]; // "results" for group tasks
       }
     }
     console.error("could not get result for url, uuid", url, taskUuid);
@@ -208,24 +223,22 @@ async function getResultWhenReady(url, taskUuid) {
 async function makePostRequest(requestUrl, scenario) {
   console.log("performing request with scneario ", scenario);
 
-  
-
   const response = await axios
-    .post(requestUrl, scenario, {auth: config.auth})
-      .then((res) => {
-        return res.data;
-      })
-      .catch((error) => {
-        console.error("Error when posting calculation request", error);
-        throw new Error("Could not post calculation request");
-      });
+    .post(requestUrl, scenario, { auth: config.auth })
+    .then((res) => {
+      return res.data;
+    })
+    .catch((error) => {
+      console.error("Error when posting calculation request", error);
+      throw new Error("Could not post calculation request");
+    });
 
   return response;
 }
 
 async function makeGetRequest(requestUrl) {
   return await axios
-    .get(requestUrl, {auth: config.auth})
+    .get(requestUrl, { auth: config.auth })
     .then((res) => {
       return res.data;
     })
@@ -248,7 +261,7 @@ export function formatResultAsMapSource(id: string, responseJson): MapSource {
 async function* getResultGenerator(start, end, url, taskUuid, sleepTime) {
   for (let i = start; i <= end; i++) {
     await new Promise((resolve) => setTimeout(resolve, sleepTime));
-    sleepTime = Math.max(sleepTime + 1000, 5000)
+    sleepTime = Math.max(sleepTime + 1000, 5000);
     yield await makeGetRequest(url + taskUuid);
   }
 }

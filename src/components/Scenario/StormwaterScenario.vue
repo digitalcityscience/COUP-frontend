@@ -165,13 +165,21 @@
 
 <script lang="ts">
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import type { MenuLink, StormWaterScenarioConfiguration, StormWaterResult, MapboxMap } from "@/models";
+import ScenarioComponentNames from "@/config/scenarioComponentNames";
+import { StoreStateWithModules } from "@/models";
+import type {
+  MapboxMap,
+  MenuLink,
+  StormWaterScenarioConfiguration,
+} from "@/models";
 import { swLayerName } from "@/services/layers.service";
+import {
+  hideAllLayersButThese,
+  hideLayers,
+  removeSourceAndItsLayersFromMap,
+} from "@/services/map.service";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
-import { StoreStateWithModules } from "@/models";
-import { hideAllLayersButThese, hideLayers, removeSourceAndItsLayersFromMap } from "@/services/map.service";
-import ScenarioComponentNames from '@/config/scenarioComponentNames';
 
 @Component({
   name: ScenarioComponentNames.stormwater,
@@ -270,7 +278,10 @@ export default class StormwaterScenario extends Vue {
   }
 
   get isStormwaterActiveComponent(): boolean {
-    return this.$store.state.activeMenuComponent === ScenarioComponentNames.stormwater;
+    return (
+      this.$store.state.activeMenuComponent ===
+      ScenarioComponentNames.stormwater
+    );
   }
 
   get scenarioConfigurationGlobal(): StormWaterScenarioConfiguration {
@@ -292,41 +303,39 @@ export default class StormwaterScenario extends Vue {
 
   set resultLoading(loadingState: boolean) {
     let loadingStati = Object.assign(
-      {}, 
+      {},
       this.$store.state.scenario.resultLoadingStati
     );
-    
+
     loadingStati.stormwater = loadingState;
 
     this.$store.commit("scenario/resultLoadingStati", loadingStati);
   }
 
-
   async loadStormwaterMap(): Promise<void> {
     this.resultLoading = true;
-    removeSourceAndItsLayersFromMap(swLayerName, this.map)
+    removeSourceAndItsLayersFromMap(swLayerName, this.map);
     this.$store.commit("stormwater/resetResult");
     this.$store
       .dispatch("stormwater/updateStormWaterResult")
-        .then(() => {
-          // success
-          this.$store.dispatch("scenario/updateStormWaterLayer")
-            .then(() => {
-              if (!this.isStormwaterActiveComponent) {
-                hideLayers(this.map, [swLayerName])
-              }
-            });
-          // update time graph
-          this.$store.commit("scenario/rerenderSwGraph", true);
-          this.resultLoading = false;
-          this.errorMsg = "";
-        })
-        .catch((err) => {
-          console.log("caught error", err);
-          this.$store.commit("scenario/stormWater", false);
-          this.resultLoading = false;
-          this.errorMsg = err;
+      .then(() => {
+        // success
+        this.$store.dispatch("scenario/updateStormWaterLayer").then(() => {
+          if (!this.isStormwaterActiveComponent) {
+            hideLayers(this.map, [swLayerName]);
+          }
         });
+        // update time graph
+        this.$store.commit("scenario/rerenderSwGraph", true);
+        this.resultLoading = false;
+        this.errorMsg = "";
+      })
+      .catch((err) => {
+        console.log("caught error", err);
+        this.$store.commit("scenario/stormWater", false);
+        this.resultLoading = false;
+        this.errorMsg = err;
+      });
   }
 
   get isFormDirty(): boolean {

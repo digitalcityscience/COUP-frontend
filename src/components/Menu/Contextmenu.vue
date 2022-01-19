@@ -137,16 +137,16 @@ export default {
     },
     addBuildingFloorInfo(feature, floorType) {
       this.modalInfo["detailContent"][feature.layer.id] = [
-        { "Use": feature.properties.land_use_detailed_type },
-        { "Suggested Use Detail": feature.properties["land_use_suggested"] }
-        ];
+        { Use: feature.properties.land_use_detailed_type },
+        { "Suggested Use Detail": feature.properties["land_use_suggested"] },
+      ];
 
-        if (feature.layer.id === "groundfloor") {
-          this.modalInfo["detailContent"][feature.layer.id].push({
-            "Gross Floor Area":
-              Math.round(feature.properties["floor_area"]).toString() + "m²",
-          })
-        }
+      if (feature.layer.id === "groundfloor") {
+        this.modalInfo["detailContent"][feature.layer.id].push({
+          "Gross Floor Area":
+            Math.round(feature.properties["floor_area"]).toString() + "m²",
+        });
+      }
 
       if (feature.layer.id === "upperfloor") {
         const upperFloorsCount = feature.properties["number_of_stories"] - 1;

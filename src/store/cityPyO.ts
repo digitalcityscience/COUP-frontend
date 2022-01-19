@@ -121,7 +121,7 @@ export default class CityPyO {
     if (response.status == 200) {
       const responseJson = await response.json();
 
-      return responseJson.data
+      return responseJson.data;
     }
   }
 
@@ -131,7 +131,7 @@ export default class CityPyO {
     // TODO can we throw away the WORKSHOP stuff?
     if (workshopScenarioNames.includes(id)) {
       const responseGeoJson = await this.getLayer("amenities_" + id);
-      return responseGeoJson
+      return responseGeoJson;
     }
 
     // else: fetch abmScenario file, including all scenarios from CityPyo

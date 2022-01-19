@@ -4,25 +4,37 @@ import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import LoaderScreen from "@/components/Loader/Loader.vue";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
-import { MapboxMap, SavedWindScenarioConfiguration, StoreStateWithModules } from "@/models";
-import type { MenuLink, WindScenarioConfiguration, WindResult, GeoJSON } from "@/models";
+import {
+  MapboxMap,
+  SavedWindScenarioConfiguration,
+  StoreStateWithModules,
+} from "@/models";
+import type {
+  MenuLink,
+  WindScenarioConfiguration,
+  WindResult,
+  GeoJSON,
+} from "@/models";
 import { defaultWindScenarioConfigs } from "@/store/wind";
 import * as calcModules from "@/services/calculationModules.service";
-import { addSourceAndLayerToMap, hideAllLayersButThese, hideLayers, removeSourceAndItsLayersFromMap } from "@/services/map.service";
-import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig"
+import {
+  addSourceAndLayerToMap,
+  hideAllLayersButThese,
+  hideLayers,
+  removeSourceAndItsLayersFromMap,
+} from "@/services/map.service";
+import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig";
 import DashboardCharts from "./DashboardCharts.vue";
-import ScenarioComponentNames from '@/config/scenarioComponentNames';
+import ScenarioComponentNames from "@/config/scenarioComponentNames";
 
 @Component({
   name: ScenarioComponentNames.wind,
-  components: { MenuComponentDivision, LoaderScreen, DashboardCharts },
+  components: { MenuComponentDivision, LoaderScreen, DashboardCharts, Legend },
 })
-
 export default class WindScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   activeDivision = null;
   scenarioConfiguration: WindScenarioConfiguration | null = null;
-
 
   /** LIFE CYCLE   */
   mounted(): void {
@@ -32,53 +44,55 @@ export default class WindScenario extends Vue {
   }
 
   /** METHODS */
-  
+
   runScenario(): void {
     // update wind scenario in store
     this.scenarioConfigurationGlobal = Object.assign(
       {},
       this.scenarioConfiguration
     );
-    this.calculateWindResult()
+    this.calculateWindResult();
   }
 
   async calculateWindResult() {
     this.errMsg = "";
     this.$store.commit("wind/resetResult");
-    this.$store.dispatch("wind/triggerCalculation")
-      .then(() => { 
-        this.waitForResults() 
+    this.$store
+      .dispatch("wind/triggerCalculation")
+      .then(() => {
+        this.waitForResults();
       })
       .catch(() => {
-          // fail
-          this.errMsg = "Failed to trigger calculation. Try again.";
-      })
+        // fail
+        this.errMsg = "Failed to trigger calculation. Try again.";
+      });
   }
-    
-  // is busy until result complete 
+
+  // is busy until result complete
   async waitForResults() {
     this.resultLoading = true;
-    this.$store.dispatch("wind/fetchResult")
+    this.$store
+      .dispatch("wind/fetchResult")
       .then(() => {
         // success
-          this.$store.commit("scenario/windLayer", true); // this is for the layer menu in the viewbar
-          this.addResultToMap(this.windResult.geojson)
-          // hide the wind layer, if the user meanwhile has switched to another component 
-          if (!this.activeComponentIsWind) {
-            hideLayers(this.map, [WindResultLayerConfig.layerConfig.id])
-          }
+        this.$store.commit("scenario/windLayer", true); // this is for the layer menu in the viewbar
+        this.addResultToMap(this.windResult.geojson);
+        // hide the wind layer, if the user meanwhile has switched to another component
+        if (!this.activeComponentIsWind) {
+          hideLayers(this.map, [WindResultLayerConfig.layerConfig.id]);
+        }
       })
       .catch((err) => {
-          // fail
-          this.$store.commit("scenario/windLayer", false); // // this is for the layer menu in the viewba
-          removeSourceAndItsLayersFromMap("wind", this.map);
-          this.errMsg = err;
-          console.error(err.stack);
-          //debugger;
+        // fail
+        this.$store.commit("scenario/windLayer", false); // // this is for the layer menu in the viewba
+        removeSourceAndItsLayersFromMap("wind", this.map);
+        this.errMsg = err;
+        console.error(err.stack);
+        //debugger;
       })
       .finally(() => {
         this.resultLoading = false;
-      })
+      });
   }
 
   addResultToMap(resultGeoJSON: GeoJSON): void {
@@ -91,26 +105,29 @@ export default class WindScenario extends Vue {
       WindResultLayerConfig.source,
       [WindResultLayerConfig.layerConfig],
       this.map
-    )
-  }     
-    
+    );
+  }
+
   loadSavedScenario(savedScenario: SavedWindScenarioConfiguration): void {
     this.scenarioConfiguration.wind_speed = savedScenario.wind_speed;
     this.scenarioConfiguration.wind_direction = savedScenario.wind_direction;
-    
-    this.runScenario()
+
+    this.runScenario();
   }
 
   saveWindScenario() {
     if (!this.isScenarioAlreadySaved) {
       // add current scenario to saved scenarios
-      this.$store.commit("wind/addSavedScenarioConfiguration", this.scenarioConfiguration)
+      this.$store.commit(
+        "wind/addSavedScenarioConfiguration",
+        this.scenarioConfiguration
+      );
     }
   }
 
   get hasWindResult(): boolean {
     return this.$store.getters["wind/hasWindResult"];
-    }
+  }
 
   /** GETTER / SETTER FOR GLOBAL VARIABLES FROM STORE */
   get map(): MapboxMap {
@@ -120,7 +137,7 @@ export default class WindScenario extends Vue {
   get savedScenarioConfigurations(): SavedWindScenarioConfiguration[] {
     return this.$store.getters["wind/savedScenarioConfigurations"];
   }
-  
+
   get windResult(): WindResult {
     return this.$store.getters["wind/windResult"];
   }
@@ -143,13 +160,13 @@ export default class WindScenario extends Vue {
 
   set resultLoading(loadingState: boolean) {
     let loadingStati = Object.assign(
-      {}, 
+      {},
       this.$store.state.scenario.resultLoadingStati
     );
     loadingStati.wind = loadingState;
     this.$store.commit("scenario/resultLoadingStati", loadingStati);
   }
-  
+
   get errMsg(): string {
     return this.$store.state.wind.errMsg;
   }
@@ -161,21 +178,21 @@ export default class WindScenario extends Vue {
   /** GETTERS FOR LOCAL VARIABLES */
   get componentDivisions(): MenuLink[] {
     return [
-        {
-          title: "Scenario",
-          icon: "mdi-map-marker-radius",
-          hidden: false,
-          default: true,
-        },
-        {
-          title: "Dashboard",
-          icon: "mdi-view-dashboard",
-        },
-        {
-          title: "info",
-          icon: "mdi-information-variant",
-        },
-      ];
+      {
+        title: "Scenario",
+        icon: "mdi-map-marker-radius",
+        hidden: false,
+        default: true,
+      },
+      {
+        title: "Dashboard",
+        icon: "mdi-view-dashboard",
+      },
+      {
+        title: "info",
+        icon: "mdi-information-variant",
+      },
+    ];
   }
 
   get isFormDirty(): boolean {
@@ -186,21 +203,24 @@ export default class WindScenario extends Vue {
   }
 
   get isScenarioAlreadySaved() {
-      const savedScenarios = this.savedScenarioConfigurations;
-      const isSaved =
-        savedScenarios
-        .filter((savedScen: SavedWindScenarioConfiguration) => {
-          return (
-            savedScen.wind_speed === this.scenarioConfigurationGlobal.wind_speed
-            && savedScen.wind_direction === this.scenarioConfigurationGlobal.wind_direction
-          );
-        }).length > 0;
+    const savedScenarios = this.savedScenarioConfigurations;
+    const isSaved =
+      savedScenarios.filter((savedScen: SavedWindScenarioConfiguration) => {
+        return (
+          savedScen.wind_speed ===
+            this.scenarioConfigurationGlobal.wind_speed &&
+          savedScen.wind_direction ===
+            this.scenarioConfigurationGlobal.wind_direction
+        );
+      }).length > 0;
 
-      return isSaved;
+    return isSaved;
   }
 
   get activeComponentIsWind(): boolean {
-      return this.$store.state.activeMenuComponent === ScenarioComponentNames.wind;
+    return (
+      this.$store.state.activeMenuComponent === ScenarioComponentNames.wind
+    );
   }
 }
 </script>
@@ -323,35 +343,43 @@ export default class WindScenario extends Vue {
           >
             RUN SCENARIO
           </v-btn>
-          
-        <v-card-actions class="d-flex flex-column">
-          <v-btn
-            style="
-              margin-top: 1vh;
-              margin-bottom: 1vh;
-              float: right;
-              max-width: 30px;
-            "
-            @click="saveWindScenario"
-            class="confirm_btn ml-auto"
-            :disabled="isFormDirty || isScenarioAlreadySaved || resultLoading || !hasWindResult"
-            :dark="isScenarioAlreadySaved"
-          >         
-          SAVE
-          </v-btn>
-          <span v-if="isScenarioAlreadySaved && hasWindResult"
-            class="ml-auto"
-            style="font-weight: bold;"
-          >Scenario already saved
-          </span>
-          <span v-if="hasWindResult"
-            class="ml-auto"
-            style="font-weight: bold;"
-          >
-            Showing results for: {{ scenarioConfigurationGlobal.wind_speed }}km/h | {{ scenarioConfigurationGlobal.wind_direction}}°
-          </span>
-        </v-card-actions>
 
+          <v-card-actions class="d-flex flex-column">
+            <v-btn
+              style="
+                margin-top: 1vh;
+                margin-bottom: 1vh;
+                float: right;
+                max-width: 30px;
+              "
+              @click="saveWindScenario"
+              class="confirm_btn ml-auto"
+              :disabled="
+                isFormDirty ||
+                isScenarioAlreadySaved ||
+                resultLoading ||
+                !hasWindResult
+              "
+              :dark="isScenarioAlreadySaved"
+            >
+              SAVE
+            </v-btn>
+            <span
+              v-if="isScenarioAlreadySaved && hasWindResult"
+              class="ml-auto"
+              style="font-weight: bold"
+              >Scenario already saved
+            </span>
+            <span
+              v-if="hasWindResult"
+              class="ml-auto"
+              style="font-weight: bold"
+            >
+              Showing results for:
+              {{ scenarioConfigurationGlobal.wind_speed }}km/h |
+              {{ scenarioConfigurationGlobal.wind_direction }}°
+            </span>
+          </v-card-actions>
 
           <!--saved scenarios -->
           <div class="saved_scenarios" style="margin-top: 5vh">
@@ -363,17 +391,17 @@ export default class WindScenario extends Vue {
               <template v-slot:default="{ items }">
                 {{/* Use the items to iterate */}}
                 <v-flex v-for="(scenario, index) in items" :key="index">
-                <v-tooltip left>
+                  <v-tooltip left>
                     <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      style="margin: 1vh auto"
-                      @click="loadSavedScenario(scenario)"
-                      outlined
-                      dark
-                      small
-                      :disabled="resultLoading"
-                      v-bind="attrs"
-                      v-on="on"
+                      <v-btn
+                        style="margin: 1vh auto"
+                        @click="loadSavedScenario(scenario)"
+                        outlined
+                        dark
+                        small
+                        :disabled="resultLoading"
+                        v-bind="attrs"
+                        v-on="on"
                       >
                         <span v-if="scenario.label">
                           {{ scenario.label }}
@@ -384,8 +412,11 @@ export default class WindScenario extends Vue {
                         </span>
                       </v-btn>
                     </template>
-                    <span>{{ scenario.wind_speed }}km/h | {{ scenario.wind_direction}}°</span>
-                </v-tooltip>
+                    <span
+                      >{{ scenario.wind_speed }}km/h |
+                      {{ scenario.wind_direction }}°</span
+                    >
+                  </v-tooltip>
                 </v-flex>
               </template>
             </v-data-iterator>

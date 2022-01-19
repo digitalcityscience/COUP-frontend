@@ -31,7 +31,7 @@ export default class TimeSheet extends Vue {
   loopSetter = false;
   windowWidth = window.innerWidth;
   showGraph = true;
-  hasAbmResult= false;
+  hasAbmResult = false;
 
   triggerAnimation(): void {
     /*functionality for play button*/
@@ -61,7 +61,6 @@ export default class TimeSheet extends Vue {
       this.timeStamps.push(label);
       this.timeCoords.push(coords.length);
     });
-
 
     this.hasAbmResult = true;
     this.renderTimeGraph();

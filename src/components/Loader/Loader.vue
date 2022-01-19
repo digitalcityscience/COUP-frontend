@@ -2,51 +2,55 @@
 import { mapState } from "vuex";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
-import { DataLoadingStati, ScenarioComponentName, StoreStateWithModules } from "@/models";
-
+import {
+  DataLoadingStati,
+  ScenarioComponentName,
+  StoreStateWithModules,
+} from "@/models";
 
 @Component({
   name: "LoaderScreen",
-  components: {}
+  components: {},
 })
-
 export default class LoaderScreen extends Vue {
-    $store: Store<StoreStateWithModules>;
+  $store: Store<StoreStateWithModules>;
 
-    // TODO rename menucomponent to scenarioComponent
-    get activeScenarioComponent(): string {
+  // TODO rename menucomponent to scenarioComponent
+  get activeScenarioComponent(): string {
     return this.$store.state.activeMenuComponent;
+  }
+
+  get dataLoadingStati(): DataLoadingStati {
+    return this.$store.state.scenario.resultLoadingStati;
+  }
+
+  /** show loader if result data for the current scenario component is loading - or for general/misc data loading */
+  get showLoader(): boolean {
+    return (
+      this.dataLoadingStati[this.activeScenarioComponent] ||
+      this.dataLoadingStati.map
+    );
+  }
+
+  /** looks for which loading status is true and returns associated text */
+  get loaderTxt(): string {
+    if (this.dataLoadingStati.map) {
+      return "....Loading...Please wait..";
     }
 
-    get dataLoadingStati(): DataLoadingStati {
-      return this.$store.state.scenario.resultLoadingStati;
-    }
+    const loaderTexts: Record<ScenarioComponentName, string> = {
+      sun: "Fetching sun exposure results.",
+      wind: "Fetching wind-comfort results from Infrared.",
+      noise: "Fetching traffic noise results.",
+      pedestrian: "Fetching ABM results.",
+      stormwater: "Fetching stormwater results.",
+      multiLayer: "Calculation in progress.",
+    };
 
-    /** show loader if result data for the current scenario component is loading - or for general/misc data loading */
-    get showLoader(): boolean {
-      return this.dataLoadingStati[this.activeScenarioComponent] || this.dataLoadingStati.map
-    }
-
-    /** looks for which loading status is true and returns associated text */
-    get loaderTxt(): string {
-      if (this.dataLoadingStati.map) {
-        return "....Loading...Please wait.."
-      }
-
-      const loaderTexts: Record<ScenarioComponentName, string> = {
-        sun: "Fetching sun exposure results.",
-        wind: "Fetching wind-comfort results from Infrared.",
-        noise: "Fetching traffic noise results.",
-        pedestrian: "Fetching ABM results.",
-        stormwater: "Fetching stormwater results.",
-        multiLayer: "Calculation in progress.",
-      }
-
-      return loaderTexts[this.activeScenarioComponent]
-    }
+    return loaderTexts[this.activeScenarioComponent];
+  }
 }
 </script>
-
 
 <template>
   <div id="big_loader" :class="showLoader ? '' : 'hidden'">
