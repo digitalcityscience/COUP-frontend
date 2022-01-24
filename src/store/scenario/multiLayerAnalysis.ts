@@ -67,7 +67,10 @@ export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
 function createLayerData(
   layerName: string
 ): turf.FeatureCollection<turf.Polygon | turf.MultiPolygon> {
+
   const baseDataSet = layerLookup(layerName);
+
+
 
   /** get layer data from geojson layers*/
   if (baseDataSet["type"] === "FeatureCollection") {
@@ -242,7 +245,7 @@ function layerLookup(layerName: string) {
     case "sun":
       return store.state.scenario.sunExposureGeoJson;
     case "noise":
-      return store.state.scenario.currentNoiseGeoJson;
+      return store.getters["noise/noiseResult"].geojson;
     case "Density":
     case "Amenity Types":
       return store.state.scenario.amenityStatsMultiLayer;

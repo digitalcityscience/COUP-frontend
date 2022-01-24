@@ -121,7 +121,6 @@ export default {
     ...generateStoreGetterSetter([
       ["activeMenuComponent", "activeMenuComponent"],
       ["visibleLayers", "visibleLayers"],
-      ["noiseScenario", "scenario/noiseScenario"],
       ["windScenarioHash", "scenario/windScenarioHash"],
       ["abmSettings", "scenario/moduleSettings"],
     ]),
@@ -139,6 +138,9 @@ export default {
     },
     currentWindScenario() {
       return this.$store.getters["wind/scenarioConfiguration"];
+    },
+    currentNoiseScenario() {
+      return this.$store.getters["noise/scenarioConfiguration"];
     },
     currentSunResult() {
       return this.$store.state.scenario.sunExposureGeoJson;
@@ -494,11 +496,11 @@ export default {
         case "Noise":
           return (
             "VOLUME: " +
-            this.noiseScenario["traffic_quota"] * 100 +
+            this.currentNoiseScenario["traffic_quota"] * 100 +
             "%" +
             " | " +
             "SPEED: " +
-            this.noiseScenario["max_speed"] +
+            this.currentNoiseScenario["max_speed"] +
             "km/h"
           );
         case "Abm":
