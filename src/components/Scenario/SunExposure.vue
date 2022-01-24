@@ -1,7 +1,6 @@
 <script lang="ts">
 import { mapState } from "vuex";
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import { noiseSettingsNames } from "@/store/noise";
 import hash from "object-hash";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";

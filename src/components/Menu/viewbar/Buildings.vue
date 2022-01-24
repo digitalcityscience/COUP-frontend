@@ -118,8 +118,6 @@ export default class Buildings extends Vue {
   }
 
   colorizeBuildingsByUseType(): void {
-    this.$store.commit("scenario/loader", true);
-
     if (this.allFeaturesHighlighted) {
       this.allFeaturesHighlighted = false;
       const featuresToRemove = this.selectedMultiFeatures;
@@ -150,8 +148,6 @@ export default class Buildings extends Vue {
         this.$store.dispatch("editFeatureProps", feature);
       });
     }
-
-    this.$store.commit("scenario/loader", false);
   }
 }
 </script>
