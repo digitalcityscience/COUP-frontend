@@ -33,3 +33,5 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           start: npm run start -- --mode production
+        env:
+          CYPRESS_port: 8080
