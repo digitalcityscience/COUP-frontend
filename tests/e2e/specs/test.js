@@ -4,7 +4,7 @@ describe("Login page test", () => {
   it("The page is password protected and a login form is visible", () => {
     cy.visit("/");
 
-    cy.get("div.login_background2").should("be.visible");
+    cy.get("div.login_background").should("be.visible");
     cy.get("form").find("input").should("not.have.class", "disabled");
     cy.get("form").find("input#input_field_pw").should("be.visible");
     cy.get("form").find("input#input_field_user").should("be.visible");

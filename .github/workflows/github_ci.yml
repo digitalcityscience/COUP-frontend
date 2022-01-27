@@ -4,7 +4,7 @@ name: Node.js CI test only
 
 on:
   push:
-    branches: [ "feat/e2e-tests" ]
+    branches: [ "*", "feat/*" ]
   pull_request:
     branches: [ "*" ]
 
