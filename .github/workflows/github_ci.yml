@@ -29,12 +29,14 @@ jobs:
       env:
         CYPRESS_baseUrl: 'http://localhost:8080/'
     - name: Archive test results - screenshots
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: e2e-screenshots
         path: tests/e2e/screenshots
         retention-days: 5
     - name: Archive test results - videos
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         name: e2e-videos
