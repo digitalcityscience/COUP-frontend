@@ -6,6 +6,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "start": "vue-cli-service serve",
+    "start:ci": "EXPORT NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve --mode production",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e"
   },

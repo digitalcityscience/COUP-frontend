@@ -9,29 +9,21 @@ on:
     branches: [ "*" ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
-        node-version: 17.x
+        node-version: 17
         cache: 'npm'
     - run: npm ci
     - run: npm run test:unit
     - run: npm run lint
-
-  cypress-run:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      # Install NPM dependencies, cache them correctly
-      # and run all Cypress tests
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
-        with:
-          start: npm run start -- --mode production
-        env:
-          CYPRESS_port: 8080
+    - name: Cypress run
+      uses: cypress-io/github-action@v2
+      with:
+        start: 'npm run start:ci'
+      env:
+        CYPRESS_baseUrl: 'http://localhost:8080/'
