@@ -25,5 +25,6 @@ jobs:
       uses: cypress-io/github-action@v2
       with:
         start: 'npm run start:ci'
+        wait-on: 'http://localhost:8080/'
       env:
         CYPRESS_baseUrl: 'http://localhost:8080/'
