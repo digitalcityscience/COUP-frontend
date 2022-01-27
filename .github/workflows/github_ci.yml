@@ -24,6 +24,7 @@ jobs:
     - run: npm ci
     - run: npm run test:unit
     - run: npm run lint
+    
   cypress-run:
     runs-on: ubuntu-latest
     steps:
