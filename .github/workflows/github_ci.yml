@@ -4,7 +4,7 @@ name: Node.js CI test only
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "feat/e2e-tests" ]
   pull_request:
     branches: [ "*" ]
 
@@ -24,7 +24,7 @@ jobs:
     - run: npm ci
     - run: npm run test:unit
     - run: npm run lint
-    
+
   cypress-run:
     runs-on: ubuntu-latest
     steps:
