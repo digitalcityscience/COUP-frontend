@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { StoreStateWithModules, ScenarioWithTimeSheets } from "@/models";
-import { abmTripsLayerName, animate } from "@/store/deck-layers";
+import { abmTripsLayerName, setAnimationTimeAbm } from "@/services/deck.service";
 import { Chart } from "chart.js";
 import { Component, Vue, Watch } from "vue-property-decorator";
 import type { Store } from "vuex";
@@ -14,38 +14,55 @@ export default class TimeSheet extends Vue {
   $store: Store<StoreStateWithModules>;
 
   timeChart = null;
-  buildingsRunOffResults = [];
-  currentTimeSet = 0;
   animationSpeed = 21;
-  timeArray = {};
   timeStamps = [];
   timeCoords = [];
   timeHours = [];
   heatMapRange = { left: "0%", width: "100%" };
-  filterCoords = [];
-  timeFilter = false;
-  checkState = false;
-  filter = null;
   minTime = 0;
-  maxTime = 0;
-  loopSetter = false;
-  windowWidth = window.innerWidth;
   showGraph = true;
   hasAbmResult = false;
+  animationRunning = false;
+
 
   triggerAnimation(): void {
-    /*functionality for play button*/
-    const animationRunning = this.$store.state.scenario.animationRunning;
-    this.$store.commit("scenario/animationRunning", !animationRunning);
+    console.log("triggerAnimation");
 
-    if (!animationRunning) {
+    this.animationRunning = !this.animationRunning;
+    if (this.animationRunning) {
+      this.autoLoopAnimation();
+    }
+  }
+
+  autoLoopAnimation(): void {
+    /*functionality for play button*/
+    
+    // TODO: Once ABM is automated, get these times from API.
+    const abmTimeRange = this.$store.state.scenario.abmTimeRange;
+    const start = (abmTimeRange[0] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
+    const end = (abmTimeRange[1] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
+
+    // TODO adjust timestamp to slider. or slider to abm logic.
+    this.currentTimeStamp = this.currentTimeStamp || start;
+
+    if (this.animationRunning) {
+      if (this.currentTimeStamp + this.animationSpeed >= end) {
+        this.currentTimeStamp = start;
+      } else {
+        this.currentTimeStamp = this.currentTimeStamp + this.animationSpeed;
+      }
+
+      /*
+       the animation is realized by
+       updating the currentTime rendering variable on the layer
+      */
       const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-      animate(
-        (deckLayer as any).implementation,
-        null,
-        null,
-        this.currentTimeStamp
-      );
+      setAnimationTimeAbm((deckLayer as any).implementation, this.currentTimeStamp);
+
+      // trigger next cycle
+      window.requestAnimationFrame(() => {
+        this.autoLoopAnimation();
+      });
     }
   }
 
@@ -88,15 +105,7 @@ export default class TimeSheet extends Vue {
             borderWidth: 1,
             fill: false,
             label: "all Agents",
-          },
-          {
-            data: this.filterCoords,
-            hidden: !this.timeFilter,
-            label: "compared Agents",
-            borderColor: "rgba(81,209,252,0.85)",
-            borderWidth: 1,
-            fill: true,
-          },
+          }
         ],
       },
       options: {
@@ -136,32 +145,8 @@ export default class TimeSheet extends Vue {
     this.currentTimeStamp = newTime;
     if (this.animationRunning) {
       const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-      animate((deckLayer as any).implementation, null, null, newTime);
+      setAnimationTimeAbm((deckLayer as any).implementation, newTime);
     }
-  }
-
-  // TODO what did this do? and how did it work??
-  // activateComparisonGraph() {
-  //   this.timeFilter = true;
-  //   this.filterCoords = [];
-
-  //   if (this.filter === "No Filter") {
-  //     // do not filter timeCoords
-  //     this.filterCoords = [...this.timeCoords];
-  //   } else {
-  //     Object.values(this.abmSimpleTimes).forEach((value) => {
-  //       let coords = [...new Set(value[this.filterOptions[this.filter]])];
-  //       this.filterCoords.push(coords.length);
-  //     });
-
-  //     this.renderTimeGraph();
-  //   }
-  //   this.renderTimeGraph();
-  // }
-
-  setLoop() {
-    this.loopSetter = !this.loopSetter;
-    this.$store.commit("scenario/setLoop", this.loopSetter);
   }
 
   get abmTimeRange() {
@@ -189,14 +174,8 @@ export default class TimeSheet extends Vue {
   get heatMapActive() {
     return this.$store.state.scenario.heatMap;
   }
-  get animationRunning() {
-    return this.$store.state.scenario.animationRunning;
-  }
   get showUi(): boolean {
     return this.$store.state.scenario.showUi;
-  }
-  get loop() {
-    return this.$store.state.scenario.loop;
   }
   get stormWater() {
     return this.$store.state.scenario.stormWater;

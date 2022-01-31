@@ -40,10 +40,13 @@ import type {
   StoreStateWithModules,
   GeoJSON,
   StormWaterResult,
+  MapboxMap,
 } from "@/models";
 import type { Store } from "vuex";
 import { Chart } from "chart.js";
 import TimeSheetControl from "@/components/Scenario/TimeSheetControl.vue";
+import { buildSWLayer, setAnimationTimeAbm } from "@/services/deck.service";
+import { addDeckLayerToMap } from "@/services/map.service";
 
 @Component({
   components: { TimeSheetControl },
@@ -56,7 +59,6 @@ export default class SWTimeSheet extends Vue {
   buildingsRunOffResults = [];
   swAnimationRunning = false;
   animationSpeed = 21;
-  loopSetter = false;
   rainChart: Chart | null = null;
   swChart: Chart | null = null;
   swTimeStamps = [];
@@ -66,12 +68,12 @@ export default class SWTimeSheet extends Vue {
   @Prop({ default: true })
   controls!: boolean;
 
+  get map(): MapboxMap {
+    return this.$store.state.map;
+  }
+  
   get stormWaterResult(): StormWaterResult {
     return this.$store.state.stormwater.result;
-  }
-
-  get loop() {
-    return this.$store.state.scenario.loop;
   }
 
   get rerenderSwGraph(): boolean {
@@ -84,7 +86,7 @@ export default class SWTimeSheet extends Vue {
 
   autoLoopAnimation(): void {
     const animationSpeed = 1;
-    const max = 288;
+    const max = 288;  // TODO where does this magic number come from?
 
     if (this.swAnimationRunning) {
       if (this.rainTime + animationSpeed >= max) {
@@ -99,6 +101,15 @@ export default class SWTimeSheet extends Vue {
       });
     }
   }
+
+  /* build new layer and replace current stormwater layer
+   INFO: the deck.gl polygon layer has no rendering property
+   like currentTime (like for ABM trips layer) that could be updated on the existing layer
+  */
+  updateSWLayer() : void {
+    this.$store.dispatch("stormwater/updateStormWaterLayer", [this.map, this.rainTime]);
+  }
+
 
   triggerAnimation(): void {
     console.log("triggerAnimation");
@@ -307,12 +318,6 @@ export default class SWTimeSheet extends Vue {
         },
       },
     });
-  }
-
-  // update the time-dependend stormwater deck.gl layer, if the time in the slider changes.
-  updateSWLayer() {
-    this.$store.commit("scenario/rainTime", this.rainTime);
-    this.$store.dispatch("scenario/updateStormWaterLayer");
   }
 
   renderSWGraphRain() {
