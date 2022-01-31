@@ -12,7 +12,7 @@ import TrafficCounts from "@/config/calculationModuleResults/trafficCountsLayerC
 import {
   abmTripsLayerName,
   abmAggregationLayerName,
-} from "@/store/deck-layers";
+} from "@/services/deck.service";
 import buildingLayersConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import landscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 

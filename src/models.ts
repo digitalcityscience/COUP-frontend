@@ -57,9 +57,8 @@ export interface ScenarioStoreState {
   heatMap: boolean;
   rerenderSwGraph: boolean;
   stormWater: boolean;
-  loop: boolean;
   abmSimpleTimes: Record<any, any>;
-  currentTimeStamp: number;
+  currentTimeStamp: number | null;
   selectGraph: ScenarioWithTimeSheets;
   resultLoadingStati: DataLoadingStati;
 }

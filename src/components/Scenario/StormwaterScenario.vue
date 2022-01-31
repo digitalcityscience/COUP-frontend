@@ -320,7 +320,7 @@ export default class StormwaterScenario extends Vue {
       .dispatch("stormwater/updateStormWaterResult")
       .then(() => {
         // success
-        this.$store.dispatch("scenario/updateStormWaterLayer").then(() => {
+        this.$store.dispatch("stormwater/updateStormWaterLayer", [this.map]).then(() => {
           if (!this.isStormwaterActiveComponent) {
             hideLayers(this.map, [swLayerName]);
           }

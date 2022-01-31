@@ -1,26 +1,32 @@
-import { PolygonLayer } from "@deck.gl/layers";
-import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
-import { GeoJSON } from "@/models";
 // @ts-ignore
 import { MapboxLayerProps } from "@deck.gl/mapbox/mapbox-layer";
-export interface FeatureCollection {
-  features: GeoJSON[];
-}
+// @ts-ignore
+import { DataSet } from "@deck.gl/core/lib/layer";
+import { HeatmapLayer } from "@deck.gl/aggregation-layers";
+import { TripsLayer } from "@deck.gl/geo-layers";
+import GL from "@luma.gl/constants";
+import { PolygonLayer } from "@deck.gl/layers";
+import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
+import type { GeoJSON } from "@/models";
+
+
+export const abmTripsLayerName = "abmTrips";
+export const abmAggregationLayerName = "abmHeat";
+
 
 export function buildSWLayer(
-  featureCollection: FeatureCollection,
+  geojson: GeoJSON,
   time: number
 ): DeckLayer<unknown> {
   return new DeckLayer({
     id: "stormwater",
     type: PolygonLayer,
-    data: featureCollection?.features,
+    data: geojson?.features,
     pickable: true,
     filled: true,
     opacity: 0.75,
     extruded: true,
     getElevation: 0,
-    swTime: 0,
     getPolygon: (d: any) => d.geometry.coordinates.flat(1),
     getFillColor: (d) =>
       getPolygonColor(d["properties"]["runoff_results"]["runoff_value"][time]),
@@ -66,3 +72,84 @@ export function getPolygonColor(d: number): [number, number, number] {
     return [130, 21, 9];
   }
 }
+
+export async function buildTripsLayer(
+  data: DataSet<any>,
+  currentTimeStamp: number
+): Promise<DeckLayer<any>> {
+  //return new DeckLayer({
+  const tripsLayer = new DeckLayer({
+    id: abmTripsLayerName,
+    type: TripsLayer,
+    data: data,
+    getPath: (d) => {
+      return d.path;
+    },
+    getTimestamps: (d) => {
+      return d.timestamps;
+    },
+    getColor: () => {
+      return [16, 245, 229];
+      //return [253,128,93];
+    },
+    //highlightColor: [255, 56, 56],
+    getWidth: 1,
+    opacity: 0.3,
+    widthMinPixels: 2,
+    rounded: true,
+    pickable: false,
+    trailLength: 750,
+    currentTime: currentTimeStamp,
+    parameters: {
+      // prevent flicker from z-fighting
+      [GL.DEPTH_TEST]: false,
+
+      // blending for abm
+      [GL.BLEND]: true,
+      //[GL.BLEND_COLOR]: [253, 128, 93,100],
+      [GL.BLEND_COLOR]: [0, 20, 255, 100],
+      //[GL.BLEND_SRC_RGB]: GL.ONE,
+      [GL.BLEND_DST_RGB]: GL.ONE,
+      [GL.BLEND_EQUATION]: GL.FUNC_ADD,
+      [GL.BLEND_DST_ALPHA]: GL.ONE,
+      //[GL.BLEND_SRC_ALPHA]: GL.ONE,
+    },
+    // currentTime: this.props.sliders.time[1]
+  });
+
+  return tripsLayer;
+}
+
+// update currentTime rendering variable on deck trips layer
+export function setAnimationTimeAbm(
+  tripsLayer: DeckLayer<any>,
+  time: number
+) {
+  (tripsLayer as DeckLayer<any>).setProps({ currentTime: time });
+}
+
+export async function buildAggregationLayer(
+  data: DataSet<any>
+): Promise<DeckLayer<any>> {
+  const aggregationLayer = new DeckLayer({
+    id: abmAggregationLayerName,
+    type: HeatmapLayer,
+    data: data,
+    pickable: false,
+    getPosition: (d) => d.c,
+    getWeight: (d) => d.w,
+    intensity: 20,
+    threshold: 10,
+    radiusPixels: 50,
+    opacity: 0.8,
+    visible: true,
+  });
+
+  aggregationLayer.props.visible = function () {
+    return aggregationLayer.map.getZoom() < 17.5;
+  };
+
+  return aggregationLayer;
+}
+
+
