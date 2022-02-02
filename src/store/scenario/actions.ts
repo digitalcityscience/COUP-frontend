@@ -97,7 +97,7 @@ export default {
     if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
       commit("abmStats", {}); // reset abmStats
       commit("amenityStats", {}); // reset amenityStats
-      commit("abmMultiLayerStats", {}); // reset abmStats
+      commit("abmStatsMultiLayer", {}); // reset abmStats
       commit("amenityStatsMultiLayer", {}); // reset amenityStats
     }
     dispatch("updateAmenitiesLayer");
@@ -354,45 +354,41 @@ export default {
       console.log(state.heatMap);
     });
   },
-  // this updates ABM related layers only
-  // TODO rename to updateAggregationLayer - update tripsLayer in seperate function.
-  updateAggregationLayer({ state, commit, dispatch, rootState }, [layer, currentTimeStamp=0]) {
+  // this update the ABM heatmap
+  updateAggregationLayer({ state, commit, dispatch, rootState }) {
     const abmTimeRange = state.abmTimeRange;
     const heatLayerData = state.abmTimePaths;
-    //const currentTimeStamp = state.currentTimeStamp;
     const heatLayerFormed = [];
 
-    if (layer == "heatMap" || layer == "all") {
-      Object.entries(heatLayerData).forEach(([key, _value]) => {
-        if (key >= abmTimeRange[0] && key <= abmTimeRange[1]) {
-          Object.entries(heatLayerData[key].values).forEach(
-            ([subKey, _subValue]) => {
-              heatLayerData[key].values[subKey].forEach((v, i, a) => {
-                if (!heatLayerData[key].busyAgents.includes(v)) {
-                  heatLayerData[key].values[subKey].splice(i, 1);
-                }
-              });
-
-              if (heatLayerData[key].values[subKey].length > 0) {
-                const coordinate = {
-                  c: subKey.split(",").map(Number),
-                  w: heatLayerData[key].values[subKey].length,
-                };
-                heatLayerFormed.push(coordinate);
+    Object.entries(heatLayerData).forEach(([key, _value]) => {
+      if (key >= abmTimeRange[0] && key <= abmTimeRange[1]) {
+        Object.entries(heatLayerData[key].values).forEach(
+          ([subKey, _subValue]) => {
+            heatLayerData[key].values[subKey].forEach((v, i, a) => {
+              if (!heatLayerData[key].busyAgents.includes(v)) {
+                heatLayerData[key].values[subKey].splice(i, 1);
               }
-            }
-          );
-        }
-      });
+            });
 
-      buildAggregationLayer(heatLayerFormed).then((deckLayer) => {
-        if (rootState.map?.getLayer(abmAggregationLayerName)) {
-          rootState.map?.removeLayer(abmAggregationLayerName);
-        }
-        console.log("new aggregation layer loaded");
-        addDeckLayerToMap(deckLayer, rootState.map);
-      });
-    }
+            if (heatLayerData[key].values[subKey].length > 0) {
+              const coordinate = {
+                c: subKey.split(",").map(Number),
+                w: heatLayerData[key].values[subKey].length,
+              };
+              heatLayerFormed.push(coordinate);
+            }
+          }
+        );
+      }
+    });
+
+    buildAggregationLayer(heatLayerFormed).then((deckLayer) => {
+      if (rootState.map?.getLayer(abmAggregationLayerName)) {
+        rootState.map?.removeLayer(abmAggregationLayerName);
+      }
+      console.log("new aggregation layer loaded");
+      addDeckLayerToMap(deckLayer, rootState.map);
+    });
   },
 };
 
