@@ -180,6 +180,7 @@ import {
 } from "@/services/map.service";
 import { Component, Vue } from "vue-property-decorator";
 import { Store } from "vuex";
+import { cityPyOUserid } from "@/services/authn.service";
 
 @Component({
   name: ScenarioComponentNames.stormwater,
@@ -234,7 +235,7 @@ export default class StormwaterScenario extends Vue {
 
   beforeDestroy(): void {
     // stop animation of stormwater layer
-    this.$store.commit("stormwater/mutateAnimateLayer", false);  
+    this.$store.commit("stormwater/mutateAnimateLayer", false);
   }
 
   activateStormWater(): void {
@@ -267,9 +268,9 @@ export default class StormwaterScenario extends Vue {
     ];
   }
 
-  /** 
-  * GETTERS || SETTERS 
-  **/
+  /**
+   * GETTERS || SETTERS
+   **/
   get map(): MapboxMap {
     return this.$store.state.map;
   }
@@ -331,14 +332,19 @@ export default class StormwaterScenario extends Vue {
     removeSourceAndItsLayersFromMap(swLayerName, this.map);
     this.$store.commit("stormwater/resetResult");
     this.$store
-      .dispatch("stormwater/updateStormWaterResult")
+      .dispatch(
+        "stormwater/updateStormWaterResult",
+        cityPyOUserid(this.$store.state?.cityPyO)
+      )
       .then(() => {
         // success
-        this.$store.dispatch("stormwater/updateStormWaterLayer", [this.map]).then(() => {
-          if (!this.isStormwaterActiveComponent) {
-            hideLayers(this.map, [swLayerName]);
-          }
-        });
+        this.$store
+          .dispatch("stormwater/updateStormWaterLayer", [this.map])
+          .then(() => {
+            if (!this.isStormwaterActiveComponent) {
+              hideLayers(this.map, [swLayerName]);
+            }
+          });
         // update time graph
         this.$store.commit("scenario/rerenderSwGraph", true);
         this.resultLoading = false;
