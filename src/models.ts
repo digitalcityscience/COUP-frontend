@@ -51,7 +51,7 @@ export interface StoreState {
 export interface ScenarioStoreState {
   showUi: boolean;
   activeAbmSet: unknown;
-  animationRunning: boolean;
+  animateTripsLayer: boolean;
   abmTimePaths: unknown;
   abmTimeRange: [number, number];
   heatMap: boolean;

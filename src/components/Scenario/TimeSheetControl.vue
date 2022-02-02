@@ -43,7 +43,7 @@
     <div class="btn_wrapper">
       <v-tooltip right>
         <template v-slot:activator="{ on, attrs }">
-          <v-btn v-bind="attrs" v-on="on" @click="triggerAnimation">
+          <v-btn v-bind="attrs" v-on="on" @click="toggleAnimation">
             <v-icon v-if="animationRunning">mdi-pause</v-icon>
             <v-icon v-else>mdi-play</v-icon>
           </v-btn>
@@ -75,7 +75,7 @@ export default class TimeSheetControl extends Vue {
   animationRunning!: boolean;
 
   @Emit()
-  triggerAnimation(): boolean {
+  toggleAnimation(): boolean {
     return true;
   }
 

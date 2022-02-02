@@ -27,8 +27,9 @@
     <TimeSheetControl
       v-if="controls && stormWaterResult"
       @animationSpeed="animationSpeed = $event"
-      @trigger-animation="triggerAnimation"
-      :animationRunning="swAnimationRunning"
+      @toggle-animation="toggleAnimation"
+      :animationRunning="animateLayer
+"
       @toggle-graph="mobileTimePanel = $event"
     />
   </div>
@@ -51,13 +52,13 @@ import { addDeckLayerToMap } from "@/services/map.service";
 @Component({
   components: { TimeSheetControl },
 })
+
 export default class SWTimeSheet extends Vue {
   $store: Store<StoreStateWithModules>;
 
   mobileTimePanel = false;
   rainTime = 0; // time in slider for stormwater
   buildingsRunOffResults = [];
-  swAnimationRunning = false;
   animationSpeed = 21;
   rainChart: Chart | null = null;
   swChart: Chart | null = null;
@@ -83,23 +84,30 @@ export default class SWTimeSheet extends Vue {
   set rerenderSwGraph(newValue: boolean) {
     this.$store.commit("scenario/rerenderSwGraph", newValue);
   }
+  
+  get animateLayer(): boolean {
+    return this.$store.getters["stormwater/animateStormWaterLayer"];
+  }
+
+  set animateLayer(newValue: boolean) {
+    this.$store.commit("stormwater/mutateAnimateLayer", newValue);
+  }
 
   autoLoopAnimation(): void {
     const animationSpeed = 1;
-    const max = 288;  // TODO where does this magic number come from?
+    const max = this.buildingsRunOffResults.length;  // TODO where does this magic number come from? make variable with result update.
 
-    if (this.swAnimationRunning) {
-      if (this.rainTime + animationSpeed >= max) {
-        this.rainTime = 0;
-      } else {
-        this.rainTime = this.rainTime + animationSpeed;
-      }
-
-      this.updateSWLayer();
-      window.requestAnimationFrame(() => {
-        this.autoLoopAnimation();
-      });
+    this.rainTime += animationSpeed;
+    if (this.rainTime >= max) {
+      this.rainTime = 0;
     }
+    this.updateSWLayer();
+
+    window.requestAnimationFrame(() => {
+      if (this.animateLayer) {
+        this.autoLoopAnimation();
+      }
+    });
   }
 
   /* build new layer and replace current stormwater layer
@@ -111,11 +119,13 @@ export default class SWTimeSheet extends Vue {
   }
 
 
-  triggerAnimation(): void {
-    console.log("triggerAnimation");
+  toggleAnimation(): void {
+    console.log("toggleAnimation");
 
-    this.swAnimationRunning = !this.swAnimationRunning;
-    if (this.swAnimationRunning) {
+    this.animateLayer = !this.animateLayer;
+    console.log("animate?", this.animateLayer);
+
+    if (this.animateLayer) {
       this.autoLoopAnimation();
     }
   }

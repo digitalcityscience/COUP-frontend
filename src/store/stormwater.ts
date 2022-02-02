@@ -26,6 +26,7 @@ export default class StormWaterStore extends VuexModule {
     ...defaultStormwaterConfiguration,
   };
   result: StormWaterResult | null = null;
+  animateLayer: boolean = false;
 
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
@@ -34,12 +35,23 @@ export default class StormWaterStore extends VuexModule {
   get stormWaterResult(): StormWaterResult {
     return this.result;
   }
+  
+  get animateStormWaterLayer(): boolean {
+    return this.animateLayer;
+  }
 
   @Mutation
   mutateScenarioConfiguration(
     newScenarioConfiguration: StormWaterScenarioConfiguration
   ): void {
     this.scenarioConfig = { ...newScenarioConfiguration };
+  }
+  
+  @Mutation
+  mutateAnimateLayer(
+    animateLayer: boolean
+  ): void {
+    this.animateLayer = animateLayer;
   }
 
   @Mutation

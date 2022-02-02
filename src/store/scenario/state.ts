@@ -37,7 +37,7 @@ export default {
     main_street_orientation: "vertical",
   },
 
-  animationRunning: false, // TODO is this really abm specific or for all timeChart components??
+  animateTripsLayer: false, // TODO is this really abm specific or for all timeChart components??
   animationSpeed: 7, // // TODO is this really abm specific or for all timeChart components??
   heatMapData: [],
   heatMapAverage: [],
