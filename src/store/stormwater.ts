@@ -2,10 +2,9 @@ import type {
   StormWaterResult,
   StormWaterScenarioConfiguration,
 } from "@/models";
-import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
-import { buildSWLayer } from '@/services/deck.service';
-import { addDeckLayerToMap } from '@/services/map.service';
+import { buildSWLayer } from "@/services/deck.service";
+import { addDeckLayerToMap } from "@/services/map.service";
 import {
   Module,
   Mutation,
@@ -26,7 +25,7 @@ export default class StormWaterStore extends VuexModule {
     ...defaultStormwaterConfiguration,
   };
   result: StormWaterResult | null = null;
-  animateLayer: boolean = false;
+  animateLayer = false;
 
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
@@ -35,7 +34,7 @@ export default class StormWaterStore extends VuexModule {
   get stormWaterResult(): StormWaterResult {
     return this.result;
   }
-  
+
   get animateStormWaterLayer(): boolean {
     return this.animateLayer;
   }
@@ -46,11 +45,9 @@ export default class StormWaterStore extends VuexModule {
   ): void {
     this.scenarioConfig = { ...newScenarioConfiguration };
   }
-  
+
   @Mutation
-  mutateAnimateLayer(
-    animateLayer: boolean
-  ): void {
+  mutateAnimateLayer(animateLayer: boolean): void {
     this.animateLayer = animateLayer;
   }
 
@@ -68,26 +65,24 @@ export default class StormWaterStore extends VuexModule {
   }
 
   @MutationAction({ mutate: ["result"] })
-  async updateStormWaterResult(): Promise<{ result: StormWaterResult }> {
+  async updateStormWaterResult(
+    cityPyOUserid: string
+  ): Promise<{ result: StormWaterResult }> {
     // request calculation and fetch results
     const stormWaterResultUuid = await calcModules.requestCalculationStormWater(
       this.scenarioConfiguration,
-      cityPyOUserid()
+      cityPyOUserid
     );
     const simulationResult: StormWaterResult =
       await calcModules.getResultForStormWater(stormWaterResultUuid);
 
     return { result: simulationResult };
   }
-  
+
   @Action({})
-  updateStormWaterLayer([map, rainTime=0]): void {
+  updateStormWaterLayer([map, rainTime = 0]): void {
     // update the time-dependend stormwater deck.gl layer, to rainTime
-    const deckLayer = buildSWLayer(
-      this.stormWaterResult.geojson,
-      rainTime
-    );
+    const deckLayer = buildSWLayer(this.stormWaterResult.geojson, rainTime);
     addDeckLayerToMap(deckLayer, map);
   }
-
 }

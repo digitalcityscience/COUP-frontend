@@ -26,6 +26,7 @@ import {
 import WindResultLayerConfig from "@/config/calculationModuleResults/windResultLayerConfig";
 import DashboardCharts from "./DashboardCharts.vue";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
+import { cityPyOUserid } from "@/services/authn.service";
 
 @Component({
   name: ScenarioComponentNames.wind,
@@ -58,7 +59,10 @@ export default class WindScenario extends Vue {
     this.errMsg = "";
     this.$store.commit("wind/resetResult");
     this.$store
-      .dispatch("wind/triggerCalculation")
+      .dispatch(
+        "wind/triggerCalculation",
+        cityPyOUserid(this.$store.state?.cityPyO)
+      )
       .then(() => {
         this.waitForResults();
       })

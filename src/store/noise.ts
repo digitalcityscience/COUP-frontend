@@ -153,11 +153,13 @@ export default class NoiseStore extends VuexModule {
   }
 
   @MutationAction({ mutate: ["calcTask"] })
-  async triggerCalculation(): Promise<{ calcTask: CalculationTask }> {
+  async triggerCalculation(
+    cityPyOUserid: string
+  ): Promise<{ calcTask: CalculationTask }> {
     // request calculation and fetch results
     const task: CalculationTask = await calcModules.requestCalculationNoise(
       this.scenarioConfiguration,
-      cityPyOUserid()
+      cityPyOUserid
     );
     return { calcTask: task };
   }
