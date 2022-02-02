@@ -232,6 +232,11 @@ export default class StormwaterScenario extends Vue {
     this.activateStormWater();
   }
 
+  beforeDestroy(): void {
+    // stop animation of stormwater layer
+    this.$store.commit("stormwater/mutateAnimateLayer", false);  
+  }
+
   activateStormWater(): void {
     this.$store.commit("scenario/stormWater", true);
     this.$store.commit("scenario/selectGraph", "sw");
@@ -262,17 +267,9 @@ export default class StormwaterScenario extends Vue {
     ];
   }
 
-  runScenario(): void {
-    // update stormwater scenario in store
-    this.scenarioConfigurationGlobal = Object.assign(
-      {},
-      this.scenarioConfiguration
-    );
-
-    // get stormwater result from cityPyo
-    this.loadStormwaterMap();
-  }
-
+  /** 
+  * GETTERS || SETTERS 
+  **/
   get map(): MapboxMap {
     return this.$store.state.map;
   }
@@ -287,7 +284,6 @@ export default class StormwaterScenario extends Vue {
   get scenarioConfigurationGlobal(): StormWaterScenarioConfiguration {
     return this.$store.getters["stormwater/scenarioConfiguration"];
   }
-
   set scenarioConfigurationGlobal(
     newScenarioConfiguration: StormWaterScenarioConfiguration
   ) {
@@ -300,7 +296,6 @@ export default class StormwaterScenario extends Vue {
   get resultLoading(): boolean {
     return this.$store.state.scenario.resultLoadingStati.stormwater;
   }
-
   set resultLoading(loadingState: boolean) {
     let loadingStati = Object.assign(
       {},
@@ -310,6 +305,25 @@ export default class StormwaterScenario extends Vue {
     loadingStati.stormwater = loadingState;
 
     this.$store.commit("scenario/resultLoadingStati", loadingStati);
+  }
+
+  get isFormDirty(): boolean {
+    return (
+      JSON.stringify(this.scenarioConfiguration) !==
+      JSON.stringify(this.scenarioConfigurationGlobal)
+    );
+  }
+
+  /** FUNCTIONS **/
+  runScenario(): void {
+    // update stormwater scenario in store
+    this.scenarioConfigurationGlobal = Object.assign(
+      {},
+      this.scenarioConfiguration
+    );
+
+    // get stormwater result from cityPyo
+    this.loadStormwaterMap();
   }
 
   async loadStormwaterMap(): Promise<void> {
@@ -336,13 +350,6 @@ export default class StormwaterScenario extends Vue {
         this.resultLoading = false;
         this.errorMsg = err;
       });
-  }
-
-  get isFormDirty(): boolean {
-    return (
-      JSON.stringify(this.scenarioConfiguration) !==
-      JSON.stringify(this.scenarioConfigurationGlobal)
-    );
   }
 }
 </script>

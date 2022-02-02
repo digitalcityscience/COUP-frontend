@@ -185,6 +185,10 @@ export default {
     this.$store.commit("scenario/selectGraph", "abm");
     console.warn("context??", this.context);
   },
+  beforeDestroy: function() {
+    // Stop animation of trips layer
+    this.$store.commit("scenario/animateTripsLayer", false);
+  },
   methods: {
     confirmSettings() {
       // update currentlyShowScenarioSettigns

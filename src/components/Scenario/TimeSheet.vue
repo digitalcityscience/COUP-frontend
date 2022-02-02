@@ -22,14 +22,10 @@ export default class TimeSheet extends Vue {
   minTime = 0;
   showGraph = true;
   hasAbmResult = false;
-  animationRunning = false;
 
-
-  triggerAnimation(): void {
-    console.log("triggerAnimation");
-
-    this.animationRunning = !this.animationRunning;
-    if (this.animationRunning) {
+  toggleAnimation(): void {
+    this.animateTripsLayer = !this.animateTripsLayer;
+    if (this.animateTripsLayer) {
       this.autoLoopAnimation();
     }
   }
@@ -37,7 +33,7 @@ export default class TimeSheet extends Vue {
   autoLoopAnimation(): void {
     /*functionality for play button*/
     
-    // TODO: Once ABM is automated, get these times from API.
+    // TODO: Once ABM is automated, get start/end times from API.
     const abmTimeRange = this.$store.state.scenario.abmTimeRange;
     const start = (abmTimeRange[0] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
     const end = (abmTimeRange[1] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
@@ -45,25 +41,25 @@ export default class TimeSheet extends Vue {
     // TODO adjust timestamp to slider. or slider to abm logic.
     this.currentTimeStamp = this.currentTimeStamp || start;
 
-    if (this.animationRunning) {
-      if (this.currentTimeStamp + this.animationSpeed >= end) {
-        this.currentTimeStamp = start;
-      } else {
-        this.currentTimeStamp = this.currentTimeStamp + this.animationSpeed;
-      }
+    // increase animation time by 1 step
+    this.currentTimeStamp = this.currentTimeStamp + this.animationSpeed;
+    if (this.currentTimeStamp + this.animationSpeed >= end) {
+      this.currentTimeStamp = start;
+    }
 
-      /*
-       the animation is realized by
-       updating the currentTime rendering variable on the layer
-      */
-      const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-      setAnimationTimeAbm((deckLayer as any).implementation, this.currentTimeStamp);
+    /*
+      the animation is realized by
+      updating the currentTime rendering variable on the layer
+    */
+    const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
+    setAnimationTimeAbm((deckLayer as any).implementation, this.currentTimeStamp);
 
       // trigger next cycle
       window.requestAnimationFrame(() => {
-        this.autoLoopAnimation();
+        if (this.animateTripsLayer) {
+          this.autoLoopAnimation();
+        }
       });
-    }
   }
 
   getDataForTimeChart() {
@@ -141,9 +137,10 @@ export default class TimeSheet extends Vue {
 
   /*change Time via Slider*/
   changeCurrentTime(newTime: number): void {
-    /*reanimate abm Tripslayer with new currentTime*/
     this.currentTimeStamp = newTime;
-    if (this.animationRunning) {
+    
+    if (this.animateTripsLayer) {
+      /*reanimate abm Tripslayer with new currentTime*/
       const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
       setAnimationTimeAbm((deckLayer as any).implementation, newTime);
     }
@@ -160,11 +157,20 @@ export default class TimeSheet extends Vue {
   get currentTimeStamp(): number {
     return this.$store.state.scenario.currentTimeStamp;
   }
-
   set currentTimeStamp(updatedTime: number) {
     this.$store.commit(
       "scenario/currentTimeStamp",
-      updatedTime + this.animationSpeed
+      updatedTime
+    );
+  }
+  
+  get animateTripsLayer(): boolean {
+    return this.$store.state.scenario.animateTripsLayer;
+  }
+  set animateTripsLayer(newValue: boolean) {
+    this.$store.commit(
+      "scenario/animateTripsLayer",
+      newValue
     );
   }
 
@@ -193,7 +199,7 @@ export default class TimeSheet extends Vue {
   @Watch("heatMapActive")
   heatMapActiveWatcher() {
     if (this.heatMapActive) {
-      this.$store.commit("scenario/animationRunning", false);
+      this.$store.commit("scenario/animateTripsLayer", false);
     }
   }
 
@@ -253,8 +259,8 @@ export default class TimeSheet extends Vue {
       </div>
       <TimeSheetControl
         v-if="selectGraph === 'abm'"
-        @trigger-animation="triggerAnimation"
-        :animation-running="animationRunning"
+        @toggle-animation="toggleAnimation"
+        :animation-running="animateTripsLayer"
         @animationSpeed="animationSpeed = $event"
         @toggle-graph="showGraph = $event"
       />
@@ -274,9 +280,8 @@ export default class TimeSheet extends Vue {
   position: fixed;
   bottom: 10px;
   left: 10px;
-  width: auto;
+  width: 325px;
   height: auto;
-  max-width: 360px;
   max-height: 280px;
   background: rgba(0, 0, 0, 0.5);
   padding: 10px;
@@ -321,6 +326,8 @@ export default class TimeSheet extends Vue {
   }
 
   .time_panel {
+    width: 300px;
+
     .time_graph {
       background: rgba(0, 0, 0, 0.5);
     }
