@@ -1,4 +1,4 @@
-import { abmTripsLayerName } from "@/store/deck-layers";
+import { abmTripsLayerName } from "@/services/deck.service";
 
 export default {
   getAbmData(state, getters, rootState) {

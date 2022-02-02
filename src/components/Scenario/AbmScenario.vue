@@ -185,6 +185,10 @@ export default {
     this.$store.commit("scenario/selectGraph", "abm");
     console.warn("context??", this.context);
   },
+  beforeDestroy: function() {
+    // Stop animation of trips layer
+    this.$store.commit("scenario/animateTripsLayer", false);
+  },
   methods: {
     confirmSettings() {
       // update currentlyShowScenarioSettigns
@@ -203,14 +207,8 @@ export default {
       });
     },
     changeHeatMapData() {
-      if (this.adjustRange[0] > 8 || this.adjustRange[1] < 23) {
-        this.$store.commit("scenario/loop", true);
-      } else {
-        this.$store.commit("scenario/loop", false);
-      }
-
       this.$store.commit("scenario/abmTimeRange", this.adjustRange);
-      this.$store.dispatch("scenario/updateLayers", "heatMap");
+      this.$store.dispatch("scenario/updateAggregationLayer");
     },
     setHeatMapTimes(x, y) {
       this.adjustRange = [x, y];

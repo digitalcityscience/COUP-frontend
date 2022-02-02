@@ -51,15 +51,14 @@ export interface StoreState {
 export interface ScenarioStoreState {
   showUi: boolean;
   activeAbmSet: unknown;
-  animationRunning: boolean;
+  animateTripsLayer: boolean;
   abmTimePaths: unknown;
   abmTimeRange: [number, number];
   heatMap: boolean;
   rerenderSwGraph: boolean;
   stormWater: boolean;
-  loop: boolean;
   abmSimpleTimes: Record<any, any>;
-  currentTimeStamp: number;
+  currentTimeStamp: number | null;
   selectGraph: ScenarioWithTimeSheets;
   resultLoadingStati: DataLoadingStati;
 }

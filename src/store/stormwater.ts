@@ -4,10 +4,13 @@ import type {
 } from "@/models";
 import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
+import { buildSWLayer } from '@/services/deck.service';
+import { addDeckLayerToMap } from '@/services/map.service';
 import {
   Module,
   Mutation,
   MutationAction,
+  Action,
   VuexModule,
 } from "vuex-module-decorators";
 
@@ -23,6 +26,7 @@ export default class StormWaterStore extends VuexModule {
     ...defaultStormwaterConfiguration,
   };
   result: StormWaterResult | null = null;
+  animateLayer: boolean = false;
 
   get scenarioConfiguration(): StormWaterScenarioConfiguration {
     return this.scenarioConfig;
@@ -31,12 +35,23 @@ export default class StormWaterStore extends VuexModule {
   get stormWaterResult(): StormWaterResult {
     return this.result;
   }
+  
+  get animateStormWaterLayer(): boolean {
+    return this.animateLayer;
+  }
 
   @Mutation
   mutateScenarioConfiguration(
     newScenarioConfiguration: StormWaterScenarioConfiguration
   ): void {
     this.scenarioConfig = { ...newScenarioConfiguration };
+  }
+  
+  @Mutation
+  mutateAnimateLayer(
+    animateLayer: boolean
+  ): void {
+    this.animateLayer = animateLayer;
   }
 
   @Mutation
@@ -64,4 +79,15 @@ export default class StormWaterStore extends VuexModule {
 
     return { result: simulationResult };
   }
+  
+  @Action({})
+  updateStormWaterLayer([map, rainTime=0]): void {
+    // update the time-dependend stormwater deck.gl layer, to rainTime
+    const deckLayer = buildSWLayer(
+      this.stormWaterResult.geojson,
+      rainTime
+    );
+    addDeckLayerToMap(deckLayer, map);
+  }
+
 }

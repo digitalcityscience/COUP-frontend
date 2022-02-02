@@ -37,12 +37,12 @@ export default {
     main_street_orientation: "vertical",
   },
 
-  animationRunning: false, // TODO is this really abm specific or for all timeChart components??
-  animationSpeed: 7, // // TODO is this really abm specific or for all timeChart components??
+  animateTripsLayer: false,
+  animationSpeed: 7, // abm trips layer specific
   heatMapData: [],
   heatMapAverage: [],
 
-  abmTimeRange: [8, 23], // time filter for the heatmap
+  abmTimeRange: [8, 23], // time filter for the heatmap and timeSheet
 
   // layers
   noiseMap: false,
@@ -54,9 +54,7 @@ export default {
   heatMapVisible: true,
 
   // UI
-  loop: false,
-  setLoop: false,
-  currentTimeStamp: 0,
+  currentTimeStamp: null,
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,
@@ -74,7 +72,5 @@ export default {
   resultLoadingStati: initialResultLoadingStati,
 
   // Stormwater
-  rainTime: 0,
   rerenderSwGraph: false,
-  savedStormWaterScenarios: [],
 };

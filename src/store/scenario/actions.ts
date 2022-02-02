@@ -6,7 +6,6 @@ import PerformanceInfosConfig from "@/config/multiLayerAnalysis/performaceInfosC
 import SubSelectionLayerConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
 import type { GeoJSON } from "@/models";
 import { StoreState } from "@/models";
-import { buildSWLayer } from "@/services/deck.service";
 import {
   addDeckLayerToMap,
   addSourceAndLayerToMap as addSourceAndLayersToMap,
@@ -15,10 +14,9 @@ import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
 import {
   abmAggregationLayerName,
   abmTripsLayerName,
-  animate,
   buildAggregationLayer,
   buildTripsLayer,
-} from "@/store/deck-layers";
+} from "@/services/deck.service";
 import {
   calcAbmStatsForMultiLayer,
   calculateAbmStatsForFocusArea,
@@ -99,7 +97,7 @@ export default {
     if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
       commit("abmStats", {}); // reset abmStats
       commit("amenityStats", {}); // reset amenityStats
-      commit("abmMultiLayerStats", {}); // reset abmStats
+      commit("abmStatsMultiLayer", {}); // reset abmStats
       commit("amenityStatsMultiLayer", {}); // reset amenityStats
     }
     dispatch("updateAmenitiesLayer");
@@ -313,6 +311,7 @@ export default {
     //buildLayers
     return dispatch("buildLayers");
   },
+  // builds ABM layers only.
   buildLayers({ state, commit, dispatch, rootState }) {
     const tripsLayerData = state.activeAbmSet;
     const heatLayerData = state.abmTimePaths;
@@ -327,8 +326,6 @@ export default {
       // check if scenario is still valid - user input might have changed while loading trips layer
       addDeckLayerToMap(deckLayer, rootState.map);
       console.log("new trips layer loaded");
-      commit("animationRunning", true);
-      animate(deckLayer, null, null, currentTimeStamp);
     });
 
     //preparing Data for HeatMap Layer
@@ -349,71 +346,47 @@ export default {
         rootState.map?.removeLayer(abmAggregationLayerName);
       }
 
-      console.log("new aggregation layer loaded");
       addDeckLayerToMap(deckLayer, rootState.map);
+      console.log("new aggregation layer loaded");
       commit("heatMap", true);
       console.log(state.heatMap);
     });
   },
-  // this updates ABM related layers only
-  updateLayers({ state, commit, dispatch, rootState }, layer) {
+  // this update the ABM heatmap
+  updateAggregationLayer({ state, commit, dispatch, rootState }) {
     const abmTimeRange = state.abmTimeRange;
-    const tripsLayerData = state.activeAbmSet;
     const heatLayerData = state.abmTimePaths;
-    const currentTimeStamp = state.currentTimeStamp;
     const heatLayerFormed = [];
 
-    if (layer == "tripsLayer" || layer == "all") {
-      buildTripsLayer(tripsLayerData, currentTimeStamp).then((deckLayer) => {
-        if (rootState.map?.getLayer(abmTripsLayerName)) {
-          rootState.map?.removeLayer(abmTripsLayerName);
-        }
-
-        addDeckLayerToMap(deckLayer, rootState.map);
-        if (state.animationRunning) {
-          animate(deckLayer, null, null, currentTimeStamp);
-        }
-      });
-    }
-
-    if (layer == "heatMap" || layer == "all") {
-      Object.entries(heatLayerData).forEach(([key, value]) => {
-        if (key >= abmTimeRange[0] && key <= abmTimeRange[1]) {
-          Object.entries(heatLayerData[key].values).forEach(
-            ([subKey, subValue]) => {
-              heatLayerData[key].values[subKey].forEach((v, i, a) => {
-                if (!heatLayerData[key].busyAgents.includes(v)) {
-                  heatLayerData[key].values[subKey].splice(i, 1);
-                }
-              });
-
-              if (heatLayerData[key].values[subKey].length > 0) {
-                const coordinate = {
-                  c: subKey.split(",").map(Number),
-                  w: heatLayerData[key].values[subKey].length,
-                };
-                heatLayerFormed.push(coordinate);
+    Object.entries(heatLayerData).forEach(([key, _value]) => {
+      if (key >= abmTimeRange[0] && key <= abmTimeRange[1]) {
+        Object.entries(heatLayerData[key].values).forEach(
+          ([subKey, _subValue]) => {
+            heatLayerData[key].values[subKey].forEach((v, i, a) => {
+              if (!heatLayerData[key].busyAgents.includes(v)) {
+                heatLayerData[key].values[subKey].splice(i, 1);
               }
-            }
-          );
-        }
-      });
+            });
 
-      buildAggregationLayer(heatLayerFormed).then((deckLayer) => {
-        if (rootState.map?.getLayer(abmAggregationLayerName)) {
-          rootState.map?.removeLayer(abmAggregationLayerName);
-        }
-        console.log("new aggregation layer loaded");
-        addDeckLayerToMap(deckLayer, rootState.map);
-      });
-    }
-  },
-  async updateStormWaterLayer({ state, commit, dispatch, rootState }) {
-    const deckLayer = buildSWLayer(
-      rootState.stormwater.result.geojson,
-      state.rainTime
-    );
-    addDeckLayerToMap(deckLayer, rootState.map);
+            if (heatLayerData[key].values[subKey].length > 0) {
+              const coordinate = {
+                c: subKey.split(",").map(Number),
+                w: heatLayerData[key].values[subKey].length,
+              };
+              heatLayerFormed.push(coordinate);
+            }
+          }
+        );
+      }
+    });
+
+    buildAggregationLayer(heatLayerFormed).then((deckLayer) => {
+      if (rootState.map?.getLayer(abmAggregationLayerName)) {
+        rootState.map?.removeLayer(abmAggregationLayerName);
+      }
+      addDeckLayerToMap(deckLayer, rootState.map);
+      console.log("new aggregation layer loaded");
+    });
   },
 };
 

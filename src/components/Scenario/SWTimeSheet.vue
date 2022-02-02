@@ -27,8 +27,9 @@
     <TimeSheetControl
       v-if="controls && stormWaterResult"
       @animationSpeed="animationSpeed = $event"
-      @trigger-animation="triggerAnimation"
-      :animationRunning="swAnimationRunning"
+      @toggle-animation="toggleAnimation"
+      :animationRunning="animateLayer
+"
       @toggle-graph="mobileTimePanel = $event"
     />
   </div>
@@ -40,23 +41,25 @@ import type {
   StoreStateWithModules,
   GeoJSON,
   StormWaterResult,
+  MapboxMap,
 } from "@/models";
 import type { Store } from "vuex";
 import { Chart } from "chart.js";
 import TimeSheetControl from "@/components/Scenario/TimeSheetControl.vue";
+import { buildSWLayer, setAnimationTimeAbm } from "@/services/deck.service";
+import { addDeckLayerToMap } from "@/services/map.service";
 
 @Component({
   components: { TimeSheetControl },
 })
+
 export default class SWTimeSheet extends Vue {
   $store: Store<StoreStateWithModules>;
 
   mobileTimePanel = false;
   rainTime = 0; // time in slider for stormwater
   buildingsRunOffResults = [];
-  swAnimationRunning = false;
   animationSpeed = 21;
-  loopSetter = false;
   rainChart: Chart | null = null;
   swChart: Chart | null = null;
   swTimeStamps = [];
@@ -66,12 +69,12 @@ export default class SWTimeSheet extends Vue {
   @Prop({ default: true })
   controls!: boolean;
 
+  get map(): MapboxMap {
+    return this.$store.state.map;
+  }
+  
   get stormWaterResult(): StormWaterResult {
     return this.$store.state.stormwater.result;
-  }
-
-  get loop() {
-    return this.$store.state.scenario.loop;
   }
 
   get rerenderSwGraph(): boolean {
@@ -81,30 +84,44 @@ export default class SWTimeSheet extends Vue {
   set rerenderSwGraph(newValue: boolean) {
     this.$store.commit("scenario/rerenderSwGraph", newValue);
   }
+  
+  get animateLayer(): boolean {
+    return this.$store.getters["stormwater/animateStormWaterLayer"];
+  }
+
+  set animateLayer(newValue: boolean) {
+    this.$store.commit("stormwater/mutateAnimateLayer", newValue);
+  }
 
   autoLoopAnimation(): void {
     const animationSpeed = 1;
-    const max = 288;
-
-    if (this.swAnimationRunning) {
-      if (this.rainTime + animationSpeed >= max) {
-        this.rainTime = 0;
-      } else {
-        this.rainTime = this.rainTime + animationSpeed;
-      }
-
-      this.updateSWLayer();
-      window.requestAnimationFrame(() => {
-        this.autoLoopAnimation();
-      });
+    const max = this.buildingsRunOffResults.length;
+    this.rainTime += animationSpeed;
+    if (this.rainTime >= max) {
+      this.rainTime = 0;
     }
+    this.updateSWLayer();
+
+    window.requestAnimationFrame(() => {
+      if (this.animateLayer) {
+        this.autoLoopAnimation();
+      }
+    });
   }
 
-  triggerAnimation(): void {
-    console.log("triggerAnimation");
+  /* build new layer and replace current stormwater layer
+   INFO: the deck.gl polygon layer has no rendering property
+   like currentTime (like for ABM trips layer) that could be updated on the existing layer
+  */
+  updateSWLayer() : void {
+    this.$store.dispatch("stormwater/updateStormWaterLayer", [this.map, this.rainTime]);
+  }
 
-    this.swAnimationRunning = !this.swAnimationRunning;
-    if (this.swAnimationRunning) {
+
+  toggleAnimation(): void {
+    this.animateLayer = !this.animateLayer;
+
+    if (this.animateLayer) {
       this.autoLoopAnimation();
     }
   }
@@ -307,12 +324,6 @@ export default class SWTimeSheet extends Vue {
         },
       },
     });
-  }
-
-  // update the time-dependend stormwater deck.gl layer, if the time in the slider changes.
-  updateSWLayer() {
-    this.$store.commit("scenario/rainTime", this.rainTime);
-    this.$store.dispatch("scenario/updateStormWaterLayer");
   }
 
   renderSWGraphRain() {
