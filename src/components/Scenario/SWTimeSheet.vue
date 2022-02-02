@@ -95,8 +95,7 @@ export default class SWTimeSheet extends Vue {
 
   autoLoopAnimation(): void {
     const animationSpeed = 1;
-    const max = this.buildingsRunOffResults.length;  // TODO where does this magic number come from? make variable with result update.
-
+    const max = this.buildingsRunOffResults.length;
     this.rainTime += animationSpeed;
     if (this.rainTime >= max) {
       this.rainTime = 0;
@@ -120,10 +119,7 @@ export default class SWTimeSheet extends Vue {
 
 
   toggleAnimation(): void {
-    console.log("toggleAnimation");
-
     this.animateLayer = !this.animateLayer;
-    console.log("animate?", this.animateLayer);
 
     if (this.animateLayer) {
       this.autoLoopAnimation();

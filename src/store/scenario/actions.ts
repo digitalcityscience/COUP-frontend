@@ -326,8 +326,6 @@ export default {
       // check if scenario is still valid - user input might have changed while loading trips layer
       addDeckLayerToMap(deckLayer, rootState.map);
       console.log("new trips layer loaded");
-      /* commit("animationRunning", true);
-      animate(deckLayer, null, null, currentTimeStamp); */
     });
 
     //preparing Data for HeatMap Layer
@@ -348,8 +346,8 @@ export default {
         rootState.map?.removeLayer(abmAggregationLayerName);
       }
 
-      console.log("new aggregation layer loaded");
       addDeckLayerToMap(deckLayer, rootState.map);
+      console.log("new aggregation layer loaded");
       commit("heatMap", true);
       console.log(state.heatMap);
     });
@@ -386,8 +384,8 @@ export default {
       if (rootState.map?.getLayer(abmAggregationLayerName)) {
         rootState.map?.removeLayer(abmAggregationLayerName);
       }
-      console.log("new aggregation layer loaded");
       addDeckLayerToMap(deckLayer, rootState.map);
+      console.log("new aggregation layer loaded");
     });
   },
 };
