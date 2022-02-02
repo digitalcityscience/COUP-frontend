@@ -9,10 +9,8 @@ import { PolygonLayer } from "@deck.gl/layers";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 import type { GeoJSON } from "@/models";
 
-
 export const abmTripsLayerName = "abmTrips";
 export const abmAggregationLayerName = "abmHeat";
-
 
 export function buildSWLayer(
   geojson: GeoJSON,
@@ -76,9 +74,9 @@ export function getPolygonColor(d: number): [number, number, number] {
 export async function buildTripsLayer(
   data: DataSet<any>,
   currentTimeStamp: number
-): Promise<DeckLayer<any>> {
-  //return new DeckLayer({
-  const tripsLayer = new DeckLayer({
+): Promise<DeckLayer<unknown>> {
+  
+  return new DeckLayer({
     id: abmTripsLayerName,
     type: TripsLayer,
     data: data,
@@ -115,23 +113,18 @@ export async function buildTripsLayer(
       //[GL.BLEND_SRC_ALPHA]: GL.ONE,
     },
     // currentTime: this.props.sliders.time[1]
-  });
-
-  return tripsLayer;
+  }  as unknown as MapboxLayerProps<unknown>);
 }
 
 // update currentTime rendering variable on deck trips layer
-export function setAnimationTimeAbm(
-  tripsLayer: DeckLayer<any>,
-  time: number
-) {
+export function setAnimationTimeAbm(tripsLayer: DeckLayer<any>, time: number) {
   (tripsLayer as DeckLayer<any>).setProps({ currentTime: time });
 }
 
 export async function buildAggregationLayer(
   data: DataSet<any>
 ): Promise<DeckLayer<any>> {
-  const aggregationLayer = new DeckLayer({
+  return new DeckLayer({
     id: abmAggregationLayerName,
     type: HeatmapLayer,
     data: data,
@@ -142,14 +135,8 @@ export async function buildAggregationLayer(
     threshold: 10,
     radiusPixels: 50,
     opacity: 0.8,
-    visible: true,
-  });
-
-  aggregationLayer.props.visible = function () {
-    return aggregationLayer.map.getZoom() < 17.5;
-  };
-
-  return aggregationLayer;
+    visible: function () {
+      return this.map.getZoom() < 17.5;
+    }
+  } as unknown as MapboxLayerProps<unknown> );
 }
-
-
