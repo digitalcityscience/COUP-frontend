@@ -1,5 +1,3 @@
-import store from "@/store";
-
-export function cityPyOUserid(): string {
-  return store.state?.cityPyO?.userid ?? undefined;
+export function cityPyOUserid(cityPyO: { userid: string }): string | undefined {
+  return cityPyO?.userid ?? undefined;
 }

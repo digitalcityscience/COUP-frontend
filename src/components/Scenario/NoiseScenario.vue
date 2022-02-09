@@ -223,6 +223,7 @@ import {
 } from "@/services/map.service";
 import trafficCountLayerConfig from "@/config/calculationModuleResults/trafficCountsLayerConfig";
 import { applyTrafficQuota } from "@/store/noise";
+import { cityPyOUserid } from "@/services/authn.service";
 
 @Component({
   name: ScenarioComponentNames.noise,
@@ -256,7 +257,10 @@ export default class NoiseScenario extends Vue {
     this.errMsg = "";
     this.$store.commit("noise/resetResult");
     this.$store
-      .dispatch("noise/triggerCalculation")
+      .dispatch(
+        "noise/triggerCalculation",
+        cityPyOUserid(this.$store.state?.cityPyO)
+      )
       .then(() => {
         this.waitForResults();
       })

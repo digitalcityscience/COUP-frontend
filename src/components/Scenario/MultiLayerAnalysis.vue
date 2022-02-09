@@ -17,6 +17,7 @@ import {
   hideAllResultLayers,
 } from "@/services/map.service";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
+import { cityPyOUserid } from "@/services/authn.service";
 
 export default {
   name: ScenarioComponentNames.multiLayer,
@@ -387,20 +388,21 @@ export default {
     },
     async loadDefaultResultFor(layerName) {
       this.resultLoading = true;
+      const cityPyOUserId = cityPyOUserid(this.$store.state?.cityPyO);
       switch (layerName) {
         case "Sun":
           await this.$store.dispatch("scenario/addSunExposureLayer");
           break;
         case "Wind":
           await this.$store
-            .dispatch("wind/triggerCalculation")
+            .dispatch("wind/triggerCalculation", cityPyOUserId)
             .then(async () => {
               await this.$store.dispatch("wind/fetchResult");
             });
           break;
         case "Noise":
           await this.$store
-            .dispatch("noise/triggerCalculation")
+            .dispatch("noise/triggerCalculation", cityPyOUserId)
             .then(async () => {
               await this.$store.dispatch("noise/fetchResult");
             });
