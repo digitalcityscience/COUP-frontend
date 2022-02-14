@@ -20,4 +20,19 @@ describe("Login page test", () => {
 
     cy.get("p#error").should("be.visible");
   });
+
+  it("Allow access with correct credentials", () => {
+    cy.visit("/");
+    cy.get("p#error").should("not.be.visible");
+
+    cy.get("input#input_field_user").type(Cypress.env("USERNAME"), {
+      log: false,
+    });
+    cy.get("input#input_field_pw").type(Cypress.env("PASSWORD"), {
+      log: false,
+    });
+    cy.get("button[type='submit']").click();
+    cy.get("p#error").should("not.be.visible");
+    cy.get(".mapboxgl-map").should("be.visible");
+  });
 });
