@@ -28,6 +28,9 @@ jobs:
         wait-on: 'http://localhost:8080/'
       env:
         CYPRESS_baseUrl: 'http://localhost:8080/'
+        VUE_APP_CALCULATIONS_API_USER: ${{ secrets.CALCULATIONS_API_USER }}
+        VUE_APP_CALCULATIONS_API_URL: ${{ secrets.CALCULATIONS_API_URL }}
+        VUE_APP_CALCULATIONS_API_PW: ${{ secrets.CALCULATIONS_API_PW }}
         VUE_APP_CITYPYO_URL: ${{ secrets.CITYPYO_URL }}
         CYPRESS_USERNAME: ${{ secrets.CYPRESS_USERNAME }}
         CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
