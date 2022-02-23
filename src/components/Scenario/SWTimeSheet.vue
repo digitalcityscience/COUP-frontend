@@ -2,6 +2,7 @@
   <div>
     <div
       class="sw_panel panel"
+      data-cy="stormwater-time-sheet"
       :class="{
         show: mobileTimePanel,
         dismiss: !stormWaterResult || !mobileTimePanel,

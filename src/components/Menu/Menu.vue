@@ -95,6 +95,7 @@ export default {
           <ul class="component_list">
             <li
               class="component_link"
+              data-cy="abm-menu-button"
               v-bind:class="{
                 selected: activeComponent === componentNames.pedestrian,
                 waitingForResult: resultLoadingStati.pedestrian,
@@ -109,6 +110,7 @@ export default {
             </li>
             <li
               class="component_link"
+              data-cy="stormwater-menu-button"
               v-bind:class="{
                 selected: activeComponent === componentNames.stormwater,
                 waitingForResult: resultLoadingStati.stormwater,
@@ -123,6 +125,7 @@ export default {
             </li>
             <li
               class="component_link"
+              data-cy="noise-menu-button"
               v-bind:class="{
                 selected: activeComponent === componentNames.noise,
                 waitingForResult: resultLoadingStati.noise,

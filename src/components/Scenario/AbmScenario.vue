@@ -443,6 +443,7 @@ export default {
           <v-btn
             @click="confirmSettings"
             class="confirm_btn mt-2"
+            data-cy="run-scenario-button"
             :class="{ changesMade: resultOutdated }"
             :disabled="resultLoading"
           >

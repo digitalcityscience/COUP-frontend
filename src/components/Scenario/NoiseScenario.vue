@@ -65,12 +65,19 @@
               />
             </v-radio-group>
           </div>
-          <p v-if="errMsg" class="warning">{{ errMsg }}</p>
+          <p 
+            v-if="errMsg"
+            class="warning"
+            data-cy="result-loading-error"
+            >
+            {{ errMsg }}
+          </p>
           <v-btn
             @click="runScenario"
             class="confirm_btn mt-2"
             :class="{ changesMade: isFormDirty }"
             :disabled="resultLoading"
+            data-cy="run-scenario-button"
           >
             Run Scenario
           </v-btn>
