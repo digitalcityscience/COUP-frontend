@@ -75,7 +75,6 @@ export async function buildTripsLayer(
   data: DataSet<any>,
   currentTimeStamp: number
 ): Promise<DeckLayer<unknown>> {
-  
   return new DeckLayer({
     id: abmTripsLayerName,
     type: TripsLayer,
@@ -114,7 +113,7 @@ export async function buildTripsLayer(
       //[GL.BLEND_SRC_ALPHA]: GL.ONE,
     },
     // currentTime: this.props.sliders.time[1]
-  }  as unknown as MapboxLayerProps<unknown>);
+  } as unknown as MapboxLayerProps<unknown>);
 }
 
 // update currentTime rendering variable on deck trips layer
@@ -138,6 +137,6 @@ export async function buildAggregationLayer(
     opacity: 0.8,
     visible: function () {
       return this.map.getZoom() < 17.5;
-    }
-  } as unknown as MapboxLayerProps<unknown> );
+    },
+  } as unknown as MapboxLayerProps<unknown>);
 }

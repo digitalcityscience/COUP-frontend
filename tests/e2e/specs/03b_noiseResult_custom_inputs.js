@@ -2,6 +2,8 @@
 
 const getStore = () => cy.window().its("$store");
 
+// TODO wait for results to load
+
 describe("Log in", () => {
   // Log in first
   it("Allow access with correct credentials", () => {

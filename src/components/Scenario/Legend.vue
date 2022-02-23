@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showAtBottom" id="bottom-legend" data-cy=legend-bottom>
+  <div v-if="showAtBottom" id="bottom-legend" data-cy="legend-bottom">
     <v-container>
       <v-row class="flex-nowrap legend-row">
         <v-col>

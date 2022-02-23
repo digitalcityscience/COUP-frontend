@@ -65,11 +65,7 @@
               />
             </v-radio-group>
           </div>
-          <p 
-            v-if="errMsg"
-            class="warning"
-            data-cy="result-loading-error"
-            >
+          <p v-if="errMsg" class="warning" data-cy="result-loading-error">
             {{ errMsg }}
           </p>
           <v-btn

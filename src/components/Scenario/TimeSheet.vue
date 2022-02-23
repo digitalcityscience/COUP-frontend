@@ -1,6 +1,9 @@
 <script lang="ts">
 import type { StoreStateWithModules, ScenarioWithTimeSheets } from "@/models";
-import { abmTripsLayerName, setAnimationTimeAbm } from "@/services/deck.service";
+import {
+  abmTripsLayerName,
+  setAnimationTimeAbm,
+} from "@/services/deck.service";
 import { Chart } from "chart.js";
 import { Component, Vue, Watch } from "vue-property-decorator";
 import type { Store } from "vuex";
@@ -32,7 +35,7 @@ export default class TimeSheet extends Vue {
 
   autoLoopAnimation(): void {
     /*functionality for play button*/
-    
+
     // TODO: Once ABM is automated, get start/end times from API.
     const abmTimeRange = this.$store.state.scenario.abmTimeRange;
     const start = (abmTimeRange[0] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
@@ -52,14 +55,17 @@ export default class TimeSheet extends Vue {
       updating the currentTime rendering variable on the layer
     */
     const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
-    setAnimationTimeAbm((deckLayer as any).implementation, this.currentTimeStamp);
+    setAnimationTimeAbm(
+      (deckLayer as any).implementation,
+      this.currentTimeStamp
+    );
 
-      // trigger next cycle
-      window.requestAnimationFrame(() => {
-        if (this.animateTripsLayer) {
-          this.autoLoopAnimation();
-        }
-      });
+    // trigger next cycle
+    window.requestAnimationFrame(() => {
+      if (this.animateTripsLayer) {
+        this.autoLoopAnimation();
+      }
+    });
   }
 
   getDataForTimeChart() {
@@ -101,7 +107,7 @@ export default class TimeSheet extends Vue {
             borderWidth: 1,
             fill: false,
             label: "all Agents",
-          }
+          },
         ],
       },
       options: {
@@ -138,7 +144,7 @@ export default class TimeSheet extends Vue {
   /*change Time via Slider*/
   changeCurrentTime(newTime: number): void {
     this.currentTimeStamp = newTime;
-    
+
     if (this.animateTripsLayer) {
       /*reanimate abm Tripslayer with new currentTime*/
       const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
@@ -158,20 +164,14 @@ export default class TimeSheet extends Vue {
     return this.$store.state.scenario.currentTimeStamp;
   }
   set currentTimeStamp(updatedTime: number) {
-    this.$store.commit(
-      "scenario/currentTimeStamp",
-      updatedTime
-    );
+    this.$store.commit("scenario/currentTimeStamp", updatedTime);
   }
-  
+
   get animateTripsLayer(): boolean {
     return this.$store.state.scenario.animateTripsLayer;
   }
   set animateTripsLayer(newValue: boolean) {
-    this.$store.commit(
-      "scenario/animateTripsLayer",
-      newValue
-    );
+    this.$store.commit("scenario/animateTripsLayer", newValue);
   }
 
   get activeAbmSet() {
