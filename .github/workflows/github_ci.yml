@@ -10,9 +10,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-    container:
-      image: cypress/base:16.5.0
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
@@ -26,6 +24,8 @@ jobs:
     - name: Cypress run
       uses: cypress-io/github-action@v2
       with:
+        browser: chrome
+        # headless: false
         start: 'npm run start:ci'
         wait-on: 'http://localhost:8080/'
         wait-on-timeout: 120
