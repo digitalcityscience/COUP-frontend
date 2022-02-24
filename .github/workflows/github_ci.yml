@@ -26,6 +26,7 @@ jobs:
       with:
         start: 'npm run start:ci'
         wait-on: 'http://localhost:8080/'
+        wait-on-timeout: 120
       env:
         CYPRESS_baseUrl: 'http://localhost:8080/'
         VUE_APP_CALCULATIONS_API_USER: ${{ secrets.CALCULATIONS_API_USER }}
