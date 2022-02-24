@@ -30,7 +30,7 @@ describe("Log in", () => {
     cy.get("[data-cy=result-loading-error]").should("not.be.visible");
 
     // wait for noise result to load
-    cy.wait(3000);
+    //cy.wait(3000);
 
     // map.style._layers should include noise and trafficCounts layers
     getStore()
