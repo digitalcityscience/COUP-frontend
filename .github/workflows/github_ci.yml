@@ -22,7 +22,7 @@ jobs:
     - run: npm run test:unit
     - run: npm run lint
     - name: Cypress run
-      uses: cypress-io/github-action@v2
+      uses: cypress-io/github-action@v2.6.1
       with:
         start: 'npm run start:ci'
         wait-on: 'http://localhost:8080/'
