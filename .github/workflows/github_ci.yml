@@ -10,8 +10,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-20.04
-    container: cypress/included:4.1.0
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
