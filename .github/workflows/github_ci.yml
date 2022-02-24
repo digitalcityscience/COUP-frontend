@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     container:
       image: cypress/base:16.5.0
     steps:
