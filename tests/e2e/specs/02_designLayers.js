@@ -16,7 +16,8 @@ describe("Log in", () => {
 
   // Load the architectural design layers
   it("Check if architectural design layers are loaded and visible", () => {
-    // map.style._layers should include noise and trafficCounts layers
+    // wait for layers to load
+    cy.wait(5000);
     const getStore = () => cy.window().its("$store");
 
     // test if all design layers are loaded & visible

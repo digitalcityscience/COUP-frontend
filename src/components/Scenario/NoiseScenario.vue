@@ -55,6 +55,7 @@
                 label="30 kmh/h"
                 dark
                 :disabled="resultLoading"
+                data-cy="noise-speed-radio-30"
               />
               <v-radio
                 :value="50"

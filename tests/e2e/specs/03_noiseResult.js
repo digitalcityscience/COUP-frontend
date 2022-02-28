@@ -20,6 +20,10 @@ describe("Log in", () => {
   it("Load a saved noise scenario", () => {
     // navigate to noise tab
     cy.get("[data-cy=noise-menu-button]").click();
+
+    // select custom inputs
+    cy.get("[data-cy=noise-speed-radio-30]").check({ force: true }); // Select the 30 km/h option
+
     // load noise result
     cy.get("[data-cy=run-scenario-button]").click();
 
@@ -54,8 +58,9 @@ describe("Log in", () => {
       .its("map")
       .invoke("queryRenderedFeatures")
       .then((yielded) => {
-        let containsNoiseLayer = (renderedFeature) =>
-          renderedFeature.layer.id === "noise";
+        let containsNoiseLayer = (renderedFeature) => {
+          return renderedFeature.layer.id === "noise";
+        };
         expect(yielded.some(containsNoiseLayer)).to.equal(true);
       });
   });
