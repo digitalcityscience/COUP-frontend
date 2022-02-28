@@ -20,6 +20,7 @@ module.exports = (on, config) => {
     if (browser.name.indexOf("chrom") >= 0) {
       const newArgs = args.filter((arg) => arg !== "--disable-gpu");
       newArgs.push("--ignore-gpu-blacklist");
+      newArgs.push("--enable-logging");
       console.log("Browser args: ", newArgs);
       return newArgs;
     }
