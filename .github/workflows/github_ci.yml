@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
@@ -19,8 +19,8 @@ jobs:
         node-version: 16
         cache: 'npm'
     - run: npm ci
-    - run: npm run test:unit
-    - run: npm run lint
+#    - run: npm run test:unit
+#    - run: npm run lint
     - name: Cypress run
       uses: cypress-io/github-action@v2
       with:
