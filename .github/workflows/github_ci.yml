@@ -37,6 +37,7 @@ jobs:
         VUE_APP_CITYPYO_URL: ${{ secrets.CITYPYO_URL }}
         CYPRESS_USERNAME: ${{ secrets.CYPRESS_USERNAME }}
         CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+        DEBUG: 'cypress:*'
     - name: Archive test results - screenshots
       if: always()
       uses: actions/upload-artifact@v2
