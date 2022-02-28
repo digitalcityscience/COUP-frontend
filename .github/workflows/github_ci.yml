@@ -25,7 +25,7 @@ jobs:
       uses: cypress-io/github-action@v2
       with:
         browser: chrome
-        headless: false
+        headless: true
         start: 'npm run start:ci'
         wait-on: 'http://localhost:8080/'
         wait-on-timeout: 120
