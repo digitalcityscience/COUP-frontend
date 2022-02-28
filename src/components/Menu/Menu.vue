@@ -140,6 +140,7 @@ export default {
             </li>
             <li
               class="component_link"
+              data-cy="wind-menu-button"
               v-bind:class="{
                 selected: activeComponent === componentNames.wind,
                 waitingForResult: resultLoadingStati.wind,
@@ -154,6 +155,7 @@ export default {
             </li>
             <li
               class="component_link"
+              data-cy="sun_exposure-menu-button"
               v-bind:class="{
                 selected: activeComponent === componentNames.sun,
                 waitingForResult: resultLoadingStati.sun,
