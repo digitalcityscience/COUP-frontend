@@ -217,7 +217,6 @@ export default class TimeSheet extends Vue {
 <template>
   <div
     id="timesheet"
-    data-cy="abm-time-sheet"
     :class="{
       ui_hide: !showUi,
     }"
@@ -228,6 +227,7 @@ export default class TimeSheet extends Vue {
     >
       <div
         class="time_panel panel"
+        data-cy="abm-time-sheet"
         :class="{
           dismiss: selectGraph !== 'abm' || !showGraph,
         }"

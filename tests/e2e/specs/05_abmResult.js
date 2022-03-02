@@ -29,7 +29,7 @@ describe("Log in", () => {
     cy.get("[data-cy=big-loader-screen]").should("be.visible");
 
     // wait for result
-    //cy.wait(5000);
+    cy.wait(5000);
 
     // TODO add error handling for ABM
     // error should not be visible

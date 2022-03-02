@@ -2,13 +2,15 @@
   <div>
     <div
       class="sw_panel panel"
-      data-cy="stormwater-time-sheet"
       :class="{
         show: mobileTimePanel,
         dismiss: !stormWaterResult || !mobileTimePanel,
       }"
     >
-      <div class="sw_graph">
+      <div 
+      class="sw_graph"
+      data-cy="stormwater-time-sheet" 
+      >
         <canvas id="rainChart" width="300" height="40"></canvas>
         <canvas id="swChart" width="300" height="200"></canvas>
         <div class="sw_slider slider">
@@ -42,6 +44,7 @@ import type {
   GeoJSON,
   StormWaterResult,
   MapboxMap,
+  ScenarioWithTimeSheets,
 } from "@/models";
 import type { Store } from "vuex";
 import { Chart } from "chart.js";
@@ -74,6 +77,10 @@ export default class SWTimeSheet extends Vue {
 
   get stormWaterResult(): StormWaterResult {
     return this.$store.state.stormwater.result;
+  }
+
+  get selectGraph(): ScenarioWithTimeSheets {
+    return this.$store.state.scenario.selectGraph;
   }
 
   get rerenderSwGraph(): boolean {
@@ -130,7 +137,6 @@ export default class SWTimeSheet extends Vue {
   @Watch("rerenderSwGraph")
   rerenderSwGraphWatcher(): void {
     if (this.rerenderSwGraph) {
-      this.$store.commit("scenario/selectGraph", "sw");
       this.prepareDataForRunOffGraph().then(() => {
         this.renderSWGraphRunOff();
         this.renderSWGraphRain();
