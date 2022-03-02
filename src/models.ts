@@ -1,4 +1,4 @@
-import type { Layer, Map as MapboxMap } from "mapbox-gl";
+import type { TypedStyleLayer, Map as MapboxMap } from "maplibre-gl";  // TODO swap for maplibre
 import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 import type Wind from "./store/wind";
@@ -166,7 +166,7 @@ export interface CalculationTask {
 
 export interface SourceAndLayerConfig {
   source: MapSource;
-  layerConfig: Layer;
+  layerConfig: TypedStyleLayer;
 }
 
 export interface MapSource {

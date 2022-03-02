@@ -1,6 +1,6 @@
 import { buildingLayerIds, getLayerOrder } from "@/services/layers.service";
 import { MapboxMap } from "@/models";
-import { Layer } from "mapbox-gl";
+import { TypedStyleLayer } from "maplibre-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
@@ -78,7 +78,7 @@ export function hideAllLayersButThese(
 }
 
 // get all layers that had been added by the user (like buildings, calculation results, ..)
-export function getUserContentLayers(map: MapboxMap | null): Layer[] {
+export function getUserContentLayers(map: MapboxMap | null): TypedStyleLayer[] {
   try {
     // @ts-ignore  - only this map.style._layers includes custom layers like DeckLayer (TripsLayer, Aggregration, ..)
     const allLayers: GenericObject = map.style._layers;
@@ -147,7 +147,7 @@ export function removeSourceAndItsLayersFromMap(
 
 // adds layer to map
 function addLayerToMap(
-  layer: Layer | DeckLayer<any>,
+  layer: TypedStyleLayer | DeckLayer<any>,
   map: MapboxMap | null
 ): void {
   // remove layer first if exits

@@ -1,4 +1,4 @@
-import Config from "@/config/config.json";
+import Config from "@/config/config";
 import Defaults from "@/defaults";
 import { StoreState, View } from "@/models";
 

@@ -1,11 +1,14 @@
-{
+import mapStyle from "@/assets/mapStyle.json";
+
+
+const mapConfig = {
     "view": {
         "center": [10.013542, 53.528397],
         "zoom": 14.7,
         "pitch": 0,
         "bearing": 25
     },
-    "mapStyle": "mapbox://styles/grasbrook/ckdka4jml0yak1iphobimn547",
+    "mapStyle": mapStyle,
     "layers": [],
     "deckLayer": {
         "stroked": true,
@@ -23,3 +26,5 @@
     },
     "sources": []
 }
+
+export default mapConfig;

@@ -1,5 +1,7 @@
+import mapStyle from "@/assets/mapStyle.json";
+
 export default {
-  mapStyle: "mapbox://styles/grasbrook/ckc4kk5ok0ski1iqgvyu2m2ub",
+  mapStyle: mapStyle,
   view: {
     center: [83.3, 42.2],
     zoom: 13,

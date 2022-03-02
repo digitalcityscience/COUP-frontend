@@ -1,5 +1,5 @@
 <script lang="ts">
-import mapboxgl from "mapbox-gl";
+import maplibregl from "maplibre-gl";
 import { mapState } from "vuex";
 import amenities from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import { alkisTranslations } from "@/store/abm";
@@ -59,7 +59,7 @@ export default {
     },
   },
   mounted(): void {
-    mapboxgl.accessToken = this.accessToken;
+    //maplibregl.accessToken = this.accessToken;
 
     const options = {
       container: "map",
@@ -68,13 +68,14 @@ export default {
       bearing: this.view.bearing,
       pitch: this.view.pitch,
       style: this.mapStyle,
+      //style: 'https://openmaptiles.github.io/dark-matter-gl-style/style-cdn.json', // style URL
     };
 
-    this.$store.state.map = new mapboxgl.Map(options);
+    this.$store.state.map = new maplibregl.Map(options);
     this.addInfoIconToMap();
 
     // Create a popup, but don't add it to the map yet.
-    this.popup = new mapboxgl.Popup({
+    this.popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false,
     });
