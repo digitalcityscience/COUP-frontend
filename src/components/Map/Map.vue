@@ -67,8 +67,8 @@ export default {
       zoom: this.view.zoom,
       bearing: this.view.bearing,
       pitch: this.view.pitch,
-      style: this.mapStyle,
-      //style: 'https://openmaptiles.github.io/dark-matter-gl-style/style-cdn.json', // style URL
+      //style: this.mapStyle,
+      style: "https://api.maptiler.com/maps/darkmatter/style.json?key=XgdreUwN4V3uEHHZHsWO", // style URL
     };
 
     this.$store.state.map = new maplibregl.Map(options);
