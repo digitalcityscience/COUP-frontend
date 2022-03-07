@@ -8,4 +8,5 @@ export default  {
   geoJsonOptions: {},
   minZoom: 0,
   maxZoom: 22,
+  styleUrl: "https://api.maptiler.com/maps/c4b89bbb-8c0f-4230-aaed-62bc8cd1abc4/style.json?key=P9weUvTI84TqkNu8Us6m"
 };

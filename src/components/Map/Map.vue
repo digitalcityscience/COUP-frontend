@@ -70,8 +70,7 @@ export default {
       pitch: defaultMapSettings.view.pitch,
       minZoom: defaultMapSettings.minZoom,
       maxZoom: defaultMapSettings.maxZoom,
-      //style: this.mapStyle,
-      style: "https://api.maptiler.com/maps/c4b89bbb-8c0f-4230-aaed-62bc8cd1abc4/style.json?key=P9weUvTI84TqkNu8Us6m", // style URL
+      style: defaultMapSettings.styleUrl
     };
 
     this.$store.state.map = new maplibregl.Map(options as MapOptions);
