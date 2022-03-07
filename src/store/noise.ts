@@ -7,7 +7,7 @@ import type {
 } from "@/models";
 import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
-import type { Feature } from "geojson";
+import type { Feature } from "@mapbox/geojson-types";
 import {
   Module,
   Mutation,

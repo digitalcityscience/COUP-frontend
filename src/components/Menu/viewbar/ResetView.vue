@@ -13,8 +13,10 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import type { StoreState, MapboxMap, View } from "@/models";
+import type { StoreState, MapboxMap } from "@/models";
 import type { Store } from "vuex";
+import defaultMapSettings from "@/defaultMapSettings.ts";
+
 @Component
 export default class ResetView extends Vue {
   $store: Store<StoreState>;
@@ -23,16 +25,12 @@ export default class ResetView extends Vue {
     return this.$store.state.map;
   }
 
-  get view(): View {
-    return this.$store.state.view;
-  }
-
   resetView(): void {
     this.map.flyTo({
-      center: this.view.center,
-      zoom: this.view.zoom,
-      bearing: this.view.bearing,
-      pitch: this.view.pitch,
+      center: defaultMapSettings.view.center,
+      zoom: defaultMapSettings.view.zoom,
+      bearing: defaultMapSettings.view.bearing,
+      pitch: defaultMapSettings.view.pitch,
     });
   }
 }

@@ -47,14 +47,6 @@ export default class Viewbar extends Vue {
     return this.$store.state;
   }
 
-  get mapStyle() {
-    return this.storeState.mapStyle;
-  }
-
-  get accessToken() {
-    return this.$store.state.accessToken;
-  }
-
   get map() {
     return this.$store.state.map;
   }

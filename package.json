@@ -19,6 +19,7 @@
     "@deck.gl/layers": "^8.2.5",
     "@deck.gl/mapbox": "^8.1.12",
     "@deck.gl/mesh-layers": "^8.1.12",
+    "@mapbox/geojson-types": "^1.0.2",
     "@mdi/font": "^5.5.55",
     "@mdi/js": "^5.5.55",
     "@turf/turf": "^5.1.6",

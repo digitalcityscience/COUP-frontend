@@ -118,14 +118,14 @@ export default {
       this.lastClicked[1] = (evt.clientY * 100) / window.innerHeight / 100;
       this.$store.commit("scenario/lastClick", this.lastClicked);
     },
-    onMapClicked(evt: mapboxgl.MapMouseEvent): void {
+    onMapClicked(evt: maplibregl.MapMouseEvent): void {
       console.debug("click!", evt);
       this.recordEventPosition(evt.originalEvent);
       const bbox: [[number, number], [number, number]] = [
         [evt.point.x - 10, evt.point.y - 10],
         [evt.point.x + 10, evt.point.y + 10],
       ];
-      const features = (this.map as mapboxgl.Map).queryRenderedFeatures(bbox, {
+      const features = (this.map as maplibregl.Map).queryRenderedFeatures(bbox, {
         layers: getUserContentLayerIds(this.map).filter((layerId) => {
           return this.map.getLayer(layerId);
         }),
@@ -135,7 +135,7 @@ export default {
         this.actionForClick(features);
       }
     },
-    actionForClick(clickedFeatures: mapboxgl.MapboxGeoJSONFeature[]): void {
+    actionForClick(clickedFeatures): void {
       const initialFeature = clickedFeatures[0];
       const initialLayerId = initialFeature.layer.id;
 
