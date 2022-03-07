@@ -1,4 +1,3 @@
-import Config from "@/config/config";
 import { StoreState } from "@/models";
 
 const initialState: StoreState = {
