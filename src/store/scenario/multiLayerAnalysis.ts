@@ -67,10 +67,7 @@ export function showMultiLayerAnalysis(layer_1, layer_2, logicOperator) {
 function createLayerData(
   layerName: string
 ): turf.FeatureCollection<turf.Polygon | turf.MultiPolygon> {
-
   const baseDataSet = layerLookup(layerName);
-
-
 
   /** get layer data from geojson layers*/
   if (baseDataSet["type"] === "FeatureCollection") {

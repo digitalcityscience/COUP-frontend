@@ -28,8 +28,7 @@
       v-if="controls && stormWaterResult"
       @animationSpeed="animationSpeed = $event"
       @toggle-animation="toggleAnimation"
-      :animationRunning="animateLayer
-"
+      :animationRunning="animateLayer"
       @toggle-graph="mobileTimePanel = $event"
     />
   </div>
@@ -52,7 +51,6 @@ import { addDeckLayerToMap } from "@/services/map.service";
 @Component({
   components: { TimeSheetControl },
 })
-
 export default class SWTimeSheet extends Vue {
   $store: Store<StoreStateWithModules>;
 
@@ -72,7 +70,7 @@ export default class SWTimeSheet extends Vue {
   get map(): MapboxMap {
     return this.$store.state.map;
   }
-  
+
   get stormWaterResult(): StormWaterResult {
     return this.$store.state.stormwater.result;
   }
@@ -84,7 +82,7 @@ export default class SWTimeSheet extends Vue {
   set rerenderSwGraph(newValue: boolean) {
     this.$store.commit("scenario/rerenderSwGraph", newValue);
   }
-  
+
   get animateLayer(): boolean {
     return this.$store.getters["stormwater/animateStormWaterLayer"];
   }
@@ -113,10 +111,12 @@ export default class SWTimeSheet extends Vue {
    INFO: the deck.gl polygon layer has no rendering property
    like currentTime (like for ABM trips layer) that could be updated on the existing layer
   */
-  updateSWLayer() : void {
-    this.$store.dispatch("stormwater/updateStormWaterLayer", [this.map, this.rainTime]);
+  updateSWLayer(): void {
+    this.$store.dispatch("stormwater/updateStormWaterLayer", [
+      this.map,
+      this.rainTime,
+    ]);
   }
-
 
   toggleAnimation(): void {
     this.animateLayer = !this.animateLayer;
