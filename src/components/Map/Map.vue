@@ -1,5 +1,5 @@
 <script lang="ts">
-import maplibregl from "maplibre-gl";
+import maplibregl, { MapOptions } from "maplibre-gl";
 import { mapState } from "vuex";
 import amenities from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import { alkisTranslations } from "@/store/abm";
@@ -10,6 +10,7 @@ import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { getUserContentLayerIds } from "@/services/map.service";
 import mdiInformationPng from "@/assets/mdi-information.png";
+import defaultMapSettings from "@/defaultMapSettings.ts";
 
 export default {
   name: "Map",
@@ -25,7 +26,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["mapStyle", "view", "accessToken", "map"]),
+    ...mapState(["map"]),
     ...generateStoreGetterSetter([
       ["allFeaturesHighlighted", "allFeaturesHighlighted"],
       ["selectedObjectId", "selectedObjectId"],
@@ -63,15 +64,17 @@ export default {
 
     const options = {
       container: "map",
-      center: this.view.center,
-      zoom: this.view.zoom,
-      bearing: this.view.bearing,
-      pitch: this.view.pitch,
+      center: defaultMapSettings.view.center,
+      zoom: defaultMapSettings.view.zoom,
+      bearing: defaultMapSettings.view.bearing,
+      pitch: defaultMapSettings.view.pitch,
+      minZoom: defaultMapSettings.minZoom,
+      maxZoom: defaultMapSettings.maxZoom,
       //style: this.mapStyle,
-      style: "https://api.maptiler.com/maps/darkmatter/style.json?key=XgdreUwN4V3uEHHZHsWO", // style URL
+      style: "https://api.maptiler.com/maps/c4b89bbb-8c0f-4230-aaed-62bc8cd1abc4/style.json?key=P9weUvTI84TqkNu8Us6m", // style URL
     };
 
-    this.$store.state.map = new maplibregl.Map(options);
+    this.$store.state.map = new maplibregl.Map(options as MapOptions);
     this.addInfoIconToMap();
 
     // Create a popup, but don't add it to the map yet.

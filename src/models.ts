@@ -20,23 +20,14 @@ export interface VisibleLayers {
   trees: boolean;
 }
 
-export interface View {
-  center: [number, number];
-  zoom: number;
-  pitch: number;
-  bearing: number;
-}
-
 export interface StoreState {
   map: MapboxMap | null;
   activeMenuComponent: ScenarioComponentName;
   allFeaturesHighlighted: boolean;
   showLegend: boolean;
   currentTime: number;
-  view: View;
   accessToken: string;
   cityPyO: CityPyOStore | null;
-  mapStyle: string;
   restrictedAccess: boolean;
   focusAreasGeoJson: GeoJSON | null;
   focusAreasShown: boolean; // TODO: use visible layers instead

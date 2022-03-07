@@ -1,6 +1,5 @@
 import Config from "@/config/config";
-import Defaults from "@/defaults";
-import { StoreState, View } from "@/models";
+import { StoreState } from "@/models";
 
 const initialState: StoreState = {
   map: null,
@@ -8,8 +7,6 @@ const initialState: StoreState = {
   allFeaturesHighlighted: false,
   showLegend: false,
   selectedMultiFeatures: [],
-  view: (Config["view"] || Defaults.view) as View,
-  mapStyle: Config["mapStyle"] || Defaults.mapStyle,
   accessToken: process.env.VUE_APP_MAPBOX_TOKEN,
   cityPyO: null,
   currentTime: 0,
