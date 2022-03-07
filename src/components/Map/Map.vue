@@ -60,8 +60,6 @@ export default {
     },
   },
   mounted(): void {
-    //maplibregl.accessToken = this.accessToken;
-
     const options = {
       container: "map",
       center: defaultMapSettings.view.center,
