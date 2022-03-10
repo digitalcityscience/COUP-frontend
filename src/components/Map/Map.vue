@@ -1,5 +1,5 @@
 <script lang="ts">
-import mapboxgl from "mapbox-gl";
+import maplibregl, { MapOptions } from "maplibre-gl";
 import { mapState } from "vuex";
 import amenities from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import { alkisTranslations } from "@/store/abm";
@@ -10,6 +10,7 @@ import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { getUserContentLayerIds } from "@/services/map.service";
 import mdiInformationPng from "@/assets/mdi-information.png";
+import defaultMapSettings from "@/defaultMapSettings.ts";
 
 export default {
   name: "Map",
@@ -25,7 +26,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["mapStyle", "view", "accessToken", "map"]),
+    ...mapState(["map"]),
     ...generateStoreGetterSetter([
       ["allFeaturesHighlighted", "allFeaturesHighlighted"],
       ["selectedObjectId", "selectedObjectId"],
@@ -59,22 +60,22 @@ export default {
     },
   },
   mounted(): void {
-    mapboxgl.accessToken = this.accessToken;
-
     const options = {
       container: "map",
-      center: this.view.center,
-      zoom: this.view.zoom,
-      bearing: this.view.bearing,
-      pitch: this.view.pitch,
-      style: this.mapStyle,
+      center: defaultMapSettings.view.center,
+      zoom: defaultMapSettings.view.zoom,
+      bearing: defaultMapSettings.view.bearing,
+      pitch: defaultMapSettings.view.pitch,
+      minZoom: defaultMapSettings.minZoom,
+      maxZoom: defaultMapSettings.maxZoom,
+      style: defaultMapSettings.styleUrl
     };
 
-    this.$store.state.map = new mapboxgl.Map(options);
+    this.$store.state.map = new maplibregl.Map(options as MapOptions);
     this.addInfoIconToMap();
 
     // Create a popup, but don't add it to the map yet.
-    this.popup = new mapboxgl.Popup({
+    this.popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false,
     });
@@ -114,14 +115,14 @@ export default {
       this.lastClicked[1] = (evt.clientY * 100) / window.innerHeight / 100;
       this.$store.commit("scenario/lastClick", this.lastClicked);
     },
-    onMapClicked(evt: mapboxgl.MapMouseEvent): void {
+    onMapClicked(evt: maplibregl.MapMouseEvent): void {
       console.debug("click!", evt);
       this.recordEventPosition(evt.originalEvent);
       const bbox: [[number, number], [number, number]] = [
         [evt.point.x - 10, evt.point.y - 10],
         [evt.point.x + 10, evt.point.y + 10],
       ];
-      const features = (this.map as mapboxgl.Map).queryRenderedFeatures(bbox, {
+      const features = (this.map as maplibregl.Map).queryRenderedFeatures(bbox, {
         layers: getUserContentLayerIds(this.map).filter((layerId) => {
           return this.map.getLayer(layerId);
         }),
@@ -131,7 +132,7 @@ export default {
         this.actionForClick(features);
       }
     },
-    actionForClick(clickedFeatures: mapboxgl.MapboxGeoJSONFeature[]): void {
+    actionForClick(clickedFeatures): void {
       const initialFeature = clickedFeatures[0];
       const initialLayerId = initialFeature.layer.id;
 

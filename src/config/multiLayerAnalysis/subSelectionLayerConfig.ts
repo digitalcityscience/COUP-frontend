@@ -9,6 +9,7 @@ const subSelectionLayerConfig: SourceAndLayerConfig = {
       "fill-extrusion-height": 0.2,
       "fill-extrusion-base": 0.25,
       "fill-extrusion-opacity": 0.8,
+      // @ts-ignore
       "fill-extrusion-color": {
         property: "scaledValue",
         stops: [
