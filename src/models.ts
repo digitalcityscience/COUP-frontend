@@ -3,6 +3,7 @@ import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 import type Wind from "./store/wind";
 import type Noise from "./store/noise";
+import type AbmStore from "./store/abmStore";
 
 export type { MapboxMap };
 export type GeoJSON = Record<string, unknown>;
@@ -61,12 +62,27 @@ export type ScenarioComponentName =
   | "noise"
   | "pedestrian"
   | "multiLayer";
+
 export type ScenarioComponentNames = Record<
   ScenarioComponentName,
   ScenarioComponentName
 >;
 
 export type DataLoadingStati = Record<ScenarioComponentName | "map", boolean>;
+
+export interface AbmResult {
+  amentiesGeoJSON : GeoJSON;
+  agentsData: GenericObject;
+}
+
+export interface AbmScenarioConfiguration {
+  bridge_hafencity: boolean;
+  underpass_veddel_north: boolean;
+  roof_amenities: "random" | "complementary";
+  blocks: "open" | "closed";
+  main_street_orientation: "vertical" | "horizontal";
+}
+
 
 export type StormWaterRoofType = "extensive" | "intensive";
 export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
@@ -117,6 +133,7 @@ export interface StoreStateWithModules extends StoreState {
   stormwater: StormWater;
   wind: Wind;
   noise: Noise;
+  abm: AbmStore;
 }
 
 export interface Legend {

@@ -7,40 +7,8 @@ declare global {
   interface GenericObject {
     [key: string]: any;
   }
-  interface StoreModule {
-    state: GenericObject;
-    getters: GenericObject;
-    mutations: GenericObject;
-    actions: GenericObject;
-  }
 
-  interface Feature {
-    rendered: any;
-    source: any;
-    sourceId: string;
-  }
-
-  interface ScenarioResult {
-    designScenario: string;
-    moduleSettings: Record<string, unknown>;
-  }
-
-  interface AbmScenario extends ScenarioResult {
-    bridges: string[];
-    resultLoading: boolean;
-    currentlyShownScenarioSettings: AbmScenarioSettings;
-    resultOutdated: boolean;
-    moduleSettings: AbmScenarioSettings;
-  }
-
-  interface AbmScenarioSettings {
-    bridge_hafencity: boolean;
-    bridge_veddel: "horizontal" | "diagonal";
-    roof_amenities: "random" | "complementary";
-    blocks: "open" | "closed";
-    main_street_orientation: "vertical" | "horizontal";
-  }
-
+  // cityPyo
   interface ConnectionOptions {
     userdata: Userdata;
   }
@@ -50,14 +18,7 @@ declare global {
     password: string;
   }
 
-  interface RawSource {
-    id: string;
-    options:
-      | AnyMamboxLayer
-      | DeckLayer<unknown>
-      | ColumnLayer<unknown, unknown>;
-  }
-
+  // multiLayerAnalysis
   interface LayerAnalysisRequest {
     layerName: string;
     layerRange: number[];

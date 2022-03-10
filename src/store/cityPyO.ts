@@ -1,5 +1,5 @@
 import { workshopScenarioNames } from "@/store/abm";
-import type { CityPyOUser, GeoJSON } from "@/models";
+import type { CityPyOUser, GeoJSON, AbmScenarioConfiguration } from "@/models";
 
 export default class CityPyO {
   url: string;
@@ -101,7 +101,7 @@ export default class CityPyO {
     await this.performRequest(fileName, requestUrl, body);
   }
 
-  async getAbmResultLayer(id: string, scenario?: AbmScenario) {
+  async getAbmResultLayer(id: string, scenario?: AbmScenarioConfiguration) {
     // fetch predefined workshop scenario layer
     if (!scenario) {
       const responseJson = await this.getLayer(id);
@@ -113,7 +113,7 @@ export default class CityPyO {
     const requestUrl = this.url + "getLayer/" + "abmScenario";
     const body = {
       userid: this.userid,
-      scenario_properties: scenario.moduleSettings,
+      scenario_properties: scenario,
       agent_filters: {},
     };
 
@@ -126,7 +126,7 @@ export default class CityPyO {
   }
 
   // the amenities layer is dependent on the chosen scenario
-  async getAbmAmenitiesLayer(id: string, scenario: AbmScenario) {
+  async getAbmAmenitiesLayer(id: string, scenario: AbmScenarioConfiguration) {
     // fetch predefined workshop scenario layer
     // TODO can we throw away the WORKSHOP stuff?
     if (workshopScenarioNames.includes(id)) {
@@ -136,9 +136,9 @@ export default class CityPyO {
 
     // else: fetch abmScenario file, including all scenarios from CityPyo
     const query =
-      scenario.moduleSettings.main_street_orientation +
+      scenario.main_street_orientation +
       "_" +
-      scenario.moduleSettings.roof_amenities;
+      scenario.roof_amenities;
 
     const requestUrl = this.url + "getLayer/" + query;
     const body = {

@@ -1,3 +1,5 @@
+// TODO move this to models!
+
 export const bridges = {
   bridge_hafencity: "bridge_hafencity",
   bridge_veddel_horizontal: "bridge_veddel_horizontal",
