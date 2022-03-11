@@ -70,10 +70,42 @@ export type ScenarioComponentNames = Record<
 
 export type DataLoadingStati = Record<ScenarioComponentName | "map", boolean>;
 
-export interface AbmResult {
+export interface AbmResponse {
   amentiesGeoJSON : GeoJSON;
-  agentsData: GenericObject;
+  simulationResult: AbmSimulationResult[];
 }
+
+export type AbmSimulationResult = ResultDataSingleAgent[];
+
+export interface ResultDataSingleAgent {
+  agent: AbmAgent;
+  path: Coordinates[];
+  timestamps: Timestamp[];
+  trips: AgentTrip[];
+}
+
+export interface AbmAgent {
+  id: string; // e.g. "people_resident10", 
+  // unused properties
+  agent_age: string;  // e.g. "18-35", 
+  resident_or_visitor: "resident" | "visitor"  
+  source: string;
+  // source:  e.g. "1.csv"  // hint for which GAMA simulation this agent is from... 
+}
+
+export interface AgentTrip {
+  destination: Coordinates;
+  duration: number;
+  lenght: number;
+  origin: Coordinates;
+  // path_indexes: Indexes in ResultDataSingleAgent.path (path taken in trip)
+  path_indexes: [number, number]; 
+}
+
+export type Coordinates = [number, number];
+export type Timestamp = number;
+
+
 
 export interface AbmScenarioConfiguration {
   bridge_hafencity: boolean;

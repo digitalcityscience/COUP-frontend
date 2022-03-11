@@ -1,6 +1,6 @@
 import type {
   // TODO Refactor
-  AbmResult,
+  AbmResponse,
   AbmScenarioConfiguration,
 } from "@/models";
 import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
@@ -27,14 +27,14 @@ export default class AbmStore extends VuexModule {
   scenarioConfig: AbmScenarioConfiguration = {
     ...defaultAbmScenarioConfiguration,
   };
-  result: AbmResult | null = null;
+  result: AbmResponse | null = null;
   animateLayer = false;
 
   get scenarioConfiguration(): AbmScenarioConfiguration {
     return this.scenarioConfig;
   }
 
-  get abmResult(): AbmResult {
+  get abmResult(): AbmResponse {
     return this.result;
   }
 
@@ -59,7 +59,7 @@ export default class AbmStore extends VuexModule {
   }
 
   @Mutation
-  mutateResult(newResult: AbmResult): void {
+  mutateResult(newResult: AbmResponse): void {
     this.result =  newResult
     /** TODO refactor FREEZE OBJECT
       geojson: Object.freeze(newResult.geojson),
@@ -76,8 +76,8 @@ export default class AbmStore extends VuexModule {
   @MutationAction({ mutate: ["result"] })
   async updateAbmResult(
     cityPyOUserid: string
-  ): Promise<{ result: AbmResult }> {
-    const simulationResult: AbmResult =
+  ): Promise<{ result: AbmResponse }> {
+    const simulationResult: AbmResponse =
       await this.cityPyo.getAbmResultLayer(
         cityPyOUserid,
         this.scenarioConfiguration,
