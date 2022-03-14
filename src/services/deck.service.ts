@@ -7,7 +7,7 @@ import { TripsLayer } from "@deck.gl/geo-layers";
 import GL from "@luma.gl/constants";
 import { PolygonLayer } from "@deck.gl/layers";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
-import type { GeoJSON } from "@/models";
+import type { AgentsClusteredForHeatmap, GeoJSON } from "@/models";
 
 export const abmTripsLayerName = "abmTrips";
 export const abmAggregationLayerName = "abmHeat";
@@ -121,7 +121,7 @@ export function setAnimationTimeAbm(tripsLayer: DeckLayer<any>, time: number) {
 }
 
 export async function buildAggregationLayer(
-  data: DataSet<any>
+  data: AgentsClusteredForHeatmap
 ): Promise<DeckLayer<any>> {
   return new DeckLayer({
     id: abmAggregationLayerName,

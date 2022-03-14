@@ -2,6 +2,12 @@ import type {
   // TODO Refactor
   AbmResponse,
   AbmScenarioConfiguration,
+  AbmSimulationResult,
+  AgentIndexByName,
+  AgentsClusteredForHeatmap,
+  AgentsClusteredForTimeGraph,
+  AgentTrip,
+  GeoJSON,
 } from "@/models";
 import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
 import { addDeckLayerToMap } from "@/services/map.service";
@@ -13,6 +19,7 @@ import {
   VuexModule,
 } from "vuex-module-decorators";
 import CityPyO from './cityPyO';
+import * as resultProcessing from "@/services/abm/resultProcessing.service";
 
 export const defaultAbmScenarioConfiguration: AbmScenarioConfiguration = {
   bridge_hafencity: true,
@@ -27,15 +34,37 @@ export default class AbmStore extends VuexModule {
   scenarioConfig: AbmScenarioConfiguration = {
     ...defaultAbmScenarioConfiguration,
   };
-  result: AbmResponse | null = null;
+  result: AbmSimulationResult | null = null;
+  amenitiesGeoJSON: GeoJSON;
+  agentIndexes: AgentIndexByName = {};
+  tripsSummary: AgentTrip[] = [];
+  dataForHeatmap: AgentsClusteredForHeatmap = {};
+  dataForTimeGraph: AgentsClusteredForTimeGraph = {};
+  
   animateLayer = false;
+
 
   get scenarioConfiguration(): AbmScenarioConfiguration {
     return this.scenarioConfig;
   }
 
-  get abmResult(): AbmResponse {
+  get abmResult(): AbmSimulationResult {
     return this.result;
+  } 
+  
+  get abmAgentIndexes(): AgentIndexByName {
+    return this.agentIndexes;
+  }
+  get abmTripsSummary(): AgentTrip[] {
+    return this.tripsSummary;
+  }
+  
+  get abmDataForHeatmap(): AgentsClusteredForHeatmap {
+    return this.abmDataForHeatmap;
+  }
+  
+  get abmDataForTimeGraph(): AgentsClusteredForTimeGraph {
+    return this.abmDataForTimeGraph;
   }
 
   get animateAbmTripsLayer(): boolean {
@@ -59,13 +88,45 @@ export default class AbmStore extends VuexModule {
   }
 
   @Mutation
-  mutateResult(newResult: AbmResponse): void {
-    this.result =  newResult
-    /** TODO refactor FREEZE OBJECT
-      geojson: Object.freeze(newResult.geojson),
-      rainData: newResult.rainData,
-    };
-    */
+  mutateResult(newResult: AbmSimulationResult): void {
+    // @ts-ignore
+    this.result =  Object.freeze(newResult);
+  }
+
+  @Mutation
+  mutateResultForHeatmap(simulationResult: AbmSimulationResult): void {
+    // used heatmap and for "createPathPointCollection" in abmStats
+    // heatmap needs "coordinates" and count of active agents per coords 
+    // in which the key is a stringified coordinate and the value is an array of agent names 
+    // however, we only effectively would need the agent count.
+    this.dataForHeatmap = Object.freeze(
+      resultProcessing.getAgentCountsPerHourAndCoordinate(simulationResult)
+    );
+  }  
+
+  @Mutation
+  mutateResultForTimeGraph(simulationResult: AbmSimulationResult): void {
+     // only used for timeGraph, only need "all" value
+     this.dataForTimeGraph = Object.freeze(
+      resultProcessing.aggregateAbmResultsBy5minForTimeGraph(simulationResult)
+    );
+  }
+  
+  @Mutation
+  mutateAgentLookupTable(simulationResult: AbmSimulationResult): void {
+    // agent indexes only used for "getTimeAgentIsAtPoint" in abmStats
+    this.agentIndexes = Object.freeze(
+      resultProcessing.createLookUpTableAgentNameIndex(simulationResult)
+    );
+  }  
+  
+  @Mutation
+  mutateTripsSummary(simulationResult: AbmSimulationResult): void {
+    // only used in "calculateTripAverages" in abmStats
+    // @ts-ignore
+    this.tripsSummary = Object.freeze(
+      resultProcessing.createTrips(simulationResult)
+    );
   }
 
   @Mutation
@@ -95,8 +156,8 @@ export default class AbmStore extends VuexModule {
     const tripsLayer = buildTripsLayer(this.abmResult, currentTimeStamp);
     addDeckLayerToMap(tripsLayer, map);
     
-    const data = {} // TODO refactor process abmResult -> heatLayerdata
-    const heatMapLayer = buildAggregationLayer(data);
+    const heatMapLayer = buildAggregationLayer(this.dataForHeatmap);
     addDeckLayerToMap(heatMapLayer, map);
   }
+
 }

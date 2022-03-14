@@ -239,9 +239,9 @@ export default {
       // ---------------- TIME DATA ------------------------------
       // TODO refactor!!!
       // Analyzing Time Data
-      who.timestamps.forEach((v, i, a) => {
+      who.timestamps.forEach((timeStampInSeconds, i, a) => {
         /*round timestamps to full hours*/
-        const h = Math.floor(v / 3600) + 8;
+        const h = Math.floor(timeStampInSeconds / 3600) + 8;
         /*create object keys from full hours*/
         timePaths[h] = timePaths[h] || {};
         timePaths[h].busyAgents = timePaths[h].busyAgents || [];
@@ -260,29 +260,31 @@ export default {
 
         // TODO 300 ?? what is 300??
 
+        // 300seconds = 5min
+
         // Creating Simple Time Data Arrays
-        simpleTimeData[Math.floor(v / 300) * 300] =
-          simpleTimeData[Math.floor(v / 300) * 300] || {};
-        simpleTimeData[Math.floor(v / 300) * 300]["all"] =
-          simpleTimeData[Math.floor(v / 300) * 300]["all"] || [];
-        simpleTimeData[Math.floor(v / 300) * 300][who.agent.mode] =
-          simpleTimeData[Math.floor(v / 300) * 300][who.agent.mode] || [];
-        simpleTimeData[Math.floor(v / 300) * 300][who.agent.agent_age] =
-          simpleTimeData[Math.floor(v / 300) * 300][who.agent.agent_age] || [];
-        simpleTimeData[Math.floor(v / 300) * 300][
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300] =
+          simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300] || {};
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300]["all"] =
+          simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300]["all"] || [];
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][who.agent.mode] =
+          simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][who.agent.mode] || [];
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][who.agent.agent_age] =
+          simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][who.agent.agent_age] || [];
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][
           who.agent.resident_or_visitor
         ] =
-          simpleTimeData[Math.floor(v / 300) * 300][
+          simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][
             who.agent.resident_or_visitor
           ] || [];
-        simpleTimeData[Math.floor(v / 300) * 300]["all"].push(agent_id);
-        simpleTimeData[Math.floor(v / 300) * 300][who.agent.mode].push(
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300]["all"].push(agent_id);
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][who.agent.mode].push(
           agent_id
         );
-        simpleTimeData[Math.floor(v / 300) * 300][who.agent.agent_age].push(
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][who.agent.agent_age].push(
           agent_id
         );
-        simpleTimeData[Math.floor(v / 300) * 300][
+        simpleTimeData[Math.floor(timeStampInSeconds / 300) * 300][
           who.agent.resident_or_visitor
         ].push(agent_id);
 
@@ -333,8 +335,8 @@ export default {
       Object.entries(heatLayerData[key].values).forEach(
         ([subKey, subValue]) => {
           const coordinate = {
-            c: subKey.split(",").map(Number),
-            w: heatLayerData[key].values[subKey].length,
+            c: subKey.split(",").map(Number), // coordinate string to array 
+            w: heatLayerData[key].values[subKey].length,  // values is an array of names of the active agents at that location
           };
           heatLayerFormed.push(coordinate);
         }

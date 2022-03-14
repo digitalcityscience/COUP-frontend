@@ -70,6 +70,23 @@ export type ScenarioComponentNames = Record<
 
 export type DataLoadingStati = Record<ScenarioComponentName | "map", boolean>;
 
+
+export type AgentId = string;
+export type CoordinatesAsString = string;
+
+export type AgentsClusteredForHeatmap = Record<number, AgentId[]>
+
+// Lookup table for the agents index in the AbmSimulationResult
+export type AgentIndexByName =  Record<string, number>;
+
+/**
+ * summary of all agents active during these 5 min onwards from timestamp
+ * e.g number is 5 min intervalls in seconds. keys are 300, 600, ..
+*/
+  export type AgentsClusteredForTimeGraph =  Record<number, fiveMinuteAgentSummary>;
+
+  // TODO refactor: remove all property. it can just be a number?
+  // TODO only need count of agents during this 5min slot. 
 export interface AbmResponse {
   amentiesGeoJSON : GeoJSON;
   simulationResult: AbmSimulationResult[];
@@ -85,13 +102,22 @@ export interface ResultDataSingleAgent {
 }
 
 export interface AbmAgent {
-  id: string; // e.g. "people_resident10", 
+  id: AgentId; // e.g. "people_resident10", 
   // unused properties
   agent_age: string;  // e.g. "18-35", 
   resident_or_visitor: "resident" | "visitor"  
   source: string;
   // source:  e.g. "1.csv"  // hint for which GAMA simulation this agent is from... 
 }
+ 
+export interface fiveMinuteAgentSummary {
+  all: AgentId[];
+}
+export interface AgentsPerCoordinate {
+      busyAgents: AgentId[];
+      // coordinate as string eg. "10.34345,51.2343"
+      values: Record<CoordinatesAsString, AgentId[]>;
+  };
 
 export interface AgentTrip {
   destination: Coordinates;
@@ -99,12 +125,12 @@ export interface AgentTrip {
   lenght: number;
   origin: Coordinates;
   // path_indexes: Indexes in ResultDataSingleAgent.path (path taken in trip)
-  path_indexes: [number, number]; 
+  path_indexes: [number, number];
+  agent: AgentId;
 }
 
 export type Coordinates = [number, number];
 export type Timestamp = number;
-
 
 
 export interface AbmScenarioConfiguration {

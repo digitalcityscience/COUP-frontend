@@ -1,4 +1,4 @@
-import { AbmResponse, AbmSimulationResult, MapboxMap, ResultDataSingleAgent } from "@/models";
+import { AbmResponse, AbmSimulationResult, AgentsPerCoordinate, AgentIndexByName as AgentIndexTable, AgentTrip, MapboxMap, ResultDataSingleAgent, AgentsClusteredForHeatmap, AgentsClusteredForTimeGraph } from "@/models";
 import GeoJSON from "@mapbox/geojson-types";
 
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
@@ -66,7 +66,7 @@ trips": [
 // TODO type result agentIndexes
 // TODO type agent / who
 // #0 create a simple lookup with all agent id's and their index in the abmCore
-function createLookUpTableAgentNameIndex(abmResultData: AbmSimulationResult) {
+export function createLookUpTableAgentNameIndex(abmResultData: AbmSimulationResult): AgentIndexTable {
     const agentIndexes = {};
     
     abmResultData.forEach((agent: ResultDataSingleAgent, index: number) => {
@@ -79,7 +79,7 @@ function createLookUpTableAgentNameIndex(abmResultData: AbmSimulationResult) {
 
 
     // #1 create a bin with data on trips each agent makes (origin, destination, pathIndexes, duration, length)
-function createTrips(abmResultData: AbmSimulationResult) {
+export function createTrips(abmResultData: AbmSimulationResult): AgentTrip[] {
     const trips = []
     
     abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
@@ -150,7 +150,9 @@ function createTrips(abmResultData: AbmSimulationResult) {
 
 
 // #2 Clustering TIME DATA for Aggregation Layer
-function getAgentCountsPerHourAndCoordinate(abmResultData: AbmSimulationResult) {
+export function getAgentCountsPerHourAndCoordinate(
+  abmResultData: AbmSimulationResult
+  ): AgentsClusteredForHeatmap {
     const timePaths = []
     
     abmResultData.forEach((agent: ResultDataSingleAgent, _index: number) => {
@@ -184,7 +186,9 @@ function getAgentCountsPerHourAndCoordinate(abmResultData: AbmSimulationResult) 
 }
 
 
-function aggregateAbmResultsBy5minForTimeGraph(abmResultData: AbmSimulationResult) {
+export function aggregateAbmResultsBy5minForTimeGraph(
+  abmResultData: AbmSimulationResult
+  ): AgentsClusteredForTimeGraph {
     const fiveMinData = {}
     
     abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
@@ -200,25 +204,5 @@ function aggregateAbmResultsBy5minForTimeGraph(abmResultData: AbmSimulationResul
     })
 
     return fiveMinData;
-}
-
-// preprocessing ABM data
-// TODO type / interface for agentCountsPerCoordinateAndHour, abmDataForTimeSheet ??
-export function computeLoop(abmResultData: AbmSimulationResult) { // TODO type this
-    
-    // agent indexes only used for "getTimeAgentIsAtPoint" in abmStats
-    const agentIndexes = createLookUpTableAgentNameIndex(abmResultData);
-    
-    // only used in "calculateTripAverages" in abmStats
-    const trips = createTrips(abmResultData);
-    
-    // used heatmap and for "createPathPointCollection" in abmStats
-    // heatmap needs "coordinates" and count of active agents per coords 
-    // in which the key is a stringified coordinate and the value is an array of agent names 
-    // however, we only effectively would need the agent count.
-    const agentCountsPerCoordinateAndHour = getAgentCountsPerHourAndCoordinate(abmResultData);
-
-    // only used for timesheet, only need "all" value
-    const abmDataForTimeSheet = aggregateAbmResultsBy5minForTimeGraph(abmResultData);
 }
 
