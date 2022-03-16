@@ -5,8 +5,6 @@ name: Node.js CI test only
 on:
   push:
     branches: ["*", "feat/*"]
-  pull_request:
-    branches: ["*"]
 
 jobs:
   build-and-test:
