@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: 17
       #    cache: "npm"
+      - run: npm cache clear --force
       - run: npm install
       #    - run: npm run test:unit
       #    - run: npm run lint
