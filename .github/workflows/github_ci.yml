@@ -13,8 +13,7 @@ jobs:
         with:
           node-version: 17
       #    cache: "npm"
-      - run: npm cache clear --force
-      - run: npm install
+      - run: yarn install
       #    - run: npm run test:unit
       #    - run: npm run lint
       - name: Cypress run
@@ -22,7 +21,7 @@ jobs:
         with:
           browser: chrome
           headless: true
-          start: "npm run start:ci"
+          start: "yarn run start:ci"
           wait-on: "http://localhost:8080/"
           wait-on-timeout: 120
         env:
