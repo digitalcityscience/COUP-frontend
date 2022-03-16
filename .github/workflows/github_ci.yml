@@ -4,51 +4,51 @@ name: Node.js CI test only
 
 on:
   push:
-    branches: [ "*", "feat/*" ]
+    branches: ["*", "feat/*"]
   pull_request:
-    branches: [ "*" ]
+    branches: ["*"]
 
 jobs:
   build-and-test:
     runs-on: [self-hosted, linux, hcu, gpu]
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16
-        cache: 'npm'
-    - run: npm ci
-#    - run: npm run test:unit
-#    - run: npm run lint
-    - name: Cypress run
-      uses: cypress-io/github-action@v2
-      with:
-        browser: chrome
-        headless: true
-        start: 'npm run start:ci'
-        wait-on: 'http://localhost:8080/'
-        wait-on-timeout: 120
-      env:
-        CYPRESS_baseUrl: 'http://localhost:8080/'
-        VUE_APP_CALCULATIONS_API_USER: ${{ secrets.CALCULATIONS_API_USER }}
-        VUE_APP_CALCULATIONS_API_URL: ${{ secrets.CALCULATIONS_API_URL }}
-        VUE_APP_CALCULATIONS_API_PW: ${{ secrets.CALCULATIONS_API_PW }}
-        VUE_APP_CITYPYO_URL: ${{ secrets.CITYPYO_URL }}
-        CYPRESS_USERNAME: ${{ secrets.CYPRESS_USERNAME }}
-        CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
-        DEBUG: 'cypress:*'
-    - name: Archive test results - screenshots
-      if: always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: e2e-screenshots
-        path: tests/e2e/screenshots
-        retention-days: 5
-    - name: Archive test results - videos
-      if: always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: e2e-videos
-        path: tests/e2e/videos
-        retention-days: 5
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+          cache: "npm"
+      - run: npm ci
+      #    - run: npm run test:unit
+      #    - run: npm run lint
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          browser: chrome
+          headless: true
+          start: "npm run start:ci"
+          wait-on: "http://localhost:8080/"
+          wait-on-timeout: 120
+        env:
+          CYPRESS_baseUrl: "http://localhost:8080/"
+          VUE_APP_CALCULATIONS_API_USER: ${{ secrets.CALCULATIONS_API_USER }}
+          VUE_APP_CALCULATIONS_API_URL: ${{ secrets.CALCULATIONS_API_URL }}
+          VUE_APP_CALCULATIONS_API_PW: ${{ secrets.CALCULATIONS_API_PW }}
+          VUE_APP_CITYPYO_URL: ${{ secrets.CITYPYO_URL }}
+          CYPRESS_USERNAME: ${{ secrets.CYPRESS_USERNAME }}
+          CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}
+          DEBUG: "cypress:*"
+      - name: Archive test results - screenshots
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: e2e-screenshots
+          path: tests/e2e/screenshots
+          retention-days: 5
+      - name: Archive test results - videos
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: e2e-videos
+          path: tests/e2e/videos
+          retention-days: 5
