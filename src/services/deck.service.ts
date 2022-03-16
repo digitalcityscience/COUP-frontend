@@ -97,6 +97,7 @@ export async function buildTripsLayer(
     pickable: false,
     trailLength: 750,
     currentTime: currentTimeStamp,
+    visible: true,
     parameters: {
       // prevent flicker from z-fighting
       [GL.DEPTH_TEST]: false,

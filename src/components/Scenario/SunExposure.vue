@@ -129,6 +129,7 @@ export default {
           </div>
           <v-btn
             @click="loadResult()"
+            data-cy="run-scenario-button"
             class="confirm_btn mt-2"
             :disabled="resultLoading"
           >

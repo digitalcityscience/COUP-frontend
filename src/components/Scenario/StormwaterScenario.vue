@@ -87,6 +87,7 @@
           <v-btn
             @click="runScenario()"
             class="confirm_btn mt-2"
+            data-cy="run-scenario-button"
             :class="{ changesMade: isFormDirty }"
             :disabled="resultLoading"
           >

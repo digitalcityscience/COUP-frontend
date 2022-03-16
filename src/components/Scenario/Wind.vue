@@ -344,6 +344,7 @@ export default class WindScenario extends Vue {
             class="confirm_btn mt-2"
             :class="{ changesMade: isFormDirty }"
             :disabled="resultLoading"
+            data-cy="run-scenario-button"
           >
             RUN SCENARIO
           </v-btn>

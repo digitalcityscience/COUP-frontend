@@ -53,7 +53,11 @@ export default class LoaderScreen extends Vue {
 </script>
 
 <template>
-  <div id="big_loader" :class="showLoader ? '' : 'hidden'">
+  <div
+    id="big_loader"
+    :class="showLoader ? '' : 'hidden'"
+    data-cy="big-loader-screen"
+  >
     <div class="css-loader">
       <div></div>
       <div></div>

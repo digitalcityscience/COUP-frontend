@@ -15,6 +15,17 @@ module.exports = (on, config) => {
   //  watchOptions: {}
   // }))
 
+  on("before:browser:launch", (browser = {}, args) => {
+    console.log("Browser: ", browser);
+    if (browser.name.indexOf("chrom") >= 0) {
+      const newArgs = args.filter((arg) => arg !== "--disable-gpu");
+      newArgs.push("--ignore-gpu-blacklist");
+      newArgs.push("--enable-logging");
+      console.log("Browser args: ", newArgs);
+      return newArgs;
+    }
+  });
+
   return Object.assign({}, config, {
     fixturesFolder: "tests/e2e/fixtures",
     integrationFolder: "tests/e2e/specs",
