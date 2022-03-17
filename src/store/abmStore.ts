@@ -94,39 +94,31 @@ export default class AbmStore extends VuexModule {
   }
 
   @Mutation
-  mutateResultForHeatmap(simulationResult: AbmSimulationResult): void {
+  mutateResultForHeatmap(dataForHeatmap: AgentsClusteredForHeatmap): void {
     // used heatmap and for "createPathPointCollection" in abmStats
     // heatmap needs "coordinates" and count of active agents per coords 
     // in which the key is a stringified coordinate and the value is an array of agent names 
     // however, we only effectively would need the agent count.
-    this.dataForHeatmap = Object.freeze(
-      resultProcessing.getAgentCountsPerHourAndCoordinate(simulationResult)
-    );
+    this.dataForHeatmap = Object.freeze(dataForHeatmap);
   }  
 
   @Mutation
-  mutateResultForTimeGraph(simulationResult: AbmSimulationResult): void {
+  mutateResultForTimeGraph(dataForTimeGraph: AgentsClusteredForTimeGraph): void {
      // only used for timeGraph, only need "all" value
-     this.dataForTimeGraph = Object.freeze(
-      resultProcessing.aggregateAbmResultsBy5minForTimeGraph(simulationResult)
-    );
+     this.dataForTimeGraph = Object.freeze(dataForTimeGraph);
   }
   
   @Mutation
-  mutateAgentLookupTable(simulationResult: AbmSimulationResult): void {
+  mutateAgentLookupTable(agentIndexes: AgentIndexByName): void {
     // agent indexes only used for "getTimeAgentIsAtPoint" in abmStats
-    this.agentIndexes = Object.freeze(
-      resultProcessing.createLookUpTableAgentNameIndex(simulationResult)
-    );
+    this.agentIndexes = Object.freeze(agentIndexes);
   }  
   
   @Mutation
-  mutateTripsSummary(simulationResult: AbmSimulationResult): void {
+  mutateTripsSummary(tripsSummary: AgentTrip[]): void {
     // only used in "calculateTripAverages" in abmStats
     // @ts-ignore
-    this.tripsSummary = Object.freeze(
-      resultProcessing.createTrips(simulationResult)
-    );
+    this.tripsSummary = Object.freeze(tripsSummary);
   }
 
   @Mutation
@@ -145,7 +137,7 @@ export default class AbmStore extends VuexModule {
       );
 
       console.log("simulation resutl", simulationResult)
-      debugger;
+      //debugger;
 
     return { result: simulationResult };
   }

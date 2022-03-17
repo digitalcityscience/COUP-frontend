@@ -15,6 +15,7 @@ import { abmLayerIds } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import {
+  addDeckLayerToMap,
   hideAllLayersButThese,
   hideAllResultLayers,
   hideLayers,
@@ -29,8 +30,15 @@ import type {
   MapboxMap,
   AbmScenarioConfiguration,
   MenuLink, 
-  StoreStateWithModules
+  StoreStateWithModules,
+  AbmSimulationResult,
+  AgentsClusteredForHeatmap,
+  AgentsClusteredForTimeGraph
 } from "@/models";
+import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
+import * as resultProcessing from "@/services/abm/resultProcessing.service";
+import VueWorker from 'vue-worker'
+
 
 @Component({
   name: ScenarioComponentNames.pedestrian,
@@ -38,6 +46,7 @@ import type {
 })
 export default class AbmScenario extends Vue {
   $store: Store<StoreStateWithModules>;
+  $worker: VueWorker;
   activeDivision = null;
   errorMsg = "";
 
@@ -117,6 +126,10 @@ export default class AbmScenario extends Vue {
     );
   }
 
+  get result(): AbmSimulationResult {
+    return this.$store.state.abm.result;
+  }
+
   // TODO formerly called moduleSettings here
   get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
     return this.$store.getters["abm/scenarioConfiguration"];
@@ -146,6 +159,7 @@ export default class AbmScenario extends Vue {
   get resultLoading(): boolean {
     return this.$store.state.scenario.resultLoadingStati.pedestrian;
   }
+
   set resultLoading(loadingState: boolean) {
     let loadingStati = Object.assign(
       {},
@@ -206,7 +220,7 @@ export default class AbmScenario extends Vue {
       this.scenarioConfiguration
     );
 
-    // get stormwater result from cityPyo
+    // get abm result from cityPyo
     this.loadAbmMaps();
   }
 
@@ -219,22 +233,62 @@ export default class AbmScenario extends Vue {
     this.$store
       .dispatch(
         "abm/updateAbmResult",
-        cityPyOUserid(this.$store.state?.cityPyO)
+        cityPyOUserid(this.$store.state?.cityPyO) 
       )
       .then(() => {
-        // success
-        this.$store
-          .dispatch("abm/updateAbmLayers", [this.map])
-          .then(() => {
-            // check if ABM is still active component, else hide layers
-            if (!this.isPedestrianActiveComponent) {
-              hideLayers(this.map, ["abmTrips", "abmHeat", "abmAmenities"]);
-            }
-          });
-        // update time graph
-        this.$store.commit("scenario/rerenderAbmTimeGraph", true);
-        this.resultLoading = false;
-        this.errorMsg = "";
+        // sucessfully got result
+        // add trips layer to map 
+        // TODO make this depending on processing of data for timegraph!
+        buildTripsLayer(this.result, 0)
+          .then((tripsLayer) => {
+            addDeckLayerToMap(tripsLayer, this.map)
+            // TODO show timeGraph
+          })
+          .catch((err) => {
+            console.log("caught error when creating trips layer", err);
+          })
+          .finally(() => { this.resultLoading = false; })
+        
+        // process result for heatmap (in worker)
+        this.$worker.run(resultProcessing.getAgentCountsPerHourAndCoordinate, [this.result])
+          .then((dataForHeatmap: AgentsClusteredForHeatmap) => {
+           buildAggregationLayer(dataForHeatmap)
+              .then((layer) => {
+                addDeckLayerToMap(layer, this.map)
+              })
+            })
+           .catch((err) => {
+             console.warn("caught error when processing abm results for heatmap", err);
+             // TODO refactor do we need this?? if so, why only heatmap?
+             this.$store.commit("scenario/heatMap", false);
+             this.$store.commit("scenario/heatMapVisible", false);
+             this.resultLoading = false;
+           })
+
+          // process result for timegraph (in worker)
+          this.$worker.run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [this.result])
+          .then((dataForTimeGraph: AgentsClusteredForTimeGraph) => {
+            this.$store.commit("abm/resultForTimeGraph", dataForTimeGraph)
+            this.$store.commit("scenario/rerenderAbmTimeGraph", true);
+          })
+          .catch((err) => {
+            console.warn("caught error when processing abm results for timegrap", err);
+            this.resultLoading = false;
+          })
+
+        // // success
+        // this.$store
+        //   .dispatch("abm/updateAbmLayers", [this.map])
+        //   .then(() => {
+        //     // check if ABM is still active component, else hide layers
+        //     if (!this.isPedestrianActiveComponent) {
+        //       hideLayers(this.map, ["abmTrips", "abmHeat", "abmAmenities"]);
+        //     }
+        //   });
+        // // update time graph
+        // this.$store.commit("scenario/rerenderAbmTimeGraph", true);
+        // this.resultLoading = false;
+        // this.errorMsg = "";
       })
       .catch((err) => {
         console.log("caught error", err);

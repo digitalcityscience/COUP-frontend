@@ -4,6 +4,10 @@ import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
 import "@/style.main.scss";
+import VueWorker from 'vue-worker'
+
+
+Vue.use(VueWorker);
 
 Vue.config.productionTip = false;
 

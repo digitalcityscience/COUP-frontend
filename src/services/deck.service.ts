@@ -121,12 +121,28 @@ export function setAnimationTimeAbm(tripsLayer: DeckLayer<any>, time: number) {
 }
 
 export async function buildAggregationLayer(
-  data: AgentsClusteredForHeatmap
+  heatLayerData: AgentsClusteredForHeatmap
 ): Promise<DeckLayer<any>> {
+
+  const heatLayerFormed = [];
+  //preparing Data for HeatMap Layer
+  Object.entries(heatLayerData).forEach(([key, value]) => {
+    Object.entries(heatLayerData[key].values).forEach(
+      ([subKey, subValue]) => {
+        const coordinate = {
+          c: subKey.split(",").map(Number), // coordinate string to array 
+          w: heatLayerData[key].values[subKey].length,  // values is an array of names of the active agents at that location
+        };
+        heatLayerFormed.push(coordinate);
+      }
+    );
+  });
+
+
   return new DeckLayer({
     id: abmAggregationLayerName,
     type: HeatmapLayer,
-    data: data,
+    data: heatLayerFormed,
     pickable: false,
     getPosition: (d) => d.c,
     getWeight: (d) => d.w,
