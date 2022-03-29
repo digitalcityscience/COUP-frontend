@@ -55,7 +55,9 @@ function getFocusAreaAsTurfObject(focusAreaId?: number) {
 }
 
 /** calculates stats for 1 focus area or entire grasbrook as a single big area **/
-export async function calculateAmenityStatsForFocusArea(focusAreaId?: number) {
+export async function calculateAmenityStatsForFocusArea(
+  focusAreaId?: number
+): Promise<void> {
   if (!store.state.scenario.amenitiesGeoJson) {
     console.log("cannot calc amenity stats - no amenityGeoJson in store!");
     return;
@@ -184,7 +186,10 @@ function calculateComplementarity(
 /**
  * calculate density of non-residential amenities all over grasbrook and each focus area
  */
-export function calculateDensityOfAmenities(amenitiesWithin, forRegion) {
+export function calculateDensityOfAmenities(
+  amenitiesWithin,
+  forRegion
+): number {
   const amenityCount = amenitiesWithin.features.length;
 
   console.log("amenities count", amenityCount);

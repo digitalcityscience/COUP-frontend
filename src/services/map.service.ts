@@ -100,7 +100,7 @@ export function getUserContentLayerIds(map: MapboxMap | null): string[] {
   });
 }
 
-export function addDeckLayerToMap(layer: DeckLayer<any>, map: MapboxMap) {
+export function addDeckLayerToMap(layer: DeckLayer<any>, map: MapboxMap): void {
   addLayerToMap(layer, map);
 }
 

@@ -1,6 +1,7 @@
 import type {
   StormWaterResult,
   StormWaterScenarioConfiguration,
+  MapboxMap,
 } from "@/models";
 import * as calcModules from "@/services/calculationModules.service";
 import { buildSWLayer } from "@/services/deck.service";
@@ -80,7 +81,7 @@ export default class StormWaterStore extends VuexModule {
   }
 
   @Action({})
-  updateStormWaterLayer([map, rainTime = 0]): void {
+  updateStormWaterLayer([map, rainTime = 0]: [MapboxMap, number]): void {
     // update the time-dependend stormwater deck.gl layer, to rainTime
     const deckLayer = buildSWLayer(this.stormWaterResult.geojson, rainTime);
     addDeckLayerToMap(deckLayer, map);

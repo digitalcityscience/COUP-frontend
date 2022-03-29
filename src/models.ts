@@ -1,4 +1,4 @@
-import type { LayerSpecification, Map as MapboxMap } from "maplibre-gl";  // TODO swap for maplibre
+import type { LayerSpecification, Map as MapboxMap } from "maplibre-gl"; // TODO swap for maplibre
 import CityPyOStore from "./store/cityPyO";
 import type StormWater from "./store/stormwater";
 import type Wind from "./store/wind";

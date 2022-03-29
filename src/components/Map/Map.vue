@@ -68,7 +68,7 @@ export default {
       pitch: defaultMapSettings.view.pitch,
       minZoom: defaultMapSettings.minZoom,
       maxZoom: defaultMapSettings.maxZoom,
-      style: defaultMapSettings.styleUrl
+      style: defaultMapSettings.styleUrl,
     };
 
     this.$store.state.map = new maplibregl.Map(options as MapOptions);
@@ -122,11 +122,14 @@ export default {
         [evt.point.x - 10, evt.point.y - 10],
         [evt.point.x + 10, evt.point.y + 10],
       ];
-      const features = (this.map as maplibregl.Map).queryRenderedFeatures(bbox, {
-        layers: getUserContentLayerIds(this.map).filter((layerId) => {
-          return this.map.getLayer(layerId);
-        }),
-      });
+      const features = (this.map as maplibregl.Map).queryRenderedFeatures(
+        bbox,
+        {
+          layers: getUserContentLayerIds(this.map).filter((layerId) => {
+            return this.map.getLayer(layerId);
+          }),
+        }
+      );
 
       if (Array.isArray(features) && features.length > 0) {
         this.actionForClick(features);

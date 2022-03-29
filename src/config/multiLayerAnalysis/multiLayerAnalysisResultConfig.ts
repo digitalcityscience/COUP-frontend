@@ -1,5 +1,5 @@
 import type { MapSource, SourceAndLayerConfig } from "@/models";
-import { FillExtrusionLayerSpecification } from 'maplibre-gl';
+import { FillExtrusionLayerSpecification } from "maplibre-gl";
 
 const layerConfig: FillExtrusionLayerSpecification = {
   id: "multiLayerAnalysis",
@@ -37,8 +37,7 @@ const sourceConfig: MapSource = {
 
 const multiLayerAnalysisResultConfig: SourceAndLayerConfig = {
   source: sourceConfig,
-  layerConfig: layerConfig
-}
-
+  layerConfig: layerConfig,
+};
 
 export default multiLayerAnalysisResultConfig;

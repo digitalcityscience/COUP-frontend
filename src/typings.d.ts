@@ -1,4 +1,3 @@
-import type { AnySourceData as AnyMabboxLayer } from "maplibre-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 import { ColumnLayer } from "@deck.gl/layers";
 
@@ -23,7 +22,7 @@ declare global {
 
   interface ScenarioResult {
     designScenario: string;
-    moduleSettings: Record<string, any>;
+    moduleSettings: Record<string, unknown>;
   }
 
   interface AbmScenario extends ScenarioResult {

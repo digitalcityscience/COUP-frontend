@@ -4,7 +4,6 @@ import type {
   WindScenarioConfiguration,
   WindResult,
 } from "@/models";
-import { cityPyOUserid } from "@/services/authn.service";
 import * as calcModules from "@/services/calculationModules.service";
 import {
   Module,
