@@ -28,6 +28,7 @@ jobs:
         wait-on: 'http://localhost:8080/'
       env:
         CYPRESS_baseUrl: 'http://localhost:8080/'
+        NODE_OPTION: '--openssl-legacy-provider'
         VUE_APP_CITYPYO_URL: ${{ secrets.CITYPYO_URL }}
         CYPRESS_USERNAME: ${{ secrets.CYPRESS_USERNAME }}
         CYPRESS_PASSWORD: ${{ secrets.CYPRESS_PASSWORD }}

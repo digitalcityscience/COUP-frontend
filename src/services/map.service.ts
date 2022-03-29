@@ -157,6 +157,7 @@ function addLayerToMap(
 
   // @ts-ignore
   layer.metadata = "user-content"; // differentiate layer from mapbox base layers like "sattelite" , ...
+  // @ts-ignore
   map?.addLayer(layer);
 }
 
