@@ -130,7 +130,7 @@ export default class AbmScenario extends Vue {
   }
 
   get result(): AbmSimulationResult {
-    return this.$store.state.abm.result;
+    return this.$store.getters["abm/abmResult"];
   }
 
   // TODO formerly called moduleSettings here
@@ -273,6 +273,9 @@ export default class AbmScenario extends Vue {
       // show time graph and trips layer control
       this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
       this.$store.commit("abm/mutateReRenderTimeSheet", true);
+
+      // TODO pass as prop to timesheet
+      this.$store.commit("scenario/selectGraph", "abm");
       // add trips layer to map
       this.buildTripsLayerAndAddToMap();
     })
@@ -295,9 +298,6 @@ export default class AbmScenario extends Vue {
         // hide layers if user switched to different component meanwhile
          if (!this.isPedestrianActiveComponent) {
             hideLayers(this.map, ["abmTrips", "abmAmenities"]);
-        } else {
-          // animate layer
-          this.$store.commit("abm/mutateAnimateLayer", true);
         }
       })
   }

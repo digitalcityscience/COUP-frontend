@@ -1,5 +1,6 @@
 <script lang="ts">
-import type { StoreStateWithModules, ScenarioWithTimeSheets } from "@/models";
+import _ from "lodash";
+import type { StoreStateWithModules, ScenarioWithTimeSheets, AgentsClusteredForTimeGraph, fiveMinuteAgentSummary } from "@/models";
 import {
   abmTripsLayerName,
   setAnimationTimeAbm,
@@ -24,7 +25,6 @@ export default class TimeSheet extends Vue {
   heatMapRange = { left: "0%", width: "100%" };
   minTime = 0;
   showGraph = true;
-  hasAbmResult = false;
 
   toggleAnimation(): void {
     this.animateTripsLayer = !this.animateTripsLayer;
@@ -72,8 +72,9 @@ export default class TimeSheet extends Vue {
     this.timeStamps = [];
     this.timeCoords = [];
 
-    Object.entries(this.abmSimpleTimes).forEach((entry) => {
+    Object.entries(this.timeSheetData).forEach((entry: [string, fiveMinuteAgentSummary]) => {
       const [key, value] = entry;
+
       let label = Math.floor(Number(key) / 3600) + 8 + ":00";
       let coords = [...new Set(value.all)];
 
@@ -81,11 +82,12 @@ export default class TimeSheet extends Vue {
       this.timeCoords.push(coords.length);
     });
 
-    this.hasAbmResult = true;
     this.renderTimeGraph();
   }
 
   renderTimeGraph() {
+    this.reRenderTimeSheet = false;
+
     /*render graph via chart.js*/
     var ctx = (
       document.getElementById("timeChart") as HTMLCanvasElement
@@ -163,51 +165,60 @@ export default class TimeSheet extends Vue {
   }
 
   get reRenderTimeSheet(): boolean {
-    return this.$store.state.abm.reRenderTimeSheet;
+    console.log("rerender? ", this.$store.getters["abm/reRenderAbmTimeSheet"])
+    return this.$store.getters["abm/reRenderAbmTimeSheet"];
   }
   set reRenderTimeSheet(needsRerendering: boolean) {
     this.$store.commit("abm/mutateReRenderTimeSheet", needsRerendering);
   }
 
-
-
+  /** animate trips layer */
   get animateTripsLayer(): boolean {
-    return this.$store.state.abm.animateAbmTripsLayer;
+    return this.$store.getters["abm/animateAbmTripsLayer"];
   }
   set animateTripsLayer(newValue: boolean) {
     this.$store.commit("abm/mutateAnimateLayer", newValue);
   }
 
+  /** time sheet data */
+  get hasTimeSheetData(): boolean {
+    return !(_.isEmpty(this.$store.getters["abm/abmDataForTimeGraph"]))
+  }
+  get timeSheetData(): AgentsClusteredForTimeGraph {
+    return this.$store.getters["abm/abmDataForTimeGraph"];
+  }
+
+
+  // TODO refactor
   get abmTimeRange() {
     return this.$store.state.scenario.abmTimeRange;
-  }
-
-  get abmSimpleTimes() {
-    return this.$store.state.scenario.abmSimpleTimes;
-  }
-
-  get activeAbmSet() {
-    return this.$store.state.scenario.activeAbmSet;
   }
   get heatMapActive() {
     return this.$store.state.scenario.heatMap;
   }
+  
+  // when is this used??
   get showUi(): boolean {
     return this.$store.state.scenario.showUi;
   }
+
+  // when is this used??
   get stormWater() {
     return this.$store.state.scenario.stormWater;
   }
+
+
   // TODO hand prop to component in order to decide which graph to show
   get selectGraph(): ScenarioWithTimeSheets {
+    console.log("selectGraph in store", this.$store.state.scenario.selectGraph)
+
     return this.$store.state.scenario.selectGraph;
   }
 
-  @Watch("rerenderTimeSheet")
+  @Watch("reRenderTimeSheet")
   reRenderTimeSheetWatcher(): void {
     if (this.reRenderTimeSheet) {
       this.getDataForTimeChart();
-      this.reRenderTimeSheet = false;
     }
   }
 
@@ -238,7 +249,7 @@ export default class TimeSheet extends Vue {
     }"
   >
     <span
-      :hidden="selectGraph !== 'abm' || !hasAbmResult"
+      :hidden="selectGraph !== 'abm' || !hasTimeSheetData"
       :class="{ dismiss: selectGraph !== 'abm' }"
     >
       <div

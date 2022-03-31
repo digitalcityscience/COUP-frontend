@@ -56,6 +56,7 @@ export default class AbmStore extends VuexModule {
   get abmAgentIndexes(): AgentIndexByName {
     return this.agentIndexes;
   }
+
   get abmTripsSummary(): AgentTrip[] {
     return this.tripsSummary;
   }
