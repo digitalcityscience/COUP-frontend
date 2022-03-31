@@ -154,8 +154,6 @@ export function getAgentCountsPerHourAndCoordinate(
   abmResultData: AbmSimulationResult
   ): AgentsClusteredForHeatmap {
     const timePaths = []
-    console.log("am i a worker?")
-    console.log("abmResultdata passed to worker ", abmResultData)
     abmResultData.forEach((agent: ResultDataSingleAgent, _index: number) => {
       const agent_id = agent.agent.id;
 
@@ -194,7 +192,6 @@ export function aggregateAbmResultsBy5minForTimeGraph(
     console.log("inside timegraph data worker")
     console.log(abmResultData)
     abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
-        console.log("hello")
         const agent_id = who.agent.id;
         who.timestamps.forEach((timeStampInSec) => {
           const fiveMinStep = Math.floor(timeStampInSec / 300) * 300;
@@ -204,8 +201,6 @@ export function aggregateAbmResultsBy5minForTimeGraph(
           fiveMinData[fiveMinStep]["all"].push(agent_id);
         })
     })
-
-    console.log("finsihed 5min agg")
 
     return fiveMinData;
 }

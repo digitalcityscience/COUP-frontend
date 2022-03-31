@@ -41,7 +41,8 @@ export default class AbmStore extends VuexModule {
   dataForHeatmap: AgentsClusteredForHeatmap = {};
   dataForTimeGraph: AgentsClusteredForTimeGraph = {};
   
-  animateLayer = false;
+  animateLayer: boolean = false;
+  reRenderTimeSheet: boolean = false;
 
 
   get scenarioConfiguration(): AbmScenarioConfiguration {
@@ -60,20 +61,26 @@ export default class AbmStore extends VuexModule {
   }
   
   get abmDataForHeatmap(): AgentsClusteredForHeatmap {
-    return this.abmDataForHeatmap;
+    return this.dataForHeatmap;
   }
   
   get abmDataForTimeGraph(): AgentsClusteredForTimeGraph {
-    return this.abmDataForTimeGraph;
+    return this.dataForTimeGraph;
   }
 
   get animateAbmTripsLayer(): boolean {
     return this.animateLayer;
+  } 
+  
+  get reRenderAbmTimeSheet(): boolean {
+    return this.reRenderTimeSheet;
   }
 
   get cityPyo(): CityPyO {
     return this.context.rootState.cityPyO;
   }
+
+
 
   @Mutation
   mutateScenarioConfiguration(
@@ -85,6 +92,11 @@ export default class AbmStore extends VuexModule {
   @Mutation
   mutateAnimateLayer(animateLayer: boolean): void {
     this.animateLayer = animateLayer;
+  }
+  
+  @Mutation
+  mutateReRenderTimeSheet(needsReRendering: boolean): void {
+    this.reRenderTimeSheet = needsReRendering;
   }
 
   @Mutation
@@ -103,7 +115,7 @@ export default class AbmStore extends VuexModule {
   }  
 
   @Mutation
-  mutateResultForTimeGraph(dataForTimeGraph: AgentsClusteredForTimeGraph): void {
+  mutateDataForTimeGraph(dataForTimeGraph: AgentsClusteredForTimeGraph): void {
      // only used for timeGraph, only need "all" value
      this.dataForTimeGraph = Object.freeze(dataForTimeGraph);
   }
@@ -127,7 +139,7 @@ export default class AbmStore extends VuexModule {
   }
 
   @MutationAction({ mutate: ["result"] })
-  async updateAbmResult(
+  async fetchResult(
     cityPyOUserid: string
   ): Promise<{ result: AbmResponse }> {
     const simulationResult: AbmResponse =
@@ -142,7 +154,7 @@ export default class AbmStore extends VuexModule {
     return { result: simulationResult };
   }
 
-  @Action({})
+  /* @Action({})
   // TODO refactor does it need to be current timestamp?? 
   updateAbmLayers([map, currentTimeStamp = 0]): void {
     const tripsLayer = buildTripsLayer(this.abmResult, currentTimeStamp);
@@ -150,6 +162,6 @@ export default class AbmStore extends VuexModule {
     
     const heatMapLayer = buildAggregationLayer(this.dataForHeatmap);
     addDeckLayerToMap(heatMapLayer, map);
-  }
+  } */
 
 }

@@ -355,6 +355,7 @@ export default {
     });
   },
   // this update the ABM heatmap
+  // TODO refactor heatLayerFormed is moved to deckLayer service for now. pass also the timeRange.
   updateAggregationLayer({ state, commit, dispatch, rootState }) {
     const abmTimeRange = state.abmTimeRange;
     const heatLayerData = state.abmTimePaths;

@@ -152,13 +152,8 @@ export default class TimeSheet extends Vue {
     }
   }
 
-  get abmTimeRange() {
-    return this.$store.state.scenario.abmTimeRange;
-  }
 
-  get abmSimpleTimes() {
-    return this.$store.state.scenario.abmSimpleTimes;
-  }
+  /** GETTERS & SETTERS */
 
   get currentTimeStamp(): number {
     return this.$store.state.scenario.currentTimeStamp;
@@ -167,11 +162,28 @@ export default class TimeSheet extends Vue {
     this.$store.commit("scenario/currentTimeStamp", updatedTime);
   }
 
+  get reRenderTimeSheet(): boolean {
+    return this.$store.state.abm.reRenderTimeSheet;
+  }
+  set reRenderTimeSheet(needsRerendering: boolean) {
+    this.$store.commit("abm/mutateReRenderTimeSheet", needsRerendering);
+  }
+
+
+
   get animateTripsLayer(): boolean {
-    return this.$store.state.scenario.animateTripsLayer;
+    return this.$store.state.abm.animateAbmTripsLayer;
   }
   set animateTripsLayer(newValue: boolean) {
-    this.$store.commit("scenario/animateTripsLayer", newValue);
+    this.$store.commit("abm/mutateAnimateLayer", newValue);
+  }
+
+  get abmTimeRange() {
+    return this.$store.state.scenario.abmTimeRange;
+  }
+
+  get abmSimpleTimes() {
+    return this.$store.state.scenario.abmSimpleTimes;
   }
 
   get activeAbmSet() {
@@ -191,11 +203,15 @@ export default class TimeSheet extends Vue {
     return this.$store.state.scenario.selectGraph;
   }
 
-  @Watch("activeAbmSet")
-  activeAbmSetWatcher(): void {
-    this.getDataForTimeChart();
+  @Watch("rerenderTimeSheet")
+  reRenderTimeSheetWatcher(): void {
+    if (this.reRenderTimeSheet) {
+      this.getDataForTimeChart();
+      this.reRenderTimeSheet = false;
+    }
   }
 
+  // TODO can be deleted??
   @Watch("heatMapActive")
   heatMapActiveWatcher() {
     if (this.heatMapActive) {
