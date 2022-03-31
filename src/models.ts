@@ -49,11 +49,12 @@ export interface ScenarioStoreState {
   heatMap: boolean;
   rerenderSwGraph: boolean;
   stormWater: boolean;
-  abmSimpleTimes: Record<any, any>;
   currentTimeStamp: number | null;
   selectGraph: ScenarioWithTimeSheets;
   resultLoadingStati: DataLoadingStati;
 }
+
+export type TimeSheetContext = "abm" | "sw" | null;
 
 export type ScenarioComponentName =
   | "wind"
@@ -80,10 +81,13 @@ export type AgentsClusteredForHeatmap = Record<number, AgentId[]>
 export type AgentIndexByName =  Record<string, number>;
 
 /**
- * summary of all agents active during these 5 min onwards from timestamp
- * e.g number is 5 min intervalls in seconds. keys are 300, 600, ..
+ * count of all agents active during these 5 min onwards from timestamp
+ * keys are 300, 600, ..
 */
-  export type AgentsClusteredForTimeGraph =  Record<number, fiveMinuteAgentSummary>;
+  export interface DataForAbmTimeGraph {
+    labels: string[];
+    values: number[];
+  };
 
   // TODO refactor: remove all property. it can just be a number?
   // TODO only need count of agents during this 5min slot. 

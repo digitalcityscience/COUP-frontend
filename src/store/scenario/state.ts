@@ -19,7 +19,6 @@ export default {
   abmObject: {},
   activeAbmSet: null, // for trips layer
   abmTimePaths: null, //  for heatmap
-  abmSimpleTimes: null,
   abmWeightCount: null,
   abmStats: {},
   abmStatsMultiLayer: {},

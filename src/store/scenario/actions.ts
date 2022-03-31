@@ -307,7 +307,6 @@ export default {
     console.log("trips size: ", trips?.length);
     console.log("timePaths size: ", timePaths?.length);
 
-    commit("abmSimpleTimes", Object.freeze(simpleTimeData));
     commit("activeAbmSet", Object.freeze(abmCore));
 
     //buildLayers

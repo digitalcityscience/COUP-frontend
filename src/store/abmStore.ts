@@ -5,12 +5,10 @@ import type {
   AbmSimulationResult,
   AgentIndexByName,
   AgentsClusteredForHeatmap,
-  AgentsClusteredForTimeGraph,
+  DataForAbmTimeGraph,
   AgentTrip,
   GeoJSON,
 } from "@/models";
-import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
-import { addDeckLayerToMap } from "@/services/map.service";
 import {
   Module,
   Mutation,
@@ -19,7 +17,7 @@ import {
   VuexModule,
 } from "vuex-module-decorators";
 import CityPyO from './cityPyO';
-import * as resultProcessing from "@/services/abm/resultProcessing.service";
+
 
 export const defaultAbmScenarioConfiguration: AbmScenarioConfiguration = {
   bridge_hafencity: true,
@@ -39,7 +37,7 @@ export default class AbmStore extends VuexModule {
   agentIndexes: AgentIndexByName = {};
   tripsSummary: AgentTrip[] = [];
   dataForHeatmap: AgentsClusteredForHeatmap = {};
-  dataForTimeGraph: AgentsClusteredForTimeGraph = {};
+  dataForTimeGraph: DataForAbmTimeGraph | null = null;
   
   animateLayer: boolean = false;
   reRenderTimeSheet: boolean = false;
@@ -65,7 +63,7 @@ export default class AbmStore extends VuexModule {
     return this.dataForHeatmap;
   }
   
-  get abmDataForTimeGraph(): AgentsClusteredForTimeGraph {
+  get abmDataForTimeGraph(): DataForAbmTimeGraph {
     return this.dataForTimeGraph;
   }
 
@@ -80,7 +78,6 @@ export default class AbmStore extends VuexModule {
   get cityPyo(): CityPyO {
     return this.context.rootState.cityPyO;
   }
-
 
 
   @Mutation
@@ -116,7 +113,7 @@ export default class AbmStore extends VuexModule {
   }  
 
   @Mutation
-  mutateDataForTimeGraph(dataForTimeGraph: AgentsClusteredForTimeGraph): void {
+  mutateDataForTimeGraph(dataForTimeGraph: DataForAbmTimeGraph): void {
      // only used for timeGraph, only need "all" value
      this.dataForTimeGraph = Object.freeze(dataForTimeGraph);
   }

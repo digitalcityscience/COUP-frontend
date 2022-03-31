@@ -36,7 +36,7 @@ import type {
   StoreStateWithModules,
   AbmSimulationResult,
   AgentsClusteredForHeatmap,
-  AgentsClusteredForTimeGraph
+  DataForAbmTimeGraph
 } from "@/models";
 import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
 import * as resultProcessing from "@/services/abm/resultProcessing.service";
@@ -268,8 +268,7 @@ export default class AbmScenario extends Vue {
   addTripsLayerAndTimeGraph(): void {
     // process result for timegraph (in worker)
     this.$worker.run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [this.result])
-    .then((dataForTimeGraph: AgentsClusteredForTimeGraph) => {
-      console.log("worker finished for timegraph")
+    .then((dataForTimeGraph: DataForAbmTimeGraph) => {
       // show time graph and trips layer control
       this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
       this.$store.commit("abm/mutateReRenderTimeSheet", true);
