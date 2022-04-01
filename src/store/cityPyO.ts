@@ -1,5 +1,5 @@
 import { workshopScenarioNames } from "@/store/abm";
-import type { CityPyOUser, GeoJSON, AbmScenarioConfiguration } from "@/models";
+import type { CityPyOUser, GeoJSON, AbmScenarioConfiguration, AbmScenarioConfigGrasbrook } from "@/models";
 
 export default class CityPyO {
   url: string;
@@ -41,7 +41,7 @@ export default class CityPyO {
     }
   }
 
-  async performRequest(layerId, requestUrl, body) {
+  async performRequest(requestUrl, body) {
     const res = await fetch(requestUrl, {
       method: "POST",
       mode: "cors",
@@ -54,7 +54,7 @@ export default class CityPyO {
     if (res.status !== 200) {
       console.warn(
         "could not get/update ressource from cityPyo ",
-        layerId,
+        requestUrl,
         res.status,
         res.statusText
       );
@@ -73,7 +73,7 @@ export default class CityPyO {
       layer: id,
     };
 
-    const response = await this.performRequest(id, requestUrl, body);
+    const response = await this.performRequest(requestUrl, body);
 
     if (response.status == 200) {
       const responseJson = await response.json();
@@ -98,17 +98,10 @@ export default class CityPyO {
       userid: this.userid,
       data: payload,
     };
-    await this.performRequest(fileName, requestUrl, body);
+    await this.performRequest(requestUrl, body);
   }
 
-  async getAbmResultLayer(id: string, scenario?: AbmScenarioConfiguration) {
-    // fetch predefined workshop scenario layer
-    if (!scenario) {
-      const responseJson = await this.getLayer(id);
-
-      return responseJson.data;
-    }
-
+  async getAbmResultLayer(scenario: AbmScenarioConfiguration) {
     // fetch abm scenario based on module settings and view filters
     const requestUrl = this.url + "getLayer/" + "abmScenario";
     const body = {
@@ -117,7 +110,7 @@ export default class CityPyO {
       agent_filters: {},
     };
 
-    const response = await this.performRequest(id, requestUrl, body);
+    const response = await this.performRequest(requestUrl, body);
     if (response.status == 200) {
       const responseJson = await response.json();
 
@@ -126,7 +119,8 @@ export default class CityPyO {
   }
 
   // the amenities layer is dependent on the chosen scenario
-  async getAbmAmenitiesLayer(id: string, scenario: AbmScenarioConfiguration) {
+  // TODO HOW DOES THIS WORK FOR SCHB???
+  async getAbmAmenitiesLayer(id: string, scenario: AbmScenarioConfigGrasbrook) {
     // fetch predefined workshop scenario layer
     // TODO can we throw away the WORKSHOP stuff?
     if (workshopScenarioNames.includes(id)) {
@@ -145,7 +139,7 @@ export default class CityPyO {
       userid: this.userid,
       layer: id,
     };
-    const response = await this.performRequest(id, requestUrl, body);
+    const response = await this.performRequest(requestUrl, body);
     if (response.status == 200) {
       const responseJson = await response.json();
 
@@ -161,7 +155,7 @@ export default class CityPyO {
       layer_1: layer1,
       layer_2: layer2,
     };
-    const response = await this.performRequest("", requestUrl, body);
+    const response = await this.performRequest(requestUrl, body);
 
     if (response.status === 200) {
       const responseJson = await response.json();

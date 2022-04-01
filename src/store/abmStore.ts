@@ -147,16 +147,12 @@ export default class AbmStore extends VuexModule {
   }
 
   @MutationAction({ mutate: ["result"] })
-  async fetchResult(
-    cityPyOUserid: string
-  ): Promise<{ result: AbmResponse }> {
+  async fetchResult(): Promise<{ result: AbmResponse }> {
     const simulationResult: AbmResponse =
       await this.cityPyo.getAbmResultLayer(
-        cityPyOUserid,
         this.scenarioConfiguration,
       );
 
-    this.context.rootState
      return { result: simulationResult };
   }
 

@@ -27,7 +27,6 @@ import {
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
 import { Component, Vue, Watch } from "vue-property-decorator";
 import { Store } from "vuex";
-import { cityPyOUserid } from "@/services/authn.service";
 
 import type {
   MapboxMap,
@@ -83,7 +82,7 @@ export default class AbmScenario extends Vue {
     // hide all other layers
     hideAllLayersButThese(this.map, ["abmTrips", "abmHeat", "abmAmenities"]); // TODO store names as variable in some config?
     
-    // TODO better solution??
+    // TODO DELETE
     this.$store.commit("scenario/selectGraph", "abm");
   }
 
@@ -132,7 +131,6 @@ export default class AbmScenario extends Vue {
     return this.$store.getters["abm/abmResult"];
   }
 
-  // TODO formerly called moduleSettings here
   get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
     return this.$store.getters["abm/scenarioConfiguration"];
   }
@@ -228,31 +226,28 @@ export default class AbmScenario extends Vue {
 
     // fetch result and create new result layers
     this.$store
-      .dispatch(
-        "abm/fetchResult",
-        cityPyOUserid(this.$store.state?.cityPyO) 
-      )
-      .then(() => {
-        // sucessfully got result
-        this.addTripsLayerAndTimeGraph();
-        this.buildHeatMapLayerAndAddToMap();
-      })
-      .catch((err) => {
-        console.log("caught error", err);
-        this.errorMsg = err;
-        
-        // TODO refactor do we need this?? if so, why only heatmap?
-        this.$store.commit("scenario/heatMap", false);
-        this.$store.commit("scenario/heatMapVisible", false);
-      })
-      .finally(() => {
-        // remove loader screen
-         this.resultLoading = false; 
-        }
-      );
+      .dispatch("abm/fetchResult")
+        .then(() => {
+          // sucessfully got result
+          this.addTripsLayerAndTimeGraph();
+          this.buildHeatMapLayerAndAddToMap();
+        })
+        .catch((err) => {
+          console.log("caught error", err);
+          this.errorMsg = err;
+          
+          // TODO refactor do we need this?? if so, why only heatmap?
+          this.$store.commit("scenario/heatMap", false);
+          this.$store.commit("scenario/heatMapVisible", false);
+        })
+        .finally(() => {
+          // remove loader screen
+          this.resultLoading = false; 
+          }
+    );
   }
 
-   // deletes layers and sources of all abm Layers from amp
+  // deletes layers and sources of all abm Layers from amp
   removeAbmLayersFromMap(): void {
     ["abmTrips", "abmHeat", "abmAmenities"].forEach(layerName => {
       removeSourceAndItsLayersFromMap(layerName, this.map);
@@ -271,9 +266,6 @@ export default class AbmScenario extends Vue {
       // show time graph and trips layer control
       this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
       this.$store.commit("abm/mutateReRenderTimeSheet", true);
-
-      // TODO pass as prop to timesheet
-      this.$store.commit("scenario/selectGraph", "abm");
       // add trips layer to map
       this.buildTripsLayerAndAddToMap();
     })
@@ -330,17 +322,6 @@ export default class AbmScenario extends Vue {
     this.heatMapTimeRange = [startTime, endTime];
     // todo refactor move to abm store
     this.$store.dispatch("scenario/updateAggregationLayer");
-  }
-    
-  // TODO refactor there is so much embedded logic in calling an ABM scenario for grasbrook. 
-  // needs to be properly refactored
-  loadScienceCityScenario(scenarioId) {
-    this.resultLoading = true;
-    this.$store
-      .dispatch("scenario/loadScienceCityAbmScenario", scenarioId)
-      .then(() => {
-        this.resultLoading = false;
-      });
   }
 };
 
@@ -551,20 +532,35 @@ export default class AbmScenario extends Vue {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
         <h2>Pedestrian Flow | Scenario Settings</h2>
+        <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
+            <header class="text-sm-left">AMENITY DISTRIBUTION</header>
+            <v-radio-group
+              v-model="scenarioConfiguration.amenity_config"
+            >
+              <v-radio
+                value="current"
+                :disabled="resultLoading"
+                flat
+                label="STATUS QUO"
+                dark
+              />
+              <v-radio
+                value="future"
+                :disabled="resultLoading"
+                flat
+                label="SCIENCECITY"
+                dark
+              />
+            </v-radio-group>
+        </div>
         <v-btn
-          @click="loadScienceCityScenario('abm_scenario_status_quo')"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Status Quo</v-btn
-        >
-        <v-btn
-          @click="loadScienceCityScenario('abm_scenario_schb')"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >ScienceCity</v-btn
-        >
+            @click="runScenario"
+            class="confirm_btn mt-2"
+            :class="{ changesMade: isFormDirty }"
+            :disabled="resultLoading"
+          >
+            Run Scenario
+          </v-btn>
       </div>
     </div>
     <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
@@ -803,18 +799,6 @@ export default class AbmScenario extends Vue {
           &.v-item--active {
             opacity: 1;
           }
-        }
-      }
-    }
-
-    &.switched {
-      ::v-deep.v-input__control {
-        label {
-          color: white;
-        }
-        .v-input--switch__thumb {
-          background: white;
-          opacity: 0.8;
         }
       }
     }
