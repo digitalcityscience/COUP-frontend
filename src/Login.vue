@@ -61,6 +61,7 @@ export default {
       this.authenticated = loginResult.authenticated;
       if (this.authenticated) {
         this.context = loginResult.context || "grasbrook";
+        this.$store.commit("appContext", this.context);
         this.restrictedAccess = loginResult.restricted;
         this.applyCustomMapSettings();
 

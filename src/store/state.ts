@@ -2,6 +2,7 @@ import { StoreState } from "@/models";
 
 const initialState: StoreState = {
   map: null,
+  appContext: null,
   activeMenuComponent: "pedestrian",
   allFeaturesHighlighted: false,
   showLegend: false,

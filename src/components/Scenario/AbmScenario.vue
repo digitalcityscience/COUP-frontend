@@ -36,7 +36,8 @@ import type {
   StoreStateWithModules,
   AbmSimulationResult,
   AgentsClusteredForHeatmap,
-  DataForAbmTimeGraph
+  DataForAbmTimeGraph,
+  AppContext
 } from "@/models";
 import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
 import * as resultProcessing from "@/services/abm/resultProcessing.service";
@@ -64,12 +65,6 @@ export default class AbmScenario extends Vue {
   roofAmenitiesOptions = roofAmenitiesOptions;
   workshopScenarioNames = workshopScenarioNames;
   
-  // TODO refactor: find a better way to deal with
-  // context and restricted Acces
-  // and resulting choices! Potentially have GUEST.vue
-  context: String = "grasbrook";
-
-
   // move this shit to a processData service?
   age: 21;
   timePaths: [];
@@ -127,6 +122,10 @@ export default class AbmScenario extends Vue {
       this.$store.state.activeMenuComponent ===
       ScenarioComponentNames.pedestrian
     );
+  }
+
+  get appContext(): AppContext {
+    return this.$store.state.appContext;
   }
 
   get result(): AbmSimulationResult {
@@ -358,7 +357,7 @@ export default class AbmScenario extends Vue {
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div
-      v-if="!restrictedAccess && context == 'grasbrook'"
+      v-if="!restrictedAccess && appContext == 'grasbrook'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"
@@ -544,7 +543,7 @@ export default class AbmScenario extends Vue {
 
     <!--SCENARIO DIVISION FOR ScienceCity Bahrendfeld ONLY-->
     <div
-      v-if="context == 'schb'"
+      v-if="appContext == 'schb'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"

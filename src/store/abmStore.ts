@@ -8,40 +8,50 @@ import type {
   DataForAbmTimeGraph,
   AgentTrip,
   GeoJSON,
+  AppContext,
 } from "@/models";
 import {
   Module,
   Mutation,
   MutationAction,
-  Action,
   VuexModule,
 } from "vuex-module-decorators";
 import CityPyO from './cityPyO';
 
 
-export const defaultAbmScenarioConfiguration: AbmScenarioConfiguration = {
-  bridge_hafencity: true,
-  underpass_veddel_north: true,
-  roof_amenities: "complementary",
-  blocks: "open",
-  main_street_orientation: "horizontal"
+export const defaultAbmScenarioConfigurations: Record<AppContext, AbmScenarioConfiguration> = {
+  "grasbrook": {
+    bridge_hafencity: true,
+    underpass_veddel_north: true,
+    roof_amenities: "complementary",
+    blocks: "open",
+    main_street_orientation: "horizontal"
+  }, 
+  "schb": {
+    "amenity_config": "future"
+  }
 };
 
 @Module({ namespaced: true })
 export default class AbmStore extends VuexModule {
-  scenarioConfig: AbmScenarioConfiguration = {
-    ...defaultAbmScenarioConfiguration,
-  };
+  _scenarioConfig = null;
   result: AbmSimulationResult | null = null;
   amenitiesGeoJSON: GeoJSON;
   agentIndexes: AgentIndexByName = {};
   tripsSummary: AgentTrip[] = [];
   dataForHeatmap: AgentsClusteredForHeatmap = {};
   dataForTimeGraph: DataForAbmTimeGraph | null = null;
-  
   animateLayer: boolean = false;
   reRenderTimeSheet: boolean = false;
 
+
+  get scenarioConfig(): AbmScenarioConfiguration {
+    return this._scenarioConfig || defaultAbmScenarioConfigurations[this.context.rootState.appContext];
+  }
+
+  set scenarioConfig(newConfig: AbmScenarioConfiguration) {
+    this._scenarioConfig = newConfig;
+  }
 
   get scenarioConfiguration(): AbmScenarioConfiguration {
     return this.scenarioConfig;
@@ -84,7 +94,7 @@ export default class AbmStore extends VuexModule {
   mutateScenarioConfiguration(
     newScenarioConfiguration: AbmScenarioConfiguration
   ): void {
-    this.scenarioConfig = { ...newScenarioConfiguration };
+    this._scenarioConfig = { ...newScenarioConfiguration };
   }
 
   @Mutation
@@ -146,10 +156,8 @@ export default class AbmStore extends VuexModule {
         this.scenarioConfiguration,
       );
 
-      console.log("simulation resutl", simulationResult)
-      //debugger;
-
-    return { result: simulationResult };
+    this.context.rootState
+     return { result: simulationResult };
   }
 
   /* @Action({})

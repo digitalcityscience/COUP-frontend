@@ -23,6 +23,7 @@ export interface VisibleLayers {
 
 export interface StoreState {
   map: MapboxMap | null;
+  appContext: AppContext | null;
   activeMenuComponent: ScenarioComponentName;
   allFeaturesHighlighted: boolean;
   showLegend: boolean;
@@ -55,6 +56,8 @@ export interface ScenarioStoreState {
 }
 
 export type TimeSheetContext = "abm" | "sw" | null;
+
+export type AppContext = "grasbrook" | "schb";
 
 export type ScenarioComponentName =
   | "wind"
@@ -137,7 +140,13 @@ export type Coordinates = [number, number];
 export type Timestamp = number;
 
 
-export interface AbmScenarioConfiguration {
+export type AbmScenarioConfiguration = AbmScenarioConfigGrasbrook | AbmScenarioConfigSCHB;
+
+export interface AbmScenarioConfigSCHB {
+  amenity_config: "current" | "future";
+}
+
+export interface AbmScenarioConfigGrasbrook {
   bridge_hafencity: boolean;
   underpass_veddel_north: boolean;
   roof_amenities: "random" | "complementary";
