@@ -245,9 +245,9 @@ function layerLookup(layerName: string) {
       return store.getters["noise/noiseResult"].geojson;
     case "Density":
     case "Amenity Types":
-      return store.state.scenario.amenityStatsMultiLayer;
+      return store.getters["abm/amenityConfigStatsMultiLayer"];
     case "pedestrianDensity":
-      return store.state.scenario.abmStatsMultiLayer;
+      return store.getters["abm/abmResultStatsMultiLayer"];
     default:
       console.warn(
         "could not find baseDataSet for layerName",

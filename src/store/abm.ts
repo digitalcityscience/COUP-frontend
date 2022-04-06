@@ -1,40 +1,16 @@
 // TODO move this to models!
 
+
+// TODO refactor bridges logic to load bridge layer
 export const bridges = {
   bridge_hafencity: "bridge_hafencity",
   bridge_veddel_horizontal: "bridge_veddel_horizontal",
   underpass_veddel_north: "underpass_veddel_north",
 };
 
-export const moduleSettingNames = {
-  bridge_hafencity: "bridge_hafencity",
-  underpass_veddel_north: "underpass_veddel_north",
-  roofAmenities: "roof_amenities",
-  blocks: "blocks",
-  mainStreetOrientation: "main_street_orientation",
-};
 
-export const mainStreetOrientationOptions = {
-  horizontal: "horizontal",
-  vertical: "vertical",
-};
 
-export const bridgeVeddelOptions = {
-  horizontal: "horizontal",
-  diagonal: "diagonal",
-};
-
-export const blockPermeabilityOptions = {
-  open: "open",
-  closed: "closed",
-};
-export const roofAmenitiesOptions = {
-  random: "random",
-  complementary: "complementary",
-};
-
-export const workshopScenarioNames = ["session_1", "session_2", "session_3"];
-
+// move this to config folder or something
 export const alkisTranslations = {
   2000: "commercial",
   2020: "office",

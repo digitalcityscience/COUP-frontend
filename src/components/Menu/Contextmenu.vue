@@ -30,7 +30,7 @@ export default {
       return this.$store.state.selectedObjectId;
     },
     abmTrips() {
-      return this.$store.state.scenario.abmTrips;
+      return this.$store.state.getters["abm/abmTrips"];
     },
   },
   beforeMount() {

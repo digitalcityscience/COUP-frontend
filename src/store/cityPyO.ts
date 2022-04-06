@@ -1,4 +1,3 @@
-import { workshopScenarioNames } from "@/store/abm";
 import type { CityPyOUser, GeoJSON, AbmScenarioConfiguration, AbmScenarioConfigGrasbrook } from "@/models";
 
 export default class CityPyO {
@@ -101,6 +100,8 @@ export default class CityPyO {
     await this.performRequest(requestUrl, body);
   }
 
+
+  // TODO rename into get abmResultData
   async getAbmResultLayer(scenario: AbmScenarioConfiguration) {
     // fetch abm scenario based on module settings and view filters
     const requestUrl = this.url + "getLayer/" + "abmScenario";
@@ -119,16 +120,9 @@ export default class CityPyO {
   }
 
   // the amenities layer is dependent on the chosen scenario
-  // TODO HOW DOES THIS WORK FOR SCHB???
+  // TODO HOW DOES THIS WORK FOR SCHB???  <--- not at ALL ´;)=
+  // refactor so this can work regardless of context
   async getAbmAmenitiesLayer(id: string, scenario: AbmScenarioConfigGrasbrook) {
-    // fetch predefined workshop scenario layer
-    // TODO can we throw away the WORKSHOP stuff?
-    if (workshopScenarioNames.includes(id)) {
-      const responseGeoJson = await this.getLayer("amenities_" + id);
-      return responseGeoJson;
-    }
-
-    // else: fetch abmScenario file, including all scenarios from CityPyo
     const query =
       scenario.main_street_orientation +
       "_" +

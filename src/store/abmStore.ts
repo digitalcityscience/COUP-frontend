@@ -35,12 +35,24 @@ export const defaultAbmScenarioConfigurations: Record<AppContext, AbmScenarioCon
 @Module({ namespaced: true })
 export default class AbmStore extends VuexModule {
   _scenarioConfig = null;
+  
+  // original result data
   result: AbmSimulationResult | null = null;
-  amenitiesGeoJSON: GeoJSON;
+  amenitiesGeoJSON: GeoJSON | null = null;
+  
+  // processed result data
   agentIndexes: AgentIndexByName = {};
   tripsSummary: AgentTrip[] = [];
   dataForHeatmap: AgentsClusteredForHeatmap = {};
   dataForTimeGraph: DataForAbmTimeGraph | null = null;
+  
+  // abm stats for dashboard and multilayer
+  abmStats: any = {}
+  amenityStats: any = {}
+  abmStatsMultiLayer: any = {} 
+  amenityStatsMultiLayer: any = {} 
+  
+  // UI
   animateLayer: boolean = false;
   reRenderTimeSheet: boolean = false;
 
@@ -53,6 +65,7 @@ export default class AbmStore extends VuexModule {
     this._scenarioConfig = newConfig;
   }
 
+  // TODO delete and rename get scnearioConfig in get scenearioConfiguration
   get scenarioConfiguration(): AbmScenarioConfiguration {
     return this.scenarioConfig;
   }
@@ -60,11 +73,12 @@ export default class AbmStore extends VuexModule {
   get abmResult(): AbmSimulationResult {
     return this.result;
   } 
-  
-  get abmAgentIndexes(): AgentIndexByName {
-    return this.agentIndexes;
-  }
 
+
+  get abmAmenitiesGeoJSON(): GeoJSON {    
+    return this.amenitiesGeoJSON;
+  }
+  
   get abmTripsSummary(): AgentTrip[] {
     return this.tripsSummary;
   }
@@ -75,6 +89,24 @@ export default class AbmStore extends VuexModule {
   
   get abmDataForTimeGraph(): DataForAbmTimeGraph {
     return this.dataForTimeGraph;
+  }
+
+  
+  // TODO -> can be deleted?  
+  get abmAgentIndexes(): AgentIndexByName {
+    return this.agentIndexes;
+  }
+  get abmResultStats(): any {
+    return this.abmStats;
+  }
+  get amenityConfigStats(): any {
+    return this.amenityStats;
+  }
+  get abmResultStatsMultiLayer(): any {
+    return this.abmStatsMultiLayer;
+  }
+  get amenityConfigStatsMultiLayer(): any {
+    return this.amenityStatsMultiLayer;
   }
 
   get animateAbmTripsLayer(): boolean {
@@ -110,7 +142,13 @@ export default class AbmStore extends VuexModule {
   @Mutation
   mutateResult(newResult: AbmSimulationResult): void {
     // @ts-ignore
-    this.result =  Object.freeze(newResult);
+    this.result = Object.freeze(newResult);
+  }
+
+  @Mutation
+  mutateAmenitiesGeoJSON(newGeoJSON: GeoJSON): void {
+    // @ts-ignore
+    this.amenitiesGeoJSON = Object.freeze(newGeoJSON);
   }
 
   @Mutation
@@ -118,7 +156,7 @@ export default class AbmStore extends VuexModule {
     // used heatmap and for "createPathPointCollection" in abmStats
     // heatmap needs "coordinates" and count of active agents per coords 
     // in which the key is a stringified coordinate and the value is an array of agent names 
-    // however, we only effectively would need the agent count.
+    // TODO however, we only effectively would need the agent count, instead of agent names.
     this.dataForHeatmap = Object.freeze(dataForHeatmap);
   }  
 
@@ -144,7 +182,31 @@ export default class AbmStore extends VuexModule {
   @Mutation
   resetResult(): void {
     this.result = null;
+
+    // reset stats
+    this.abmStats = {}
+    this.amenityStats = {}
+    this.abmStatsMultiLayer = {} 
+    this.amenityStatsMultiLayer = {}
   }
+
+  @Mutation
+  mutateAbmStats(abmStats: any): void {
+    this.abmStats = abmStats;
+  }
+  @Mutation
+  mutateAmenityStats(amenityStats: any): void {
+    this.amenityStats = amenityStats;
+  }
+  @Mutation
+  mutateAbmStatsMultiLayer(abmStatsML: any): void {
+    this.abmStatsMultiLayer = abmStatsML;
+  }
+  @Mutation
+  mutateAmenityStatsMultiLayer(amenityStatsML: any): void {
+    this.amenityStatsMultiLayer = amenityStatsML;
+  }
+  
 
   @MutationAction({ mutate: ["result"] })
   async fetchResult(): Promise<{ result: AbmResponse }> {

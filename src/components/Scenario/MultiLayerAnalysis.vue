@@ -126,10 +126,7 @@ export default {
       ["abmSettings", "scenario/moduleSettings"],
     ]),
     currentAbmResult() {
-      return this.$store.state.scenario.activeAbmSet;
-    },
-    abmStatsMultiLayerAnalysis() {
-      return this.$store.state.scenario.abmStatsMultiLayer;
+      return this.$store.getters["abm/abmResult"];
     },
     currentNoiseResult() {
       return this.$store.getters["noise/noiseResult"];
@@ -408,8 +405,8 @@ export default {
             });
           break;
         case "Abm":
-          await this.$store.dispatch("scenario/updateAbmDesignScenario");
-          hideAllResultLayers(this.map);
+          await this.$store.dispatch("abm/fetchResult");
+          // TODO - do we still need this? // hideAllResultLayers(this.map);
           this.$store
             .dispatch("scenario/calculateStatsForMultiLayerAnalysis")
             .then(() => {

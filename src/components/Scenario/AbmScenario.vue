@@ -1,14 +1,6 @@
 <script lang="ts">
 import { mapState } from "vuex";
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import {
-  bridges,
-  moduleSettingNames,
-  mainStreetOrientationOptions,
-  blockPermeabilityOptions,
-  roofAmenitiesOptions,
-  workshopScenarioNames,
-} from "@/store/abm.ts";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { abmLayerIds } from "@/services/layers.service";
@@ -36,7 +28,10 @@ import type {
   AbmSimulationResult,
   AgentsClusteredForHeatmap,
   DataForAbmTimeGraph,
-  AppContext
+  AppContext,
+  AbmMainStreetOptions,
+  AbmBlocksOptions,
+  AbmAmenityOptions
 } from "@/models";
 import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
 import * as resultProcessing from "@/services/abm/resultProcessing.service";
@@ -45,33 +40,32 @@ import VueWorker from 'vue-worker'
 
 @Component({
   name: ScenarioComponentNames.pedestrian,
-  components: { MenuComponentDivision, MenuDivision },
+  components: { MenuComponentDivision, MenuDivision, DashboardCharts },
 })
 export default class AbmScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   $worker: VueWorker;
   activeDivision = null;
-  errorMsg = "";
-
+  
   scenarioConfiguration: AbmScenarioConfiguration | null = null;
 
-  // TODO as props or not at all
-  restrictedAccess: Boolean = false;
-  designScenarioNames = bridges;
-  moduleSettingOptions = moduleSettingNames;
-  mainStreetOrientationOptions = mainStreetOrientationOptions;
-  blockOptions = blockPermeabilityOptions;
-  roofAmenitiesOptions = roofAmenitiesOptions;
-  workshopScenarioNames = workshopScenarioNames;
-  
-  // move this shit to a processData service?
-  age: 21;
-  timePaths: [];
-  weightData: [];
-  weightObjData: [];
-  timeRange: [0, 54000];
-  heatMapTimeRan: [8, 23];
+  mainStreetOrientationOptions: Record<AbmMainStreetOptions, AbmMainStreetOptions> = {
+  horizontal: "horizontal",
+  vertical: "vertical",
+  };
 
+  blockOptions: Record<AbmBlocksOptions, AbmBlocksOptions> = {
+    open: "open",
+    closed: "closed",
+  };
+
+  roofAmenitiesOptions: Record<AbmAmenityOptions, AbmAmenityOptions> = {
+    random: "random",
+    complementary: "complementary",
+  };
+
+  errorMsg = "";
+  
   beforeDestroy(): void {
     // stop animation of abm layer
     this.$store.commit("abm/mutateAnimateLayer", false);
@@ -81,9 +75,6 @@ export default class AbmScenario extends Vue {
     this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
     // hide all other layers
     hideAllLayersButThese(this.map, ["abmTrips", "abmHeat", "abmAmenities"]); // TODO store names as variable in some config?
-    
-    // TODO DELETE
-    this.$store.commit("scenario/selectGraph", "abm");
   }
 
   get componentDivisions(): MenuLink[] {
@@ -176,7 +167,6 @@ export default class AbmScenario extends Vue {
     return this.$store.state.scenario.heatMap;
   } 
 
-
   get isFormDirty(): boolean {
     return (
       JSON.stringify(this.scenarioConfiguration) !==
@@ -229,7 +219,7 @@ export default class AbmScenario extends Vue {
       .dispatch("abm/fetchResult")
         .then(() => {
           // sucessfully got result
-          this.addTripsLayerAndTimeGraph();
+          this.buildTripsLayerAndAddToMap();
           this.buildHeatMapLayerAndAddToMap();
         })
         .catch((err) => {
@@ -255,44 +245,6 @@ export default class AbmScenario extends Vue {
   }
 
   /**
-   * processes the result data for visualization in timegraph
-   * add timegraph
-   * adds trips layer
-  */    
-  addTripsLayerAndTimeGraph(): void {
-    // process result for timegraph (in worker)
-    this.$worker.run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [this.result])
-    .then((dataForTimeGraph: DataForAbmTimeGraph) => {
-      // show time graph and trips layer control
-      this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
-      this.$store.commit("abm/mutateReRenderTimeSheet", true);
-      // add trips layer to map
-      this.buildTripsLayerAndAddToMap();
-    })
-    .catch((err) => {
-      console.warn("caught error when processing abm results for timegrap", err);
-      this.resultLoading = false;
-      this.errorMsg = err;
-    })
-  }
-
-  /**
-   * builds the trips layer and adds it to the map
-  **/
-  buildTripsLayerAndAddToMap(): void {
-    buildTripsLayer(this.result, 0)
-      .then((tripsLayer) => {
-        addDeckLayerToMap(tripsLayer, this.map)
-      })
-      .finally(() => { 
-        // hide layers if user switched to different component meanwhile
-         if (!this.isPedestrianActiveComponent) {
-            hideLayers(this.map, ["abmTrips", "abmAmenities"]);
-        }
-      })
-  }
-
-  /**
    * builds the heatmap layer and adds it to the map
    **/ 
   buildHeatMapLayerAndAddToMap(): void {
@@ -312,6 +264,43 @@ export default class AbmScenario extends Vue {
             hideLayers(this.map, ["abmHeat"]);
         }
       })
+  }
+
+  /**
+   * builds the trips layer and adds it to the map
+  **/
+  buildTripsLayerAndAddToMap(): void {
+    buildTripsLayer(this.result, 0)
+      .then((tripsLayer) => {
+        addDeckLayerToMap(tripsLayer, this.map)
+        this.createTimeGraph()
+      })
+      .finally(() => { 
+        // hide layers if user switched to different component meanwhile
+         if (!this.isPedestrianActiveComponent) {
+            hideLayers(this.map, ["abmTrips", "abmAmenities"]);
+        }
+      })
+  }
+
+  /**
+   * processes the result data for visualization in timegraph
+   * add timegraph
+   * adds trips layer
+  */    
+  createTimeGraph() {
+    // process result for timegraph (in worker)
+    this.$worker.run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [this.result])
+    .then((dataForTimeGraph: DataForAbmTimeGraph) => {
+      // show time graph and trips layer control
+      this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
+      this.$store.commit("abm/mutateReRenderTimeSheet", true);
+    })
+    .catch((err) => {
+      console.warn("caught error when processing abm results for timegrap", err);
+      this.resultLoading = false;
+      this.errorMsg = err;
+    })
   }
 
   /**
@@ -338,7 +327,7 @@ export default class AbmScenario extends Vue {
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div
-      v-if="!restrictedAccess && appContext == 'grasbrook'"
+      v-if="appContext == 'grasbrook'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"
@@ -561,39 +550,6 @@ export default class AbmScenario extends Vue {
           >
             Run Scenario
           </v-btn>
-      </div>
-    </div>
-    <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
-    <div
-      v-if="restrictedAccess"
-      class="division"
-      data-title="Scenario"
-      data-pic="mdi-map-marker-radius"
-    >
-      <!--v-if needs to be set to data-title to make switch between divisions possible-->
-      <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <h2>Pedestrians Scenario Selection</h2>
-        <v-btn
-          @click="loadScenarioByName(workshopScenarioNames[0])"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Scenario I</v-btn
-        >
-        <v-btn
-          @click="loadScenarioByName(workshopScenarioNames[1])"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Scenario II</v-btn
-        >
-        <v-btn
-          @click="loadScenarioByName(workshopScenarioNames[2])"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Scenario III</v-btn
-        >
       </div>
     </div>
     <!--division-end-->

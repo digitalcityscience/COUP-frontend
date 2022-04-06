@@ -10,7 +10,7 @@ import {
   addDeckLayerToMap,
   addSourceAndLayerToMap as addSourceAndLayersToMap,
 } from "@/services/map.service";
-import { bridges as bridgeNames, bridgeVeddelOptions } from "@/store/abm";
+import { bridges as bridgeNames } from "@/store/abm";
 import {
   abmAggregationLayerName,
   abmTripsLayerName,
@@ -60,18 +60,7 @@ export default {
 
     // TODO dispatch("updateAmenitiesLayer", scenarioId);
   },
-  // TODO: adapt to new abm model with underpass_veddel_north and new results!
-  loadWorkshopScenario({ state, commit, dispatch, rootState }, scenarioId) {
-    const bridges = updateBridges(
-      bridgeNames.bridge_hafencity,
-      bridgeVeddelOptions.diagonal
-    );
-
-    commit("bridges", bridges);
-    dispatch("updateBridgeLayer");
-    dispatch("initialAbmComputing", scenarioId);
-    dispatch("updateAmenitiesLayer", scenarioId);
-  },
+  
   updateAbmDesignScenario({ state, commit, dispatch, rootState }) {
     /*    // reset all abm data
     commit("abmTrips", null)
@@ -85,6 +74,7 @@ export default {
     commit("updateAmenityStatsChart", false)
     */
 
+    
     const bridges = updateBridges(
       state.moduleSettings.bridge_hafencity,
       state.moduleSettings.underpass_veddel_north
@@ -94,11 +84,11 @@ export default {
     dispatch("updateBridgeLayer");
 
     // reset abmStats
+    // TODO refactor 
     if (JSON.stringify(state.abmStats) !== JSON.stringify({})) {
       commit("abmStats", {}); // reset abmStats
       commit("amenityStats", {}); // reset amenityStats
-      commit("abmStatsMultiLayer", {}); // reset abmStats
-      commit("amenityStatsMultiLayer", {}); // reset amenityStats
+
     }
     dispatch("updateAmenitiesLayer");
 

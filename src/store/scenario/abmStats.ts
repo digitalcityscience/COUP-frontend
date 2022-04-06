@@ -3,14 +3,14 @@ import store from "@/store";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
 
 export async function calcAbmStatsForMultiLayer() {
-  const multiLayerStats = store.state.scenario.abmStatsMultiLayer || {};
+  const multiLayerStats = store.getters["abm/abmResultStatsMultiLayer"] || {};
 
   const focusAreaIds = store.state.focusAreasGeoJson["features"].map((feat) => {
     return feat.id;
   });
 
   for (const focusAreaId of focusAreaIds) {
-    if (!store.state.scenario.abmStatsMultiLayer[focusAreaId]) {
+    if (!store.getters["abm/abmResultStatsMultiLayer"].focusAreaId) {
       multiLayerStats[focusAreaId] = {};
       const focusArea = getFocusAreaAsTurfObject(focusAreaId);
       const hourlyActivity = hourlyAgentActivityForRegion(focusArea);
@@ -25,7 +25,7 @@ export async function calcAbmStatsForMultiLayer() {
     }
   }
 
-  store.commit("scenario/abmStatsMultiLayer", multiLayerStats);
+  store.commit("abm/mutateAbmStatsMultiLayer", multiLayerStats);
 }
 
 function getFocusAreaAsTurfObject(focusAreaId?: number) {
@@ -64,7 +64,7 @@ export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
   const hourlyActivity = hourlyAgentActivityForRegion(focusAreas);
   const results = calculatePedestrianIndices(focusAreas, hourlyActivity);
 
-  const abmStats = store.state.scenario.abmStats || {};
+  const abmStats = store.getters["abm/abmResultStats"] || {};
 
   const id = focusAreaId || "grasbrook";
   abmStats[id] = results;
@@ -76,7 +76,7 @@ export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
     "meters",
   ];
 
-  store.commit("scenario/abmStats", abmStats);
+  store.commit("abm/mutateAbmStats", abmStats);
   console.log("commited abmStats to store");
   store.commit("scenario/updateAbmStatsChart", true);
 }
@@ -86,7 +86,7 @@ function hourlyAgentActivityForRegion(forRegion) {
   const matchedPointsPerHour = {}; // collection of Points with active agents within the investigation region
 
   for (const [hour, currentTimePaths] of Object.entries(
-    store.state.scenario.abmTimePaths
+    store.getters["abm/abmDataForHeatmap"]
   )) {
     // create featureCollection from pathPoints
     const pathPointCollection = createPathPointCollection(currentTimePaths);
@@ -367,7 +367,7 @@ function calculateShannonSummand(
  */
 function calculateTripAverages(forRegion) {
   // array of all trips [{"agent", "origin", "destination", "length", "duration", "pathIndexes" }]
-  const allTrips = store.state.scenario.abmTrips;
+  const allTrips = store.getters["abm/abmTripsSummary"];
 
   // filter all trips who's origin or destination are in the region
   const tripsInRegion = allTrips.filter((trip) => {

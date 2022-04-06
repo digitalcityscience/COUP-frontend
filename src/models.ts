@@ -149,10 +149,14 @@ export interface AbmScenarioConfigSCHB {
 export interface AbmScenarioConfigGrasbrook {
   bridge_hafencity: boolean;
   underpass_veddel_north: boolean;
-  roof_amenities: "random" | "complementary";
-  blocks: "open" | "closed";
-  main_street_orientation: "vertical" | "horizontal";
+  roof_amenities: AbmAmenityOptions;
+  blocks: AbmBlocksOptions;
+  main_street_orientation: AbmMainStreetOptions;
 }
+
+export type AbmMainStreetOptions = "vertical" | "horizontal";
+export type AbmBlocksOptions = "open" | "closed";
+export type AbmAmenityOptions = "random" | "complementary";
 
 
 export type StormWaterRoofType = "extensive" | "intensive";
