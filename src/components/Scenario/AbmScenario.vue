@@ -114,6 +114,7 @@ export default class AbmScenario extends Vue {
     );
   }
 
+  // e.g. grasbrook or science city
   get appContext(): AppContext {
     return this.$store.state.appContext;
   }
@@ -167,10 +168,15 @@ export default class AbmScenario extends Vue {
     return this.$store.state.scenario.heatMap;
   } 
 
+  /** Do the selected settings fit the displayed result? */
   get isFormDirty(): boolean {
     return (
-      JSON.stringify(this.scenarioConfiguration) !==
-      JSON.stringify(this.scenarioConfigurationGlobal)
+      this.result
+      &&
+      (
+        JSON.stringify(this.scenarioConfiguration) !==
+        JSON.stringify(this.scenarioConfigurationGlobal)
+      )
     );
   }
 
@@ -347,18 +353,6 @@ export default class AbmScenario extends Vue {
               flat
               label="Bridge to HafenCity"
               dark
-              :color="
-                scenarioConfiguration.bridge_hafencity !=
-                scenarioConfigurationGlobal.bridge_hafencity
-                  ? '#fff'
-                  : '#888'
-              "
-              :class="
-                scenarioConfiguration.bridge_hafencity !=
-                scenarioConfigurationGlobal.bridge_hafencity
-                  ? 'switched'
-                  : 'na'
-              "
             />
             <v-switch
               :disabled="resultLoading"
@@ -366,30 +360,12 @@ export default class AbmScenario extends Vue {
               flat
               label="Underpass to Veddel North"
               dark
-              :color="
-                scenarioConfiguration.underpass_veddel_north !=
-                scenarioConfigurationGlobal.underpass_veddel_north
-                  ? '#fff'
-                  : '#888'
-              "
-              :class="
-                scenarioConfiguration.underpass_veddel_north !=
-                scenarioConfigurationGlobal.underpass_veddel_north
-                  ? 'switched'
-                  : 'na'
-              "
             />
           </div>
           <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">MAIN STREET ORIENTATION</header>
             <v-radio-group
               v-model="scenarioConfiguration.main_street_orientation"
-              :class="
-                scenarioConfiguration.main_street_orientation !=
-                scenarioConfigurationGlobal.main_street_orientation
-                  ? 'switched'
-                  : 'na'
-              "
             >
               <v-radio
                 :value="mainStreetOrientationOptions.vertical"
@@ -397,12 +373,6 @@ export default class AbmScenario extends Vue {
                 flat
                 label="North-South Axes"
                 dark
-                :color="
-                  scenarioConfiguration.main_street_orientation !=
-                  scenarioConfigurationGlobal.main_street_orientation
-                    ? '#fff'
-                    : '#888'
-                "
               />
               <v-radio
                 :value="mainStreetOrientationOptions.horizontal"
@@ -410,12 +380,6 @@ export default class AbmScenario extends Vue {
                 flat
                 label="East-West Axes"
                 dark
-                :color="
-                  scenarioConfiguration.main_street_orientation !=
-                  scenarioConfigurationGlobal.main_street_orientation
-                    ? '#fff'
-                    : '#888'
-                "
               />
             </v-radio-group>
           </div>
@@ -423,12 +387,6 @@ export default class AbmScenario extends Vue {
             <header class="text-sm-left">CITY BLOCK STRUCTURE</header>
             <v-radio-group
               v-model="scenarioConfiguration.blocks"
-              :class="
-                scenarioConfiguration.blocks != 
-                scenarioConfigurationGlobal.blocks
-                  ? 'switched'
-                  : 'na'
-              "
             >
               <v-radio
                 :value="blockOptions.open"
@@ -436,12 +394,6 @@ export default class AbmScenario extends Vue {
                 flat
                 label="Permeable"
                 dark
-                :color="
-                  scenarioConfiguration.blocks != 
-                  scenarioConfigurationGlobal.blocks
-                    ? '#fff'
-                    : '#888'
-                "
               />
               <v-radio
                 :value="blockOptions.closed"
@@ -449,12 +401,6 @@ export default class AbmScenario extends Vue {
                 flat
                 label="Private"
                 dark
-                :color="
-                  scenarioConfiguration.blocks != 
-                  scenarioConfigurationGlobal.blocks
-                    ? '#fff'
-                    : '#888'
-                "
               />
             </v-radio-group>
           </div>
@@ -462,12 +408,6 @@ export default class AbmScenario extends Vue {
             <header class="text-sm-left">AMENITY DISTRIBUTION</header>
             <v-radio-group
               v-model="scenarioConfiguration.roof_amenities"
-              :class="
-                scenarioConfiguration.roof_amenities != 
-                scenarioConfigurationGlobal.roof_amenities
-                  ? 'switched'
-                  : 'na'
-              "
             >
               <v-radio
                 :value="roofAmenitiesOptions.complementary"
@@ -475,12 +415,6 @@ export default class AbmScenario extends Vue {
                 flat
                 label="Clustered by Type"
                 dark
-                :color="
-                  scenarioConfiguration.roof_amenities !=
-                  scenarioConfigurationGlobal.roof_amenities
-                    ? '#fff'
-                    : '#888'
-                "
               />
               <v-radio
                 :value="roofAmenitiesOptions.random"
@@ -488,12 +422,6 @@ export default class AbmScenario extends Vue {
                 flat
                 label="Mixed Distribution"
                 dark
-                :color="
-                  scenarioConfiguration.roof_amenities !=
-                  scenarioConfigurationGlobal.roof_amenities
-                    ? '#fff'
-                    : '#888'
-                "
               />
             </v-radio-group>
           </div>
@@ -572,8 +500,7 @@ export default class AbmScenario extends Vue {
       >
         <h2>Pedestrian Flow | Aggregation Layer</h2>
         <v-range-slider
-          v-model="heatMapTimeRange
-  "
+          v-model="heatMapTimeRange"
           :min="8"
           :max="24"
           hide-details
@@ -583,8 +510,7 @@ export default class AbmScenario extends Vue {
         >
           <template v-slot:prepend>
             <v-text-field
-              :value="heatMapTimeRange
-      [0]"
+              :value="heatMapTimeRange[0]"
               class="mt-0 pt-0"
               hide-details
               single-line
@@ -595,8 +521,7 @@ export default class AbmScenario extends Vue {
           </template>
           <template v-slot:append>
             <v-text-field
-              :value="heatMapTimeRange
-      [1]"
+              :value="heatMapTimeRange[1]"
               class="mt-0 pt-0"
               hide-details
               single-line
