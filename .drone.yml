@@ -17,7 +17,7 @@ steps:
       from_secret: docker_password
   when:
     status: [ success ]
-    branch: [ develop ]
+    branch: [ master ]
 
 - name: tag
   image: plugins/docker
@@ -34,6 +34,7 @@ steps:
       from_secret: docker_password
   when:
     status: [ success ]
+    branch: [ master ]
     event:
       - tag
 
@@ -52,4 +53,4 @@ steps:
       from_secret: rancher_context
   when:
     status: [ success ]
-    branch: [ develop ]
+    branch: [ master ]
