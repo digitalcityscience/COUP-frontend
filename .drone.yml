@@ -1,13 +1,18 @@
+---
 kind: pipeline
 name: pipeline
+type: docker
+
 steps:
 - name: build and publish
   image: plugins/docker
   settings:
-    dockerfile: Dockerfile.prod
     repo:
       from_secret: docker_repository
-    tags: ${DRONE_BRANCH}
+    tags:
+      - ${DRONE_BRANCH}
+    dockerfile: Dockerfile.prod
+    custom_dns: ['192.168.8.5', '192.168.8.6']
     registry:
       from_secret: docker_registry
     username:
@@ -18,8 +23,9 @@ steps:
     status: [ success ]
     branch: [ develop ]
 
-- name: tag
+- name: build and publish release
   image: plugins/docker
+  custom_dns: ['192.168.8.5', '192.168.8.6']
   settings:
     repo:
       from_secret: docker_repository
@@ -32,15 +38,17 @@ steps:
       from_secret: docker_password
   when:
     status: [ success ]
+    branch: [ develop ]
     event:
       - tag
 
-- name: deploy
-  image: quving/drone-rancher-cicd:latest
+- name: rollout
+  image: quving/drone-rancher-cicd:v1.1.0
   settings:
     stamp: ${DRONE_COMMIT}
-    kubernetes_deployment: functionalscope
-    kubernetes_namespace: master
+    kubectl_options: '--insecure-skip-tls-verify'
+    kubernetes_deployment: 'functionalscope'
+    kubernetes_namespace: 'master'
     rancher_url:
       from_secret: rancher_url
     rancher_token:
