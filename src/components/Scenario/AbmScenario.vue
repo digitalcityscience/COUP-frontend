@@ -3,6 +3,7 @@ import { mapState } from "vuex";
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import amenitiesLayerConfig from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import { abmLayerIds } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
@@ -31,7 +32,8 @@ import type {
   AppContext,
   AbmMainStreetOptions,
   AbmBlocksOptions,
-  AbmAmenityOptions
+  AbmAmenityOptions,
+  GeoJSON
 } from "@/models";
 import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
 import * as resultProcessing from "@/services/abm/resultProcessing.service";
@@ -121,6 +123,10 @@ export default class AbmScenario extends Vue {
 
   get result(): AbmSimulationResult {
     return this.$store.getters["abm/abmResult"];
+  }
+
+  get amenitiesGeoJSON(): GeoJSON {
+    return this.$store.getters["abm/abmAmenitiesGeoJSON"]
   }
 
   get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
@@ -223,10 +229,19 @@ export default class AbmScenario extends Vue {
     // fetch result and create new result layers
     this.$store
       .dispatch("abm/fetchResult")
-        .then(() => {
           // sucessfully got result
+        .then(() => {
+          // add result layers
           this.buildTripsLayerAndAddToMap();
           this.buildHeatMapLayerAndAddToMap();
+          
+          // add amenities layer
+          amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
+          addSourceAndLayerToMap(
+            amenitiesLayerConfig.source,
+            [amenitiesLayerConfig.layerConfig],
+            this.map
+          )
         })
         .catch((err) => {
           console.log("caught error", err);
@@ -294,7 +309,7 @@ export default class AbmScenario extends Vue {
    * add timegraph
    * adds trips layer
   */    
-  createTimeGraph() {
+  createTimeGraph(): void {
     // process result for timegraph (in worker)
     this.$worker.run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [this.result])
     .then((dataForTimeGraph: DataForAbmTimeGraph) => {
@@ -313,7 +328,7 @@ export default class AbmScenario extends Vue {
    * called upon slider change of heatMapTimeRange
    * recreates heatmap for given heatMapTimeRange
   **/ 
-  changeHeatMapData(startTime, endTime) {
+  changeHeatMapData(startTime, endTime): void {
     this.heatMapTimeRange = [startTime, endTime];
     // todo refactor move to abm store
     this.$store.dispatch("scenario/updateAggregationLayer");

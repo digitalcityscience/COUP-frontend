@@ -95,7 +95,7 @@ export type AgentIndexByName =  Record<string, number>;
   // TODO refactor: remove all property. it can just be a number?
   // TODO only need count of agents during this 5min slot. 
 export interface AbmResponse {
-  amentiesGeoJSON : GeoJSON;
+  amenitiesGeoJSON : GeoJSON;
   simulationResult: AbmSimulationResult[];
 }
 

@@ -37,7 +37,7 @@ export default class AbmStore extends VuexModule {
   _scenarioConfig = null;
   
   // original result data
-  result: AbmSimulationResult | null = null;
+  simulationResult: AbmSimulationResult | null = null;
   amenitiesGeoJSON: GeoJSON | null = null;
   
   // processed result data
@@ -71,7 +71,7 @@ export default class AbmStore extends VuexModule {
   }
 
   get abmResult(): AbmSimulationResult {
-    return this.result;
+    return this.simulationResult;
   } 
 
 
@@ -142,7 +142,7 @@ export default class AbmStore extends VuexModule {
   @Mutation
   mutateResult(newResult: AbmSimulationResult): void {
     // @ts-ignore
-    this.result = Object.freeze(newResult);
+    this.simulationResult = Object.freeze(newResult);
   }
 
   @Mutation
@@ -181,7 +181,7 @@ export default class AbmStore extends VuexModule {
 
   @Mutation
   resetResult(): void {
-    this.result = null;
+    this.simulationResult = null;
 
     // reset stats
     this.abmStats = {}
@@ -208,14 +208,15 @@ export default class AbmStore extends VuexModule {
   }
   
 
-  @MutationAction({ mutate: ["result"] })
-  async fetchResult(): Promise<{ result: AbmResponse }> {
-    const simulationResult: AbmResponse =
+  //@ts-ignore
+  @MutationAction({ mutate: ["simulationResult", "amenitiesGeoJSON"] })
+  async fetchResult(): Promise<AbmResponse> {
+    const response: AbmResponse =
       await this.cityPyo.getAbmResultLayer(
         this.scenarioConfiguration,
       );
 
-     return { result: simulationResult };
+     return response
   }
 
   /* @Action({})

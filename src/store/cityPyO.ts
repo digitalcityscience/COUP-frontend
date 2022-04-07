@@ -1,4 +1,4 @@
-import type { CityPyOUser, GeoJSON, AbmScenarioConfiguration, AbmScenarioConfigGrasbrook } from "@/models";
+import type { CityPyOUser, GeoJSON, AbmScenarioConfiguration, AbmScenarioConfigGrasbrook, AbmResponse } from "@/models";
 
 export default class CityPyO {
   url: string;
@@ -102,7 +102,7 @@ export default class CityPyO {
 
 
   // TODO rename into get abmResultData
-  async getAbmResultLayer(scenario: AbmScenarioConfiguration) {
+  async getAbmResultLayer(scenario: AbmScenarioConfiguration): Promise<AbmResponse> {
     // fetch abm scenario based on module settings and view filters
     const requestUrl = this.url + "getLayer/" + "abmScenario";
     const body = {
@@ -115,7 +115,10 @@ export default class CityPyO {
     if (response.status == 200) {
       const responseJson = await response.json();
 
-      return responseJson.data;
+      return {
+        "simulationResult": responseJson["simulationResult"],
+        "amenitiesGeoJSON": responseJson["amenitiesGeoJSON"]
+      }
     }
   }
 
