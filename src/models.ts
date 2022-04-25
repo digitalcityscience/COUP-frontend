@@ -51,7 +51,6 @@ export interface ScenarioStoreState {
   rerenderSwGraph: boolean;
   stormWater: boolean;
   currentTimeStamp: number | null;
-  selectGraph: ScenarioWithTimeSheets;
   resultLoadingStati: DataLoadingStati;
 }
 

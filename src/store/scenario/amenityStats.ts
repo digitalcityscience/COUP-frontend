@@ -33,7 +33,7 @@ export async function calculateAmenityStatsForMultiLayerAnalysis() {
     }
   }
 
-  store.commit("scenario/amenityStatsMultiLayer", amenityStats);
+  store.commit("abm/mutateAmenityStatsMultiLayer", amenityStats);
 }
 
 function getFocusAreaAsTurfObject(focusAreaId?: number) {
@@ -97,7 +97,7 @@ export async function calculateAmenityStatsForFocusArea(
     "complementary trips",
   ];
 
-  store.commit("abm/amenityStats", amenityStats);
+  store.commit("abm/mutateAbmStats", amenityStats);
   console.log("commited amenity stats to store", amenityStats);
   store.commit("scenario/updateAmenityStatsChart", true);
 }
@@ -108,7 +108,7 @@ export async function calculateAmenityStatsForFocusArea(
  * @returns FeatureCollection<Point>
  */
 function getFeatureCollectionOfNonResidentialAmenities(): turf.FeatureCollection<turf.Point> {
-  const amenities = store.state.scenario.amenitiesGeoJson as turf.GeoJSONObject;
+  const amenities = store.getters["abm/abmAmenitiesGeoJSON"] as turf.GeoJSONObject;
 
   // all amenities that are non-residential
   return turf.featureCollection(

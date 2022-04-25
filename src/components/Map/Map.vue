@@ -37,12 +37,7 @@ export default {
       ["updateAmenityStatsChart", "scenario/updateAmenityStatsChart"],
       ["openModalsIds", "openModalsIds"],
     ]),
-    heatMapData() {
-      return this.$store.state.scenario.heatMapData;
-    },
-    heatMapActive() {
-      return this.$store.state.scenario.heatMap;
-    },
+
     showLoader: {
       // getter
       get: function () {

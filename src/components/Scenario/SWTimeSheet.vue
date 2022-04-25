@@ -129,7 +129,6 @@ export default class SWTimeSheet extends Vue {
   @Watch("rerenderSwGraph")
   rerenderSwGraphWatcher(): void {
     if (this.rerenderSwGraph) {
-      this.$store.commit("scenario/selectGraph", "sw");
       this.prepareDataForRunOffGraph().then(() => {
         this.renderSWGraphRunOff();
         this.renderSWGraphRain();

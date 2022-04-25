@@ -29,9 +29,6 @@ export default {
     selectedObjectId() {
       return this.$store.state.selectedObjectId;
     },
-    abmTrips() {
-      return this.$store.state.getters["abm/abmTrips"];
-    },
   },
   beforeMount() {
     if (!this.selectedObjectId) {

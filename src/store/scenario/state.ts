@@ -12,31 +12,15 @@ const initialResultLoadingStati: DataLoadingStati = {
 
 export default {
   // ABM
-  abmTrips: null,
   agentIndexes: null,
-  abmObject: {},
   activeAbmSet: null, // for trips layer
   abmTimePaths: null, //  for heatmap
-  abmWeightCount: null,
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
 
-  currentlyShownScenarioSettings: {}, // TODO is this ABM specific??
-  resultOutdated: true, // in the beginning no results are shown. Trigger user to request results.
-  /* moduleSettings: {
-    bridge_hafencity: true,
-    underpass_veddel_north: true,
-    roof_amenities: roofAmenitiesOptions.random,
-    blocks: "open",
-    main_street_orientation: "vertical",
-  }, */
+  animationSpeed: 7, // todo remove from store, sw and abm
 
-  animateTripsLayer: false,
-  animationSpeed: 7, // abm trips layer specific
-  heatMapData: [],
-  heatMapAverage: [],
-
-  abmTimeRange: [8, 23], // time filter for the heatmap and timeSheet
+  abmTimeRange: [8, 23], // time filter for the heatmap and timeSheet // TODO refactor
 
   // layers
   noiseMap: false,
@@ -58,7 +42,6 @@ export default {
   sunExposureGeoJson: null,
 
   // UI
-  selectGraph: "abm",  // TODO delete!
   resultLoadingStati: initialResultLoadingStati,
 
   // Stormwater

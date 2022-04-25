@@ -179,9 +179,6 @@ export default class TimeSheet extends Vue {
   get abmTimeRange() {
     return this.$store.state.scenario.abmTimeRange;
   }
-  get heatMapActive() {
-    return this.$store.state.scenario.heatMap;
-  }
   
   // when is this used??
   get showUi(): boolean {
@@ -194,14 +191,6 @@ export default class TimeSheet extends Vue {
   reRenderTimeSheetWatcher(): void {
     if (this.reRenderTimeSheet) {
       this.renderTimeGraph();
-    }
-  }
-
-  // TODO can be deleted??
-  @Watch("heatMapActive")
-  heatMapActiveWatcher() {
-    if (this.heatMapActive) {
-      this.$store.commit("scenario/animateTripsLayer", false);
     }
   }
 
@@ -266,7 +255,8 @@ export default class TimeSheet extends Vue {
         @animationSpeed="animationSpeed = $event"
         @toggle-graph="showGraph = $event"
       />
-    </span>
+    </span><!-- TODO : why if abm sheet hidden with vif and sw time sheet hidden with "hidden" prob?-->
+
     <SWTimeSheet
       :hidden="timeSheetContext !== 'sw'"
       :class="{ dismiss: timeSheetContext !== 'sw' }"

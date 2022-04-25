@@ -240,7 +240,6 @@ export default class StormwaterScenario extends Vue {
 
   activateStormWater(): void {
     this.$store.commit("scenario/stormWater", true);
-    this.$store.commit("scenario/selectGraph", "sw");
   }
 
   mounted(): void {
