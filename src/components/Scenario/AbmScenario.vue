@@ -33,7 +33,9 @@ import type {
   AbmMainStreetOptions,
   AbmBlocksOptions,
   AbmAmenityOptions,
-  GeoJSON
+  GeoJSON,
+  AgentNameToIndexTable,
+  AgentTrip
 } from "@/models";
 import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
 import * as resultProcessing from "@/services/abm/resultProcessing.service";
@@ -242,6 +244,10 @@ export default class AbmScenario extends Vue {
             [amenitiesLayerConfig.layerConfig],
             this.map
           )
+          // create agent indexes and trip summary as input for stats calculation
+          // will be done in backend after Gama automization
+          this.createAgentIndexes();
+          this.createTripsSummary();
         })
         .catch((err) => {
           console.log("caught error", err);
@@ -249,7 +255,6 @@ export default class AbmScenario extends Vue {
           
           // TODO refactor do we need this?? if so, why only heatmap?
           this.$store.commit("scenario/heatMap", false);
-          this.$store.commit("scenario/heatMapVisible", false);
         })
         .finally(() => {
           // remove loader screen
@@ -273,6 +278,7 @@ export default class AbmScenario extends Vue {
     this.$worker.run(resultProcessing.getAgentCountsPerHourAndCoordinate, [this.result])
       .then((dataForHeatmap: AgentsClusteredForHeatmap) => {
         console.log("worker finished for heatmap")
+        this.$store.commit("abm/mutateResultForHeatmap", dataForHeatmap)
         buildAggregationLayer(dataForHeatmap)
           .then((layer) => {
             // todo check if still active component
@@ -312,21 +318,43 @@ export default class AbmScenario extends Vue {
   createTimeGraph(): void {
     // process result for timegraph (in worker)
     this.$worker.run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [this.result])
-    .then((dataForTimeGraph: DataForAbmTimeGraph) => {
-      // show time graph and trips layer control
-      this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
-      this.$store.commit("abm/mutateReRenderTimeSheet", true);
-    })
-    .catch((err) => {
-      console.warn("caught error when processing abm results for timegrap", err);
-      this.resultLoading = false;
-      this.errorMsg = err;
-    })
+      .then((dataForTimeGraph: DataForAbmTimeGraph) => {
+        // show time graph and trips layer control
+        this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
+        this.$store.commit("abm/mutateReRenderTimeSheet", true);
+      })
+      .catch((err) => {
+        console.warn("caught error when processing abm results for timegrap", err);
+        this.resultLoading = false;
+        this.errorMsg = err;
+      })
+  }
+
+  createAgentIndexes(): void {
+    this.$worker.run(resultProcessing.createAgentNameToIndexTable, [this.result])
+      .then((lookupTable: AgentNameToIndexTable) => {
+        this.$store.commit("abm/mutateAgentLookupTable", lookupTable)
+      })
+      .catch((err) => {
+        console.warn("caught error when processing abm results for AgentNameToIndexTable", err);
+      })
+  }
+  
+  createTripsSummary(): void {
+    this.$worker.run(resultProcessing.createTripsSummary, [this.result])
+      .then((tripsSummary: AgentTrip[]) => {
+        this.$store.commit("abm/mutateTripsSummary", tripsSummary)
+      })
+      .catch((err) => {
+        console.warn("caught error when processing abm results to tripsSummary", err);
+      })
   }
 
   /**
    * called upon slider change of heatMapTimeRange
    * recreates heatmap for given heatMapTimeRange
+   * 
+   TODO - is this working?
   **/ 
   changeHeatMapData(startTime, endTime): void {
     this.heatMapTimeRange = [startTime, endTime];

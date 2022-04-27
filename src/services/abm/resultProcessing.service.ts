@@ -1,9 +1,10 @@
-import { AbmSimulationResult, AgentIndexByName as AgentIndexTable, AgentTrip, ResultDataSingleAgent, AgentsClusteredForHeatmap, DataForAbmTimeGraph } from "@/models";
+import { AbmSimulationResult, AgentNameToIndexTable, AgentTrip, ResultDataSingleAgent, AgentsClusteredForHeatmap, DataForAbmTimeGraph } from "@/models";
 
 
 // create a simple lookup with all agent id's and their index in the abmCore
-// TODO refactor USE THIS!
-export function createLookUpTableAgentNameIndex(abmResultData: AbmSimulationResult): AgentIndexTable {
+export function createAgentNameToIndexTable(
+  abmResultData: AbmSimulationResult
+  ): AgentNameToIndexTable {
     const agentIndexes = {};
     
     abmResultData.forEach((agent: ResultDataSingleAgent, index: number) => {
@@ -15,22 +16,21 @@ export function createLookUpTableAgentNameIndex(abmResultData: AbmSimulationResu
 }
 
 
-    // #1 create a bin with data on trips each agent makes (origin, destination, pathIndexes, duration, length)
-    // TODO refactor use this
-export function createTrips(abmResultData: AbmSimulationResult): AgentTrip[] {
-    const trips = []
+// #1 create a bin with data on trips each agent makes (origin, destination, pathIndexes, duration, length)
+export function createTripsSummary(abmResultData: AbmSimulationResult): AgentTrip[] {
+    const allTrips = []
     
     abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
-        if (who.trips) {
-            for (const trip of who.trips) {
-            // trip has following information {"agent", "origin", "destination", "length", "duration", "pathIndexes" }
-            trip["agent"] = who.agent.id;
-            trips.push(trip);
-            }
-        }
+      if (who.trips) {
+        who.trips.forEach((trip: AgentTrip) => {
+          // trip has following information {"agent", "origin", "destination", "length", "duration", "pathIndexes" }
+          trip["agent"] = who.agent.id;
+          allTrips.push(trip);
+        })
+      }
     })
 
-    return trips;
+    return allTrips;
 }
 
 

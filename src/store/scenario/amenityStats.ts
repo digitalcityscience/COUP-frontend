@@ -59,7 +59,7 @@ export async function calculateAmenityStatsForFocusArea(
   focusAreaId?: number
 ): Promise<void> {
   if (!store.getters["abm/abmAmenitiesGeoJSON"]) {
-    console.log("cannot calc amenity stats - no amenityGeoJson in store!");
+    console.error("cannot calc amenity stats - no amenityGeoJson in store!");
     return;
   }
 
@@ -86,7 +86,7 @@ export async function calculateAmenityStatsForFocusArea(
     Density: density,
     Complementarity: complementarity,
   };
-  const amenityStats = store.getters["amenityStats"] || {};
+  const amenityStats = store.getters["abm/amenityConfigStats"] || {};
 
   const id = focusAreaId || "grasbrook";
   amenityStats[id] = results;
@@ -97,7 +97,7 @@ export async function calculateAmenityStatsForFocusArea(
     "complementary trips",
   ];
 
-  store.commit("abm/mutateAbmStats", amenityStats);
+  store.commit("abm/mutateAmenityStats", amenityStats);
   console.log("commited amenity stats to store", amenityStats);
   store.commit("scenario/updateAmenityStatsChart", true);
 }

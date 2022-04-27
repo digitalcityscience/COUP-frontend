@@ -3,7 +3,7 @@ import type {
   AbmResponse,
   AbmScenarioConfiguration,
   AbmSimulationResult,
-  AgentIndexByName,
+  AgentNameToIndexTable,
   AgentsClusteredForHeatmap,
   DataForAbmTimeGraph,
   AgentTrip,
@@ -41,7 +41,7 @@ export default class AbmStore extends VuexModule {
   amenitiesGeoJSON: GeoJSON | null = null;
   
   // processed result data
-  agentIndexes: AgentIndexByName = {};
+  agentIndexes: AgentNameToIndexTable = {};
   tripsSummary: AgentTrip[] = [];
   dataForHeatmap: AgentsClusteredForHeatmap = {};
   dataForTimeGraph: DataForAbmTimeGraph | null = null;
@@ -74,7 +74,6 @@ export default class AbmStore extends VuexModule {
     return this.simulationResult;
   } 
 
-
   get abmAmenitiesGeoJSON(): GeoJSON {    
     return this.amenitiesGeoJSON;
   }
@@ -91,9 +90,7 @@ export default class AbmStore extends VuexModule {
     return this.dataForTimeGraph;
   }
 
-  
-  // TODO -> can be deleted?  
-  get abmAgentIndexes(): AgentIndexByName {
+  get abmAgentIndexes(): AgentNameToIndexTable {
     return this.agentIndexes;
   }
   get abmResultStats(): any {
@@ -167,7 +164,7 @@ export default class AbmStore extends VuexModule {
   }
   
   @Mutation
-  mutateAgentLookupTable(agentIndexes: AgentIndexByName): void {
+  mutateAgentLookupTable(agentIndexes: AgentNameToIndexTable): void {
     // agent indexes only used for "getTimeAgentIsAtPoint" in abmStats
     this.agentIndexes = Object.freeze(agentIndexes);
   }  

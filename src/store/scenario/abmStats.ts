@@ -1,6 +1,9 @@
+/** Stats will be calculated in backend soon, then we throw this file away */
+
 import * as turf from "@turf/turf";
 import store from "@/store";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
+import { AgentsClusteredForHeatmap } from '@/models';
 
 export async function calcAbmStatsForMultiLayer() {
   const multiLayerStats = store.getters["abm/abmResultStatsMultiLayer"] || {};
@@ -55,8 +58,8 @@ function getFocusAreaAsTurfObject(focusAreaId?: number) {
  * @param focusAreaId
  */
 export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
-  if (!store.state.scenario.activeAbmSet) {
-    console.log("cannot calc abmStats without abmData. No abmData in store.");
+  if (!store.getters["abm/abmResult"]) {
+    console.error("cannot calc abmStats without abmData. No abmData in store.");
   }
 
   const focusAreas = getFocusAreaAsTurfObject(focusAreaId);
@@ -77,17 +80,16 @@ export async function calculateAbmStatsForFocusArea(focusAreaId?: number) {
   ];
 
   store.commit("abm/mutateAbmStats", abmStats);
-  console.log("commited abmStats to store");
+  console.log("commited abmStats to store", abmStats);
   store.commit("scenario/updateAbmStatsChart", true);
 }
 
 function hourlyAgentActivityForRegion(forRegion) {
+  const heatMapData: AgentsClusteredForHeatmap = store.getters["abm/abmDataForHeatmap"];
   const pedestrianCountsPerHour = {};
   const matchedPointsPerHour = {}; // collection of Points with active agents within the investigation region
 
-  for (const [hour, currentTimePaths] of Object.entries(
-    store.getters["abm/abmDataForHeatmap"]
-  )) {
+  for (const [hour, currentTimePaths] of Object.entries(heatMapData)) {
     // create featureCollection from pathPoints
     const pathPointCollection = createPathPointCollection(currentTimePaths);
 
@@ -309,10 +311,9 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
  */
 function getTimeAgentIsAtPoint(agentName, relevantHour, pointCoords) {
   
-  debugger;
-  const activeAbmSet = store.state.scenario.activeAbmSet;
-  const agentIdx = store.state.getters["abm/agentIndexes"][agentName];
-  const agentData = activeAbmSet[agentIdx];
+  const abmResult = store.getters["abm/abmResult"];
+  const agentIdx = store.getters["abm/abmAgentIndexes"][agentName];  // TODO agent indexes are never produced
+  const agentData = abmResult[agentIdx];
 
   // the agent might be at the point at multiple times. get the array indexes of those path points.
   const pathIndexes = [];
@@ -373,7 +374,6 @@ function calculateShannonSummand(
 function calculateTripAverages(forRegion) {
   // array of all trips [{"agent", "origin", "destination", "length", "duration", "pathIndexes" }]
   const allTrips = store.getters["abm/abmTripsSummary"];
-
   // filter all trips who's origin or destination are in the region
   const tripsInRegion = allTrips.filter((trip) => {
     return turf.pointsWithinPolygon(
