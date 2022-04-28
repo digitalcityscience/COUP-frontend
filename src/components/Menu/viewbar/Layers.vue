@@ -42,7 +42,7 @@
             color="white"
             dark
             hide-details
-            :disabled="activeAbmSet == null"
+            :disabled="!hasAbmResult"
           ></v-checkbox>
           <v-checkbox
             v-model="visibleLayers.heat"
@@ -50,7 +50,7 @@
             color="white"
             dark
             hide-details
-            :disabled="!heatMap"
+            :disabled="!hasAbmResult"
           ></v-checkbox>
           <v-checkbox
             v-model="visibleLayers.amenities"
@@ -58,7 +58,7 @@
             color="white"
             dark
             hide-details
-            :disabled="activeAbmSet == null"
+            :disabled="!hasAmenityGeoJSON"
           ></v-checkbox>
         </div>
         <div class="layers">
@@ -141,8 +141,12 @@ export default class Layers extends Vue {
     return this.$store.state.scenario.multiLayerAnalysisMap;
   }
 
-  get activeAbmSet(): unknown {
-    return this.$store.state.scenario.activeAbmSet;
+  get hasAmenityGeoJSON(): boolean {
+    return this.$store.getters["abm/abmAmenitiesGeoJSON"] === null;
+  }
+  
+  get hasAbmResult(): boolean {
+    return this.$store.getters["abm/abmResult"] === null;
   }
 
   get noiseMap(): unknown {
