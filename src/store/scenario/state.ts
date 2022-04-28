@@ -11,7 +11,7 @@ const initialResultLoadingStati: DataLoadingStati = {
 };
 
 export default {
-  // ABM
+  // ABM dashboard charts
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
 
@@ -24,7 +24,6 @@ export default {
   heatMap: false,
   
   // UI
-  currentTimeStamp: null,
   lastClick: [],
   showUi: true,
   allFeaturesHighlighted: false,

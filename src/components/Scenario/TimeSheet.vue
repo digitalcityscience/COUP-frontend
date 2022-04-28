@@ -18,6 +18,7 @@ export default class TimeSheet extends Vue {
   $store: Store<StoreStateWithModules>;
 
   timeChart = null;
+  currentTimeStamp = null;
   animationSpeed = 3;
   heatMapRange = { left: "0%", width: "100%" };
   minTime = 0;
@@ -141,14 +142,6 @@ export default class TimeSheet extends Vue {
 
 
   /** GETTERS & SETTERS */
-
-  get currentTimeStamp(): number {
-    return this.$store.state.scenario.currentTimeStamp;
-  }
-  set currentTimeStamp(updatedTime: number) {
-    this.$store.commit("scenario/currentTimeStamp", updatedTime);
-  }
-
   get reRenderTimeSheet(): boolean {
     return this.$store.getters["abm/reRenderAbmTimeSheet"];
   }
