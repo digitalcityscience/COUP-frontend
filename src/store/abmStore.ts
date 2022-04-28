@@ -9,6 +9,7 @@ import type {
   AgentTrip,
   GeoJSON,
   AppContext,
+  AbmTimeRange,
 } from "@/models";
 import {
   Module,
@@ -55,6 +56,7 @@ export default class AbmStore extends VuexModule {
   // UI
   animateLayer: boolean = false;
   reRenderTimeSheet: boolean = false;
+  abmTimeRange: AbmTimeRange = [8,23];
 
 
   get scenarioConfig(): AbmScenarioConfiguration {
@@ -110,6 +112,10 @@ export default class AbmStore extends VuexModule {
     return this.animateLayer;
   } 
   
+  get timeRange(): AbmTimeRange {
+    return this.abmTimeRange;
+  } 
+  
   get reRenderAbmTimeSheet(): boolean {
     return this.reRenderTimeSheet;
   }
@@ -129,6 +135,11 @@ export default class AbmStore extends VuexModule {
   @Mutation
   mutateAnimateLayer(animateLayer: boolean): void {
     this.animateLayer = animateLayer;
+  }
+
+  @Mutation
+  mutateTimeRange(newTimeRange: AbmTimeRange): void {
+    this.abmTimeRange = newTimeRange;
   }
   
   @Mutation

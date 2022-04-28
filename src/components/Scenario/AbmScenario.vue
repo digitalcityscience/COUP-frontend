@@ -127,6 +127,18 @@ export default class AbmScenario extends Vue {
     return this.$store.getters["abm/abmResult"];
   }
 
+  get dataForHeatmap(): AgentsClusteredForHeatmap {
+    return this.$store.getters["abm/abmDataForHeatmap"]
+  }
+  set dataForHeatmap(
+    newData: AgentsClusteredForHeatmap
+  ) {
+    this.$store.commit(
+      "abm/mutateResultForHeatmap",
+      newData
+    );
+  }  
+
   get amenitiesGeoJSON(): GeoJSON {
     return this.$store.getters["abm/abmAmenitiesGeoJSON"]
   }
@@ -143,15 +155,14 @@ export default class AbmScenario extends Vue {
     );
   }  
 
-
   get heatMapTimeRange(): [number, number] {
-    return this.$store.getters["scenario/abmTimeRange"];
+    return this.$store.getters["abm/timeRange"];
   }
   set heatMapTimeRange(
     newTimeRange: [number, number]
   ) {
     this.$store.commit(
-      "scenario/abmTimeRange",
+      "abm/mutateTimeRange",
       newTimeRange
     );
   }
@@ -276,14 +287,10 @@ export default class AbmScenario extends Vue {
   buildHeatMapLayerAndAddToMap(): void {
     // process result for heatmap (in worker)
     this.$worker.run(resultProcessing.getAgentCountsPerHourAndCoordinate, [this.result])
-      .then((dataForHeatmap: AgentsClusteredForHeatmap) => {
+      .then((processedResult: AgentsClusteredForHeatmap) => {
         console.log("worker finished for heatmap")
-        this.$store.commit("abm/mutateResultForHeatmap", dataForHeatmap)
-        buildAggregationLayer(dataForHeatmap)
-          .then((layer) => {
-            // todo check if still active component
-            addDeckLayerToMap(layer, this.map)
-          })
+        this.dataForHeatmap = processedResult;  // save to store
+        this.updateAggregationLayer()
       })
       .finally(() => { 
         // hide layers if user switched to different component meanwhile
@@ -291,6 +298,15 @@ export default class AbmScenario extends Vue {
             hideLayers(this.map, ["abmHeat"]);
         }
       })
+  }
+
+  /** builds deck heatmap layer and adds it to map **/ 
+  updateAggregationLayer() {
+    buildAggregationLayer(this.dataForHeatmap, this.heatMapTimeRange)
+      .then((layer) => {
+        // todo check if still active component
+        addDeckLayerToMap(layer, this.map)
+    })
   }
 
   /**
@@ -353,13 +369,10 @@ export default class AbmScenario extends Vue {
   /**
    * called upon slider change of heatMapTimeRange
    * recreates heatmap for given heatMapTimeRange
-   * 
-   TODO - is this working?
   **/ 
   changeHeatMapData(startTime, endTime): void {
-    this.heatMapTimeRange = [startTime, endTime];
-    // todo refactor move to abm store
-    this.$store.dispatch("scenario/updateAggregationLayer");
+    this.heatMapTimeRange = [startTime, endTime];  // save to store
+    this.updateAggregationLayer()
   }
 };
 
@@ -549,7 +562,7 @@ export default class AbmScenario extends Vue {
           hide-details
           dark
           class="align-center"
-          @change="changeHeatMapData()"
+          @change="updateAggregationLayer()"
         >
           <template v-slot:prepend>
             <v-text-field

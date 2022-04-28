@@ -41,7 +41,7 @@ export default class TimeSheet extends Vue {
    **/
   playTripsLayerAnimation(): void {
     // TODO: Once ABM is automated, get start/end times from API.
-    const abmTimeRange = this.$store.state.scenario.abmTimeRange;
+    const abmTimeRange = this.$store.getters["abm/timeRange"];
     const start = (abmTimeRange[0] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
     const end = (abmTimeRange[1] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
 
@@ -175,9 +175,8 @@ export default class TimeSheet extends Vue {
   }
 
 
-  // TODO refactor
   get abmTimeRange() {
-    return this.$store.state.scenario.abmTimeRange;
+    return this.$store.getters["abm/timeRange"];
   }
   
   // when is this used??

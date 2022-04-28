@@ -7,7 +7,7 @@ import { TripsLayer } from "@deck.gl/geo-layers";
 import GL from "@luma.gl/constants";
 import { PolygonLayer } from "@deck.gl/layers";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
-import type { AgentsClusteredForHeatmap, GeoJSON } from "@/models";
+import type { AbmTimeRange, AgentsClusteredForHeatmap, GeoJSON } from "@/models";
 
 export const abmTripsLayerName = "abmTrips";
 export const abmAggregationLayerName = "abmHeat";
@@ -121,21 +121,25 @@ export function setAnimationTimeAbm(tripsLayer: DeckLayer<any>, time: number) {
 }
 
 export async function buildAggregationLayer(
-  heatLayerData: AgentsClusteredForHeatmap
+  heatLayerData: AgentsClusteredForHeatmap,
+  timeRange: AbmTimeRange
 ): Promise<DeckLayer<any>> {
 
   const heatLayerFormed = [];
   //preparing Data for HeatMap Layer
-  Object.entries(heatLayerData).forEach(([key, value]) => {
-    Object.entries(heatLayerData[key].values).forEach(
-      ([subKey, subValue]) => {
-        const coordinate = {
-          c: subKey.split(",").map(Number), // coordinate string to array 
-          w: heatLayerData[key].values[subKey].length,  // values is an array of names of the active agents at that location
-        };
-        heatLayerFormed.push(coordinate);
-      }
-    );
+  Object.entries(heatLayerData).forEach(([key, _value]) => {
+    const hour = parseInt(key)
+    if (hour as number >= timeRange[0] && hour <= timeRange[1]) {
+      Object.entries(heatLayerData[key].values).forEach(
+        ([subKey, subValue]) => {
+          const coordinate = {
+            c: subKey.split(",").map(Number), // coordinate string to array 
+            w: heatLayerData[key].values[subKey].length,  // values is an array of names of the active agents at that location
+          };
+          heatLayerFormed.push(coordinate);
+        }
+      );
+    }
   });
 
 
