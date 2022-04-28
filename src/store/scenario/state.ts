@@ -15,8 +15,6 @@ export default {
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
 
-  animationSpeed: 7, // todo remove from store, sw and abm
-
   // layers
   noiseMap: false,
   stormWater: false,

@@ -18,7 +18,7 @@ export default class TimeSheet extends Vue {
   $store: Store<StoreStateWithModules>;
 
   timeChart = null;
-  animationSpeed = 21;
+  animationSpeed = 3;
   heatMapRange = { left: "0%", width: "100%" };
   minTime = 0;
   showGraph = true;
@@ -48,9 +48,9 @@ export default class TimeSheet extends Vue {
     // TODO adjust timestamp to slider. or slider to abm logic.
     this.currentTimeStamp = this.currentTimeStamp || start;
 
-    // increase animation time by 1 step
-    this.currentTimeStamp = this.currentTimeStamp + this.animationSpeed;
-    if (this.currentTimeStamp + this.animationSpeed >= end) {
+    // increase animation 1 step. 1 step = 7 seconds per animationSpeed
+    this.currentTimeStamp = this.currentTimeStamp + (this.animationSpeed * 7);
+    if (this.currentTimeStamp + (this.animationSpeed * 7) >= end) {
       this.currentTimeStamp = start;
     }
 
@@ -69,8 +69,6 @@ export default class TimeSheet extends Vue {
       }
     });
   }
-
-  
 
   renderTimeGraph() {
     this.reRenderTimeSheet = false;
@@ -184,7 +182,14 @@ export default class TimeSheet extends Vue {
     return this.$store.state.scenario.showUi;
   }
 
-  
+  increaseAnimationSpeed(): number {
+    if (this.animationSpeed <= 3) {
+      return this.animationSpeed += 1;
+    } else {
+      return 1;
+    }
+  }
+
   /** WATCHERS */
   @Watch("reRenderTimeSheet")
   reRenderTimeSheetWatcher(): void {
@@ -243,7 +248,7 @@ export default class TimeSheet extends Vue {
         </div>
         <div class="animation_info">
           <p>
-            animation speed<strong> x{{ animationSpeed / 7 }}</strong>
+            animation speed<strong> x{{ animationSpeed }}</strong>
           </p>
         </div>
       </div>
@@ -251,7 +256,9 @@ export default class TimeSheet extends Vue {
         v-if="timeSheetContext === 'abm'"
         @toggle-animation="toggleAnimation"
         :animation-running="animateTripsLayer"
-        @animationSpeed="animationSpeed = $event"
+        :animationSpeed="animationSpeed"
+        :allowSpeedControl="true"
+        @increaseAnimationSpeed="animationSpeed = increaseAnimationSpeed()"
         @toggle-graph="showGraph = $event"
       />
     </span><!-- TODO : why if abm sheet hidden with vif and sw time sheet hidden with "hidden" prob?-->
@@ -259,7 +266,6 @@ export default class TimeSheet extends Vue {
     <SWTimeSheet
       :hidden="timeSheetContext !== 'sw'"
       :class="{ dismiss: timeSheetContext !== 'sw' }"
-      :controls="timeSheetContext === 'sw'"
     />
   </div>
 </template>
