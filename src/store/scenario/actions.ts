@@ -6,7 +6,6 @@ import { StoreState } from "@/models";
 import {
   addSourceAndLayerToMap as addSourceAndLayersToMap,
 } from "@/services/map.service";
-import { bridges as bridgeNames } from "@/store/abm";
 
 import {
   calcAbmStatsForMultiLayer,
@@ -77,15 +76,3 @@ export default {
   }
 };
 
-function updateBridges(bridge_hafencity, underpass_veddel) {
-  const bridges = [bridgeNames.bridge_veddel_horizontal]; // always there
-
-  if (bridge_hafencity) {
-    bridges.push(bridgeNames.bridge_hafencity);
-  }
-  if (underpass_veddel) {
-    bridges.push(bridgeNames.underpass_veddel_north);
-  }
-
-  return bridges;
-}

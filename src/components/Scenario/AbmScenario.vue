@@ -4,6 +4,11 @@ import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import amenitiesLayerConfig from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
+import {
+  bridgesSource,
+  hafenCityBridgeLayerConf,
+  veddelUnderPassConfig,
+} from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
 import { abmLayerIds } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
@@ -24,7 +29,7 @@ import { Store } from "vuex";
 import type {
   MapboxMap,
   AbmScenarioConfiguration,
-  MenuLink, 
+  MenuLink,
   StoreStateWithModules,
   AbmSimulationResult,
   AgentsClusteredForHeatmap,
@@ -35,12 +40,15 @@ import type {
   AbmAmenityOptions,
   GeoJSON,
   AgentNameToIndexTable,
-  AgentTrip
+  AgentTrip,
+  AbmScenarioConfigGrasbrook,
 } from "@/models";
-import { buildAggregationLayer, buildTripsLayer } from "@/services/deck.service";
+import {
+  buildAggregationLayer,
+  buildTripsLayer,
+} from "@/services/deck.service";
 import * as resultProcessing from "@/services/abm/resultProcessing.service";
-import VueWorker from 'vue-worker'
-
+import VueWorker from "vue-worker";
 
 @Component({
   name: ScenarioComponentNames.pedestrian,
@@ -50,7 +58,7 @@ export default class AbmScenario extends Vue {
   $store: Store<StoreStateWithModules>;
   $worker: VueWorker;
   activeDivision = null;
-  
+
   scenarioConfiguration: AbmScenarioConfiguration | null = null;
 
   mainStreetOrientationOptions: Record<AbmMainStreetOptions, AbmMainStreetOptions> = {
@@ -128,7 +136,7 @@ export default class AbmScenario extends Vue {
   }
 
   get dataForHeatmap(): AgentsClusteredForHeatmap {
-    return this.$store.getters["abm/abmDataForHeatmap"]
+    return this.$store.getters["abm/abmDataForHeatmap"];
   }
   set dataForHeatmap(
     newData: AgentsClusteredForHeatmap
@@ -140,7 +148,7 @@ export default class AbmScenario extends Vue {
   }  
 
   get amenitiesGeoJSON(): GeoJSON {
-    return this.$store.getters["abm/abmAmenitiesGeoJSON"]
+    return this.$store.getters["abm/abmAmenitiesGeoJSON"];
   }
 
   get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
@@ -153,7 +161,7 @@ export default class AbmScenario extends Vue {
       "abm/mutateScenarioConfiguration",
       newScenarioConfiguration
     );
-  }  
+  }
 
   get heatMapTimeRange(): [number, number] {
     return this.$store.getters["abm/timeRange"];
@@ -182,20 +190,16 @@ export default class AbmScenario extends Vue {
     this.$store.commit("scenario/resultLoadingStati", loadingStati);
   }
 
-
   get heatMap(): boolean {
     return this.$store.state.scenario.heatMap;
-  } 
+  }
 
   /** Do the selected settings fit the displayed result? */
   get isFormDirty(): boolean {
     return (
-      this.result
-      &&
-      (
-        JSON.stringify(this.scenarioConfiguration) !==
+      this.result &&
+      JSON.stringify(this.scenarioConfiguration) !==
         JSON.stringify(this.scenarioConfigurationGlobal)
-      )
     );
   }
 
@@ -207,20 +211,18 @@ export default class AbmScenario extends Vue {
         addSourceAndLayerToMap(
           FocusAreasLayer.source,
           [FocusAreasLayer.layerConfig],
-          this.map,
-        )
+          this.map
+        );
       }
-      showLayers(this.map, [FocusAreasLayer.layerConfig.id])
-    }
-    else {
-      hideLayers(this.map, [FocusAreasLayer.layerConfig.id])
+      showLayers(this.map, [FocusAreasLayer.layerConfig.id]);
+    } else {
+      hideLayers(this.map, [FocusAreasLayer.layerConfig.id]);
     }
   }
 
-
   /** FUNCTIONS **/
   runScenario(): void {
-        // update stormwater scenario in store
+    // update stormwater scenario in store
     this.scenarioConfigurationGlobal = Object.assign(
       {},
       this.scenarioConfiguration
@@ -232,7 +234,7 @@ export default class AbmScenario extends Vue {
 
   /**
    * fetch results and add them to map
-  **/
+   **/
   async fetchResultAndCreateNewResultLayers(): Promise<void> {
     this.removeAbmLayersFromMap();
     this.$store.commit("abm/resetResult");
@@ -242,140 +244,207 @@ export default class AbmScenario extends Vue {
     // fetch result and create new result layers
     this.$store
       .dispatch("abm/fetchResult")
-          // sucessfully got result
-        .then(() => {
-          // add result layers
-          this.buildTripsLayerAndAddToMap();
-          this.buildHeatMapLayerAndAddToMap();
-          
-          // add amenities layer
-          amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
-          addSourceAndLayerToMap(
-            amenitiesLayerConfig.source,
-            [amenitiesLayerConfig.layerConfig],
-            this.map
-          )
-          // create agent indexes and trip summary as input for stats calculation
-          // will be done in backend after Gama automization
-          this.createAgentIndexes();
-          this.createTripsSummary();
-        })
-        .catch((err) => {
-          console.log("caught error", err);
-          this.errorMsg = err;
-          
-          // TODO refactor do we need this?? if so, why only heatmap?
-          this.$store.commit("scenario/heatMap", false);
-        })
-        .finally(() => {
-          // remove loader screen
+      // sucessfully got result
+      .then(() => {
+        // add result layers
+        this.buildTripsLayerAndAddToMap();
+        this.buildHeatMapLayerAndAddToMap();
+
+        // add bridge layers for grasbrook
+        if (this.appContext === "grasbrook") {
+          this.addBridgeLayers();
+        }
+
+        // add amenities layer
+        amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
+        addSourceAndLayerToMap(
+          amenitiesLayerConfig.source,
+          [amenitiesLayerConfig.layerConfig],
+          this.map
+        );
+        // create agent indexes and trip summary as input for stats calculation
+        // will be done in backend after Gama automization
+        this.createAgentIndexes();
+        this.createTripsSummary();
+      })
+      .catch((err) => {
+        console.log("caught error", err);
+        this.errorMsg = err;
+
+        // TODO refactor do we need this?? if so, why only heatmap?
+        this.$store.commit("scenario/heatMap", false);
+      })
+      .finally(() => {
+        // remove loader screen
+        this.resultLoading = false;
           this.resultLoading = false; 
-          }
-    );
+        this.resultLoading = false;
+          this.resultLoading = false; 
+        this.resultLoading = false;
+          this.resultLoading = false; 
+        this.resultLoading = false;
+          this.resultLoading = false; 
+        this.resultLoading = false;
+      });
   }
 
   // deletes layers and sources of all abm Layers from amp
   removeAbmLayersFromMap(): void {
-    ["abmTrips", "abmHeat", "abmAmenities"].forEach(layerName => {
+    ["abmTrips",
+     "abmHeat",
+     "abmAmenities",
+     hafenCityBridgeLayerConf.id,
+     veddelUnderPassConfig.id
+    ].forEach((layerName) => {
       removeSourceAndItsLayersFromMap(layerName, this.map);
-    })
+    });
   }
 
   /**
    * builds the heatmap layer and adds it to the map
-   **/ 
+   **/
   buildHeatMapLayerAndAddToMap(): void {
     // process result for heatmap (in worker)
-    this.$worker.run(resultProcessing.getAgentCountsPerHourAndCoordinate, [this.result])
+    this.$worker
+      .run(resultProcessing.getAgentCountsPerHourAndCoordinate, [this.result])
       .then((processedResult: AgentsClusteredForHeatmap) => {
-        console.log("worker finished for heatmap")
-        this.dataForHeatmap = processedResult;  // save to store
-        this.updateAggregationLayer()
+        console.log("worker finished for heatmap");
+        this.dataForHeatmap = processedResult; // save to store
+        this.updateAggregationLayer();
       })
-      .finally(() => { 
+      .finally(() => {
         // hide layers if user switched to different component meanwhile
-         if (!this.isPedestrianActiveComponent) {
-            hideLayers(this.map, ["abmHeat"]);
+        if (!this.isPedestrianActiveComponent) {
+          hideLayers(this.map, ["abmHeat"]);
         }
-      })
+      });
   }
 
-  /** builds deck heatmap layer and adds it to map **/ 
+  /** builds deck heatmap layer and adds it to map **/
   updateAggregationLayer() {
-    buildAggregationLayer(this.dataForHeatmap, this.heatMapTimeRange)
-      .then((layer) => {
+    buildAggregationLayer(this.dataForHeatmap, this.heatMapTimeRange).then(
+      (layer) => {
         // todo check if still active component
-        addDeckLayerToMap(layer, this.map)
-    })
+        addDeckLayerToMap(layer, this.map);
+      }
+    );
   }
 
   /**
    * builds the trips layer and adds it to the map
-  **/
+   **/
   buildTripsLayerAndAddToMap(): void {
-    buildTripsLayer(this.result, 0)
+    buildTripsLayer(this.result)
       .then((tripsLayer) => {
-        addDeckLayerToMap(tripsLayer, this.map)
-        this.createTimeGraph()
+        addDeckLayerToMap(tripsLayer, this.map);
+        this.createTimeGraph();
       })
-      .finally(() => { 
+      .finally(() => {
         // hide layers if user switched to different component meanwhile
-         if (!this.isPedestrianActiveComponent) {
-            hideLayers(this.map, ["abmTrips", "abmAmenities"]);
+        if (!this.isPedestrianActiveComponent) {
+          hideLayers(this.map, ["abmTrips", "abmAmenities"]);
         }
-      })
+      });
+  }
+
+  /** adds the user selected bridges to the map **/
+  async addBridgeLayers(): Promise<void> {
+    let scenarioConfig = this.scenarioConfigurationGlobal as AbmScenarioConfigGrasbrook;
+    
+    let mapSource = bridgesSource;
+    // Add bridge geojson to source description
+    mapSource.options.data = await this.$store.state.cityPyO.getLayer("bridges"); 
+
+    let layerConfigs = [];
+    // add layer configs for bridges in selected scenario
+    if (scenarioConfig.bridge_hafencity) {
+      layerConfigs.push(hafenCityBridgeLayerConf);
+    }
+    if (scenarioConfig.underpass_veddel_north) {
+      layerConfigs.push(veddelUnderPassConfig);
+    }
+    addSourceAndLayerToMap(bridgesSource, layerConfigs, this.map);
   }
 
   /**
    * processes the result data for visualization in timegraph
    * add timegraph
    * adds trips layer
+   */
   */    
+   */
+  */    
+   */
+  */    
+   */
+  */    
+   */
   createTimeGraph(): void {
     // process result for timegraph (in worker)
-    this.$worker.run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [this.result])
+    this.$worker
+      .run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [
+        this.result,
+      ])
       .then((dataForTimeGraph: DataForAbmTimeGraph) => {
         // show time graph and trips layer control
-        this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph)
+        this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph);
         this.$store.commit("abm/mutateReRenderTimeSheet", true);
       })
       .catch((err) => {
-        console.warn("caught error when processing abm results for timegrap", err);
+        console.warn(
+          "caught error when processing abm results for timegrap",
+          err
+        );
         this.resultLoading = false;
         this.errorMsg = err;
-      })
+      });
   }
 
   createAgentIndexes(): void {
-    this.$worker.run(resultProcessing.createAgentNameToIndexTable, [this.result])
+    this.$worker
+      .run(resultProcessing.createAgentNameToIndexTable, [this.result])
       .then((lookupTable: AgentNameToIndexTable) => {
-        this.$store.commit("abm/mutateAgentLookupTable", lookupTable)
+        this.$store.commit("abm/mutateAgentLookupTable", lookupTable);
       })
       .catch((err) => {
-        console.warn("caught error when processing abm results for AgentNameToIndexTable", err);
-      })
+        console.warn(
+          "caught error when processing abm results for AgentNameToIndexTable",
+          err
+        );
+      });
   }
-  
+
   createTripsSummary(): void {
-    this.$worker.run(resultProcessing.createTripsSummary, [this.result])
+    this.$worker
+      .run(resultProcessing.createTripsSummary, [this.result])
       .then((tripsSummary: AgentTrip[]) => {
-        this.$store.commit("abm/mutateTripsSummary", tripsSummary)
+        this.$store.commit("abm/mutateTripsSummary", tripsSummary);
       })
       .catch((err) => {
-        console.warn("caught error when processing abm results to tripsSummary", err);
-      })
+        console.warn(
+          "caught error when processing abm results to tripsSummary",
+          err
+        );
+      });
   }
 
   /**
    * called upon slider change of heatMapTimeRange
    * recreates heatmap for given heatMapTimeRange
+   **/
   **/ 
+   **/
+  **/ 
+   **/
+  **/ 
+   **/
+  **/ 
+   **/
   changeHeatMapData(startTime, endTime): void {
-    this.heatMapTimeRange = [startTime, endTime];  // save to store
-    this.updateAggregationLayer()
+    this.heatMapTimeRange = [startTime, endTime]; // save to store
+    this.updateAggregationLayer();
   }
-};
-
+}
 </script>
 
 <template>
@@ -441,9 +510,7 @@ export default class AbmScenario extends Vue {
           </div>
           <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">CITY BLOCK STRUCTURE</header>
-            <v-radio-group
-              v-model="scenarioConfiguration.blocks"
-            >
+            <v-radio-group v-model="scenarioConfiguration.blocks">
               <v-radio
                 :value="blockOptions.open"
                 :disabled="resultLoading"
@@ -462,9 +529,7 @@ export default class AbmScenario extends Vue {
           </div>
           <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">AMENITY DISTRIBUTION</header>
-            <v-radio-group
-              v-model="scenarioConfiguration.roof_amenities"
-            >
+            <v-radio-group v-model="scenarioConfiguration.roof_amenities">
               <v-radio
                 :value="roofAmenitiesOptions.complementary"
                 :disabled="resultLoading"
@@ -506,34 +571,32 @@ export default class AbmScenario extends Vue {
       <div v-if="activeDivision === 'Scenario'" class="component_content">
         <h2>Pedestrian Flow | Scenario Settings</h2>
         <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
-            <header class="text-sm-left">AMENITY DISTRIBUTION</header>
-            <v-radio-group
-              v-model="scenarioConfiguration.amenity_config"
-            >
-              <v-radio
-                value="current"
-                :disabled="resultLoading"
-                flat
-                label="STATUS QUO"
-                dark
-              />
-              <v-radio
-                value="future"
-                :disabled="resultLoading"
-                flat
-                label="SCIENCECITY"
-                dark
-              />
-            </v-radio-group>
+          <header class="text-sm-left">AMENITY DISTRIBUTION</header>
+          <v-radio-group v-model="scenarioConfiguration.amenity_config">
+            <v-radio
+              value="current"
+              :disabled="resultLoading"
+              flat
+              label="STATUS QUO"
+              dark
+            />
+            <v-radio
+              value="future"
+              :disabled="resultLoading"
+              flat
+              label="SCIENCECITY"
+              dark
+            />
+          </v-radio-group>
         </div>
         <v-btn
-            @click="runScenario"
-            class="confirm_btn mt-2"
-            :class="{ changesMade: isFormDirty }"
-            :disabled="resultLoading"
-          >
-            Run Scenario
-          </v-btn>
+          @click="runScenario"
+          class="confirm_btn mt-2"
+          :class="{ changesMade: isFormDirty }"
+          :disabled="resultLoading"
+        >
+          Run Scenario
+        </v-btn>
       </div>
     </div>
     <!--division-end-->
@@ -606,7 +669,11 @@ export default class AbmScenario extends Vue {
           </v-tooltip>
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn @click="changeHeatMapData(11, 15)" v-bind="attrs" v-on="on">
+              <v-btn
+                @click="changeHeatMapData(11, 15)"
+                v-bind="attrs"
+                v-on="on"
+              >
                 <v-icon>mdi-weather-sunny</v-icon>
               </v-btn>
             </template>
@@ -614,7 +681,11 @@ export default class AbmScenario extends Vue {
           </v-tooltip>
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn @click="changeHeatMapData(17, 20)" v-bind="attrs" v-on="on">
+              <v-btn
+                @click="changeHeatMapData(17, 20)"
+                v-bind="attrs"
+                v-on="on"
+              >
                 <v-icon>mdi-weather-sunset-down</v-icon>
               </v-btn>
             </template>

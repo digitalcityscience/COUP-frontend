@@ -1,15 +1,3 @@
-// TODO move this to models!
-
-
-// TODO refactor bridges logic to load bridge layer
-export const bridges = {
-  bridge_hafencity: "bridge_hafencity",
-  bridge_veddel_horizontal: "bridge_veddel_horizontal",
-  underpass_veddel_north: "underpass_veddel_north",
-};
-
-
-
 // move this to config folder or something
 export const alkisTranslations = {
   2000: "commercial",
