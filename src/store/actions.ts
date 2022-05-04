@@ -3,7 +3,7 @@ import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerCon
 import BuildingLayerConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 import { SourceAndLayerConfig, StoreState } from "@/models";
-import { addSourceAndLayerToMap } from "@/services/map.service";
+import { addSourceAndLayerToMap, hideLayers } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
 import { ActionContext } from "vuex";
 
@@ -36,6 +36,7 @@ export default {
         [FocusAreasLayerConfig.layerConfig],
         state.map
       );
+      hideLayers(state.map, [FocusAreasLayerConfig.layerConfig.id])
     });
   },
   // TODO do this in layer service?

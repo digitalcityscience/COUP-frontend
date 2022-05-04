@@ -26,7 +26,8 @@
         <div class="layers">
           <h3>Focus Areas</h3>
           <v-checkbox
-            v-model="visibleLayers.focusAreas"
+            v-model="checkedLayers"
+            value="focusAreas"
             label="Focus Areas"
             color="white"
             dark
@@ -37,7 +38,8 @@
         <div class="layers">
           <h3>Pedestrians Layers</h3>
           <v-checkbox
-            v-model="visibleLayers.abm"
+            v-model="checkedLayers"
+            value="abmTrips"
             label="Pedestrians Animation"
             color="white"
             dark
@@ -45,7 +47,8 @@
             :disabled="!hasAbmResult"
           ></v-checkbox>
           <v-checkbox
-            v-model="visibleLayers.heat"
+            v-model="checkedLayers"
+            value="abmHeat"
             label="Pedestrians Aggregation"
             color="white"
             dark
@@ -53,7 +56,8 @@
             :disabled="!hasAbmResult"
           ></v-checkbox>
           <v-checkbox
-            v-model="visibleLayers.amenities"
+            v-model="checkedLayers"
+            value="abmAmenities"
             label="Pedestrians Amenities"
             color="white"
             dark
@@ -64,56 +68,74 @@
         <div class="layers">
           <h3>Noise Layers</h3>
           <v-checkbox
-            v-model="visibleLayers.noise"
+            v-model="checkedLayers"
+            value="noise"
             label="Traffic Noise"
             color="white"
             dark
             hide-details
-            :disabled="!noiseMap"
+            :disabled="!hasNoiseResult"
+          ></v-checkbox>
+          <v-checkbox
+            v-model="checkedLayers"
+            value="trafficCounts"
+            label="Traffic Counts"
+            color="white"
+            dark
+            hide-details
+            :disabled="!hasNoiseResult"
           ></v-checkbox>
         </div>
         <div class="layers">
           <h3>Climate Layers</h3>
           <v-checkbox
-            v-model="visibleLayers.wind"
+            v-model="checkedLayers"
             label="Wind"
+            value="wind"
             color="white"
             dark
             hide-details
-            :disabled="!wind"
+            :disabled="!hasWindResult"
           ></v-checkbox>
           <v-checkbox
-            v-model="visibleLayers.sunExposure"
+            v-model="checkedLayers"
+            value="sun_exposure"
             label="Sun Exposure"
             color="white"
             dark
             hide-details
-            :disabled="!sunExposure"
+            :disabled="!hasSunExposureResult"
           ></v-checkbox>
         </div>
         <div class="layers">
           <h3>Stormwater Layers</h3>
           <v-checkbox
-            v-model="visibleLayers.stormwater"
+            v-model="checkedLayers"
             label="Stormwater"
+            value="stormwater"
             color="white"
             dark
             hide-details
-            :disabled="!stormWater"
+            :disabled="!hasStormwaterResult"
           ></v-checkbox>
+          <!-- 
+            TODO : get tree layer as from backend, when fetching stormwater result
           <v-checkbox
-            v-model="visibleLayers.trees"
+            v-model="checkedLayers"
             label="Trees"
+            value="trees"
             color="white"
             dark
             hide-details
-            :disabled="!stormWater"
+            :disabled="!hasStormwaterResult"
           ></v-checkbox>
+          -->
         </div>
         <div class="layers">
           <h3>Multi Layer Analysis</h3>
           <v-checkbox
-            v-model="visibleLayers.multiLayerAnalysis"
+            v-model="checkedLayers"
+            value="multiLayerAnalysis"
             label="Combined Layers"
             color="white"
             dark
@@ -127,54 +149,82 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { VisibleLayers, StoreState } from "@/models";
+import { Component, Provide, Vue, Watch } from "vue-property-decorator";
+import { getVisibleLayerIds, hideLayers, showLayers } from "@/services/map.service";
+import { buildingLayerIds, landscapeLayerId } from "@/services/layers.service";
+import { hafenCityBridgeLayerConf, veddelUnderPassConfig } from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
+
+
 @Component
 export default class Layers extends Vue {
   menu = false;
+  checkedLayers = [];
+  nonControllableLayers: string[] = [
+    ...buildingLayerIds,
+    landscapeLayerId,
+    hafenCityBridgeLayerConf.id,
+    veddelUnderPassConfig.id
+  ];
 
-  get heatMap(): unknown {
-    return this.$store.state.scenario.heatMap;
+  /** check which layers are visible when menu is toggled **/
+  @Watch("menu")
+  onMenuToggle(newVal, oldVal): void {
+    if (newVal) {
+      this.checkedLayers = getVisibleLayerIds(this.map);
+    }  
   }
 
-  get multiLayerAnalysis(): unknown {
-    return this.$store.state.scenario.multiLayerAnalysisMap;
+  /** Update layer visibility on change of checkedLayers **/
+  @Watch("checkedLayers", { deep: true })
+  oncheckedLayers(): void {
+    const currentlyVisibleLayers = getVisibleLayerIds(this.map)
+    
+    // layers visible, but no longer selected
+    const layersToHide = currentlyVisibleLayers.filter(x => {
+      return !this.checkedLayers.includes(x)
+        && !this.nonControllableLayers.includes(x)
+      })
+    
+    // layers selected, but not yet visible
+    const layersToShow = this.checkedLayers.filter(x => {
+      return !currentlyVisibleLayers.includes(x)
+    })
+
+    // update map
+    hideLayers(this.map, layersToHide)
+    showLayers(this.map, layersToShow)
+  }
+
+  get map() {
+    return this.$store.state.map;
+  }
+
+  get hasSunExposureResult(): boolean {
+    return !!this.$store.state.scenario.sunExposureGeoJson;
+  }
+
+  get multiLayerAnalysis(): boolean {
+    return !!this.$store.state.scenario.multiLayerAnalysisMap;
   }
 
   get hasAmenityGeoJSON(): boolean {
-    return this.$store.getters["abm/abmAmenitiesGeoJSON"] === null;
+    return !!this.$store.getters["abm/abmAmenitiesGeoJSON"];
   }
   
   get hasAbmResult(): boolean {
-    return this.$store.getters["abm/abmResult"] === null;
+    return !!this.$store.getters["abm/abmResult"];
   }
 
-  get noiseMap(): unknown {
-    return this.$store.state.scenario.noiseMap;
+  get hasNoiseResult(): boolean {
+    return !!this.$store.getters["noise/noiseResult"];
   }
 
-  get stormWater(): unknown {
-    return this.$store.state.scenario.stormWater;
+  get hasStormwaterResult(): boolean {
+    return !!this.$store.getters["stormwater/stormWaterResult"];
   }
 
-  get storeState(): StoreState {
-    return this.$store.state;
-  }
-
-  get visibleLayers(): VisibleLayers {
-    return this.storeState.visibleLayers;
-  }
-
-  set visibleLayers(newLayers: VisibleLayers) {
-    this.$store.commit("visibleLayers", newLayers);
-  }
-
-  get wind(): unknown {
-    return this.$store.state.scenario.windLayer;
-  }
-
-  get sunExposure(): unknown {
-    return this.$store.state.scenario.sunExposureLayer;
+  get hasWindResult(): boolean {
+    return !!this.$store.getters["wind/windResult"];
   }
 }
 </script>

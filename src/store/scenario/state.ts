@@ -15,13 +15,8 @@ export default {
   updateAbmStatsChart: false,
   updateAmenityStatsChart: false,
 
-  // layers
-  noiseMap: false,
-  stormWater: false,
-  windLayer: false,
-  sunExposureLayer: false,
+  // TODO make a getter!
   multiLayerAnalysisMap: false,
-  heatMap: false,
   
   // UI
   lastClick: [],

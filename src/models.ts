@@ -8,19 +8,6 @@ import type AbmStore from "./store/abmStore";
 export type { MapboxMap };
 export type GeoJSON = Record<string, unknown>;
 
-export interface VisibleLayers {
-  focusAreas: boolean;
-  abm: boolean;
-  heat: boolean;
-  amenities: boolean;
-  noise: boolean;
-  stormwater: boolean;
-  wind: boolean;
-  sunExposure: boolean;
-  multiLayerAnalysis: boolean;
-  trees: boolean;
-}
-
 export interface StoreState {
   map: MapboxMap | null;
   appContext: AppContext | null;
@@ -38,20 +25,35 @@ export interface StoreState {
   selectedObjectId: string | null;
   selectedMultiFeatures: any[];
   featureCircles: any[];
-  visibleLayers: VisibleLayers;
 }
 
 export interface ScenarioStoreState {
-  showUi: boolean;
-  activeAbmSet: unknown;
-  animateTripsLayer: boolean;
-  abmTimePaths: unknown;
-  abmTimeRange: [number, number];
-  heatMap: boolean;
-  rerenderSwGraph: boolean;
-  stormWater: boolean;
-  currentTimeStamp: number | null;
-  resultLoadingStati: DataLoadingStati;
+    // ABM dashboard charts
+    updateAbmStatsChart: boolean,
+    updateAmenityStatsChart: boolean,
+  
+    // layers
+    noiseMap: boolean,
+    stormWater: boolean,
+    windLayer: boolean,
+    sunExposureLayer: boolean,
+    multiLayerAnalysisMap: boolean,
+    heatMap: boolean,
+    
+    // UI
+    lastClick: any[],
+    showUi: boolean,
+    allFeaturesHighlighted: boolean,
+    selectedFocusAreas: [],
+  
+    // sun
+    sunExposureGeoJson: null,
+  
+    // UI
+    resultLoadingStati: DataLoadingStati,
+  
+    // Stormwater
+    rerenderSwGraph: boolean,
 }
 
 export type TimeSheetContext = "abm" | "sw" | null;
@@ -80,7 +82,7 @@ export type CoordinatesAsString = string;
 export type AgentsClusteredForHeatmap = Record<number, AgentId[]>
 
 // Lookup table for the agents index in the AbmSimulationResult
-export type AgentIndexByName =  Record<string, number>;
+export type AgentNameToIndexTable =  Record<string, number>;
 
 /**
  * count of all agents active during these 5 min onwards from timestamp
@@ -135,6 +137,7 @@ export interface AgentTrip {
   agent: AgentId;
 }
 
+export type AbmTimeRange = [number, number];
 export type Coordinates = [number, number];
 export type Timestamp = number;
 

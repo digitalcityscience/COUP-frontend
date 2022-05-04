@@ -121,7 +121,6 @@ export default {
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
       ["activeMenuComponent", "activeMenuComponent"],
-      ["visibleLayers", "visibleLayers"],
       ["windScenarioHash", "scenario/windScenarioHash"],
       ["abmSettings", "scenario/moduleSettings"],
     ]),
