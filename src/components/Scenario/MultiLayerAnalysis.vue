@@ -125,7 +125,7 @@ export default {
       ["abmSettings", "scenario/moduleSettings"],
     ]),
     currentAbmResult() {
-      return this.$store.getters["abm/abmResult"];
+      return this.$store.state.abm.simulationResult;
     },
     currentNoiseResult() {
       return this.$store.getters["noise/noiseResult"];

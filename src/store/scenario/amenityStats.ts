@@ -12,7 +12,7 @@ export async function calculateAmenityStatsForMultiLayerAnalysis() {
 
   for (const focusAreaId of focusAreaIds) {
     amenityStats[focusAreaId] = {};
-    if (!store.getters["abm/amenityStats"].focusAreaId) {
+    if (!store.state.abm.amenityStats.focusAreaId) {
       const focusArea = getFocusAreaAsTurfObject(focusAreaId);
       const amenitiesFeatures = getFeatureCollectionOfNonResidentialAmenities();
       const amenitiesWithin = turf.pointsWithinPolygon(
@@ -58,7 +58,7 @@ function getFocusAreaAsTurfObject(focusAreaId?: number) {
 export async function calculateAmenityStatsForFocusArea(
   focusAreaId?: number
 ): Promise<void> {
-  if (!store.getters["abm/abmAmenitiesGeoJSON"]) {
+  if (!store.state.abm.amenitiesGeoJSON) {
     console.error("cannot calc amenity stats - no amenityGeoJson in store!");
     return;
   }
@@ -86,7 +86,7 @@ export async function calculateAmenityStatsForFocusArea(
     Density: density,
     Complementarity: complementarity,
   };
-  const amenityStats = store.getters["abm/amenityConfigStats"] || {};
+  const amenityStats = store.state.abm.amenityStats || {};
 
   const id = focusAreaId || "grasbrook";
   amenityStats[id] = results;
@@ -108,7 +108,7 @@ export async function calculateAmenityStatsForFocusArea(
  * @returns FeatureCollection<Point>
  */
 function getFeatureCollectionOfNonResidentialAmenities(): turf.FeatureCollection<turf.Point> {
-  const amenities = store.getters["abm/abmAmenitiesGeoJSON"] as turf.GeoJSONObject;
+  const amenities = store.state.abm.amenitiesGeoJSON as turf.GeoJSONObject;
 
   // all amenities that are non-residential
   return turf.featureCollection(
@@ -125,7 +125,7 @@ function getFeatureCollectionOfNonResidentialAmenities(): turf.FeatureCollection
 function calculateComplementarity(
   amenitiesWithin: turf.FeatureCollection<turf.Point>
 ) {
-  const abmTrips = store.getters["abm/abmTripsSummary"];
+  const abmTrips = store.state.abm.tripsSummary;
 
   if (amenitiesWithin.features.length === 0) {
     // no amenities in the area

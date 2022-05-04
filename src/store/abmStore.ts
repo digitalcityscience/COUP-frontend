@@ -1,5 +1,4 @@
 import type {
-  // TODO Refactor
   AbmResponse,
   AbmScenarioConfiguration,
   AbmSimulationResult,
@@ -17,10 +16,9 @@ import {
   MutationAction,
   VuexModule,
 } from "vuex-module-decorators";
-import CityPyO from './cityPyO';
 
 
-export const defaultAbmScenarioConfigurations: Record<AppContext, AbmScenarioConfiguration> = {
+const defaultAbmScenarioConfigurations: Record<AppContext, AbmScenarioConfiguration> = {
   "grasbrook": {
     bridge_hafencity: true,
     underpass_veddel_north: true,
@@ -35,120 +33,45 @@ export const defaultAbmScenarioConfigurations: Record<AppContext, AbmScenarioCon
 
 @Module({ namespaced: true })
 export default class AbmStore extends VuexModule {
-  _scenarioConfig = null;
+  scenarioConfig = null;
   
   // original result data
   simulationResult: AbmSimulationResult | null = null;
   amenitiesGeoJSON: GeoJSON | null = null;
   
   // processed result data
-  agentIndexes: AgentNameToIndexTable = {};
+  agentIndexesByName: AgentNameToIndexTable = {};
   tripsSummary: AgentTrip[] = [];
   dataForHeatmap: AgentsClusteredForHeatmap = {};
   dataForTimeGraph: DataForAbmTimeGraph | null = null;
   
+  // UI
+  animateLayer: boolean = false;
+  timeSheetNeedsRerender: boolean = false;
+
+  // entire abm simulations runs from 8am to 23(pm)
+  timeRange: AbmTimeRange = [8,23];
+
   // abm stats for dashboard and multilayer
   abmStats: any = {}
   amenityStats: any = {}
   abmStatsMultiLayer: any = {} 
   amenityStatsMultiLayer: any = {} 
-  
-  // UI
-  animateLayer: boolean = false;
-  reRenderTimeSheet: boolean = false;
-  abmTimeRange: AbmTimeRange = [8,23];
 
 
-  get scenarioConfig(): AbmScenarioConfiguration {
-    return this._scenarioConfig || defaultAbmScenarioConfigurations[this.context.rootState.appContext];
-  }
-
-  set scenarioConfig(newConfig: AbmScenarioConfiguration) {
-    this._scenarioConfig = newConfig;
-  }
-
-  // TODO delete and rename get scnearioConfig in get scenearioConfiguration
   get scenarioConfiguration(): AbmScenarioConfiguration {
-    return this.scenarioConfig;
+    return this.scenarioConfig || defaultAbmScenarioConfigurations[this.context.rootState.appContext];
   }
-
-  get abmResult(): AbmSimulationResult {
-    return this.simulationResult;
-  } 
-
-  get abmAmenitiesGeoJSON(): GeoJSON {    
-    return this.amenitiesGeoJSON;
-  }
-  
-  get abmTripsSummary(): AgentTrip[] {
-    return this.tripsSummary;
-  }
-  
-  get abmDataForHeatmap(): AgentsClusteredForHeatmap {
-    return this.dataForHeatmap;
-  }
-  
-  get abmDataForTimeGraph(): DataForAbmTimeGraph {
-    return this.dataForTimeGraph;
-  }
-
-  get abmAgentIndexes(): AgentNameToIndexTable {
-    return this.agentIndexes;
-  }
-  get abmResultStats(): any {
-    return this.abmStats;
-  }
-  get amenityConfigStats(): any {
-    return this.amenityStats;
-  }
-  get abmResultStatsMultiLayer(): any {
-    return this.abmStatsMultiLayer;
-  }
-  get amenityConfigStatsMultiLayer(): any {
-    return this.amenityStatsMultiLayer;
-  }
-
-  get animateAbmTripsLayer(): boolean {
-    return this.animateLayer;
-  } 
-  
-  get timeRange(): AbmTimeRange {
-    return this.abmTimeRange;
-  } 
-  
-  get reRenderAbmTimeSheet(): boolean {
-    return this.reRenderTimeSheet;
-  }
-
-  get cityPyo(): CityPyO {
-    return this.context.rootState.cityPyO;
-  }
-
 
   @Mutation
   mutateScenarioConfiguration(
     newScenarioConfiguration: AbmScenarioConfiguration
   ): void {
-    this._scenarioConfig = { ...newScenarioConfiguration };
+    this.scenarioConfig = { ...newScenarioConfiguration };
   }
 
   @Mutation
-  mutateAnimateLayer(animateLayer: boolean): void {
-    this.animateLayer = animateLayer;
-  }
-
-  @Mutation
-  mutateTimeRange(newTimeRange: AbmTimeRange): void {
-    this.abmTimeRange = newTimeRange;
-  }
-  
-  @Mutation
-  mutateReRenderTimeSheet(needsReRendering: boolean): void {
-    this.reRenderTimeSheet = needsReRendering;
-  }
-
-  @Mutation
-  mutateResult(newResult: AbmSimulationResult): void {
+  mutateSimulationResult(newResult: AbmSimulationResult): void {
     // @ts-ignore
     this.simulationResult = Object.freeze(newResult);
   }
@@ -160,26 +83,11 @@ export default class AbmStore extends VuexModule {
   }
 
   @Mutation
-  mutateResultForHeatmap(dataForHeatmap: AgentsClusteredForHeatmap): void {
-    // used heatmap and for "createPathPointCollection" in abmStats
-    // heatmap needs "coordinates" and count of active agents per coords 
-    // in which the key is a stringified coordinate and the value is an array of agent names 
-    // TODO however, we only effectively would need the agent count, instead of agent names.
-    this.dataForHeatmap = Object.freeze(dataForHeatmap);
-  }  
-
-  @Mutation
-  mutateDataForTimeGraph(dataForTimeGraph: DataForAbmTimeGraph): void {
-     // only used for timeGraph, only need "all" value
-     this.dataForTimeGraph = Object.freeze(dataForTimeGraph);
-  }
-  
-  @Mutation
-  mutateAgentLookupTable(agentIndexes: AgentNameToIndexTable): void {
+  mutateAgentIndexesByName(agentIndexes: AgentNameToIndexTable): void {
     // agent indexes only used for "getTimeAgentIsAtPoint" in abmStats
-    this.agentIndexes = Object.freeze(agentIndexes);
-  }  
-  
+    this.agentIndexesByName = Object.freeze(agentIndexes);
+  }
+
   @Mutation
   mutateTripsSummary(tripsSummary: AgentTrip[]): void {
     // only used in "calculateTripAverages" in abmStats
@@ -188,14 +96,33 @@ export default class AbmStore extends VuexModule {
   }
 
   @Mutation
-  resetResult(): void {
-    this.simulationResult = null;
+  mutateDataForHeatmap(dataForHeatmap: AgentsClusteredForHeatmap): void {
+    // used heatmap and for "createPathPointCollection" in abmStats
+    // heatmap needs "coordinates" and count of active agents per coords 
+    // in which the key is a stringified coordinate and the value is an array of agent names 
+    // TODO however, we only effectively would need the agent count, instead of agent names.
+    this.dataForHeatmap = Object.freeze(dataForHeatmap);
+  }
 
-    // reset stats
-    this.abmStats = {}
-    this.amenityStats = {}
-    this.abmStatsMultiLayer = {} 
-    this.amenityStatsMultiLayer = {}
+  @Mutation
+  mutateDataForTimeGraph(dataForTimeGraph: DataForAbmTimeGraph): void {
+     // only used for timeGraph, only need "all" value
+     this.dataForTimeGraph = Object.freeze(dataForTimeGraph);
+  }
+
+  @Mutation
+  mutateAnimateLayer(animateLayer: boolean): void {
+    this.animateLayer = animateLayer;
+  }
+
+  @Mutation
+  mutateTimeRange(newTimeRange: AbmTimeRange): void {
+    this.timeRange = newTimeRange;
+  }
+  
+  @Mutation
+  mutateTimeSheetNeedsRerender(needsRerendering: boolean): void {
+    this.timeSheetNeedsRerender = needsRerendering;
   }
 
   @Mutation
@@ -214,27 +141,26 @@ export default class AbmStore extends VuexModule {
   mutateAmenityStatsMultiLayer(amenityStatsML: any): void {
     this.amenityStatsMultiLayer = amenityStatsML;
   }
-  
 
+  @Mutation
+  resetResult(): void {
+    this.simulationResult = null;
+
+    // reset stats
+    this.abmStats = {}
+    this.amenityStats = {}
+    this.abmStatsMultiLayer = {} 
+    this.amenityStatsMultiLayer = {}
+  }
+  
   //@ts-ignore
   @MutationAction({ mutate: ["simulationResult", "amenitiesGeoJSON"] })
   async fetchResult(): Promise<AbmResponse> {
     const response: AbmResponse =
-      await this.cityPyo.getAbmResultLayer(
+      await this.context.rootState.cityPyO.getAbmResultLayer(
         this.scenarioConfiguration,
       );
 
      return response
   }
-
-  /* @Action({})
-  // TODO refactor does it need to be current timestamp?? 
-  updateAbmLayers([map, currentTimeStamp = 0]): void {
-    const tripsLayer = buildTripsLayer(this.abmResult, currentTimeStamp);
-    addDeckLayerToMap(tripsLayer, map);
-    
-    const heatMapLayer = buildAggregationLayer(this.dataForHeatmap);
-    addDeckLayerToMap(heatMapLayer, map);
-  } */
-
 }

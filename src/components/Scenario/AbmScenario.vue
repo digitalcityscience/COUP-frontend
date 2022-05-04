@@ -42,6 +42,7 @@ import type {
   AgentNameToIndexTable,
   AgentTrip,
   AbmScenarioConfigGrasbrook,
+  AbmTimeRange,
 } from "@/models";
 import {
   buildAggregationLayer,
@@ -132,23 +133,24 @@ export default class AbmScenario extends Vue {
   }
 
   get result(): AbmSimulationResult {
-    return this.$store.getters["abm/abmResult"];
+    return this.$store.state.abm.simulationResult;
   }
 
   get dataForHeatmap(): AgentsClusteredForHeatmap {
-    return this.$store.getters["abm/abmDataForHeatmap"];
+    return this.$store.state.abm.dataForHeatmap;
   }
+
   set dataForHeatmap(
     newData: AgentsClusteredForHeatmap
   ) {
     this.$store.commit(
-      "abm/mutateResultForHeatmap",
+      "abm/mutateDataForHeatmap",
       newData
     );
   }  
 
   get amenitiesGeoJSON(): GeoJSON {
-    return this.$store.getters["abm/abmAmenitiesGeoJSON"];
+    return this.$store.state.abm.amenitiesGeoJSON;
   }
 
   get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
@@ -163,11 +165,11 @@ export default class AbmScenario extends Vue {
     );
   }
 
-  get heatMapTimeRange(): [number, number] {
-    return this.$store.getters["abm/timeRange"];
+  get heatMapTimeRange(): AbmTimeRange {
+    return this.$store.state.abm.timeRange;
   }
   set heatMapTimeRange(
-    newTimeRange: [number, number]
+    newTimeRange: AbmTimeRange
   ) {
     this.$store.commit(
       "abm/mutateTimeRange",
@@ -370,15 +372,7 @@ export default class AbmScenario extends Vue {
    * processes the result data for visualization in timegraph
    * add timegraph
    * adds trips layer
-   */
-  */    
-   */
-  */    
-   */
-  */    
-   */
-  */    
-   */
+  */
   createTimeGraph(): void {
     // process result for timegraph (in worker)
     this.$worker
@@ -388,7 +382,7 @@ export default class AbmScenario extends Vue {
       .then((dataForTimeGraph: DataForAbmTimeGraph) => {
         // show time graph and trips layer control
         this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph);
-        this.$store.commit("abm/mutateReRenderTimeSheet", true);
+        this.$store.commit("abm/mutateTimeSheetNeedsRerender", true);
       })
       .catch((err) => {
         console.warn(
@@ -402,9 +396,9 @@ export default class AbmScenario extends Vue {
 
   createAgentIndexes(): void {
     this.$worker
-      .run(resultProcessing.createAgentNameToIndexTable, [this.result])
+      .run(resultProcessing.createAgentIndexesByName, [this.result])
       .then((lookupTable: AgentNameToIndexTable) => {
-        this.$store.commit("abm/mutateAgentLookupTable", lookupTable);
+        this.$store.commit("abm/mutateAgentIndexesByName", lookupTable);
       })
       .catch((err) => {
         console.warn(
@@ -431,14 +425,6 @@ export default class AbmScenario extends Vue {
   /**
    * called upon slider change of heatMapTimeRange
    * recreates heatmap for given heatMapTimeRange
-   **/
-  **/ 
-   **/
-  **/ 
-   **/
-  **/ 
-   **/
-  **/ 
    **/
   changeHeatMapData(startTime, endTime): void {
     this.heatMapTimeRange = [startTime, endTime]; // save to store

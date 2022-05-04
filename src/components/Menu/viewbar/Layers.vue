@@ -208,11 +208,11 @@ export default class Layers extends Vue {
   }
 
   get hasAmenityGeoJSON(): boolean {
-    return !!this.$store.getters["abm/abmAmenitiesGeoJSON"];
+    return !!this.$store.state.abm.amenitiesGeoJSON;
   }
   
   get hasAbmResult(): boolean {
-    return !!this.$store.getters["abm/abmResult"];
+    return !!this.$store.state.abm.simulationResult;
   }
 
   get hasNoiseResult(): boolean {

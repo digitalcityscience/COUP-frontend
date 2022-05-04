@@ -245,7 +245,7 @@ function layerLookup(layerName: string) {
       return store.getters["noise/noiseResult"].geojson;
     case "Density":
     case "Amenity Types":
-      return store.getters["abm/amenityConfigStatsMultiLayer"];
+      return store.state.abm.amenityStatsMultiLayer;
     case "pedestrianDensity":
       return store.getters["abm/abmResultStatsMultiLayer"];
     default:

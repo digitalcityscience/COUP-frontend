@@ -77,7 +77,7 @@ export default class Buildings extends Vue {
   }
 
   get hasAmenityGeoJSON(): boolean {
-    return this.$store.getters["abm/abmAmenitiesGeoJSON"] === null;
+    return !!this.$store.state.abm.amenitiesGeoJSON;
   }
 
   get allFeaturesHighlighted(): boolean {
