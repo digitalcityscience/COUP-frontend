@@ -53,6 +53,7 @@ export default class AbmStore extends VuexModule {
   timeRange: AbmTimeRange = [8,23];
 
   // abm stats for dashboard and multilayer
+  // TODO: get this from backend and remove all stats handling!
   abmStats: any = {}
   amenityStats: any = {}
   abmStatsMultiLayer: any = {} 

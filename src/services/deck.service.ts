@@ -73,7 +73,6 @@ export function getPolygonColor(d: number): [number, number, number] {
 
 export async function buildTripsLayer(
   data: DataSet<any>,
-  currentTimeStamp: number
 ): Promise<DeckLayer<unknown>> {
   return new DeckLayer({
     id: abmTripsLayerName,
@@ -96,7 +95,7 @@ export async function buildTripsLayer(
     rounded: true,
     pickable: false,
     trailLength: 750,
-    currentTime: currentTimeStamp,
+    currentTime: 0,
     parameters: {
       // prevent flicker from z-fighting
       [GL.DEPTH_TEST]: false,

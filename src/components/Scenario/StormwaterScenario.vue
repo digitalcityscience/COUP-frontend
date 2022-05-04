@@ -228,18 +228,9 @@ export default class StormwaterScenario extends Vue {
     },
   ];
 
-  beforeMount(): void {
-    // todo remove this
-    this.activateStormWater();
-  }
-
   beforeDestroy(): void {
     // stop animation of stormwater layer
     this.$store.commit("stormwater/mutateAnimateLayer", false);
-  }
-
-  activateStormWater(): void {
-    this.$store.commit("scenario/stormWater", true);
   }
 
   mounted(): void {
@@ -351,7 +342,6 @@ export default class StormwaterScenario extends Vue {
       })
       .catch((err) => {
         console.log("caught error", err);
-        this.$store.commit("scenario/stormWater", false);
         this.resultLoading = false;
         this.errorMsg = err;
       });

@@ -79,7 +79,6 @@ export default class WindScenario extends Vue {
       .dispatch("wind/fetchResult")
       .then(() => {
         // success
-        this.$store.commit("scenario/windLayer", true); // this is for the layer menu in the viewbar
         this.addResultToMap(this.windResult.geojson);
         // hide the wind layer, if the user meanwhile has switched to another component
         if (!this.activeComponentIsWind) {
@@ -88,7 +87,6 @@ export default class WindScenario extends Vue {
       })
       .catch((err) => {
         // fail
-        this.$store.commit("scenario/windLayer", false); // // this is for the layer menu in the viewba
         removeSourceAndItsLayersFromMap("wind", this.map);
         this.errMsg = err;
         console.error(err.stack);

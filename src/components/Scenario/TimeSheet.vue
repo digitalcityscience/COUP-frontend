@@ -42,7 +42,7 @@ export default class TimeSheet extends Vue {
    **/
   playTripsLayerAnimation(): void {
     // TODO: Once ABM is automated, get start/end times from API.
-    const abmTimeRange = this.$store.getters["abm/timeRange"];
+    const abmTimeRange = this.$store.state.abm.timeRange;
     const start = (abmTimeRange[0] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
     const end = (abmTimeRange[1] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
 
@@ -72,7 +72,7 @@ export default class TimeSheet extends Vue {
   }
 
   renderTimeGraph() {
-    this.reRenderTimeSheet = false;
+    this.timeSheetNeedsRerender = false;
 
     /*render graph via chart.js*/
     var ctx = (
@@ -142,16 +142,16 @@ export default class TimeSheet extends Vue {
 
 
   /** GETTERS & SETTERS */
-  get reRenderTimeSheet(): boolean {
-    return this.$store.getters["abm/reRenderAbmTimeSheet"];
+  get timeSheetNeedsRerender(): boolean {
+    return this.$store.state.abm.timeSheetNeedsRerender;
   }
-  set reRenderTimeSheet(needsRerendering: boolean) {
-    this.$store.commit("abm/mutateReRenderTimeSheet", needsRerendering);
+  set timeSheetNeedsRerender(needsRerendering: boolean) {
+    this.$store.commit("abm/mutateTimeSheetNeedsRerender", needsRerendering);
   }
 
   /** animate trips layer */
   get animateTripsLayer(): boolean {
-    return this.$store.getters["abm/animateAbmTripsLayer"];
+    return this.$store.state.abm.animateLayer;
   }
   set animateTripsLayer(newValue: boolean) {
     this.$store.commit("abm/mutateAnimateLayer", newValue);
@@ -159,15 +159,15 @@ export default class TimeSheet extends Vue {
 
   /** time sheet data */
   get hasTimeSheetData(): boolean {
-    return !(_.isEmpty(this.$store.getters["abm/abmDataForTimeGraph"]))
+    return !(_.isEmpty(this.$store.state.abm.dataForTimeGraph))
   }
   get timeSheetData(): DataForAbmTimeGraph {
-    return this.$store.getters["abm/abmDataForTimeGraph"];
+    return this.$store.state.abm.dataForTimeGraph;
   }
 
 
   get abmTimeRange() {
-    return this.$store.getters["abm/timeRange"];
+    return this.$store.state.abm.timeRange;
   }
   
   // when is this used??
@@ -184,9 +184,9 @@ export default class TimeSheet extends Vue {
   }
 
   /** WATCHERS */
-  @Watch("reRenderTimeSheet")
-  reRenderTimeSheetWatcher(): void {
-    if (this.reRenderTimeSheet) {
+  @Watch("timeSheetNeedsRerender")
+  timeSheetNeedsRerenderWatcher(): void {
+    if (this.timeSheetNeedsRerender) {
       this.renderTimeGraph();
     }
   }

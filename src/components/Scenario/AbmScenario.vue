@@ -136,10 +136,13 @@ export default class AbmScenario extends Vue {
     return this.$store.state.abm.simulationResult;
   }
 
+  get amenitiesGeoJSON(): GeoJSON {
+    return this.$store.state.abm.amenitiesGeoJSON;
+  }
+
   get dataForHeatmap(): AgentsClusteredForHeatmap {
     return this.$store.state.abm.dataForHeatmap;
   }
-
   set dataForHeatmap(
     newData: AgentsClusteredForHeatmap
   ) {
@@ -148,10 +151,6 @@ export default class AbmScenario extends Vue {
       newData
     );
   }  
-
-  get amenitiesGeoJSON(): GeoJSON {
-    return this.$store.state.abm.amenitiesGeoJSON;
-  }
 
   get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
     return this.$store.getters["abm/scenarioConfiguration"];
@@ -177,11 +176,11 @@ export default class AbmScenario extends Vue {
     );
   }
 
-  get resultLoading(): boolean {
+  get isResultLoading(): boolean {
     return this.$store.state.scenario.resultLoadingStati.pedestrian;
   }
 
-  set resultLoading(loadingState: boolean) {
+  set isResultLoading(loadingState: boolean) {
     let loadingStati = Object.assign(
       {},
       this.$store.state.scenario.resultLoadingStati
@@ -190,10 +189,6 @@ export default class AbmScenario extends Vue {
     loadingStati.pedestrian = loadingState;
 
     this.$store.commit("scenario/resultLoadingStati", loadingStati);
-  }
-
-  get heatMap(): boolean {
-    return this.$store.state.scenario.heatMap;
   }
 
   /** Do the selected settings fit the displayed result? */
@@ -209,13 +204,6 @@ export default class AbmScenario extends Vue {
   @Watch("activeDivision")
   toggleFocusAreaLayer(): void {
     if (this.activeDivision === "Dashboard") {
-      if (!mapHasLayer(this.map, FocusAreasLayer.layerConfig.id)) {
-        addSourceAndLayerToMap(
-          FocusAreasLayer.source,
-          [FocusAreasLayer.layerConfig],
-          this.map
-        );
-      }
       showLayers(this.map, [FocusAreasLayer.layerConfig.id]);
     } else {
       hideLayers(this.map, [FocusAreasLayer.layerConfig.id]);
@@ -238,9 +226,9 @@ export default class AbmScenario extends Vue {
    * fetch results and add them to map
    **/
   async fetchResultAndCreateNewResultLayers(): Promise<void> {
-    this.removeAbmLayersFromMap();
+    this.removeBridgeLayers();
     this.$store.commit("abm/resetResult");
-    this.resultLoading = true;
+    this.isResultLoading = true;
     this.errorMsg = "";
 
     // fetch result and create new result layers
@@ -264,42 +252,25 @@ export default class AbmScenario extends Vue {
           [amenitiesLayerConfig.layerConfig],
           this.map
         );
-        // create agent indexes and trip summary as input for stats calculation
-        // will be done in backend after Gama automization
+        // create agent indexes and trip summary 
+        // as input for stats calculation
+        // TODO: will be done in backend after Gama automization
         this.createAgentIndexes();
         this.createTripsSummary();
       })
       .catch((err) => {
         console.log("caught error", err);
         this.errorMsg = err;
-
-        // TODO refactor do we need this?? if so, why only heatmap?
-        this.$store.commit("scenario/heatMap", false);
       })
       .finally(() => {
         // remove loader screen
-        this.resultLoading = false;
-          this.resultLoading = false; 
-        this.resultLoading = false;
-          this.resultLoading = false; 
-        this.resultLoading = false;
-          this.resultLoading = false; 
-        this.resultLoading = false;
-          this.resultLoading = false; 
-        this.resultLoading = false;
+        this.isResultLoading = false;
       });
   }
 
-  // deletes layers and sources of all abm Layers from amp
-  removeAbmLayersFromMap(): void {
-    ["abmTrips",
-     "abmHeat",
-     "abmAmenities",
-     hafenCityBridgeLayerConf.id,
-     veddelUnderPassConfig.id
-    ].forEach((layerName) => {
-      removeSourceAndItsLayersFromMap(layerName, this.map);
-    });
+  // deletes bridge layers, bc they are scenario specific
+  removeBridgeLayers(): void {
+    removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);
   }
 
   /**
@@ -389,11 +360,12 @@ export default class AbmScenario extends Vue {
           "caught error when processing abm results for timegrap",
           err
         );
-        this.resultLoading = false;
+        this.isResultLoading = false;
         this.errorMsg = err;
       });
   }
 
+  /** creates a lookup table agentName: agentIndex - which is needed for stats calc **/
   createAgentIndexes(): void {
     this.$worker
       .run(resultProcessing.createAgentIndexesByName, [this.result])
@@ -408,6 +380,7 @@ export default class AbmScenario extends Vue {
       });
   }
 
+  /** creates a summary object of all agent trips (needed for stats calc.) **/
   createTripsSummary(): void {
     this.$worker
       .run(resultProcessing.createTripsSummary, [this.result])
@@ -459,14 +432,14 @@ export default class AbmScenario extends Vue {
           <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">BRIDGES</header>
             <v-switch
-              :disabled="resultLoading"
+              :disabled="isResultLoading"
               v-model="scenarioConfiguration.bridge_hafencity"
               flat
               label="Bridge to HafenCity"
               dark
             />
             <v-switch
-              :disabled="resultLoading"
+              :disabled="isResultLoading"
               v-model="scenarioConfiguration.underpass_veddel_north"
               flat
               label="Underpass to Veddel North"
@@ -480,14 +453,14 @@ export default class AbmScenario extends Vue {
             >
               <v-radio
                 :value="mainStreetOrientationOptions.vertical"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="North-South Axes"
                 dark
               />
               <v-radio
                 :value="mainStreetOrientationOptions.horizontal"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="East-West Axes"
                 dark
@@ -499,14 +472,14 @@ export default class AbmScenario extends Vue {
             <v-radio-group v-model="scenarioConfiguration.blocks">
               <v-radio
                 :value="blockOptions.open"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Permeable"
                 dark
               />
               <v-radio
                 :value="blockOptions.closed"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Private"
                 dark
@@ -518,14 +491,14 @@ export default class AbmScenario extends Vue {
             <v-radio-group v-model="scenarioConfiguration.roof_amenities">
               <v-radio
                 :value="roofAmenitiesOptions.complementary"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Clustered by Type"
                 dark
               />
               <v-radio
                 :value="roofAmenitiesOptions.random"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Mixed Distribution"
                 dark
@@ -536,7 +509,7 @@ export default class AbmScenario extends Vue {
             @click="runScenario"
             class="confirm_btn mt-2"
             :class="{ changesMade: isFormDirty }"
-            :disabled="resultLoading"
+            :disabled="isResultLoading"
           >
             Run Scenario
           </v-btn>
@@ -561,14 +534,14 @@ export default class AbmScenario extends Vue {
           <v-radio-group v-model="scenarioConfiguration.amenity_config">
             <v-radio
               value="current"
-              :disabled="resultLoading"
+              :disabled="isResultLoading"
               flat
               label="STATUS QUO"
               dark
             />
             <v-radio
               value="future"
-              :disabled="resultLoading"
+              :disabled="isResultLoading"
               flat
               label="SCIENCECITY"
               dark
@@ -579,7 +552,7 @@ export default class AbmScenario extends Vue {
           @click="runScenario"
           class="confirm_btn mt-2"
           :class="{ changesMade: isFormDirty }"
-          :disabled="resultLoading"
+          :disabled="isResultLoading"
         >
           Run Scenario
         </v-btn>

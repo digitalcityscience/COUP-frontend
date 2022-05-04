@@ -33,24 +33,17 @@ export interface ScenarioStoreState {
     updateAmenityStatsChart: boolean,
   
     // layers
-    noiseMap: boolean,
-    stormWater: boolean,
-    windLayer: boolean,
-    sunExposureLayer: boolean,
     multiLayerAnalysisMap: boolean,
-    heatMap: boolean,
     
     // UI
     lastClick: any[],
     showUi: boolean,
     allFeaturesHighlighted: boolean,
     selectedFocusAreas: [],
+    resultLoadingStati: DataLoadingStati,
   
     // sun
     sunExposureGeoJson: null,
-  
-    // UI
-    resultLoadingStati: DataLoadingStati,
   
     // Stormwater
     rerenderSwGraph: boolean,

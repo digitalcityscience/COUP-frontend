@@ -2,7 +2,7 @@ import { AbmSimulationResult, AgentNameToIndexTable, AgentTrip, ResultDataSingle
 
 
 // create a simple lookup with all agent id's and their index in the abmCore
-export function createAgentNameToIndexTable(
+export function createAgentIndexesByName(
   abmResultData: AbmSimulationResult
   ): AgentNameToIndexTable {
     const agentIndexes = {};

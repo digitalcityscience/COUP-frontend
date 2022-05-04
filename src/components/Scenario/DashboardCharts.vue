@@ -146,7 +146,9 @@ export default {
       this.barChartReady = true;
       this.updateAmenityStatsChart = false;
     },
-    /** radar chart for abmStats **/
+    /** radar chart for abmStats 
+     * TODO refactor as chart maker service
+     * **/
     renderRadarChart() {
       this.radarChartReady = false;
 

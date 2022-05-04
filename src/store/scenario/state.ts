@@ -23,12 +23,11 @@ export default {
   showUi: true,
   allFeaturesHighlighted: false,
   selectedFocusAreas: [],
+  resultLoadingStati: initialResultLoadingStati,
 
   // sun
   sunExposureGeoJson: null,
 
-  // UI
-  resultLoadingStati: initialResultLoadingStati,
 
   // Stormwater
   rerenderSwGraph: false,

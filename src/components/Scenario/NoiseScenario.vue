@@ -277,7 +277,6 @@ export default class NoiseScenario extends Vue {
       .dispatch("noise/fetchResult")
       .then(() => {
         // success
-        this.$store.commit("scenario/noiseMap", true); // this is for the layer menu in the viewbar
         this.addResultToMap(this.noiseResult.geojson);
         // hide the noise layer, if the user meanwhile has switched to another component
         if (!this.activeComponentIsNoise) {
@@ -286,7 +285,6 @@ export default class NoiseScenario extends Vue {
       })
       .catch((err) => {
         // fail
-        this.$store.commit("scenario/noiseMap", false); // // this is for the layer menu in the viewba
         removeSourceAndItsLayersFromMap("noise", this.map);
         // TODO what about traffic infos
         this.errMsg = err;

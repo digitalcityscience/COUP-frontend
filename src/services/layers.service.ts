@@ -2,7 +2,6 @@ import PerformanceInfosConfig from "@/config/multiLayerAnalysis/performaceInfosC
 import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnalysisResultConfig";
 import LayerSubselectionConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
 import AmenitiesConfig from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
-import BridgesConfig from "@/config/bridges.json";
 import CircledFeatures from "@/config/userInteraction/circledFeaturesLayerConfig";
 import FocusAreasConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import NoiseResultLayerConfig from "@/config/calculationModuleResults/noiseResultLayerConfig";
@@ -15,6 +14,7 @@ import {
 } from "@/services/deck.service";
 import buildingLayersConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import landscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
+import { hafenCityBridgeLayerConf, veddelUnderPassConfig } from '@/config/abmScenarioSupportLayers/bridgeLayersConfigs';
 
 export const swLayerName = "stormwater";
 
@@ -30,9 +30,7 @@ const addedLayersIds = [
   CircledFeatures.layerConfig.id,
 ];
 
-const bridgeLayerIds: string[] = BridgesConfig.layers.map((layer) => {
-  return layer.id;
-});
+const bridgeLayerIds: string[] = [hafenCityBridgeLayerConf.id, veddelUnderPassConfig.id]
 
 export function getLayerOrder(): string[] {
   let layerOrder = [
