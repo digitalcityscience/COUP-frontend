@@ -19,7 +19,6 @@ import {
   hideLayers,
   showLayers,
   removeSourceAndItsLayersFromMap,
-  mapHasLayer,
   addSourceAndLayerToMap,
 } from "@/services/map.service";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
@@ -84,10 +83,27 @@ export default class AbmScenario extends Vue {
 
   mounted(): void {
     this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
-    // hide all other layers
-    hideAllLayersButThese(this.map, ["abmTrips", "abmHeat", "abmAmenities"]); // TODO store names as variable in some config?
-  }
+    
+    // if simulationResult is there,
+    // but the result has not been processed sucessfully
+    if (this.result && !this.isResultProcessed) {
+      // build and add layers
+      this.buildAndAddLayers()
+      this.preProcessResultForStats()
+    }
 
+    // hide all other layers
+    hideAllLayersButThese(
+      this.map,
+      [
+        "abmTrips",
+        "abmHeat",
+        amenitiesLayerConfig.layerConfig.id,
+        hafenCityBridgeLayerConf.id,
+        veddelUnderPassConfig.id
+      ]
+    );
+  }
 
   get componentDivisions(): MenuLink[] {
     return [
@@ -199,6 +215,17 @@ export default class AbmScenario extends Vue {
     );
   }
 
+  /** 
+   * processing results might fail if user switches component during fetchResult action
+   * see: https://github.com/championswimmer/vuex-module-decorators/issues/408
+   */
+  get isResultProcessed(): boolean {
+    return (
+      !! this.$store.state.abm.dataForHeatmap
+      || !! this.$store.state.abm.dataForTimeGraph
+    ) 
+  }
+
   /** WATCHERS */
   @Watch("activeDivision")
   toggleFocusAreaLayer(): void {
@@ -226,7 +253,7 @@ export default class AbmScenario extends Vue {
    **/
   async fetchResultAndCreateNewResultLayers(): Promise<void> {
     // delete bridge layers, bc they are scenario specific
-    removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);    
+    removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);
     this.$store.commit("abm/resetResult");
     
     this.isResultLoading = true;
