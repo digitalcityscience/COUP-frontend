@@ -49,7 +49,6 @@ import {
   buildTripsLayer,
 } from "@/services/deck.service";
 import * as resultProcessing from "@/services/abm/resultProcessing.service";
-import VueWorker from "vue-worker";
 
 @Component({
   name: ScenarioComponentNames.pedestrian,
@@ -57,7 +56,6 @@ import VueWorker from "vue-worker";
 })
 export default class AbmScenario extends Vue {
   $store: Store<StoreStateWithModules>;
-  $worker: VueWorker;
   activeDivision = null;
 
   scenarioConfiguration: AbmScenarioConfiguration | null = null;
@@ -89,6 +87,7 @@ export default class AbmScenario extends Vue {
     // hide all other layers
     hideAllLayersButThese(this.map, ["abmTrips", "abmHeat", "abmAmenities"]); // TODO store names as variable in some config?
   }
+
 
   get componentDivisions(): MenuLink[] {
     return [
@@ -226,8 +225,10 @@ export default class AbmScenario extends Vue {
    * fetch results and add them to map
    **/
   async fetchResultAndCreateNewResultLayers(): Promise<void> {
-    this.removeBridgeLayers();
+    // delete bridge layers, bc they are scenario specific
+    removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);    
     this.$store.commit("abm/resetResult");
+    
     this.isResultLoading = true;
     this.errorMsg = "";
 
@@ -236,27 +237,8 @@ export default class AbmScenario extends Vue {
       .dispatch("abm/fetchResult")
       // sucessfully got result
       .then(() => {
-        // add result layers
-        this.buildTripsLayerAndAddToMap();
-        this.buildHeatMapLayerAndAddToMap();
-
-        // add bridge layers for grasbrook
-        if (this.appContext === "grasbrook") {
-          this.addBridgeLayers();
-        }
-
-        // add amenities layer
-        amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
-        addSourceAndLayerToMap(
-          amenitiesLayerConfig.source,
-          [amenitiesLayerConfig.layerConfig],
-          this.map
-        );
-        // create agent indexes and trip summary 
-        // as input for stats calculation
-        // TODO: will be done in backend after Gama automization
-        this.createAgentIndexes();
-        this.createTripsSummary();
+        this.buildAndAddLayers()
+        this.preProcessResultForStats()
       })
       .catch((err) => {
         console.log("caught error", err);
@@ -268,29 +250,46 @@ export default class AbmScenario extends Vue {
       });
   }
 
-  // deletes bridge layers, bc they are scenario specific
-  removeBridgeLayers(): void {
-    removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);
+  /** Builds and adds all layers */
+  buildAndAddLayers() {
+    // add result layers
+    this.buildTripsLayerAndAddToMap();
+    this.buildHeatMapLayerAndAddToMap();
+
+    // add bridge layers for grasbrook
+    if (this.appContext === "grasbrook") {
+      this.addBridgeLayers();
+    }
+
+    // add amenities layer
+    amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
+    addSourceAndLayerToMap(
+      amenitiesLayerConfig.source,
+      [amenitiesLayerConfig.layerConfig],
+      this.map
+    );
+  }
+
+  /** 
+   * create agent indexes and trip summary 
+   *  as input for stats calculation
+   *  TODO: will be done in backend after Gama automization
+   */ 
+  preProcessResultForStats() {
+    this.createAgentIndexes();
+    this.createTripsSummary();
   }
 
   /**
    * builds the heatmap layer and adds it to the map
    **/
   buildHeatMapLayerAndAddToMap(): void {
-    // process result for heatmap (in worker)
-    this.$worker
-      .run(resultProcessing.getAgentCountsPerHourAndCoordinate, [this.result])
-      .then((processedResult: AgentsClusteredForHeatmap) => {
-        console.log("worker finished for heatmap");
-        this.dataForHeatmap = processedResult; // save to store
-        this.updateAggregationLayer();
-      })
-      .finally(() => {
-        // hide layers if user switched to different component meanwhile
-        if (!this.isPedestrianActiveComponent) {
-          hideLayers(this.map, ["abmHeat"]);
-        }
-      });
+    // process result for heatmap
+    this.dataForHeatmap = resultProcessing.getAgentCountsPerHourAndCoordinate(this.result);
+    this.updateAggregationLayer();
+    if (!this.isPedestrianActiveComponent) {
+      hideLayers(this.map, ["abmHeat"]);
+    }
   }
 
   /** builds deck heatmap layer and adds it to map **/
@@ -344,55 +343,27 @@ export default class AbmScenario extends Vue {
    * add timegraph
    * adds trips layer
   */
-  createTimeGraph(): void {
-    // process result for timegraph (in worker)
-    this.$worker
-      .run(resultProcessing.aggregateAbmResultsBy5minForTimeGraph, [
-        this.result,
-      ])
-      .then((dataForTimeGraph: DataForAbmTimeGraph) => {
-        // show time graph and trips layer control
-        this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph);
-        this.$store.commit("abm/mutateTimeSheetNeedsRerender", true);
-      })
-      .catch((err) => {
-        console.warn(
-          "caught error when processing abm results for timegrap",
-          err
-        );
-        this.isResultLoading = false;
-        this.errorMsg = err;
-      });
+  async createTimeGraph() {
+    // process result for timegraph 
+    const dataForTimeGraph = resultProcessing.aggregateAbmResultsBy5minForTimeGraph(this.result)
+    this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph);
+    this.$store.commit("abm/mutateTimeSheetNeedsRerender", true);
   }
 
   /** creates a lookup table agentName: agentIndex - which is needed for stats calc **/
   createAgentIndexes(): void {
-    this.$worker
-      .run(resultProcessing.createAgentIndexesByName, [this.result])
-      .then((lookupTable: AgentNameToIndexTable) => {
-        this.$store.commit("abm/mutateAgentIndexesByName", lookupTable);
-      })
-      .catch((err) => {
-        console.warn(
-          "caught error when processing abm results for AgentNameToIndexTable",
-          err
-        );
-      });
+    this.$store.commit(
+      "abm/mutateAgentIndexesByName",
+      resultProcessing.createAgentIndexesByName(this.result)
+    );
   }
 
   /** creates a summary object of all agent trips (needed for stats calc.) **/
   createTripsSummary(): void {
-    this.$worker
-      .run(resultProcessing.createTripsSummary, [this.result])
-      .then((tripsSummary: AgentTrip[]) => {
-        this.$store.commit("abm/mutateTripsSummary", tripsSummary);
-      })
-      .catch((err) => {
-        console.warn(
-          "caught error when processing abm results to tripsSummary",
-          err
-        );
-      });
+    this.$store.commit(
+      "abm/mutateTripsSummary",
+      resultProcessing.createTripsSummary(this.result)
+    );
   }
 
   /**
