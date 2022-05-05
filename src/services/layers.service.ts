@@ -14,7 +14,10 @@ import {
 } from "@/services/deck.service";
 import buildingLayersConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import landscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
-import { hafenCityBridgeLayerConf, veddelUnderPassConfig } from '@/config/abmScenarioSupportLayers/bridgeLayersConfigs';
+import {
+  hafenCityBridgeLayerConf,
+  veddelUnderPassConfig,
+} from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
 
 export const swLayerName = "stormwater";
 
@@ -30,7 +33,10 @@ const addedLayersIds = [
   CircledFeatures.layerConfig.id,
 ];
 
-const bridgeLayerIds: string[] = [hafenCityBridgeLayerConf.id, veddelUnderPassConfig.id]
+const bridgeLayerIds: string[] = [
+  hafenCityBridgeLayerConf.id,
+  veddelUnderPassConfig.id,
+];
 
 export function getLayerOrder(): string[] {
   let layerOrder = [

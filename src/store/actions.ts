@@ -36,7 +36,7 @@ export default {
         [FocusAreasLayerConfig.layerConfig],
         state.map
       );
-      hideLayers(state.map, [FocusAreasLayerConfig.layerConfig.id])
+      hideLayers(state.map, [FocusAreasLayerConfig.layerConfig.id]);
     });
   },
   // TODO do this in layer service?

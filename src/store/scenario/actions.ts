@@ -3,16 +3,10 @@ import MultiLayerAnalysisConfig from "@/config/multiLayerAnalysis/multiLayerAnal
 import PerformanceInfosConfig from "@/config/multiLayerAnalysis/performaceInfosConfig";
 import SubSelectionLayerConfig from "@/config/multiLayerAnalysis/subSelectionLayerConfig";
 import { StoreState } from "@/models";
-import {
-  addSourceAndLayerToMap as addSourceAndLayersToMap,
-} from "@/services/map.service";
+import { addSourceAndLayerToMap as addSourceAndLayersToMap } from "@/services/map.service";
 
-import {
-  calcAbmStatsForMultiLayer,
-} from "@/store/scenario/abmStats";
-import {
-  calculateAmenityStatsForMultiLayerAnalysis,
-} from "@/store/scenario/amenityStats";
+import { calcAbmStatsForMultiLayer } from "@/store/scenario/abmStats";
+import { calculateAmenityStatsForMultiLayerAnalysis } from "@/store/scenario/amenityStats";
 import { ActionContext } from "vuex";
 export default {
   async addSunExposureLayer({
@@ -30,7 +24,7 @@ export default {
       );
     });
   },
-  
+
   async calculateStatsForMultiLayerAnalysis(): Promise<void> {
     // the timeout just gives time for the commits above to persist and the app to be rerendered
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -40,7 +34,7 @@ export default {
       return;
     });
   },
-  
+
   addMultiLayerAnalysisLayer({ rootState }, features) {
     // update layer on map
     const source = MultiLayerAnalysisConfig.source;
@@ -73,6 +67,5 @@ export default {
       [PerformanceInfosConfig.layerConfig],
       rootState.map
     );
-  }
+  },
 };
-

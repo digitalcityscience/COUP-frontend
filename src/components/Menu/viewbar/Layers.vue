@@ -150,10 +150,16 @@
 
 <script lang="ts">
 import { Component, Provide, Vue, Watch } from "vue-property-decorator";
-import { getVisibleLayerIds, hideLayers, showLayers } from "@/services/map.service";
+import {
+  getVisibleLayerIds,
+  hideLayers,
+  showLayers,
+} from "@/services/map.service";
 import { buildingLayerIds, landscapeLayerId } from "@/services/layers.service";
-import { hafenCityBridgeLayerConf, veddelUnderPassConfig } from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
-
+import {
+  hafenCityBridgeLayerConf,
+  veddelUnderPassConfig,
+} from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
 
 @Component
 export default class Layers extends Vue {
@@ -163,7 +169,7 @@ export default class Layers extends Vue {
     ...buildingLayerIds,
     landscapeLayerId,
     hafenCityBridgeLayerConf.id,
-    veddelUnderPassConfig.id
+    veddelUnderPassConfig.id,
   ];
 
   /** check which layers are visible when menu is toggled **/
@@ -171,28 +177,30 @@ export default class Layers extends Vue {
   onMenuToggle(newVal, oldVal): void {
     if (newVal) {
       this.checkedLayers = getVisibleLayerIds(this.map);
-    }  
+    }
   }
 
   /** Update layer visibility on change of checkedLayers **/
   @Watch("checkedLayers", { deep: true })
   oncheckedLayers(): void {
-    const currentlyVisibleLayers = getVisibleLayerIds(this.map)
-    
+    const currentlyVisibleLayers = getVisibleLayerIds(this.map);
+
     // layers visible, but no longer selected
-    const layersToHide = currentlyVisibleLayers.filter(x => {
-      return !this.checkedLayers.includes(x)
-        && !this.nonControllableLayers.includes(x)
-      })
-    
+    const layersToHide = currentlyVisibleLayers.filter((x) => {
+      return (
+        !this.checkedLayers.includes(x) &&
+        !this.nonControllableLayers.includes(x)
+      );
+    });
+
     // layers selected, but not yet visible
-    const layersToShow = this.checkedLayers.filter(x => {
-      return !currentlyVisibleLayers.includes(x)
-    })
+    const layersToShow = this.checkedLayers.filter((x) => {
+      return !currentlyVisibleLayers.includes(x);
+    });
 
     // update map
-    hideLayers(this.map, layersToHide)
-    showLayers(this.map, layersToShow)
+    hideLayers(this.map, layersToHide);
+    showLayers(this.map, layersToShow);
   }
 
   get map() {
@@ -210,7 +218,7 @@ export default class Layers extends Vue {
   get hasAmenityGeoJSON(): boolean {
     return !!this.$store.state.abm.amenitiesGeoJSON;
   }
-  
+
   get hasAbmResult(): boolean {
     return !!this.$store.state.abm.simulationResult;
   }

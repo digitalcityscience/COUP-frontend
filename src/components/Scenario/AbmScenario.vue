@@ -59,9 +59,12 @@ export default class AbmScenario extends Vue {
 
   scenarioConfiguration: AbmScenarioConfiguration | null = null;
 
-  mainStreetOrientationOptions: Record<AbmMainStreetOptions, AbmMainStreetOptions> = {
-  horizontal: "horizontal",
-  vertical: "vertical",
+  mainStreetOrientationOptions: Record<
+    AbmMainStreetOptions,
+    AbmMainStreetOptions
+  > = {
+    horizontal: "horizontal",
+    vertical: "vertical",
   };
 
   blockOptions: Record<AbmBlocksOptions, AbmBlocksOptions> = {
@@ -75,7 +78,7 @@ export default class AbmScenario extends Vue {
   };
 
   errorMsg = "";
-  
+
   beforeDestroy(): void {
     // stop animation of abm layer
     this.$store.commit("abm/mutateAnimateLayer", false);
@@ -83,26 +86,23 @@ export default class AbmScenario extends Vue {
 
   mounted(): void {
     this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
-    
+
     // if simulationResult is there,
     // but the result has not been processed sucessfully
     if (this.result && !this.isResultProcessed) {
       // build and add layers
-      this.buildAndAddLayers()
-      this.preProcessResultForStats()
+      this.buildAndAddLayers();
+      this.preProcessResultForStats();
     }
 
     // hide all other layers
-    hideAllLayersButThese(
-      this.map,
-      [
-        "abmTrips",
-        "abmHeat",
-        amenitiesLayerConfig.layerConfig.id,
-        hafenCityBridgeLayerConf.id,
-        veddelUnderPassConfig.id
-      ]
-    );
+    hideAllLayersButThese(this.map, [
+      "abmTrips",
+      "abmHeat",
+      amenitiesLayerConfig.layerConfig.id,
+      hafenCityBridgeLayerConf.id,
+      veddelUnderPassConfig.id,
+    ]);
   }
 
   get componentDivisions(): MenuLink[] {
@@ -158,14 +158,9 @@ export default class AbmScenario extends Vue {
   get dataForHeatmap(): AgentsClusteredForHeatmap {
     return this.$store.state.abm.dataForHeatmap;
   }
-  set dataForHeatmap(
-    newData: AgentsClusteredForHeatmap
-  ) {
-    this.$store.commit(
-      "abm/mutateDataForHeatmap",
-      newData
-    );
-  }  
+  set dataForHeatmap(newData: AgentsClusteredForHeatmap) {
+    this.$store.commit("abm/mutateDataForHeatmap", newData);
+  }
 
   get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
     return this.$store.getters["abm/scenarioConfiguration"];
@@ -182,13 +177,8 @@ export default class AbmScenario extends Vue {
   get heatMapTimeRange(): AbmTimeRange {
     return this.$store.state.abm.timeRange;
   }
-  set heatMapTimeRange(
-    newTimeRange: AbmTimeRange
-  ) {
-    this.$store.commit(
-      "abm/mutateTimeRange",
-      newTimeRange
-    );
+  set heatMapTimeRange(newTimeRange: AbmTimeRange) {
+    this.$store.commit("abm/mutateTimeRange", newTimeRange);
   }
 
   get isResultLoading(): boolean {
@@ -215,15 +205,15 @@ export default class AbmScenario extends Vue {
     );
   }
 
-  /** 
+  /**
    * processing results might fail if user switches component during fetchResult action
    * see: https://github.com/championswimmer/vuex-module-decorators/issues/408
    */
   get isResultProcessed(): boolean {
     return (
-      !! this.$store.state.abm.dataForHeatmap
-      || !! this.$store.state.abm.dataForTimeGraph
-    ) 
+      !!this.$store.state.abm.dataForHeatmap ||
+      !!this.$store.state.abm.dataForTimeGraph
+    );
   }
 
   /** WATCHERS */
@@ -255,7 +245,7 @@ export default class AbmScenario extends Vue {
     // delete bridge layers, bc they are scenario specific
     removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);
     this.$store.commit("abm/resetResult");
-    
+
     this.isResultLoading = true;
     this.errorMsg = "";
 
@@ -264,8 +254,8 @@ export default class AbmScenario extends Vue {
       .dispatch("abm/fetchResult")
       // sucessfully got result
       .then(() => {
-        this.buildAndAddLayers()
-        this.preProcessResultForStats()
+        this.buildAndAddLayers();
+        this.preProcessResultForStats();
       })
       .catch((err) => {
         console.log("caught error", err);
@@ -297,11 +287,11 @@ export default class AbmScenario extends Vue {
     );
   }
 
-  /** 
-   * create agent indexes and trip summary 
+  /**
+   * create agent indexes and trip summary
    *  as input for stats calculation
    *  TODO: will be done in backend after Gama automization
-   */ 
+   */
   preProcessResultForStats() {
     this.createAgentIndexes();
     this.createTripsSummary();
@@ -312,7 +302,9 @@ export default class AbmScenario extends Vue {
    **/
   buildHeatMapLayerAndAddToMap(): void {
     // process result for heatmap
-    this.dataForHeatmap = resultProcessing.getAgentCountsPerHourAndCoordinate(this.result);
+    this.dataForHeatmap = resultProcessing.getAgentCountsPerHourAndCoordinate(
+      this.result
+    );
     this.updateAggregationLayer();
     if (!this.isPedestrianActiveComponent) {
       hideLayers(this.map, ["abmHeat"]);
@@ -348,11 +340,14 @@ export default class AbmScenario extends Vue {
 
   /** adds the user selected bridges to the map **/
   async addBridgeLayers(): Promise<void> {
-    let scenarioConfig = this.scenarioConfigurationGlobal as AbmScenarioConfigGrasbrook;
-    
+    let scenarioConfig = this
+      .scenarioConfigurationGlobal as AbmScenarioConfigGrasbrook;
+
     let mapSource = bridgesSource;
     // Add bridge geojson to source description
-    mapSource.options.data = await this.$store.state.cityPyO.getLayer("bridges"); 
+    mapSource.options.data = await this.$store.state.cityPyO.getLayer(
+      "bridges"
+    );
 
     let layerConfigs = [];
     // add layer configs for bridges in selected scenario
@@ -369,10 +364,11 @@ export default class AbmScenario extends Vue {
    * processes the result data for visualization in timegraph
    * add timegraph
    * adds trips layer
-  */
+   */
   async createTimeGraph() {
-    // process result for timegraph 
-    const dataForTimeGraph = resultProcessing.aggregateAbmResultsBy5minForTimeGraph(this.result)
+    // process result for timegraph
+    const dataForTimeGraph =
+      resultProcessing.aggregateAbmResultsBy5minForTimeGraph(this.result);
     this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph);
     this.$store.commit("abm/mutateTimeSheetNeedsRerender", true);
   }

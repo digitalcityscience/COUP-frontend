@@ -5,8 +5,8 @@ import { color } from "chart.js/helpers";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 Chart.unregister(ChartDataLabels);
 import { generateStoreGetterSetter } from "@/store/utils/generators";
-import { calculateAmenityStatsForFocusArea } from '@/store/scenario/amenityStats';
-import { calculateAbmStatsForFocusArea } from '@/store/scenario/abmStats';
+import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats";
+import { calculateAbmStatsForFocusArea } from "@/store/scenario/abmStats";
 const chartColors: Record<string | number, string> = {
   grasbrook: "lightgrey",
   1: "#e172d8",
@@ -147,7 +147,7 @@ export default {
       this.barChartReady = true;
       this.updateAmenityStatsChart = false;
     },
-    /** radar chart for abmStats 
+    /** radar chart for abmStats
      * TODO refactor as chart maker service
      * **/
     renderRadarChart() {

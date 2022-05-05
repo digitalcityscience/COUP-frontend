@@ -3,7 +3,7 @@
 import * as turf from "@turf/turf";
 import store from "@/store";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
-import { AgentsClusteredForHeatmap } from '@/models';
+import { AgentsClusteredForHeatmap } from "@/models";
 
 export async function calcAbmStatsForMultiLayer() {
   const multiLayerStats = store.state.abm.abmStatsMultiLayer || {};
@@ -305,12 +305,11 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
  * @param agentName
  * @param relevantHour
  * @param pointCoords
- * 
- * 
+ *
+ *
  * TODO this cannot work anymore
  */
 function getTimeAgentIsAtPoint(agentName, relevantHour, pointCoords) {
-  
   const abmResult = store.state.abm.simulationResult;
   const agentIdx = store.state.abm.agentIndexesByName[agentName];
   const agentData = abmResult[agentIdx];

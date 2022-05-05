@@ -402,10 +402,9 @@ export default {
             });
           break;
         case "Abm":
-          await this.$store.dispatch("abm/fetchResult")
-            .then(() => {
-              hideAllResultLayers(this.map);
-            });
+          await this.$store.dispatch("abm/fetchResult").then(() => {
+            hideAllResultLayers(this.map);
+          });
           this.$store
             .dispatch("scenario/calculateStatsForMultiLayerAnalysis")
             .then(() => {

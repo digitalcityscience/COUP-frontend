@@ -1,6 +1,12 @@
 <script lang="ts">
 import _ from "lodash";
-import type { StoreStateWithModules, ScenarioWithTimeSheets, fiveMinuteAgentSummary, TimeSheetContext, DataForAbmTimeGraph } from "@/models";
+import type {
+  StoreStateWithModules,
+  ScenarioWithTimeSheets,
+  fiveMinuteAgentSummary,
+  TimeSheetContext,
+  DataForAbmTimeGraph,
+} from "@/models";
 import {
   abmTripsLayerName,
   setAnimationTimeAbm,
@@ -35,8 +41,8 @@ export default class TimeSheet extends Vue {
     }
   }
 
-  /** 
-   * Executes the trips layer animation 
+  /**
+   * Executes the trips layer animation
    * while this.animateTripsLayer === true
    * --> functionality for play button
    **/
@@ -50,12 +56,12 @@ export default class TimeSheet extends Vue {
     this.currentTimeStamp = this.currentTimeStamp || start;
 
     // increase animation 1 step. 1 step = 7 seconds per animationSpeed
-    this.currentTimeStamp = this.currentTimeStamp + (this.animationSpeed * 7);
-    if (this.currentTimeStamp + (this.animationSpeed * 7) >= end) {
+    this.currentTimeStamp = this.currentTimeStamp + this.animationSpeed * 7;
+    if (this.currentTimeStamp + this.animationSpeed * 7 >= end) {
       this.currentTimeStamp = start;
     }
 
-    // the animation is realized by 
+    // the animation is realized by
     // updating the currentTime rendering variable on the layer
     const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
     setAnimationTimeAbm(
@@ -141,7 +147,6 @@ export default class TimeSheet extends Vue {
     }
   }
 
-
   /** GETTERS & SETTERS */
   get timeSheetNeedsRerender(): boolean {
     return this.$store.state.abm.timeSheetNeedsRerender;
@@ -160,7 +165,7 @@ export default class TimeSheet extends Vue {
 
   /** time sheet data */
   get hasTimeSheetData(): boolean {
-    return !(_.isEmpty(this.$store.state.abm.dataForTimeGraph))
+    return !_.isEmpty(this.$store.state.abm.dataForTimeGraph);
   }
   get timeSheetData(): DataForAbmTimeGraph {
     return this.$store.state.abm.dataForTimeGraph;
@@ -169,7 +174,7 @@ export default class TimeSheet extends Vue {
   get abmTimeRange() {
     return this.$store.state.abm.timeRange;
   }
-  
+
   // UI can be hidden by Toggle UI button in viewbar menu
   get showUi(): boolean {
     return this.$store.state.scenario.showUi;
@@ -177,7 +182,7 @@ export default class TimeSheet extends Vue {
 
   increaseAnimationSpeed(): number {
     if (this.animationSpeed <= 3) {
-      return this.animationSpeed += 1;
+      return (this.animationSpeed += 1);
     } else {
       return 1;
     }

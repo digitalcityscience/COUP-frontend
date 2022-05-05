@@ -17,7 +17,7 @@ export default {
 
   // TODO make a getter!
   multiLayerAnalysisMap: false,
-  
+
   // UI
   lastClick: [],
   showUi: true,
@@ -27,7 +27,6 @@ export default {
 
   // sun
   sunExposureGeoJson: null,
-
 
   // Stormwater
   rerenderSwGraph: false,

@@ -62,7 +62,7 @@ export function hideAllLayersButThese(
   hideDesignLayers = false
 ) {
   // first hide all user-content layers
-  
+
   hideLayers(map, getUserContentLayerIds(map));
 
   if (!hideDesignLayers) {
@@ -96,7 +96,7 @@ export function getVisibleLayerIds(map: MapboxMap | null): string[] {
     if (map.getLayoutProperty(layer.id, "visibility") !== "none") {
       return true;
     }
-  })
+  });
 
   return visibleLayers.map((layer) => {
     return layer.id;
@@ -168,9 +168,9 @@ function addLayerToMap(
   layer.metadata = "user-content"; // differentiate layer from mapbox base layers like "sattelite" , ...
   // @ts-ignore
   map?.addLayer(layer);
-  // setting visibility is strictly needed to display, 
+  // setting visibility is strictly needed to display,
   // but needed to identify visible layers by "getLayoutProperty"
-  map.setLayoutProperty(layer.id, "visibility", "visible")
+  map.setLayoutProperty(layer.id, "visibility", "visible");
 }
 
 // ensures the right layer order

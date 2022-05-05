@@ -23,7 +23,7 @@ const store = new Vuex.Store({
     stormwater,
     wind,
     noise,
-    abm
+    abm,
   },
   state,
   getters: {

@@ -76,7 +76,7 @@ export default class TimeSheetControl extends Vue {
 
   @Prop({ default: false })
   allowSpeedControl!: boolean;
-  
+
   @Prop({ default: null })
   animationSpeed!: number;
 
@@ -93,13 +93,12 @@ export default class TimeSheetControl extends Vue {
 
   @Emit("increaseAnimationSpeed")
   increaseAnimationSpeed(): void {
+    console.log("increased animation speed")
   }
 
   mounted(): void {
     this.toggleGraph();
   }
-
-  
 }
 </script>
 

@@ -28,25 +28,25 @@ export interface StoreState {
 }
 
 export interface ScenarioStoreState {
-    // ABM dashboard charts
-    updateAbmStatsChart: boolean,
-    updateAmenityStatsChart: boolean,
-  
-    // layers
-    multiLayerAnalysisMap: boolean,
-    
-    // UI
-    lastClick: any[],
-    showUi: boolean,
-    allFeaturesHighlighted: boolean,
-    selectedFocusAreas: [],
-    resultLoadingStati: DataLoadingStati,
-  
-    // sun
-    sunExposureGeoJson: null,
-  
-    // Stormwater
-    rerenderSwGraph: boolean,
+  // ABM dashboard charts
+  updateAbmStatsChart: boolean;
+  updateAmenityStatsChart: boolean;
+
+  // layers
+  multiLayerAnalysisMap: boolean;
+
+  // UI
+  lastClick: any[];
+  showUi: boolean;
+  allFeaturesHighlighted: boolean;
+  selectedFocusAreas: [];
+  resultLoadingStati: DataLoadingStati;
+
+  // sun
+  sunExposureGeoJson: null;
+
+  // Stormwater
+  rerenderSwGraph: boolean;
 }
 
 export type TimeSheetContext = "abm" | "stormwater" | null;
@@ -68,28 +68,27 @@ export type ScenarioComponentNames = Record<
 
 export type DataLoadingStati = Record<ScenarioComponentName | "map", boolean>;
 
-
 export type AgentId = string;
 export type CoordinatesAsString = string;
 
-export type AgentsClusteredForHeatmap = Record<number, AgentId[]>
+export type AgentsClusteredForHeatmap = Record<number, AgentId[]>;
 
 // Lookup table for the agents index in the AbmSimulationResult
-export type AgentNameToIndexTable =  Record<string, number>;
+export type AgentNameToIndexTable = Record<string, number>;
 
 /**
  * count of all agents active during these 5 min onwards from timestamp
  * keys are 300, 600, ..
-*/
-  export interface DataForAbmTimeGraph {
-    labels: string[];
-    values: number[];
-  };
+ */
+export interface DataForAbmTimeGraph {
+  labels: string[];
+  values: number[];
+}
 
-  // TODO refactor: remove all property. it can just be a number?
-  // TODO only need count of agents during this 5min slot. 
+// TODO refactor: remove all property. it can just be a number?
+// TODO only need count of agents during this 5min slot.
 export interface AbmResponse {
-  amenitiesGeoJSON : GeoJSON;
+  amenitiesGeoJSON: GeoJSON;
   simulationResult: ResultDataSingleAgent[];
 }
 
@@ -103,22 +102,22 @@ export interface ResultDataSingleAgent {
 }
 
 export interface AbmAgent {
-  id: AgentId; // e.g. "people_resident10", 
+  id: AgentId; // e.g. "people_resident10",
   // unused properties
-  agent_age: string;  // e.g. "18-35", 
-  resident_or_visitor: "resident" | "visitor"  
+  agent_age: string; // e.g. "18-35",
+  resident_or_visitor: "resident" | "visitor";
   source: string;
-  // source:  e.g. "1.csv"  // hint for which GAMA simulation this agent is from... 
+  // source:  e.g. "1.csv"  // hint for which GAMA simulation this agent is from...
 }
- 
+
 export interface fiveMinuteAgentSummary {
   all: AgentId[];
 }
 export interface AgentsPerCoordinate {
-      busyAgents: AgentId[];
-      // coordinate as string eg. "10.34345,51.2343"
-      values: Record<CoordinatesAsString, AgentId[]>;
-  };
+  busyAgents: AgentId[];
+  // coordinate as string eg. "10.34345,51.2343"
+  values: Record<CoordinatesAsString, AgentId[]>;
+}
 
 export interface AgentTrip {
   destination: Coordinates;
@@ -134,8 +133,9 @@ export type AbmTimeRange = [number, number];
 export type Coordinates = [number, number];
 export type Timestamp = number;
 
-
-export type AbmScenarioConfiguration = AbmScenarioConfigGrasbrook | AbmScenarioConfigSCHB;
+export type AbmScenarioConfiguration =
+  | AbmScenarioConfigGrasbrook
+  | AbmScenarioConfigSCHB;
 
 export interface AbmScenarioConfigSCHB {
   amenity_config: "current" | "future";
@@ -152,7 +152,6 @@ export interface AbmScenarioConfigGrasbrook {
 export type AbmMainStreetOptions = "vertical" | "horizontal";
 export type AbmBlocksOptions = "open" | "closed";
 export type AbmAmenityOptions = "random" | "complementary";
-
 
 export type StormWaterRoofType = "extensive" | "intensive";
 export type StormWaterFlowPath = "blockToPark" | "blockToStreet";
