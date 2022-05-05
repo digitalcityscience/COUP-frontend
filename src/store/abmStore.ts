@@ -9,6 +9,7 @@ import type {
   GeoJSON,
   AppContext,
   AbmTimeRange,
+  ResultDataSingleAgent,
 } from "@/models";
 import {
   Module,
@@ -36,13 +37,14 @@ export default class AbmStore extends VuexModule {
   scenarioConfig = null;
   
   // original result data
+  // @ts-ignore
   simulationResult: AbmSimulationResult | null = null;
   amenitiesGeoJSON: GeoJSON | null = null;
   
   // processed result data
   agentIndexesByName: AgentNameToIndexTable = {};
   tripsSummary: AgentTrip[] = [];
-  dataForHeatmap: AgentsClusteredForHeatmap = {};
+  dataForHeatmap: AgentsClusteredForHeatmap | null = null;
   dataForTimeGraph: DataForAbmTimeGraph | null = null;
   
   // UI
@@ -147,6 +149,12 @@ export default class AbmStore extends VuexModule {
   resetResult(): void {
     this.simulationResult = null;
 
+    // reset processed results
+    this.agentIndexesByName = {};
+    this.tripsSummary = [];
+    this.dataForHeatmap = null;
+    this.dataForTimeGraph = null;
+
     // reset stats
     this.abmStats = {}
     this.amenityStats = {}
@@ -155,13 +163,15 @@ export default class AbmStore extends VuexModule {
   }
   
   //@ts-ignore
-  @MutationAction({ mutate: ["simulationResult", "amenitiesGeoJSON"] })
-  async fetchResult(): Promise<AbmResponse> {
+  @MutationAction({ mutate: ["simulationResult"], rawError: true })
+  async fetchResult(): Promise<{simulationResult: ResultDataSingleAgent[]}> {
     const response: AbmResponse =
       await this.context.rootState.cityPyO.getAbmResultLayer(
         this.scenarioConfiguration,
       );
 
-     return response
+      const simulationResult = response.simulationResult;
+
+     return {simulationResult: simulationResult }
   }
 }

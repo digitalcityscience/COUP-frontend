@@ -49,7 +49,7 @@ export interface ScenarioStoreState {
     rerenderSwGraph: boolean,
 }
 
-export type TimeSheetContext = "abm" | "sw" | null;
+export type TimeSheetContext = "abm" | "stormwater" | null;
 
 export type AppContext = "grasbrook" | "schb";
 
@@ -90,7 +90,7 @@ export type AgentNameToIndexTable =  Record<string, number>;
   // TODO only need count of agents during this 5min slot. 
 export interface AbmResponse {
   amenitiesGeoJSON : GeoJSON;
-  simulationResult: AbmSimulationResult[];
+  simulationResult: ResultDataSingleAgent[];
 }
 
 export type AbmSimulationResult = ResultDataSingleAgent[];
@@ -196,7 +196,7 @@ export interface StormWaterResult {
   rainData: number[];
 }
 
-export type ScenarioWithTimeSheets = "abm" | "sw";
+export type ScenarioWithTimeSheets = "abm" | "stormwater";
 
 export interface StoreStateWithModules extends StoreState {
   scenario: ScenarioStoreState;

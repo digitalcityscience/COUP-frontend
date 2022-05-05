@@ -33,6 +33,7 @@ export default {
     };
   },
   mounted() {
+    // check if stats already computed
     if (!this.abmStats["grasbrook"]) {
       // calculate stats
       calculateAmenityStatsForFocusArea();

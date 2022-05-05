@@ -49,7 +49,7 @@ export default class App extends Vue {
       return "abm";
     }
     if (this.activeComponent === ScenarioComponentNames.stormwater) {
-      return "sw";  // TODO rename!
+      return "stormwater";
     }
 
     return null;

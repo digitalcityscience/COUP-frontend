@@ -10,7 +10,6 @@ import Buildings from "@/components/Menu/viewbar/Buildings.vue";
 import BuildingsLegend from "@/components/Menu/viewbar/BuildingsLegend.vue";
 import PresentationMode from "@/components/Menu/viewbar/PresentationMode.vue";
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-import { StoreState } from "@/models";
 import { getVisibleLayerIds, hideLayers, showLayers } from "@/services/map.service";
 
 @Component({

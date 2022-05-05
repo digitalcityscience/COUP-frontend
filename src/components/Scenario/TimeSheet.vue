@@ -72,6 +72,7 @@ export default class TimeSheet extends Vue {
   }
 
   renderTimeGraph() {
+    // is rerendered now.
     this.timeSheetNeedsRerender = false;
 
     /*render graph via chart.js*/
@@ -165,12 +166,11 @@ export default class TimeSheet extends Vue {
     return this.$store.state.abm.dataForTimeGraph;
   }
 
-
   get abmTimeRange() {
     return this.$store.state.abm.timeRange;
   }
   
-  // when is this used??
+  // UI can be hidden by Toggle UI button in viewbar menu
   get showUi(): boolean {
     return this.$store.state.scenario.showUi;
   }
@@ -254,11 +254,14 @@ export default class TimeSheet extends Vue {
         @increaseAnimationSpeed="animationSpeed = increaseAnimationSpeed()"
         @toggle-graph="showGraph = $event"
       />
-    </span><!-- TODO : why if abm sheet hidden with vif and sw time sheet hidden with "hidden" prob?-->
-
+    </span>
+    <!-- 
+      TODO : why is abm sheet hidden with vif 
+      and sw time sheet hidden with "hidden" prob?
+    -->
     <SWTimeSheet
-      :hidden="timeSheetContext !== 'sw'"
-      :class="{ dismiss: timeSheetContext !== 'sw' }"
+      :hidden="timeSheetContext !== 'stormwater'"
+      :class="{ dismiss: timeSheetContext !== 'stormwater' }"
     />
   </div>
 </template>

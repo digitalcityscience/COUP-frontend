@@ -122,28 +122,6 @@ export default class CityPyO {
     }
   }
 
-  // the amenities layer is dependent on the chosen scenario
-  // TODO HOW DOES THIS WORK FOR SCHB???  <--- not at ALL ´;)=
-  // refactor so this can work regardless of context
-  async getAbmAmenitiesLayer(id: string, scenario: AbmScenarioConfigGrasbrook) {
-    const query =
-      scenario.main_street_orientation +
-      "_" +
-      scenario.roof_amenities;
-
-    const requestUrl = this.url + "getLayer/" + query;
-    const body = {
-      userid: this.userid,
-      layer: id,
-    };
-    const response = await this.performRequest(requestUrl, body);
-    if (response.status == 200) {
-      const responseJson = await response.json();
-
-      return responseJson.data;
-    }
-  }
-
   async combineLayers(layer1, layer2) {
     const requestUrl = this.url + "combineLayers";
 

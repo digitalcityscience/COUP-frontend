@@ -121,8 +121,6 @@ export default {
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
       ["activeMenuComponent", "activeMenuComponent"],
-      ["windScenarioHash", "scenario/windScenarioHash"],
-      ["abmSettings", "scenario/moduleSettings"],
     ]),
     currentAbmResult() {
       return this.$store.state.abm.simulationResult;
@@ -404,8 +402,10 @@ export default {
             });
           break;
         case "Abm":
-          await this.$store.dispatch("abm/fetchResult");
-          // TODO - do we still need this? // hideAllResultLayers(this.map);
+          await this.$store.dispatch("abm/fetchResult")
+            .then(() => {
+              hideAllResultLayers(this.map);
+            });
           this.$store
             .dispatch("scenario/calculateStatsForMultiLayerAnalysis")
             .then(() => {

@@ -86,12 +86,16 @@ export function aggregateAbmResultsBy5minForTimeGraph(
       })
     }
 
+
     // init 5 minute summaries, by creating keys for each new 300 seconds
     const simMaxTimeStamp = 57600;  // TODO magic number for max simulation time.
     const timeSheetData = {};
     for (let step = 0; step <= Math.ceil(simMaxTimeStamp / 300); step++) {
       timeSheetData[step * 300] = 0;
     }
+
+    //debugger;
+
 
     // iterate over each agent in abmResultData and count, if active during 5 min time intervall
     abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {

@@ -93,7 +93,6 @@ export default class TimeSheetControl extends Vue {
 
   @Emit("increaseAnimationSpeed")
   increaseAnimationSpeed(): void {
-    console.log("emit animation speed changed")
   }
 
   mounted(): void {

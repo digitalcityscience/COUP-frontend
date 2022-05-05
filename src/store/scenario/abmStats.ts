@@ -312,7 +312,7 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
 function getTimeAgentIsAtPoint(agentName, relevantHour, pointCoords) {
   
   const abmResult = store.state.abm.simulationResult;
-  const agentIdx = store.state.abm.agentIndexesByName[agentName];  // TODO agent indexes are never produced
+  const agentIdx = store.state.abm.agentIndexesByName[agentName];
   const agentData = abmResult[agentIdx];
 
   // the agent might be at the point at multiple times. get the array indexes of those path points.

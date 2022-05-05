@@ -1,4 +1,4 @@
-// move this to config folder or something
+// TODO : move this to config folder or something
 export const alkisTranslations = {
   2000: "commercial",
   2020: "office",
