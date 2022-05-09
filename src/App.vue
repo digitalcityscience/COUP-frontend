@@ -2,7 +2,7 @@
   <v-app>
     <Map :restrictedAccess="restrictedAccess" />
     <Menu :restrictedAccess="restrictedAccess" :context="context" />
-    <TimeSheet :hidden="!showTimeSheet" />
+    <TimeSheet :hidden="!showTimeSheet" :timeSheetContext="timeSheetContext" />
     <Viewbar :restrictedAccess="restrictedAccess" />
     <Loader />
     <LogosAIT />
@@ -18,7 +18,7 @@ import Viewbar from "./components/Menu/Viewbar.vue";
 import TimeSheet from "./components/Scenario/TimeSheet.vue";
 import LogosAIT from "./components/Scenario/LogosAIT.vue";
 import Loader from "./components/Loader/Loader.vue";
-import type { StoreState } from "@/models";
+import type { StoreState, TimeSheetContext } from "@/models";
 import type { Store } from "vuex";
 import ScenarioComponentNames from "./config/scenarioComponentNames";
 
@@ -42,6 +42,17 @@ export default class App extends Vue {
 
   get activeComponent(): string {
     return this.$store.state.activeMenuComponent;
+  }
+
+  get timeSheetContext(): TimeSheetContext {
+    if (this.activeComponent === ScenarioComponentNames.pedestrian) {
+      return "abm";
+    }
+    if (this.activeComponent === ScenarioComponentNames.stormwater) {
+      return "stormwater";
+    }
+
+    return null;
   }
 
   get showTimeSheet(): boolean {

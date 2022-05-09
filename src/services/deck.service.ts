@@ -7,7 +7,11 @@ import { TripsLayer } from "@deck.gl/geo-layers";
 import GL from "@luma.gl/constants";
 import { PolygonLayer } from "@deck.gl/layers";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
-import type { GeoJSON } from "@/models";
+import type {
+  AbmTimeRange,
+  AgentsClusteredForHeatmap,
+  GeoJSON,
+} from "@/models";
 
 export const abmTripsLayerName = "abmTrips";
 export const abmAggregationLayerName = "abmHeat";
@@ -72,8 +76,7 @@ export function getPolygonColor(d: number): [number, number, number] {
 }
 
 export async function buildTripsLayer(
-  data: DataSet<any>,
-  currentTimeStamp: number
+  data: DataSet<any>
 ): Promise<DeckLayer<unknown>> {
   return new DeckLayer({
     id: abmTripsLayerName,
@@ -96,7 +99,7 @@ export async function buildTripsLayer(
     rounded: true,
     pickable: false,
     trailLength: 750,
-    currentTime: currentTimeStamp,
+    currentTime: 0,
     parameters: {
       // prevent flicker from z-fighting
       [GL.DEPTH_TEST]: false,
@@ -121,12 +124,30 @@ export function setAnimationTimeAbm(tripsLayer: DeckLayer<any>, time: number) {
 }
 
 export async function buildAggregationLayer(
-  data: DataSet<any>
+  heatLayerData: AgentsClusteredForHeatmap,
+  timeRange: AbmTimeRange
 ): Promise<DeckLayer<any>> {
+  const heatLayerFormed = [];
+  //preparing Data for HeatMap Layer
+  Object.entries(heatLayerData).forEach(([key, _value]) => {
+    const hour = parseInt(key);
+    if ((hour as number) >= timeRange[0] && hour <= timeRange[1]) {
+      Object.entries(heatLayerData[key].values).forEach(
+        ([subKey, subValue]) => {
+          const coordinate = {
+            c: subKey.split(",").map(Number), // coordinate string to array
+            w: heatLayerData[key].values[subKey].length, // values is an array of names of the active agents at that location
+          };
+          heatLayerFormed.push(coordinate);
+        }
+      );
+    }
+  });
+
   return new DeckLayer({
     id: abmAggregationLayerName,
     type: HeatmapLayer,
-    data: data,
+    data: heatLayerFormed,
     pickable: false,
     getPosition: (d) => d.c,
     getWeight: (d) => d.w,

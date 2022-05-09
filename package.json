@@ -5,6 +5,7 @@
   "scripts": {
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
+    "lint:quiet": "eslint --quiet \"{tests,src}/**/*.{ts,js,vue}\"",
     "start": "vue-cli-service serve",
     "start:ci": "vue-cli-service serve --mode production --openssl-legacy-provider",
     "test:unit": "vue-cli-service test:unit",

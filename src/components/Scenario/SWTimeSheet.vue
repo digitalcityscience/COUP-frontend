@@ -25,10 +25,10 @@
       </div>
     </div>
     <TimeSheetControl
-      v-if="controls && stormWaterResult"
-      @animationSpeed="animationSpeed = $event"
+      v-if="stormWaterResult"
       @toggle-animation="toggleAnimation"
       :animationRunning="animateLayer"
+      :allowSpeedControl="false"
       @toggle-graph="mobileTimePanel = $event"
     />
   </div>
@@ -57,15 +57,11 @@ export default class SWTimeSheet extends Vue {
   mobileTimePanel = false;
   rainTime = 0; // time in slider for stormwater
   buildingsRunOffResults = [];
-  animationSpeed = 21;
   rainChart: Chart | null = null;
   swChart: Chart | null = null;
   swTimeStamps = [];
   parksRunOffResults = [];
   streetsRunOffResults = [];
-
-  @Prop({ default: true })
-  controls!: boolean;
 
   get map(): MapboxMap {
     return this.$store.state.map;
@@ -92,9 +88,8 @@ export default class SWTimeSheet extends Vue {
   }
 
   autoLoopAnimation(): void {
-    const animationSpeed = 1;
     const max = this.buildingsRunOffResults.length;
-    this.rainTime += animationSpeed;
+    this.rainTime += 1;
     if (this.rainTime >= max) {
       this.rainTime = 0;
     }
@@ -129,7 +124,6 @@ export default class SWTimeSheet extends Vue {
   @Watch("rerenderSwGraph")
   rerenderSwGraphWatcher(): void {
     if (this.rerenderSwGraph) {
-      this.$store.commit("scenario/selectGraph", "sw");
       this.prepareDataForRunOffGraph().then(() => {
         this.renderSWGraphRunOff();
         this.renderSWGraphRain();

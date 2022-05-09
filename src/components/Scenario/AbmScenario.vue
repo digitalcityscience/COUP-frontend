@@ -1,236 +1,403 @@
 <script lang="ts">
 import { mapState } from "vuex";
 import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import {
-  bridges,
-  moduleSettingNames,
-  mainStreetOrientationOptions,
-  blockPermeabilityOptions,
-  roofAmenitiesOptions,
-  workshopScenarioNames,
-} from "@/store/abm.ts";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import amenitiesLayerConfig from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
+import {
+  bridgesSource,
+  hafenCityBridgeLayerConf,
+  veddelUnderPassConfig,
+} from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
 import { abmLayerIds } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
-import type { MenuLink } from "@/models";
 import {
+  addDeckLayerToMap,
   hideAllLayersButThese,
   hideAllResultLayers,
   hideLayers,
+  showLayers,
+  removeSourceAndItsLayersFromMap,
+  addSourceAndLayerToMap,
 } from "@/services/map.service";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
+import { Component, Vue, Watch } from "vue-property-decorator";
+import { Store } from "vuex";
 
-export default {
+import type {
+  MapboxMap,
+  AbmScenarioConfiguration,
+  MenuLink,
+  StoreStateWithModules,
+  AbmSimulationResult,
+  AgentsClusteredForHeatmap,
+  DataForAbmTimeGraph,
+  AppContext,
+  AbmMainStreetOptions,
+  AbmBlocksOptions,
+  AbmAmenityOptions,
+  GeoJSON,
+  AgentNameToIndexTable,
+  AgentTrip,
+  AbmScenarioConfigGrasbrook,
+  AbmTimeRange,
+} from "@/models";
+import {
+  buildAggregationLayer,
+  buildTripsLayer,
+} from "@/services/deck.service";
+import * as resultProcessing from "@/services/abm/resultProcessing.service";
+
+@Component({
   name: ScenarioComponentNames.pedestrian,
-  components: {
-    DashboardCharts: DashboardCharts,
-    MenuDivision,
-    MenuComponentDivision,
-  },
-  props: {
-    restrictedAccess: Boolean,
-    context: String,
-  },
-  data() {
-    return {
-      activeDivision: null,
-      designScenarioNames: bridges,
-      moduleSettingOptions: moduleSettingNames,
-      mainStreetOrientationOptions: mainStreetOrientationOptions,
-      blockOptions: blockPermeabilityOptions,
-      roofAmenitiesOptions: roofAmenitiesOptions,
-      workshopScenarioNames: workshopScenarioNames,
-      age: 21,
-      timePaths: [],
-      weightData: [],
-      weightObjData: [],
-      timeRange: [0, 54000],
-      adjustRange: [8, 23],
-      datamsg: "",
-      pedestrianModel: true,
-      btnlabel: "Generate Aggregation Layer",
-      reloadHeatMapLayer: false,
-    };
-  },
-  computed: {
-    ...mapState(["map"]), // getter only
-    ...mapState("scenario", ["moduleSettings"]), // getter only
-    // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
-    ...generateStoreGetterSetter([
-      ["resultOutdated", "scenario/resultOutdated"],
-      ["focusAreasShown", "focusAreasShown"],
-      ["updateAbmStatsChart", "scenario/updateAbmStatsChart"],
-      ["updateAmenityStatsChart", "scenario/updateAmenityStatsChart"],
-      [
-        "currentlyShownScenarioSettings",
-        "scenario/currentlyShownScenarioSettings",
-      ],
-      [
-        "bridge_hafencity",
-        "scenario/moduleSettings/" + moduleSettingNames.bridge_hafencity,
-      ],
-      [
-        "underpass_veddel_north",
-        "scenario/moduleSettings/" + moduleSettingNames.underpass_veddel_north,
-      ],
-      [
-        "main_street_orientation",
-        "scenario/moduleSettings/" + moduleSettingNames.mainStreetOrientation,
-      ],
-      ["blocks", "scenario/moduleSettings/" + moduleSettingNames.blocks],
-      [
-        "roof_amenities",
-        "scenario/moduleSettings/" + moduleSettingNames.roofAmenities,
-      ],
-    ]),
-    abmStats() {
-      return this.$store.state.scenario.abmStats;
-    },
-    amenityStats() {
-      return this.$store.state.scenario.amenityStats;
-    },
-    heatMap() {
-      return this.$store.state.scenario.heatMap;
-    },
-    showUi() {
-      return this.$store.state.scenario.showUi;
-    },
-    componentDivisions(): MenuLink[] {
-      return [
-        {
-          title: "Scenario",
-          icon: "mdi-map-marker-radius",
-          hidden: false,
-          default: true,
-        },
-        {
-          title: "Dashboard",
-          icon: "mdi-view-dashboard",
-        },
-        {
-          title: "Aggregation Layer",
-          icon: "mdi-gauge",
-        },
-        {
-          title: "info",
-          icon: "mdi-information-variant",
-          hidden: false,
-        },
-      ];
-    },
-    resultLoading: {
-      // getter
-      get: function () {
-        return this.$store.state.scenario.resultLoadingStati.pedestrian;
-      },
-      // setter
-      set: function (loadingState) {
-        let loadingStati = Object.assign(
-          {},
-          this.$store.state.scenario.resultLoadingStati
-        );
-        loadingStati.pedestrian = loadingState;
-        this.$store.commit("scenario/resultLoadingStati", loadingStati);
-      },
-    },
-    isPedestrianActiveComponent: {
-      get: function () {
-        return (
-          this.$store.state.activeMenuComponent ===
-          ScenarioComponentNames.pedestrian
-        );
-      },
-    },
-  },
-  watch: {
-    resultsOutdated(newVal, oldVal) {
-      console.log("changes made");
-      console.log(newVal, oldVal);
-    },
-    heatMap() {
-      if (this.heatMap) {
-        this.btnlabel = "Hide Aggregation Layer";
-      } else if (!this.heatMap) {
-        this.btnlabel = "Show Aggregation Layer";
-      }
-    },
-    activeDivision() {
-      if (this.activeDivision === "Dashboard") {
-        // load map layer with focus areas
-        this.map.setLayoutProperty(
-          FocusAreasLayer.source.id,
-          "visibility",
-          "visible"
-        );
-        this.focusAreasShown = true;
-      } else {
-        if (this.map.getLayer(FocusAreasLayer.layerConfig.id)) {
-          // remove map layer with focus areas
-          this.map.setLayoutProperty(
-            FocusAreasLayer.source.id,
-            "visibility",
-            "none"
-          );
-          this.focusAreasShown = false;
-        }
-      }
-    },
-  },
-  mounted: function () {
+  components: { MenuComponentDivision, MenuDivision, DashboardCharts },
+})
+export default class AbmScenario extends Vue {
+  $store: Store<StoreStateWithModules>;
+  activeDivision = null;
+
+  scenarioConfiguration: AbmScenarioConfiguration | null = null;
+
+  mainStreetOrientationOptions: Record<
+    AbmMainStreetOptions,
+    AbmMainStreetOptions
+  > = {
+    horizontal: "horizontal",
+    vertical: "vertical",
+  };
+
+  blockOptions: Record<AbmBlocksOptions, AbmBlocksOptions> = {
+    open: "open",
+    closed: "closed",
+  };
+
+  roofAmenitiesOptions: Record<AbmAmenityOptions, AbmAmenityOptions> = {
+    random: "random",
+    complementary: "complementary",
+  };
+
+  errorMsg = "";
+
+  beforeDestroy(): void {
+    // stop animation of abm layer
+    this.$store.commit("abm/mutateAnimateLayer", false);
+  }
+
+  mounted(): void {
+    this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
+
+    // if simulationResult is there,
+    // but the result has not been processed sucessfully
+    if (this.result && !this.isResultProcessed) {
+      // build and add layers
+      this.buildAndAddLayers();
+      this.preProcessResultForStats();
+    }
+
     // hide all other layers
-    hideAllLayersButThese(this.map, ["abmHeat", "abmTrips", "abmAmenities"]);
-    // switch time graph to ABM
-    this.$store.commit("scenario/selectGraph", "abm");
-    console.warn("context??", this.context);
-  },
-  beforeDestroy: function () {
-    // Stop animation of trips layer
-    this.$store.commit("scenario/animateTripsLayer", false);
-  },
-  methods: {
-    confirmSettings() {
-      // update currentlyShowScenarioSettigns
-      this.currentlyShownScenarioSettings = JSON.parse(
-        JSON.stringify(this.moduleSettings)
-      );
-      this.changesMade = false;
-      this.resultOutdated = false;
-      this.resultLoading = true;
-      this.$store.commit("scenario/activeAbmSet", null);
-      this.$store.dispatch("scenario/updateAbmDesignScenario").then(() => {
-        this.resultLoading = false;
+    hideAllLayersButThese(this.map, [
+      "abmTrips",
+      "abmHeat",
+      amenitiesLayerConfig.layerConfig.id,
+      hafenCityBridgeLayerConf.id,
+      veddelUnderPassConfig.id,
+    ]);
+  }
+
+  get componentDivisions(): MenuLink[] {
+    return [
+      {
+        title: "Scenario",
+        icon: "mdi-map-marker-radius",
+        hidden: false,
+        default: true,
+      },
+      {
+        title: "Dashboard",
+        icon: "mdi-view-dashboard",
+      },
+      {
+        title: "Aggregation Layer",
+        icon: "mdi-gauge",
+      },
+      {
+        title: "info",
+        icon: "mdi-information-variant",
+      },
+    ];
+  }
+
+  /**
+   * GETTERS || SETTERS
+   **/
+  get map(): MapboxMap {
+    return this.$store.state.map;
+  }
+
+  get isPedestrianActiveComponent(): boolean {
+    return (
+      this.$store.state.activeMenuComponent ===
+      ScenarioComponentNames.pedestrian
+    );
+  }
+
+  // e.g. grasbrook or science city
+  get appContext(): AppContext {
+    return this.$store.state.appContext;
+  }
+
+  get result(): AbmSimulationResult {
+    return this.$store.state.abm.simulationResult;
+  }
+
+  get amenitiesGeoJSON(): GeoJSON {
+    return this.$store.state.abm.amenitiesGeoJSON;
+  }
+
+  get dataForHeatmap(): AgentsClusteredForHeatmap {
+    return this.$store.state.abm.dataForHeatmap;
+  }
+  set dataForHeatmap(newData: AgentsClusteredForHeatmap) {
+    this.$store.commit("abm/mutateDataForHeatmap", newData);
+  }
+
+  get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
+    return this.$store.getters["abm/scenarioConfiguration"];
+  }
+  set scenarioConfigurationGlobal(
+    newScenarioConfiguration: AbmScenarioConfiguration
+  ) {
+    this.$store.commit(
+      "abm/mutateScenarioConfiguration",
+      newScenarioConfiguration
+    );
+  }
+
+  get heatMapTimeRange(): AbmTimeRange {
+    return this.$store.state.abm.timeRange;
+  }
+  set heatMapTimeRange(newTimeRange: AbmTimeRange) {
+    this.$store.commit("abm/mutateTimeRange", newTimeRange);
+  }
+
+  get isResultLoading(): boolean {
+    return this.$store.state.scenario.resultLoadingStati.pedestrian;
+  }
+
+  set isResultLoading(loadingState: boolean) {
+    let loadingStati = Object.assign(
+      {},
+      this.$store.state.scenario.resultLoadingStati
+    );
+
+    loadingStati.pedestrian = loadingState;
+
+    this.$store.commit("scenario/resultLoadingStati", loadingStati);
+  }
+
+  /** Do the selected settings fit the displayed result? */
+  get isFormDirty(): boolean {
+    return (
+      this.result &&
+      JSON.stringify(this.scenarioConfiguration) !==
+        JSON.stringify(this.scenarioConfigurationGlobal)
+    );
+  }
+
+  /**
+   * processing results might fail if user switches component during fetchResult action
+   * see: https://github.com/championswimmer/vuex-module-decorators/issues/408
+   */
+  get isResultProcessed(): boolean {
+    return (
+      !!this.$store.state.abm.dataForHeatmap ||
+      !!this.$store.state.abm.dataForTimeGraph
+    );
+  }
+
+  /** WATCHERS */
+  @Watch("activeDivision")
+  toggleFocusAreaLayer(): void {
+    if (this.activeDivision === "Dashboard") {
+      showLayers(this.map, [FocusAreasLayer.layerConfig.id]);
+    } else {
+      hideLayers(this.map, [FocusAreasLayer.layerConfig.id]);
+    }
+  }
+
+  /** FUNCTIONS **/
+  runScenario(): void {
+    // update stormwater scenario in store
+    this.scenarioConfigurationGlobal = Object.assign(
+      {},
+      this.scenarioConfiguration
+    );
+
+    // get abm result from cityPyo add add result layers to map
+    this.fetchResultAndCreateNewResultLayers();
+  }
+
+  /**
+   * fetch results and add them to map
+   **/
+  async fetchResultAndCreateNewResultLayers(): Promise<void> {
+    // delete bridge layers, bc they are scenario specific
+    removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);
+    this.$store.commit("abm/resetResult");
+
+    this.isResultLoading = true;
+    this.errorMsg = "";
+
+    // fetch result and create new result layers
+    this.$store
+      .dispatch("abm/fetchResult")
+      // sucessfully got result
+      .then(() => {
+        this.buildAndAddLayers();
+        this.preProcessResultForStats();
+      })
+      .catch((err) => {
+        console.log("caught error", err);
+        this.errorMsg = err;
+      })
+      .finally(() => {
+        // remove loader screen
+        this.isResultLoading = false;
+      });
+  }
+
+  /** Builds and adds all layers */
+  buildAndAddLayers() {
+    // add result layers
+    this.buildTripsLayerAndAddToMap();
+    this.buildHeatMapLayerAndAddToMap();
+
+    // add bridge layers for grasbrook
+    if (this.appContext === "grasbrook") {
+      this.addBridgeLayers();
+    }
+
+    // add amenities layer
+    amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
+    addSourceAndLayerToMap(
+      amenitiesLayerConfig.source,
+      [amenitiesLayerConfig.layerConfig],
+      this.map
+    );
+  }
+
+  /**
+   * create agent indexes and trip summary
+   *  as input for stats calculation
+   *  TODO: will be done in backend after Gama automization
+   */
+  preProcessResultForStats() {
+    this.createAgentIndexes();
+    this.createTripsSummary();
+  }
+
+  /**
+   * builds the heatmap layer and adds it to the map
+   **/
+  buildHeatMapLayerAndAddToMap(): void {
+    // process result for heatmap
+    this.dataForHeatmap = resultProcessing.getAgentCountsPerHourAndCoordinate(
+      this.result
+    );
+    this.updateAggregationLayer();
+    if (!this.isPedestrianActiveComponent) {
+      hideLayers(this.map, ["abmHeat"]);
+    }
+  }
+
+  /** builds deck heatmap layer and adds it to map **/
+  updateAggregationLayer() {
+    buildAggregationLayer(this.dataForHeatmap, this.heatMapTimeRange).then(
+      (layer) => {
+        // todo check if still active component
+        addDeckLayerToMap(layer, this.map);
+      }
+    );
+  }
+
+  /**
+   * builds the trips layer and adds it to the map
+   **/
+  buildTripsLayerAndAddToMap(): void {
+    buildTripsLayer(this.result)
+      .then((tripsLayer) => {
+        addDeckLayerToMap(tripsLayer, this.map);
+        this.createTimeGraph();
+      })
+      .finally(() => {
+        // hide layers if user switched to different component meanwhile
         if (!this.isPedestrianActiveComponent) {
-          hideLayers(this.map, ["abmHeat", "abmTrips", "abmAmenities"]);
+          hideLayers(this.map, ["abmTrips", "abmAmenities"]);
         }
       });
-    },
-    changeHeatMapData() {
-      this.$store.commit("scenario/abmTimeRange", this.adjustRange);
-      this.$store.dispatch("scenario/updateAggregationLayer");
-    },
-    setHeatMapTimes(x, y) {
-      this.adjustRange = [x, y];
-      this.changeHeatMapData();
-    },
-    heatMapActive() {
-      this.$store.commit("scenario/heatMap", !this.heatMap);
-    },
-    loadWorkshopScenario(scenarioId) {
-      this.$store.dispatch("scenario/loadWorkshopScenario", scenarioId);
-    },
-    // TODO there is so much embedded logic in calling an ABM scenario for grasbrook. needs to be properly refactored
-    loadScienceCityScenario(scenarioId) {
-      this.resultLoading = true;
-      this.$store
-        .dispatch("scenario/loadScienceCityAbmScenario", scenarioId)
-        .then(() => {
-          this.resultLoading = false;
-        });
-    },
-  },
-};
+  }
+
+  /** adds the user selected bridges to the map **/
+  async addBridgeLayers(): Promise<void> {
+    let scenarioConfig = this
+      .scenarioConfigurationGlobal as AbmScenarioConfigGrasbrook;
+
+    let mapSource = bridgesSource;
+    // Add bridge geojson to source description
+    mapSource.options.data = await this.$store.state.cityPyO.getLayer(
+      "bridges"
+    );
+
+    let layerConfigs = [];
+    // add layer configs for bridges in selected scenario
+    if (scenarioConfig.bridge_hafencity) {
+      layerConfigs.push(hafenCityBridgeLayerConf);
+    }
+    if (scenarioConfig.underpass_veddel_north) {
+      layerConfigs.push(veddelUnderPassConfig);
+    }
+    addSourceAndLayerToMap(bridgesSource, layerConfigs, this.map);
+  }
+
+  /**
+   * processes the result data for visualization in timegraph
+   * add timegraph
+   * adds trips layer
+   */
+  async createTimeGraph() {
+    // process result for timegraph
+    const dataForTimeGraph =
+      resultProcessing.aggregateAbmResultsBy5minForTimeGraph(this.result);
+    this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph);
+    this.$store.commit("abm/mutateTimeSheetNeedsRerender", true);
+  }
+
+  /** creates a lookup table agentName: agentIndex - which is needed for stats calc **/
+  createAgentIndexes(): void {
+    this.$store.commit(
+      "abm/mutateAgentIndexesByName",
+      resultProcessing.createAgentIndexesByName(this.result)
+    );
+  }
+
+  /** creates a summary object of all agent trips (needed for stats calc.) **/
+  createTripsSummary(): void {
+    this.$store.commit(
+      "abm/mutateTripsSummary",
+      resultProcessing.createTripsSummary(this.result)
+    );
+  }
+
+  /**
+   * called upon slider change of heatMapTimeRange
+   * recreates heatmap for given heatMapTimeRange
+   **/
+  changeHeatMapData(startTime, endTime): void {
+    this.heatMapTimeRange = [startTime, endTime]; // save to store
+    this.updateAggregationLayer();
+  }
+}
 </script>
 
 <template>
@@ -244,7 +411,7 @@ export default {
     <!--each div element needs data-title and data-pic for autocreating menu buttons-->
     <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div
-      v-if="!restrictedAccess && context == 'grasbrook'"
+      v-if="appContext == 'grasbrook'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"
@@ -256,195 +423,87 @@ export default {
       >
         <v-container fluid>
           <h2>Pedestrian Flow | Scenario Settings</h2>
-          <div
-            class="scenario_box"
-            :class="
-              currentlyShownScenarioSettings.underpass_veddel_north !=
-              underpass_veddel_north
-                ? 'highlight'
-                : 'na'
-            "
-          >
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">BRIDGES</header>
             <v-switch
-              :disabled="resultLoading"
-              v-model="bridge_hafencity"
+              :disabled="isResultLoading"
+              v-model="scenarioConfiguration.bridge_hafencity"
               flat
               label="Bridge to HafenCity"
               dark
-              :color="
-                currentlyShownScenarioSettings.bridge_hafencity !=
-                bridge_hafencity
-                  ? '#fff'
-                  : '#888'
-              "
-              :class="
-                currentlyShownScenarioSettings.bridge_hafencity !=
-                bridge_hafencity
-                  ? 'switched'
-                  : 'na'
-              "
             />
             <v-switch
-              :disabled="resultLoading"
-              v-model="underpass_veddel_north"
+              :disabled="isResultLoading"
+              v-model="scenarioConfiguration.underpass_veddel_north"
               flat
               label="Underpass to Veddel North"
               dark
-              :color="
-                currentlyShownScenarioSettings.underpass_veddel_north !=
-                underpass_veddel_north
-                  ? '#fff'
-                  : '#888'
-              "
-              :class="
-                currentlyShownScenarioSettings.underpass_veddel_north !=
-                underpass_veddel_north
-                  ? 'switched'
-                  : 'na'
-              "
             />
           </div>
-          <div
-            class="scenario_box"
-            :class="
-              currentlyShownScenarioSettings.main_street_orientation !=
-              main_street_orientation
-                ? 'highlight'
-                : 'na'
-            "
-          >
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">MAIN STREET ORIENTATION</header>
             <v-radio-group
-              v-model="main_street_orientation"
-              :class="
-                currentlyShownScenarioSettings.main_street_orientation !=
-                main_street_orientation
-                  ? 'switched'
-                  : 'na'
-              "
+              v-model="scenarioConfiguration.main_street_orientation"
             >
               <v-radio
                 :value="mainStreetOrientationOptions.vertical"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="North-South Axes"
                 dark
-                :color="
-                  currentlyShownScenarioSettings.main_street_orientation !=
-                  main_street_orientation
-                    ? '#fff'
-                    : '#888'
-                "
               />
               <v-radio
                 :value="mainStreetOrientationOptions.horizontal"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="East-West Axes"
                 dark
-                :color="
-                  currentlyShownScenarioSettings.main_street_orientation !=
-                  main_street_orientation
-                    ? '#fff'
-                    : '#888'
-                "
               />
             </v-radio-group>
           </div>
-          <div
-            class="scenario_box"
-            :class="
-              currentlyShownScenarioSettings.blocks != blocks
-                ? 'highlight'
-                : 'na'
-            "
-          >
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">CITY BLOCK STRUCTURE</header>
-            <v-radio-group
-              v-model="blocks"
-              :class="
-                currentlyShownScenarioSettings.blocks != blocks
-                  ? 'switched'
-                  : 'na'
-              "
-            >
+            <v-radio-group v-model="scenarioConfiguration.blocks">
               <v-radio
                 :value="blockOptions.open"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Permeable"
                 dark
-                :color="
-                  currentlyShownScenarioSettings.blocks != blocks
-                    ? '#fff'
-                    : '#888'
-                "
               />
               <v-radio
                 :value="blockOptions.closed"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Private"
                 dark
-                :color="
-                  currentlyShownScenarioSettings.blocks != blocks
-                    ? '#fff'
-                    : '#888'
-                "
               />
             </v-radio-group>
           </div>
-          <div
-            class="scenario_box"
-            :class="
-              currentlyShownScenarioSettings.roof_amenities != roof_amenities
-                ? 'highlight'
-                : 'na'
-            "
-          >
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
             <header class="text-sm-left">AMENITY DISTRIBUTION</header>
-            <v-radio-group
-              v-model="roof_amenities"
-              :class="
-                currentlyShownScenarioSettings.roof_amenities != roof_amenities
-                  ? 'switched'
-                  : 'na'
-              "
-            >
+            <v-radio-group v-model="scenarioConfiguration.roof_amenities">
               <v-radio
                 :value="roofAmenitiesOptions.complementary"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Clustered by Type"
                 dark
-                :color="
-                  currentlyShownScenarioSettings.roof_amenities !=
-                  roof_amenities
-                    ? '#fff'
-                    : '#888'
-                "
               />
               <v-radio
                 :value="roofAmenitiesOptions.random"
-                :disabled="resultLoading"
+                :disabled="isResultLoading"
                 flat
                 label="Mixed Distribution"
                 dark
-                :color="
-                  currentlyShownScenarioSettings.roof_amenities !=
-                  roof_amenities
-                    ? '#fff'
-                    : '#888'
-                "
               />
             </v-radio-group>
           </div>
           <v-btn
-            @click="confirmSettings"
+            @click="runScenario"
             class="confirm_btn mt-2"
-            :class="{ changesMade: resultOutdated }"
-            :disabled="resultLoading"
+            :class="{ changesMade: isFormDirty }"
+            :disabled="isResultLoading"
           >
             Run Scenario
           </v-btn>
@@ -456,7 +515,7 @@ export default {
 
     <!--SCENARIO DIVISION FOR ScienceCity Bahrendfeld ONLY-->
     <div
-      v-if="context == 'schb'"
+      v-if="appContext == 'schb'"
       class="division"
       data-title="Scenario"
       data-pic="mdi-map-marker-radius"
@@ -464,53 +523,33 @@ export default {
       <!--v-if needs to be set to data-title to make switch between divisions possible-->
       <div v-if="activeDivision === 'Scenario'" class="component_content">
         <h2>Pedestrian Flow | Scenario Settings</h2>
+        <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
+          <header class="text-sm-left">AMENITY DISTRIBUTION</header>
+          <v-radio-group v-model="scenarioConfiguration.amenity_config">
+            <v-radio
+              value="current"
+              :disabled="isResultLoading"
+              flat
+              label="STATUS QUO"
+              dark
+            />
+            <v-radio
+              value="future"
+              :disabled="isResultLoading"
+              flat
+              label="SCIENCECITY"
+              dark
+            />
+          </v-radio-group>
+        </div>
         <v-btn
-          @click="loadScienceCityScenario('abm_scenario_status_quo')"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Status Quo</v-btn
+          @click="runScenario"
+          class="confirm_btn mt-2"
+          :class="{ changesMade: isFormDirty }"
+          :disabled="isResultLoading"
         >
-        <v-btn
-          @click="loadScienceCityScenario('abm_scenario_schb')"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >ScienceCity</v-btn
-        >
-      </div>
-    </div>
-    <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
-    <div
-      v-if="restrictedAccess"
-      class="division"
-      data-title="Scenario"
-      data-pic="mdi-map-marker-radius"
-    >
-      <!--v-if needs to be set to data-title to make switch between divisions possible-->
-      <div v-if="activeDivision === 'Scenario'" class="component_content">
-        <h2>Pedestrians Scenario Selection</h2>
-        <v-btn
-          @click="loadScenarioByName(workshopScenarioNames[0])"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Scenario I</v-btn
-        >
-        <v-btn
-          @click="loadScenarioByName(workshopScenarioNames[1])"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Scenario II</v-btn
-        >
-        <v-btn
-          @click="loadScenarioByName(workshopScenarioNames[2])"
-          class="scenario_main_btn"
-          block
-          :disabled="resultLoading"
-          >Scenario III</v-btn
-        >
+          Run Scenario
+        </v-btn>
       </div>
     </div>
     <!--division-end-->
@@ -533,17 +572,17 @@ export default {
       >
         <h2>Pedestrian Flow | Aggregation Layer</h2>
         <v-range-slider
-          v-model="adjustRange"
+          v-model="heatMapTimeRange"
           :min="8"
           :max="24"
           hide-details
           dark
           class="align-center"
-          @change="changeHeatMapData()"
+          @change="updateAggregationLayer()"
         >
           <template v-slot:prepend>
             <v-text-field
-              :value="adjustRange[0]"
+              :value="heatMapTimeRange[0]"
               class="mt-0 pt-0"
               hide-details
               single-line
@@ -554,7 +593,7 @@ export default {
           </template>
           <template v-slot:append>
             <v-text-field
-              :value="adjustRange[1]"
+              :value="heatMapTimeRange[1]"
               class="mt-0 pt-0"
               hide-details
               single-line
@@ -567,7 +606,7 @@ export default {
         <div class="heatmap_buttons">
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn @click="setHeatMapTimes(8, 23)" v-bind="attrs" v-on="on">
+              <v-btn @click="changeHeatMapData(8, 23)" v-bind="attrs" v-on="on">
                 <v-icon>mdi-av-timer</v-icon>
               </v-btn>
             </template>
@@ -575,7 +614,7 @@ export default {
           </v-tooltip>
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn @click="setHeatMapTimes(8, 10)" v-bind="attrs" v-on="on">
+              <v-btn @click="changeHeatMapData(8, 10)" v-bind="attrs" v-on="on">
                 <v-icon>mdi-weather-sunset-up</v-icon>
               </v-btn>
             </template>
@@ -583,7 +622,11 @@ export default {
           </v-tooltip>
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn @click="setHeatMapTimes(11, 15)" v-bind="attrs" v-on="on">
+              <v-btn
+                @click="changeHeatMapData(11, 15)"
+                v-bind="attrs"
+                v-on="on"
+              >
                 <v-icon>mdi-weather-sunny</v-icon>
               </v-btn>
             </template>
@@ -591,15 +634,17 @@ export default {
           </v-tooltip>
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn @click="setHeatMapTimes(17, 20)" v-bind="attrs" v-on="on">
+              <v-btn
+                @click="changeHeatMapData(17, 20)"
+                v-bind="attrs"
+                v-on="on"
+              >
                 <v-icon>mdi-weather-sunset-down</v-icon>
               </v-btn>
             </template>
             <span>Evening</span>
           </v-tooltip>
         </div>
-        <p>{{ datamsg }}</p>
-        <!--<v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>-->
       </div>
     </div>
 
@@ -715,18 +760,6 @@ export default {
           &.v-item--active {
             opacity: 1;
           }
-        }
-      }
-    }
-
-    &.switched {
-      ::v-deep.v-input__control {
-        label {
-          color: white;
-        }
-        .v-input--switch__thumb {
-          background: white;
-          opacity: 0.8;
         }
       }
     }

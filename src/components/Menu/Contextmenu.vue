@@ -29,9 +29,6 @@ export default {
     selectedObjectId() {
       return this.$store.state.selectedObjectId;
     },
-    abmTrips() {
-      return this.$store.state.scenario.abmTrips;
-    },
   },
   beforeMount() {
     if (!this.selectedObjectId) {

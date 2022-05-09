@@ -61,12 +61,8 @@ export function hideAllLayersButThese(
   layersToShow: string[] = [],
   hideDesignLayers = false
 ) {
-  // TODO: design layer names as global variable add in createDesignLayers
-  const designLayers = ["spaces", "groundfloor", "upperfloor", "rooftops"];
-  if (!hideDesignLayers) {
-    layersToShow.push(...designLayers);
-  }
   // first hide all user-content layers
+
   hideLayers(map, getUserContentLayerIds(map));
 
   if (!hideDesignLayers) {
@@ -92,6 +88,19 @@ export function getUserContentLayers(map: MapboxMap | null): TypedStyleLayer[] {
     // Unfortunately there is no way of knowing whether the map is ready or not.
     return [];
   }
+}
+
+/** returns is list of currently visible user content layers */
+export function getVisibleLayerIds(map: MapboxMap | null): string[] {
+  const visibleLayers = getUserContentLayers(map).filter((layer) => {
+    if (map.getLayoutProperty(layer.id, "visibility") !== "none") {
+      return true;
+    }
+  });
+
+  return visibleLayers.map((layer) => {
+    return layer.id;
+  });
 }
 
 export function getUserContentLayerIds(map: MapboxMap | null): string[] {
@@ -159,6 +168,9 @@ function addLayerToMap(
   layer.metadata = "user-content"; // differentiate layer from mapbox base layers like "sattelite" , ...
   // @ts-ignore
   map?.addLayer(layer);
+  // setting visibility is strictly needed to display,
+  // but needed to identify visible layers by "getLayoutProperty"
+  map.setLayoutProperty(layer.id, "visibility", "visible");
 }
 
 // ensures the right layer order

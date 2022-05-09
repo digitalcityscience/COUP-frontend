@@ -1,5 +1,9 @@
-import { workshopScenarioNames } from "@/store/abm";
-import type { CityPyOUser, GeoJSON } from "@/models";
+import type {
+  CityPyOUser,
+  GeoJSON,
+  AbmScenarioConfiguration,
+  AbmResponse,
+} from "@/models";
 
 export default class CityPyO {
   url: string;
@@ -41,7 +45,7 @@ export default class CityPyO {
     }
   }
 
-  async performRequest(layerId, requestUrl, body) {
+  async performRequest(requestUrl, body) {
     const res = await fetch(requestUrl, {
       method: "POST",
       mode: "cors",
@@ -54,7 +58,7 @@ export default class CityPyO {
     if (res.status !== 200) {
       console.warn(
         "could not get/update ressource from cityPyo ",
-        layerId,
+        requestUrl,
         res.status,
         res.statusText
       );
@@ -73,7 +77,7 @@ export default class CityPyO {
       layer: id,
     };
 
-    const response = await this.performRequest(id, requestUrl, body);
+    const response = await this.performRequest(requestUrl, body);
 
     if (response.status == 200) {
       const responseJson = await response.json();
@@ -98,58 +102,29 @@ export default class CityPyO {
       userid: this.userid,
       data: payload,
     };
-    await this.performRequest(fileName, requestUrl, body);
+    await this.performRequest(requestUrl, body);
   }
 
-  async getAbmResultLayer(id: string, scenario?: AbmScenario) {
-    // fetch predefined workshop scenario layer
-    if (!scenario) {
-      const responseJson = await this.getLayer(id);
-
-      return responseJson.data;
-    }
-
+  // TODO rename into get abmResultData
+  async getAbmResultLayer(
+    scenario: AbmScenarioConfiguration
+  ): Promise<AbmResponse> {
     // fetch abm scenario based on module settings and view filters
     const requestUrl = this.url + "getLayer/" + "abmScenario";
     const body = {
       userid: this.userid,
-      scenario_properties: scenario.moduleSettings,
+      scenario_properties: scenario,
       agent_filters: {},
     };
 
-    const response = await this.performRequest(id, requestUrl, body);
+    const response = await this.performRequest(requestUrl, body);
     if (response.status == 200) {
       const responseJson = await response.json();
 
-      return responseJson.data;
-    }
-  }
-
-  // the amenities layer is dependent on the chosen scenario
-  async getAbmAmenitiesLayer(id: string, scenario: AbmScenario) {
-    // fetch predefined workshop scenario layer
-    // TODO can we throw away the WORKSHOP stuff?
-    if (workshopScenarioNames.includes(id)) {
-      const responseGeoJson = await this.getLayer("amenities_" + id);
-      return responseGeoJson;
-    }
-
-    // else: fetch abmScenario file, including all scenarios from CityPyo
-    const query =
-      scenario.moduleSettings.main_street_orientation +
-      "_" +
-      scenario.moduleSettings.roof_amenities;
-
-    const requestUrl = this.url + "getLayer/" + query;
-    const body = {
-      userid: this.userid,
-      layer: id,
-    };
-    const response = await this.performRequest(id, requestUrl, body);
-    if (response.status == 200) {
-      const responseJson = await response.json();
-
-      return responseJson.data;
+      return {
+        simulationResult: responseJson["simulationResult"],
+        amenitiesGeoJSON: responseJson["amenitiesGeoJSON"],
+      };
     }
   }
 
@@ -161,7 +136,7 @@ export default class CityPyO {
       layer_1: layer1,
       layer_2: layer2,
     };
-    const response = await this.performRequest("", requestUrl, body);
+    const response = await this.performRequest(requestUrl, body);
 
     if (response.status === 200) {
       const responseJson = await response.json();

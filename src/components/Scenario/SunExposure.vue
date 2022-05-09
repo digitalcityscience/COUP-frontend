@@ -81,7 +81,6 @@ export default {
     async loadResult() {
       this.resultLoading = true;
       this.$store.dispatch("scenario/addSunExposureLayer").then(() => {
-        this.$store.commit("scenario/sunExposureLayer", true);
         this.sunExposureLoaded = true;
         this.resultLoading = false;
         if (!this.isSunExposureActiveComponent)

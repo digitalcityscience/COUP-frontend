@@ -334,11 +334,6 @@ export default {
     }
   }
 
-  .body_scope {
-  }
-  .footer_scope {
-  }
-
   @media (min-device-width: 1024px) {
     right: 0;
     left: auto;
@@ -425,9 +420,6 @@ export default {
         font-size: 20px;
         color: black;
       }
-    }
-
-    .body_scope {
     }
   }
 

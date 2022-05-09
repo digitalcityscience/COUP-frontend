@@ -121,15 +121,9 @@ export default {
     // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
     ...generateStoreGetterSetter([
       ["activeMenuComponent", "activeMenuComponent"],
-      ["visibleLayers", "visibleLayers"],
-      ["windScenarioHash", "scenario/windScenarioHash"],
-      ["abmSettings", "scenario/moduleSettings"],
     ]),
     currentAbmResult() {
-      return this.$store.state.scenario.activeAbmSet;
-    },
-    abmStatsMultiLayerAnalysis() {
-      return this.$store.state.scenario.abmStatsMultiLayer;
+      return this.$store.state.abm.simulationResult;
     },
     currentNoiseResult() {
       return this.$store.getters["noise/noiseResult"];
@@ -408,8 +402,9 @@ export default {
             });
           break;
         case "Abm":
-          await this.$store.dispatch("scenario/updateAbmDesignScenario");
-          hideAllResultLayers(this.map);
+          await this.$store.dispatch("abm/fetchResult").then(() => {
+            hideAllResultLayers(this.map);
+          });
           this.$store
             .dispatch("scenario/calculateStatsForMultiLayerAnalysis")
             .then(() => {

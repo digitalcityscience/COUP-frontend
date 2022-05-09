@@ -12,7 +12,8 @@
         <span>{{ showGraph ? "Hide" : "Show" }} Graph</span>
       </v-tooltip>
     </div>
-    <div class="btn_wrapper">
+    <!-- v-if for abm context -->
+    <div v-if="allowSpeedControl" class="btn_wrapper">
       <v-tooltip right>
         <template v-slot:activator="{ on, attrs }">
           <v-btn @click="increaseAnimationSpeed">
@@ -24,19 +25,19 @@
       <div class="indicators">
         <span
           class="indicator"
-          v-bind:class="{ marked: animationSpeed >= 7 }"
+          v-bind:class="{ marked: animationSpeed >= 1 }"
         ></span>
         <span
           class="indicator"
-          v-bind:class="{ marked: animationSpeed >= 14 }"
+          v-bind:class="{ marked: animationSpeed >= 2 }"
         ></span>
         <span
           class="indicator"
-          v-bind:class="{ marked: animationSpeed >= 21 }"
+          v-bind:class="{ marked: animationSpeed >= 3 }"
         ></span>
         <span
           class="indicator"
-          v-bind:class="{ marked: animationSpeed >= 28 }"
+          v-bind:class="{ marked: animationSpeed >= 4 }"
         ></span>
       </div>
     </div>
@@ -64,7 +65,6 @@ export default class TimeSheetControl extends Vue {
   $store: Store<StoreStateWithModules>;
 
   checkState = false;
-  animationSpeed = 21;
   showGraph = false;
 
   get windowWidth(): number {
@@ -73,6 +73,12 @@ export default class TimeSheetControl extends Vue {
 
   @Prop({ default: false })
   animationRunning!: boolean;
+
+  @Prop({ default: false })
+  allowSpeedControl!: boolean;
+
+  @Prop({ default: null })
+  animationSpeed!: number;
 
   @Emit()
   toggleAnimation(): boolean {
@@ -85,23 +91,13 @@ export default class TimeSheetControl extends Vue {
     return this.showGraph;
   }
 
-  @Emit("animationSpeed")
-  animationSpeedChanged(): number {
-    return this.animationSpeed;
+  @Emit("increaseAnimationSpeed")
+  increaseAnimationSpeed(): void {
+    console.log("increased animation speed")
   }
 
   mounted(): void {
     this.toggleGraph();
-  }
-
-  increaseAnimationSpeed(): void {
-    if (this.animationSpeed <= 21) {
-      this.animationSpeed += 7;
-    } else {
-      this.animationSpeed = 7;
-    }
-    this.animationSpeedChanged();
-    this.$store.commit("scenario/animationSpeed", this.animationSpeed);
   }
 }
 </script>

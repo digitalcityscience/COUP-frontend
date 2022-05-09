@@ -2,6 +2,7 @@ import { StoreState } from "@/models";
 
 const initialState: StoreState = {
   map: null,
+  appContext: null,
   activeMenuComponent: "pedestrian",
   allFeaturesHighlighted: false,
   showLegend: false,
@@ -16,18 +17,6 @@ const initialState: StoreState = {
   modalIndex: 1,
   selectedObjectId: null,
   featureCircles: [], // circles around features for feature highlighting
-  visibleLayers: {
-    focusAreas: false,
-    abm: false,
-    heat: false,
-    amenities: false,
-    noise: false,
-    stormwater: false,
-    trees: false,
-    wind: false,
-    sunExposure: false,
-    multiLayerAnalysis: false,
-  },
 };
 
 export default initialState;

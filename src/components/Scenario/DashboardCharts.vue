@@ -5,6 +5,8 @@ import { color } from "chart.js/helpers";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 Chart.unregister(ChartDataLabels);
 import { generateStoreGetterSetter } from "@/store/utils/generators";
+import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats";
+import { calculateAbmStatsForFocusArea } from "@/store/scenario/abmStats";
 const chartColors: Record<string | number, string> = {
   grasbrook: "lightgrey",
   1: "#e172d8",
@@ -31,8 +33,16 @@ export default {
     };
   },
   mounted() {
-    this.renderBarChart();
-    this.renderRadarChart();
+    // check if stats already computed
+    if (!this.abmStats["grasbrook"]) {
+      // calculate stats
+      calculateAmenityStatsForFocusArea();
+      calculateAbmStatsForFocusArea();
+    } else {
+      // render charts for stats
+      this.renderBarChart();
+      this.renderRadarChart();
+    }
   },
   methods: {
     renderBarChart() {
@@ -137,7 +147,9 @@ export default {
       this.barChartReady = true;
       this.updateAmenityStatsChart = false;
     },
-    /** radar chart for abmStats **/
+    /** radar chart for abmStats
+     * TODO refactor as chart maker service
+     * **/
     renderRadarChart() {
       this.radarChartReady = false;
 
@@ -288,12 +300,12 @@ export default {
   },
   computed: {
     ...mapState("scenario", ["selectedFocusAreas"]), // getter only
+    ...mapState("abm", ["abmStats"]), // getter only
+    ...mapState("abm", ["amenityStats"]), // getter only
     ...generateStoreGetterSetter([
       ["loader", "scenario/loader"],
       ["updateAbmStatsChart", "scenario/updateAbmStatsChart"],
       ["updateAmenityStatsChart", "scenario/updateAmenityStatsChart"],
-      ["abmStats", "scenario/abmStats"],
-      ["amenityStats", "scenario/amenityStats"],
     ]),
   },
   watch: {

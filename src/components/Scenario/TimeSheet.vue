@@ -1,11 +1,18 @@
 <script lang="ts">
-import type { StoreStateWithModules, ScenarioWithTimeSheets } from "@/models";
+import _ from "lodash";
+import type {
+  StoreStateWithModules,
+  ScenarioWithTimeSheets,
+  fiveMinuteAgentSummary,
+  TimeSheetContext,
+  DataForAbmTimeGraph,
+} from "@/models";
 import {
   abmTripsLayerName,
   setAnimationTimeAbm,
 } from "@/services/deck.service";
 import { Chart } from "chart.js";
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Vue, Watch, Prop } from "vue-property-decorator";
 import type { Store } from "vuex";
 import SWTimeSheet from "@/components/Scenario/SWTimeSheet.vue";
 import TimeSheetControl from "@/components/Scenario/TimeSheetControl.vue";
@@ -17,43 +24,45 @@ export default class TimeSheet extends Vue {
   $store: Store<StoreStateWithModules>;
 
   timeChart = null;
-  animationSpeed = 21;
-  timeStamps = [];
-  timeCoords = [];
-  timeHours = [];
+  currentTimeStamp = null;
+  animationSpeed = 3;
   heatMapRange = { left: "0%", width: "100%" };
   minTime = 0;
   showGraph = true;
-  hasAbmResult = false;
 
+  @Prop({})
+  timeSheetContext: TimeSheetContext;
+
+  /** connected to play button in time sheet control */
   toggleAnimation(): void {
     this.animateTripsLayer = !this.animateTripsLayer;
     if (this.animateTripsLayer) {
-      this.autoLoopAnimation();
+      this.playTripsLayerAnimation();
     }
   }
 
-  autoLoopAnimation(): void {
-    /*functionality for play button*/
-
+  /**
+   * Executes the trips layer animation
+   * while this.animateTripsLayer === true
+   * --> functionality for play button
+   **/
+  playTripsLayerAnimation(): void {
     // TODO: Once ABM is automated, get start/end times from API.
-    const abmTimeRange = this.$store.state.scenario.abmTimeRange;
+    const abmTimeRange = this.$store.state.abm.timeRange;
     const start = (abmTimeRange[0] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
     const end = (abmTimeRange[1] - 8) * 3600; // ABM result starts at 8am, time in seconds since then.
 
     // TODO adjust timestamp to slider. or slider to abm logic.
     this.currentTimeStamp = this.currentTimeStamp || start;
 
-    // increase animation time by 1 step
-    this.currentTimeStamp = this.currentTimeStamp + this.animationSpeed;
-    if (this.currentTimeStamp + this.animationSpeed >= end) {
+    // increase animation 1 step. 1 step = 7 seconds per animationSpeed
+    this.currentTimeStamp = this.currentTimeStamp + this.animationSpeed * 7;
+    if (this.currentTimeStamp + this.animationSpeed * 7 >= end) {
       this.currentTimeStamp = start;
     }
 
-    /*
-      the animation is realized by
-      updating the currentTime rendering variable on the layer
-    */
+    // the animation is realized by
+    // updating the currentTime rendering variable on the layer
     const deckLayer = this.$store.state.map.getLayer(abmTripsLayerName);
     setAnimationTimeAbm(
       (deckLayer as any).implementation,
@@ -63,29 +72,15 @@ export default class TimeSheet extends Vue {
     // trigger next cycle
     window.requestAnimationFrame(() => {
       if (this.animateTripsLayer) {
-        this.autoLoopAnimation();
+        this.playTripsLayerAnimation();
       }
     });
   }
 
-  getDataForTimeChart() {
-    this.timeStamps = [];
-    this.timeCoords = [];
-
-    Object.entries(this.abmSimpleTimes).forEach((entry) => {
-      const [key, value] = entry;
-      let label = Math.floor(Number(key) / 3600) + 8 + ":00";
-      let coords = [...new Set(value.all)];
-
-      this.timeStamps.push(label);
-      this.timeCoords.push(coords.length);
-    });
-
-    this.hasAbmResult = true;
-    this.renderTimeGraph();
-  }
-
   renderTimeGraph() {
+    // is rerendered now.
+    this.timeSheetNeedsRerender = false;
+
     /*render graph via chart.js*/
     var ctx = (
       document.getElementById("timeChart") as HTMLCanvasElement
@@ -97,10 +92,10 @@ export default class TimeSheet extends Vue {
     this.timeChart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: this.timeStamps,
+        labels: this.timeSheetData.labels,
         datasets: [
           {
-            data: this.timeCoords,
+            data: this.timeSheetData.values,
             //borderColor: 'rgba(253, 128, 93, 1)',
             borderColor: "rgba(16,245,229,1)",
             backgroundColor: "rgba(0,0,0,0.75)",
@@ -152,54 +147,52 @@ export default class TimeSheet extends Vue {
     }
   }
 
-  get abmTimeRange() {
-    return this.$store.state.scenario.abmTimeRange;
+  /** GETTERS & SETTERS */
+  get timeSheetNeedsRerender(): boolean {
+    return this.$store.state.abm.timeSheetNeedsRerender;
+  }
+  set timeSheetNeedsRerender(needsRerendering: boolean) {
+    this.$store.commit("abm/mutateTimeSheetNeedsRerender", needsRerendering);
   }
 
-  get abmSimpleTimes() {
-    return this.$store.state.scenario.abmSimpleTimes;
-  }
-
-  get currentTimeStamp(): number {
-    return this.$store.state.scenario.currentTimeStamp;
-  }
-  set currentTimeStamp(updatedTime: number) {
-    this.$store.commit("scenario/currentTimeStamp", updatedTime);
-  }
-
+  /** animate trips layer */
   get animateTripsLayer(): boolean {
-    return this.$store.state.scenario.animateTripsLayer;
+    return this.$store.state.abm.animateLayer;
   }
   set animateTripsLayer(newValue: boolean) {
-    this.$store.commit("scenario/animateTripsLayer", newValue);
+    this.$store.commit("abm/mutateAnimateLayer", newValue);
   }
 
-  get activeAbmSet() {
-    return this.$store.state.scenario.activeAbmSet;
+  /** time sheet data */
+  get hasTimeSheetData(): boolean {
+    return !_.isEmpty(this.$store.state.abm.dataForTimeGraph);
   }
-  get heatMapActive() {
-    return this.$store.state.scenario.heatMap;
+  get timeSheetData(): DataForAbmTimeGraph {
+    return this.$store.state.abm.dataForTimeGraph;
   }
+
+  get abmTimeRange() {
+    return this.$store.state.abm.timeRange;
+  }
+
+  // UI can be hidden by Toggle UI button in viewbar menu
   get showUi(): boolean {
     return this.$store.state.scenario.showUi;
   }
-  get stormWater() {
-    return this.$store.state.scenario.stormWater;
-  }
-  // TODO hand prop to component in order to decide which graph to show
-  get selectGraph(): ScenarioWithTimeSheets {
-    return this.$store.state.scenario.selectGraph;
+
+  increaseAnimationSpeed(): number {
+    if (this.animationSpeed <= 3) {
+      return (this.animationSpeed += 1);
+    } else {
+      return 1;
+    }
   }
 
-  @Watch("activeAbmSet")
-  activeAbmSetWatcher(): void {
-    this.getDataForTimeChart();
-  }
-
-  @Watch("heatMapActive")
-  heatMapActiveWatcher() {
-    if (this.heatMapActive) {
-      this.$store.commit("scenario/animateTripsLayer", false);
+  /** WATCHERS */
+  @Watch("timeSheetNeedsRerender")
+  timeSheetNeedsRerenderWatcher(): void {
+    if (this.timeSheetNeedsRerender) {
+      this.renderTimeGraph();
     }
   }
 
@@ -222,13 +215,13 @@ export default class TimeSheet extends Vue {
     }"
   >
     <span
-      :hidden="selectGraph !== 'abm' || !hasAbmResult"
-      :class="{ dismiss: selectGraph !== 'abm' }"
+      :hidden="timeSheetContext !== 'abm' || !hasTimeSheetData"
+      :class="{ dismiss: timeSheetContext !== 'abm' }"
     >
       <div
         class="time_panel panel"
         :class="{
-          dismiss: selectGraph !== 'abm' || !showGraph,
+          dismiss: timeSheetContext !== 'abm' || !showGraph,
         }"
       >
         <div class="time_graph">
@@ -253,22 +246,27 @@ export default class TimeSheet extends Vue {
         </div>
         <div class="animation_info">
           <p>
-            animation speed<strong> x{{ animationSpeed / 7 }}</strong>
+            animation speed<strong> x{{ animationSpeed }}</strong>
           </p>
         </div>
       </div>
       <TimeSheetControl
-        v-if="selectGraph === 'abm'"
+        v-if="timeSheetContext === 'abm'"
         @toggle-animation="toggleAnimation"
         :animation-running="animateTripsLayer"
-        @animationSpeed="animationSpeed = $event"
+        :animationSpeed="animationSpeed"
+        :allowSpeedControl="true"
+        @increaseAnimationSpeed="animationSpeed = increaseAnimationSpeed()"
         @toggle-graph="showGraph = $event"
       />
     </span>
+    <!-- 
+      TODO : why is abm sheet hidden with vif 
+      and sw time sheet hidden with "hidden" prob?
+    -->
     <SWTimeSheet
-      :hidden="selectGraph !== 'sw'"
-      :class="{ dismiss: selectGraph !== 'sw' }"
-      :controls="selectGraph === 'sw'"
+      :hidden="timeSheetContext !== 'stormwater'"
+      :class="{ dismiss: timeSheetContext !== 'stormwater' }"
     />
   </div>
 </template>

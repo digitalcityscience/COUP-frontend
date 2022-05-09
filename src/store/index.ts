@@ -13,6 +13,7 @@ import {
 import stormwater from "./stormwater";
 import wind from "./wind";
 import noise from "./noise";
+import abm from "./abmStore";
 
 Vue.use(Vuex);
 
@@ -22,6 +23,7 @@ const store = new Vuex.Store({
     stormwater,
     wind,
     noise,
+    abm,
   },
   state,
   getters: {
