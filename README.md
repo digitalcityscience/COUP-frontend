@@ -1,24 +1,4 @@
-# GRASBROOK FUNCTIONAL SCOPE
+We ended up not using the JavaScript front-end for the physical table and build a unity project instead. (was a good decision)
 
-## Project setup
-```
-npm install
-```
+This branch can be kept as a playground/inspiration for any future prototypes wanting to get data via websocket into a mapbox front-end.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
