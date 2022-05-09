@@ -34,14 +34,17 @@ Video to be uploaded
 Clone the project from github
 
 ### RUN in development mode
-Create a local file containing you CityPyo login credentials in src/config/cityPyoDefaultUser.json
+- Create a local file containing you CityPyo login credentials in src/config/cityPyoDefaultUser.json
 ```javascript
 {
   "username": "YourUserName", "password": "YourPassword"
 }
 ```
-Run CityPyO locally on port 5000
+- Run CityPyO locally on port 5000
 Or update the .env.development file to connect to nc.hcu-hamburg.de/cityPyo
+
+- Update the .env.development and set your user and password for the calculations api, in order to request noise, stormwater, sun and wind calculations
+
 
 Install dependencies
 ```

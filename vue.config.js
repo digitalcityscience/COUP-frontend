@@ -1,20 +1,18 @@
-
-  module.exports = {
+module.exports = {
   runtimeCompiler: true,
-  transpileDependencies: [
-      'vuetify'
-  ],
+  transpileDependencies: ["vuetify"],
   devServer: {
-      overlay: {
-          warnings: false,
-          errors: false
-      }
+    overlay: {
+      warnings: false,
+      errors: false,
+    },
   },
   lintOnSave: false,
   configureWebpack: {
+    devtool: "source-map",
     watchOptions: {
       poll: 5000,
       aggregateTimeout: 1000,
-    }
-  }
-}
+    },
+  },
+};

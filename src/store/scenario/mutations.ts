@@ -1,25 +1,19 @@
-import state from './state';
-import {generateMutations, generateSimpleMutations} from "@/store/utils/generators";
+import { generateMutations } from "@/store/utils/generators";
+import state from "./state";
 
 export default {
   ...generateMutations(state),
-  resultLoading(state: GenericObject, isLoading: boolean) {
-    console.log("resetting is loading", isLoading)
-    state.resultLoading = isLoading
+  resultLoading(state: GenericObject, isLoading: boolean): void {
+    console.log("resetting is loading", isLoading);
+    state.resultLoading = isLoading;
   },
-  updateStreetOrientation(state: GenericObject, payload: string) {
+  updateStreetOrientation(state: GenericObject, payload: string): void {
     state.moduleSettings.main_street_orientation = payload;
   },
-  moduleSettingsUpdate(state: GenericObject, payload: {[key: string]: any}) {
+  moduleSettingsUpdate(state: GenericObject, payload: GenericObject): void {
     state.moduleSettings = {
       ...state.moduleSettings,
-      ...payload
-    }
+      ...payload,
+    };
   },
-  scenarioViewFilterUpdate(state: GenericObject, payload: {[key: string]: any}) {
-    state.scenarioViewFilters = {
-      ...state.scenarioViewFilters,
-      ...payload
-    }
-  }
-}
+};

@@ -2,8 +2,14 @@
 node_modules
 /dist
 
-# user credentials
+# e2e captures
+/tests/e2e/videos/
+/tests/e2e/screenshots/
+
+
+# default login
 src/config/cityPyoDefaultUser.json
+
 
 # local env files
 .env.local

@@ -1,0 +1,22 @@
+FROM node:lts-slim
+
+LABEL maintainer="Vinh Ngu"
+
+# Build assets
+WORKDIR /build
+ADD . .
+
+RUN npm install
+RUN echo "npm run build" >> env-production/tokenize.sh
+RUN bash env-production/tokenize.sh
+
+# Serve assets
+FROM nginx:latest
+
+COPY --from=0 /build/dist /usr/share/nginx/html
+COPY --from=0 /build/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=0 /build/env-production .
+COPY --from=0 /build/env-production/env-variables.ts .
+
+EXPOSE 80
+CMD bash detokenize.sh && nginx -g 'daemon off;'

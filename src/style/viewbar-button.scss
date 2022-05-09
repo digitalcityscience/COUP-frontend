@@ -1,0 +1,10 @@
+@import "@/style/mixins.scss";
+
+@mixin viewbar-button {
+      width: 40px;
+      min-width: 0px;
+      height: 30px;
+      margin: 2px;
+      background: rgba(255, 255, 255, 0.9);
+      @include drop_shadow;
+}

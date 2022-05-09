@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <head>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css' rel='stylesheet' />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js'></script>
+    <script src="https://unpkg.com/maplibre-gl@1.15.2/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@1.15.2/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
 <body>
     <div id="map" style="height:100vh;width:100vw"></div>
     <script>
-        const map = new mapboxgl.Map({
+        const map = new maplibregl.Map({
             accessToken: 'pk.eyJ1IjoiZ3Jhc2Jyb29rIiwiYSI6ImNrYzRrOXFxMzA4bnUyenBiYzVrbW93c3kifQ.L1_HvMTe4GH_QasIOwvqaA',
             container: 'map',
             center: [10.0143909533867, 53.53128461384861],

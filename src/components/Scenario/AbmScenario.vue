@@ -1,772 +1,768 @@
 <script lang="ts">
-
-import { mapState } from 'vuex'
-import { generateStoreGetterSetter } from '@/store/utils/generators.ts'
+import { mapState } from "vuex";
+import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
+import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
+import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
+import amenitiesLayerConfig from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";
 import {
-    bridges,
-    moduleSettingNames,
-    mainStreetOrientationOptions,
-    blockPermeabilityOptions,
-    roofAmenitiesOptions,
-    filters,
-    filterOptions,
-    workshopScenarioNames
-} from '@/store/abm.ts'
-import { ViewConfiguration } from '@/components/Scenario/ViewConfiguration'
-import DashboardCharts from '@/components/Scenario/DashboardCharts.vue'
-import FocusAreasLayer from '@/config/focusAreas.json'
-import { getAbmLayerIds } from '@/config/layers'
+  bridgesSource,
+  hafenCityBridgeLayerConf,
+  veddelUnderPassConfig,
+} from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
+import { abmLayerIds } from "@/services/layers.service";
+import MenuDivision from "@/components/Menu/MenuDivision.vue";
+import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
+import {
+  addDeckLayerToMap,
+  hideAllLayersButThese,
+  hideAllResultLayers,
+  hideLayers,
+  showLayers,
+  removeSourceAndItsLayersFromMap,
+  addSourceAndLayerToMap,
+} from "@/services/map.service";
+import ScenarioComponentNames from "@/config/scenarioComponentNames";
+import { Component, Vue, Watch } from "vue-property-decorator";
+import { Store } from "vuex";
 
-export default {
-    name: 'AbmScenario',
-    components: {
-        DashboardCharts: DashboardCharts
-    },
-    props: {
-        restrictedAccess: Boolean
-    },
-    data () {
-        return {
-            activeDivision: null,
-            componentDivisions: [],
-            designScenarioNames: bridges,
-            moduleSettingOptions: moduleSettingNames,
-            mainStreetOrientationOptions: mainStreetOrientationOptions,
-            blockOptions: blockPermeabilityOptions,
-            roofAmenitiesOptions: roofAmenitiesOptions,
-            filters: filters,
-            filterOptions: filterOptions,
-            filterSettings: {},
-            workshopScenarioNames: workshopScenarioNames,
-            age: 21,
-            timePaths: [],
-            weightData: [],
-            weightObjData: [],
-            timeRange: [0, 54000],
-            adjustRange: [8, 23],
-            datamsg: '',
-            heatMapType: 'default',
-            pedestrianModel: true,
-            btnlabel: 'Generate Aggregation Layer',
-            reloadHeatMapLayer: false,
-        }
-    },
-    computed: {
-        ...mapState(['map']), // getter only
-        ...mapState('scenario', ['resultLoading']), // getter only
-        ...mapState('scenario', ['moduleSettings']), // getter only
-        // syntax for storeGetterSetter [variableName, get path, ? optional custom commit path]
-        ...generateStoreGetterSetter([
-            ['resultOutdated', 'scenario/resultOutdated'],
-            ['focusAreasShown', 'focusAreasShown'],
-            ['loader', 'scenario/loader'],
-            ['updateAbmStatsChart', 'scenario/updateAbmStatsChart'],
-            ['updateAmenityStatsChart', 'scenario/updateAmenityStatsChart'],
-            ['currentlyShownScenarioSettings', 'scenario/currentlyShownScenarioSettings'],
-            ['bridge_hafencity', 'scenario/moduleSettings/' + moduleSettingNames.bridge_hafencity],
-            ['underpass_veddel_north', 'scenario/moduleSettings/' + moduleSettingNames.underpass_veddel_north],
-            ['main_street_orientation', 'scenario/moduleSettings/' + moduleSettingNames.mainStreetOrientation],
-            ['blocks', 'scenario/moduleSettings/' + moduleSettingNames.blocks],
-            ['roof_amenities', 'scenario/moduleSettings/' + moduleSettingNames.roofAmenities],
-            ['agent_age', 'scenario/scenarioViewFilters/' + filters.agent_age],
-            ['resident_or_visitor', 'scenario/scenarioViewFilters/' + filters.resident_or_visitor],
-            ['foot', 'scenario/scenarioViewFilters/modes/' + filterOptions.foot],
-            ['bicycle', 'scenario/scenarioViewFilters/modes/' + filterOptions.bicycle],
-            ['public_transport', 'scenario/scenarioViewFilters/modes/' + filterOptions.public_transport],
-            ['car', 'scenario/scenarioViewFilters/modes/' + filterOptions.car],
-        ]),
-        abmStats () {
-            return this.$store.state.scenario.abmStats
-        },
-        amenityStats () {
-            return this.$store.state.scenario.amenityStats
-        },
-        filterSet () {
-            return this.$store.state.scenario.clusteredAbmData
-        },
-        activeAbmSet () {
-            return this.$store.state.scenario.activeAbmSet
-        },
-        filterActive () {
-            return this.$store.state.scenario.filterActive
-        },
-        heatMap () {
-            return this.$store.state.scenario.heatMap
-        },
-        showUi () {
-            return this.$store.state.scenario.showUi
-        },
-        viewConfig (): ViewConfiguration {
-            return { filter: false }
-        }
-    },
-    watch: {
-        resultsOutdated (newVal, oldVal) {
-            console.log('changes made')
-            console.log(newVal, oldVal)
-        },
-        filterSet () {
-            for (const key in this.filterSet) {
-                this.filterSettings[key] = true
-            }
-        },
-        heatMap () {
-            if (this.heatMap) {
-                this.btnlabel = 'Hide Aggregation Layer'
-            }
-            else if (!this.heatMap) {
-                this.btnlabel = 'Show Aggregation Layer'
-            }
-        },
-        activeDivision () {
-            if (this.activeDivision === 'Dashboard') {
-            // load map layer with focus areas
-                this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'visible')
-                this.focusAreasShown = true
-            }
-            else if (this.map.getLayer(FocusAreasLayer.mapSource.data.id)) {
-                // remove map layer with focus areas
-                this.map.setLayoutProperty(FocusAreasLayer.mapSource.data.id, 'visibility', 'none')
-                this.focusAreasShown = false
-            }
-        }
-    },
-    mounted: function () {
-        // hide all other layers
-        this.$store.dispatch('hideAllLayersButThese', getAbmLayerIds())
-        // switch time graph to ABM
-        this.$store.commit('scenario/selectGraph', 'abm')
+import type {
+  MapboxMap,
+  AbmScenarioConfiguration,
+  MenuLink,
+  StoreStateWithModules,
+  AbmSimulationResult,
+  AgentsClusteredForHeatmap,
+  DataForAbmTimeGraph,
+  AppContext,
+  AbmMainStreetOptions,
+  AbmBlocksOptions,
+  AbmAmenityOptions,
+  GeoJSON,
+  AgentNameToIndexTable,
+  AgentTrip,
+  AbmScenarioConfigGrasbrook,
+  AbmTimeRange,
+} from "@/models";
+import {
+  buildAggregationLayer,
+  buildTripsLayer,
+} from "@/services/deck.service";
+import * as resultProcessing from "@/services/abm/resultProcessing.service";
 
-        /* autogenerationg Sub Menu for all divs of Class "division" */
-        const divisions = document.getElementsByClassName('division')
+@Component({
+  name: ScenarioComponentNames.pedestrian,
+  components: { MenuComponentDivision, MenuDivision, DashboardCharts },
+})
+export default class AbmScenario extends Vue {
+  $store: Store<StoreStateWithModules>;
+  activeDivision = null;
 
-        for (let i = 0; i < divisions.length; i++) {
-            const divInstance = {
-                title: divisions[i].getAttribute('data-title'),
-                pic: divisions[i].getAttribute('data-pic'),
-            }
+  scenarioConfiguration: AbmScenarioConfiguration | null = null;
 
-            this.componentDivisions.push(divInstance)
-        }
+  mainStreetOrientationOptions: Record<
+    AbmMainStreetOptions,
+    AbmMainStreetOptions
+  > = {
+    horizontal: "horizontal",
+    vertical: "vertical",
+  };
 
-        this.activeDivision = divisions[0].getAttribute('data-title')
-    },
-    methods: {
-        confirmSettings () {
-        // update currentlyShowScenarioSettigns
-            this.currentlyShownScenarioSettings = JSON.parse(JSON.stringify(this.moduleSettings))
-            this.changesMade = false
-            this.resultOutdated = false
-            this.$store.commit('scenario/activeAbmSet', null)
-            this.$store.dispatch(
-                'scenario/updateAbmDesignScenario'
-            )
-        },
-        changeHeatMapData () {
-            if (this.adjustRange[0] > 8 || this.adjustRange[1] < 23) {
-                this.$store.commit('scenario/loop', true)
-            }
-            else {
-                this.$store.commit('scenario/loop', false)
-            }
+  blockOptions: Record<AbmBlocksOptions, AbmBlocksOptions> = {
+    open: "open",
+    closed: "closed",
+  };
 
-            this.$store.commit('scenario/selectedRange', this.adjustRange)
-            this.$store.commit('scenario/heatMapType', this.heatMapType)
-            this.$store.dispatch('scenario/updateLayers', 'heatMap')
-        },
-        setHeatMapTimes (x, y) {
-            this.adjustRange = [x, y]
-            this.changeHeatMapData()
-        },
-        heatMapActive () {
-            this.$store.commit('scenario/heatMap', !this.heatMap)
-        },
-        updateFilter () {
-            this.$store.commit('scenario/loader', true)
-            this.$store.dispatch('scenario/filterAbmCore', this.filterSettings)
-            this.$store.commit('scenario/filterSettings', { ...this.filterSettings })
+  roofAmenitiesOptions: Record<AbmAmenityOptions, AbmAmenityOptions> = {
+    random: "random",
+    complementary: "complementary",
+  };
 
-            for (const key in this.filterSettings) {
-                if (!this.filterSettings[key]) {
-                    this.$store.commit('scenario/filterActive', true)
-                    return
-                }
+  errorMsg = "";
 
-                this.$store.commit('scenario/filterActive', false)
-            }
-        },
-        loadWorkshopScenario (scenarioId) {
-            this.$store.dispatch(
-                'scenario/loadWorkshopScenario', scenarioId
-            )
-        }
+  beforeDestroy(): void {
+    // stop animation of abm layer
+    this.$store.commit("abm/mutateAnimateLayer", false);
+  }
+
+  mounted(): void {
+    this.scenarioConfiguration = { ...this.scenarioConfigurationGlobal };
+
+    // if simulationResult is there,
+    // but the result has not been processed sucessfully
+    if (this.result && !this.isResultProcessed) {
+      // build and add layers
+      this.buildAndAddLayers();
+      this.preProcessResultForStats();
     }
+
+    // hide all other layers
+    hideAllLayersButThese(this.map, [
+      "abmTrips",
+      "abmHeat",
+      amenitiesLayerConfig.layerConfig.id,
+      hafenCityBridgeLayerConf.id,
+      veddelUnderPassConfig.id,
+    ]);
+  }
+
+  get componentDivisions(): MenuLink[] {
+    return [
+      {
+        title: "Scenario",
+        icon: "mdi-map-marker-radius",
+        hidden: false,
+        default: true,
+      },
+      {
+        title: "Dashboard",
+        icon: "mdi-view-dashboard",
+      },
+      {
+        title: "Aggregation Layer",
+        icon: "mdi-gauge",
+      },
+      {
+        title: "info",
+        icon: "mdi-information-variant",
+      },
+    ];
+  }
+
+  /**
+   * GETTERS || SETTERS
+   **/
+  get map(): MapboxMap {
+    return this.$store.state.map;
+  }
+
+  get isPedestrianActiveComponent(): boolean {
+    return (
+      this.$store.state.activeMenuComponent ===
+      ScenarioComponentNames.pedestrian
+    );
+  }
+
+  // e.g. grasbrook or science city
+  get appContext(): AppContext {
+    return this.$store.state.appContext;
+  }
+
+  get result(): AbmSimulationResult {
+    return this.$store.state.abm.simulationResult;
+  }
+
+  get amenitiesGeoJSON(): GeoJSON {
+    return this.$store.state.abm.amenitiesGeoJSON;
+  }
+
+  get dataForHeatmap(): AgentsClusteredForHeatmap {
+    return this.$store.state.abm.dataForHeatmap;
+  }
+  set dataForHeatmap(newData: AgentsClusteredForHeatmap) {
+    this.$store.commit("abm/mutateDataForHeatmap", newData);
+  }
+
+  get scenarioConfigurationGlobal(): AbmScenarioConfiguration {
+    return this.$store.getters["abm/scenarioConfiguration"];
+  }
+  set scenarioConfigurationGlobal(
+    newScenarioConfiguration: AbmScenarioConfiguration
+  ) {
+    this.$store.commit(
+      "abm/mutateScenarioConfiguration",
+      newScenarioConfiguration
+    );
+  }
+
+  get heatMapTimeRange(): AbmTimeRange {
+    return this.$store.state.abm.timeRange;
+  }
+  set heatMapTimeRange(newTimeRange: AbmTimeRange) {
+    this.$store.commit("abm/mutateTimeRange", newTimeRange);
+  }
+
+  get isResultLoading(): boolean {
+    return this.$store.state.scenario.resultLoadingStati.pedestrian;
+  }
+
+  set isResultLoading(loadingState: boolean) {
+    let loadingStati = Object.assign(
+      {},
+      this.$store.state.scenario.resultLoadingStati
+    );
+
+    loadingStati.pedestrian = loadingState;
+
+    this.$store.commit("scenario/resultLoadingStati", loadingStati);
+  }
+
+  /** Do the selected settings fit the displayed result? */
+  get isFormDirty(): boolean {
+    return (
+      this.result &&
+      JSON.stringify(this.scenarioConfiguration) !==
+        JSON.stringify(this.scenarioConfigurationGlobal)
+    );
+  }
+
+  /**
+   * processing results might fail if user switches component during fetchResult action
+   * see: https://github.com/championswimmer/vuex-module-decorators/issues/408
+   */
+  get isResultProcessed(): boolean {
+    return (
+      !!this.$store.state.abm.dataForHeatmap ||
+      !!this.$store.state.abm.dataForTimeGraph
+    );
+  }
+
+  /** WATCHERS */
+  @Watch("activeDivision")
+  toggleFocusAreaLayer(): void {
+    if (this.activeDivision === "Dashboard") {
+      showLayers(this.map, [FocusAreasLayer.layerConfig.id]);
+    } else {
+      hideLayers(this.map, [FocusAreasLayer.layerConfig.id]);
+    }
+  }
+
+  /** FUNCTIONS **/
+  runScenario(): void {
+    // update stormwater scenario in store
+    this.scenarioConfigurationGlobal = Object.assign(
+      {},
+      this.scenarioConfiguration
+    );
+
+    // get abm result from cityPyo add add result layers to map
+    this.fetchResultAndCreateNewResultLayers();
+  }
+
+  /**
+   * fetch results and add them to map
+   **/
+  async fetchResultAndCreateNewResultLayers(): Promise<void> {
+    // delete bridge layers, bc they are scenario specific
+    removeSourceAndItsLayersFromMap(bridgesSource.id, this.map);
+    this.$store.commit("abm/resetResult");
+
+    this.isResultLoading = true;
+    this.errorMsg = "";
+
+    // fetch result and create new result layers
+    this.$store
+      .dispatch("abm/fetchResult")
+      // sucessfully got result
+      .then(() => {
+        this.buildAndAddLayers();
+        this.preProcessResultForStats();
+      })
+      .catch((err) => {
+        console.log("caught error", err);
+        this.errorMsg = err;
+      })
+      .finally(() => {
+        // remove loader screen
+        this.isResultLoading = false;
+      });
+  }
+
+  /** Builds and adds all layers */
+  buildAndAddLayers() {
+    // add result layers
+    this.buildTripsLayerAndAddToMap();
+    this.buildHeatMapLayerAndAddToMap();
+
+    // add bridge layers for grasbrook
+    if (this.appContext === "grasbrook") {
+      this.addBridgeLayers();
+    }
+
+    // add amenities layer
+    amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
+    addSourceAndLayerToMap(
+      amenitiesLayerConfig.source,
+      [amenitiesLayerConfig.layerConfig],
+      this.map
+    );
+  }
+
+  /**
+   * create agent indexes and trip summary
+   *  as input for stats calculation
+   *  TODO: will be done in backend after Gama automization
+   */
+  preProcessResultForStats() {
+    this.createAgentIndexes();
+    this.createTripsSummary();
+  }
+
+  /**
+   * builds the heatmap layer and adds it to the map
+   **/
+  buildHeatMapLayerAndAddToMap(): void {
+    // process result for heatmap
+    this.dataForHeatmap = resultProcessing.getAgentCountsPerHourAndCoordinate(
+      this.result
+    );
+    this.updateAggregationLayer();
+    if (!this.isPedestrianActiveComponent) {
+      hideLayers(this.map, ["abmHeat"]);
+    }
+  }
+
+  /** builds deck heatmap layer and adds it to map **/
+  updateAggregationLayer() {
+    buildAggregationLayer(this.dataForHeatmap, this.heatMapTimeRange).then(
+      (layer) => {
+        // todo check if still active component
+        addDeckLayerToMap(layer, this.map);
+      }
+    );
+  }
+
+  /**
+   * builds the trips layer and adds it to the map
+   **/
+  buildTripsLayerAndAddToMap(): void {
+    buildTripsLayer(this.result)
+      .then((tripsLayer) => {
+        addDeckLayerToMap(tripsLayer, this.map);
+        this.createTimeGraph();
+      })
+      .finally(() => {
+        // hide layers if user switched to different component meanwhile
+        if (!this.isPedestrianActiveComponent) {
+          hideLayers(this.map, ["abmTrips", "abmAmenities"]);
+        }
+      });
+  }
+
+  /** adds the user selected bridges to the map **/
+  async addBridgeLayers(): Promise<void> {
+    let scenarioConfig = this
+      .scenarioConfigurationGlobal as AbmScenarioConfigGrasbrook;
+
+    let mapSource = bridgesSource;
+    // Add bridge geojson to source description
+    mapSource.options.data = await this.$store.state.cityPyO.getLayer(
+      "bridges"
+    );
+
+    let layerConfigs = [];
+    // add layer configs for bridges in selected scenario
+    if (scenarioConfig.bridge_hafencity) {
+      layerConfigs.push(hafenCityBridgeLayerConf);
+    }
+    if (scenarioConfig.underpass_veddel_north) {
+      layerConfigs.push(veddelUnderPassConfig);
+    }
+    addSourceAndLayerToMap(bridgesSource, layerConfigs, this.map);
+  }
+
+  /**
+   * processes the result data for visualization in timegraph
+   * add timegraph
+   * adds trips layer
+   */
+  async createTimeGraph() {
+    // process result for timegraph
+    const dataForTimeGraph =
+      resultProcessing.aggregateAbmResultsBy5minForTimeGraph(this.result);
+    this.$store.commit("abm/mutateDataForTimeGraph", dataForTimeGraph);
+    this.$store.commit("abm/mutateTimeSheetNeedsRerender", true);
+  }
+
+  /** creates a lookup table agentName: agentIndex - which is needed for stats calc **/
+  createAgentIndexes(): void {
+    this.$store.commit(
+      "abm/mutateAgentIndexesByName",
+      resultProcessing.createAgentIndexesByName(this.result)
+    );
+  }
+
+  /** creates a summary object of all agent trips (needed for stats calc.) **/
+  createTripsSummary(): void {
+    this.$store.commit(
+      "abm/mutateTripsSummary",
+      resultProcessing.createTripsSummary(this.result)
+    );
+  }
+
+  /**
+   * called upon slider change of heatMapTimeRange
+   * recreates heatmap for given heatMapTimeRange
+   **/
+  changeHeatMapData(startTime, endTime): void {
+    this.heatMapTimeRange = [startTime, endTime]; // save to store
+    this.updateAggregationLayer();
+  }
 }
 </script>
 
 <template>
+  <div id="scenario" ref="scenario">
+    <MenuComponentDivision
+      :menuLinks="componentDivisions"
+      :highlighted="activeDivision"
+      @active="activeDivision = $event"
+    />
+
+    <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+    <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
     <div
-        id="scenario"
-        ref="scenario"
+      v-if="appContext == 'grasbrook'"
+      class="division"
+      data-title="Scenario"
+      data-pic="mdi-map-marker-radius"
     >
-        <div class="component_divisions">
-            <ul>
-                <!-- This will create a menu item from each div of class "division" (scroll down for example) -->
-                <li
-                    v-for="division in componentDivisions"
-                    :key="division.title"
-                    :class="[activeDivision === division.title ? 'highlight' : '', activeAbmSet == 'undefined' || activeAbmSet == null ? 'hidden' : '']"
-                >
-                    <div
-                        class="component_link"
-                        @click="activeDivision = division.title"
-                    >
-                        <v-tooltip left>
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-icon
-                                    v-bind="attrs"
-                                    v-on="on"
-                                >
-                                    {{ division.pic }}
-                                </v-icon>
-                            </template>
-                            <span>{{ division.title }}</span>
-                        </v-tooltip>
-                    </div>
-                </li>
-            </ul>
-        </div>
-
-        <!--each div element needs data-title and data-pic for autocreating menu buttons-->
-        <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
-        <div
-            v-if="!restrictedAccess"
-            class="division"
-            data-title="Scenario"
-            data-pic="mdi-map-marker-radius"
-        >
-            <!--v-if needs to be set to data-title to make switch between divisions possible-->
-            <div
-                v-if="activeDivision === 'Scenario'"
-                class="component_content scenario"
+      <!--v-if needs to be set to data-title to make switch between divisions possible-->
+      <div
+        v-if="activeDivision === 'Scenario'"
+        class="component_content scenario"
+      >
+        <v-container fluid>
+          <h2>Pedestrian Flow | Scenario Settings</h2>
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
+            <header class="text-sm-left">BRIDGES</header>
+            <v-switch
+              :disabled="isResultLoading"
+              v-model="scenarioConfiguration.bridge_hafencity"
+              flat
+              label="Bridge to HafenCity"
+              dark
+            />
+            <v-switch
+              :disabled="isResultLoading"
+              v-model="scenarioConfiguration.underpass_veddel_north"
+              flat
+              label="Underpass to Veddel North"
+              dark
+            />
+          </div>
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
+            <header class="text-sm-left">MAIN STREET ORIENTATION</header>
+            <v-radio-group
+              v-model="scenarioConfiguration.main_street_orientation"
             >
-                <v-container fluid>
-                    <h2>ABM | Scenario Settings</h2>
-                    <div
-                        class="scenario_box"
-                        :class="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? 'highlight' : 'na'"
-                    >
-                        <header class="text-sm-left">
-                            BRIDGES
-                        </header>
-                        <v-switch
-                            v-model="bridge_hafencity"
-                            flat
-                            label="Bridge to HafenCity"
-                            dark
-                            :color="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? '#fff' : '#888'"
-                            :class="currentlyShownScenarioSettings.bridge_hafencity != bridge_hafencity ? 'switched' : 'na'"
-                        />
-                        <v-switch
-                            v-model="underpass_veddel_north"
-                            flat
-                            label="Underpass to Veddel North"
-                            dark
-                            :color="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? '#fff' : '#888'"
-                            :class="currentlyShownScenarioSettings.underpass_veddel_north != underpass_veddel_north ? 'switched' : 'na'"
-                        />
-                    </div>
-                    <div
-                        class="scenario_box"
-                        :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'highlight' : 'na'"
-                    >
-                        <header class="text-sm-left">
-                            MAIN STREET ORIENTATION
-                        </header>
-                        <v-radio-group
-                            v-model="main_street_orientation"
-                            :class="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? 'switched' : 'na'"
-                        >
-                            <v-radio
-                                :value="mainStreetOrientationOptions.vertical"
-                                flat
-                                label="North-South Axes"
-                                dark
-                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#fff' : '#888'"
-                            />
-                            <v-radio
-                                :value="mainStreetOrientationOptions.horizontal"
-                                flat
-                                label="East-West Axes"
-                                dark
-                                :color="currentlyShownScenarioSettings.main_street_orientation != main_street_orientation ? '#fff' : '#888'"
-                            />
-                        </v-radio-group>
-                    </div>
-                    <div
-                        class="scenario_box"
-                        :class="currentlyShownScenarioSettings.blocks != blocks ? 'highlight' : 'na'"
-                    >
-                        <header class="text-sm-left">
-                            CITY BLOCK STRUCTURE
-                        </header>
-                        <v-radio-group
-                            v-model="blocks"
-                            :class="currentlyShownScenarioSettings.blocks != blocks ? 'switched' : 'na'"
-                        >
-                            <v-radio
-                                :value="blockOptions.open"
-                                flat
-                                label="Permeable"
-                                dark
-                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#fff' : '#888'"
-                            />
-                            <v-radio
-                                :value="blockOptions.closed"
-                                flat
-                                label="Private"
-                                dark
-                                :color="currentlyShownScenarioSettings.blocks != blocks ? '#fff' : '#888'"
-                            />
-                        </v-radio-group>
-                    </div>
-                    <div
-                        class="scenario_box"
-                        :class="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? 'highlight' : 'na'"
-                    >
-                        <header class="text-sm-left">
-                            AMENITY DISTRIBUTION
-                        </header>
-                        <v-radio-group
-                            v-model="roof_amenities"
-                            :class="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? 'switched' : 'na'"
-                        >
-                            <v-radio
-                                :value="roofAmenitiesOptions.complementary"
-                                flat
-                                label="Clustered by Type"
-                                dark
-                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#fff' : '#888'"
-                            />
-                            <v-radio
-                                :value="roofAmenitiesOptions.random"
-                                flat
-                                label="Mixed Distribution"
-                                dark
-                                :color="currentlyShownScenarioSettings.roof_amenities != roof_amenities ? '#fff' : '#888'"
-                            />
-                        </v-radio-group>
-                    </div>
-                </v-container>
-                <v-btn
-                    class="confirm_btn"
-                    :class="{ changesMade : resultOutdated }"
-                    @click="confirmSettings"
-                >
-                    Run Scenario
-                </v-btn>
-
-                <v-overlay :value="resultLoading">
-                    <div>Loading results</div>
-                    <v-progress-linear>...</v-progress-linear>
-                </v-overlay>
-            </div><!--component_content end-->
-        </div><!--division end-->
-
-        <!--SCENARIO DIVISION FOR WORKSHOP ONLY-->
-        <div
-            v-if="restrictedAccess"
-            class="division"
-            data-title="Scenario"
-            data-pic="mdi-map-marker-radius"
-        >
-            <!--v-if needs to be set to data-title to make switch between divisions possible-->
-            <div
-                v-if="activeDivision === 'Scenario'"
-                class="component_content"
-            >
-                <h2>ABM Scenario Selection</h2>
-                <v-btn
-                    class="scenario_main_btn"
-                    block
-                    @click="loadWorkshopScenario(workshopScenarioNames[0])"
-                >
-                    Scenario I
-                </v-btn>
-                <v-btn
-                    class="scenario_main_btn"
-                    block
-                    @click="loadWorkshopScenario(workshopScenarioNames[1])"
-                >
-                    Scenario II
-                </v-btn>
-                <v-btn
-                    class="scenario_main_btn"
-                    block
-                    @click="loadWorkshopScenario(workshopScenarioNames[2])"
-                >
-                    Scenario III
-                </v-btn>
-
-                <v-overlay :value="resultLoading">
-                    <div>Loading results</div>
-                    <v-progress-linear>...</v-progress-linear>
-                </v-overlay>
-            </div>
-        </div><!--division-end-->
-
-        <!--each div element needs data-title and data-pic for autocreating menu buttons-->
-        <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
-        <div
-            class="division"
-            data-title="Dashboard"
-            data-pic="mdi-view-dashboard"
-        >
-            <!--v-if needs to be set to data-title to make switch between divisions possible-->
-            <div
-                v-if="activeDivision === 'Dashboard'"
-                class="component_content"
-            >
-                <h2>ABM Dashboard</h2>
-                <DashboardCharts />
-            </div><!--component_content end-->
-        </div><!--division end-->
-
-        <div
-            v-if="viewConfig.filter"
-            class="division"
-            data-title="Filter"
-            data-pic="mdi-filter"
-        >
-            <div
-                v-if="activeDivision === 'Filter'"
-                class="component_content"
-            >
-                <h2>ABM Scenario Filters</h2>
-                <v-container fluid>
-                    <v-checkbox
-                        v-model="filterSettings.resident"
-                        flat
-                        label="Show Residents"
-                        dark
-                    />
-                    <v-checkbox
-                        v-model="filterSettings.visitor"
-                        flat
-                        label="Show Visitors"
-                        dark
-                    />
-                    <!--<v-radio
-                                :value="filterOptions.any"
-                                flat
-                                label="Residents & Visitors"
-                                dark
-                            />-->
-                    <v-container fluid>
-                        <h3>Age Filters</h3>
-                        <v-checkbox
-                            v-model="filterSettings['0-6']"
-                            hide-details
-                            flat
-                            label="0-6 years"
-                            dark
-                        /><v-checkbox
-                            v-model="filterSettings['7-17']"
-                            hide-details
-                            flat
-                            label="7-17 years"
-                            dark
-                        /><v-checkbox
-                            v-model="filterSettings['18-35']"
-                            hide-details
-                            flat
-                            label="18-35 years"
-                            dark
-                        /><v-checkbox
-                            v-model="filterSettings['36-60']"
-                            hide-details
-                            flat
-                            label="36-60 years"
-                            dark
-                        /><v-checkbox
-                            v-model="filterSettings['61-100']"
-                            hide-details
-                            flat
-                            label="61-100 years"
-                            dark
-                        />
-                    </v-container>
-                    <!--<v-container v-if="!pedestrianModel">
-                            <v-switch
-                                v-model="filterSettings.foot"
-                                flat
-                                label="Walking"
-                                dark
-                                @change="updateFilter"
-                            />
-                            <v-switch
-                                v-model="filterSettings.bicycle"
-                                flat
-                                label="Biking"
-                                dark
-                                @change="updateFilter"
-                            />
-                            <v-switch
-                                v-model="filterSettings.public_transport"
-                                flat
-                                label="Public Transport"
-                                dark
-                                @change="updateFilter"
-                            />
-                            <v-switch
-                                v-model="filterSettings.car"
-                                flat
-                                label="Cars"
-                                dark
-                                @change="updateFilter"
-                            />
-                        </v-container>-->
-                    <v-btn @click="updateFilter">
-                        Apply Filters
-                    </v-btn>
-                </v-container>
-
-                <!--<v-btn @click="confirmSettings" class="confirm_btn">
-                        Run Scenario
-                    </v-btn>-->
-
-                <v-overlay :value="resultLoading">
-                    <div>Loading ABM results</div>
-                    <v-progress-linear>...</v-progress-linear>
-                </v-overlay>
-            </div>
-        </div>
-
-        <div
-            class="division"
-            data-title="Aggregation Layer"
-            data-pic="mdi-gauge"
-        >
-            <div
-                v-if="activeDivision === 'Aggregation Layer'"
-                class="component_content"
-            >
-                <h2>Aggregation Layer Settings</h2>
-                <v-range-slider
-                    v-model="adjustRange"
-                    :min="8"
-                    :max="24"
-                    hide-details
-                    dark
-                    class="align-center"
-                    @change="changeHeatMapData()"
-                >
-                    <template v-slot:prepend>
-                        <v-text-field
-                            :value="adjustRange[0]"
-                            class="mt-0 pt-0"
-                            hide-details
-                            single-line
-                            type="number"
-                            style="width: 30px"
-                            readonly
-                        />
-                    </template>
-                    <template v-slot:append>
-                        <v-text-field
-                            :value="adjustRange[1]"
-                            class="mt-0 pt-0"
-                            hide-details
-                            single-line
-                            type="number"
-                            style="width: 30px"
-                            readonly
-                        />
-                    </template>
-                </v-range-slider>
-                <div class="heatmap_buttons">
-                    <v-tooltip bottom>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                v-bind="attrs"
-                                @click="setHeatMapTimes(8,23)"
-                                v-on="on"
-                            >
-                                <v-icon>mdi-av-timer</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>All Day</span>
-                    </v-tooltip>
-                    <v-tooltip bottom>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                v-bind="attrs"
-                                @click="setHeatMapTimes(8,10)"
-                                v-on="on"
-                            >
-                                <v-icon>mdi-weather-sunset-up</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Morning</span>
-                    </v-tooltip>
-                    <v-tooltip bottom>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                v-bind="attrs"
-                                @click="setHeatMapTimes(11,15)"
-                                v-on="on"
-                            >
-                                <v-icon>mdi-weather-sunny</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Mid-Day</span>
-                    </v-tooltip>
-                    <v-tooltip bottom>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                v-bind="attrs"
-                                @click="setHeatMapTimes(17,20)"
-                                v-on="on"
-                            >
-                                <v-icon>mdi-weather-sunset-down</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Evening</span>
-                    </v-tooltip>
-                </div>
-                <p>{{ datamsg }}</p>
-                <!--<v-btn class="main_btn" @click="heatMapActive">{{ btnlabel }}</v-btn>-->
-
-                <div
-                    v-if="(heatMap)"
-                    class="additional"
-                >
-                    <div class="additional_options">
-                        <template>
-                            <v-container fluid>
-                                <p>{{ heatMapType || 'null' }}</p>
-                                <v-radio-group
-                                    v-model="heatMapType"
-                                    :mandatory="true"
-                                    dark
-                                    @change="changeHeatMapData"
-                                >
-                                    <v-radio
-                                        label="Absolute Data"
-                                        value="default"
-                                    />
-                                    <v-radio
-                                        label="Relative Data"
-                                        value="relative"
-                                    />
-                                </v-radio-group>
-                            </v-container>
-                        </template>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!--<v-expansion-panels>
-            <v-expansion-panel>
-                <v-expansion-panel-header>ABM SCENARIO</v-expansion-panel-header>
-                <v-expansion-panel-content>
-
-                </v-expansion-panel-content>
-                <v-overlay :value="isLoading">
-                    <div>Loading ABM results</div>
-                    <v-progress-linear>...</v-progress-linear>
-                </v-overlay>
-            </v-expansion-panel>
-            <v-expansion-panel>
-                <v-expansion-panel-header>ABM FILTERS</v-expansion-panel-header>
-                <v-expansion-panel-content>
-
-                </v-expansion-panel-content>
-            </v-expansion-panel>
-
-        </v-expansion-panels>
-
-        <div class='sub'>
-        </div>-->
+              <v-radio
+                :value="mainStreetOrientationOptions.vertical"
+                :disabled="isResultLoading"
+                flat
+                label="North-South Axes"
+                dark
+              />
+              <v-radio
+                :value="mainStreetOrientationOptions.horizontal"
+                :disabled="isResultLoading"
+                flat
+                label="East-West Axes"
+                dark
+              />
+            </v-radio-group>
+          </div>
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
+            <header class="text-sm-left">CITY BLOCK STRUCTURE</header>
+            <v-radio-group v-model="scenarioConfiguration.blocks">
+              <v-radio
+                :value="blockOptions.open"
+                :disabled="isResultLoading"
+                flat
+                label="Permeable"
+                dark
+              />
+              <v-radio
+                :value="blockOptions.closed"
+                :disabled="isResultLoading"
+                flat
+                label="Private"
+                dark
+              />
+            </v-radio-group>
+          </div>
+          <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
+            <header class="text-sm-left">AMENITY DISTRIBUTION</header>
+            <v-radio-group v-model="scenarioConfiguration.roof_amenities">
+              <v-radio
+                :value="roofAmenitiesOptions.complementary"
+                :disabled="isResultLoading"
+                flat
+                label="Clustered by Type"
+                dark
+              />
+              <v-radio
+                :value="roofAmenitiesOptions.random"
+                :disabled="isResultLoading"
+                flat
+                label="Mixed Distribution"
+                dark
+              />
+            </v-radio-group>
+          </div>
+          <v-btn
+            @click="runScenario"
+            class="confirm_btn mt-2"
+            :class="{ changesMade: isFormDirty }"
+            :disabled="isResultLoading"
+          >
+            Run Scenario
+          </v-btn>
+        </v-container>
+      </div>
+      <!--component_content end-->
     </div>
+    <!--division end-->
+
+    <!--SCENARIO DIVISION FOR ScienceCity Bahrendfeld ONLY-->
+    <div
+      v-if="appContext == 'schb'"
+      class="division"
+      data-title="Scenario"
+      data-pic="mdi-map-marker-radius"
+    >
+      <!--v-if needs to be set to data-title to make switch between divisions possible-->
+      <div v-if="activeDivision === 'Scenario'" class="component_content">
+        <h2>Pedestrian Flow | Scenario Settings</h2>
+        <div class="scenario_box" :class="isFormDirty ? 'highlight' : ''">
+          <header class="text-sm-left">AMENITY DISTRIBUTION</header>
+          <v-radio-group v-model="scenarioConfiguration.amenity_config">
+            <v-radio
+              value="current"
+              :disabled="isResultLoading"
+              flat
+              label="STATUS QUO"
+              dark
+            />
+            <v-radio
+              value="future"
+              :disabled="isResultLoading"
+              flat
+              label="SCIENCECITY"
+              dark
+            />
+          </v-radio-group>
+        </div>
+        <v-btn
+          @click="runScenario"
+          class="confirm_btn mt-2"
+          :class="{ changesMade: isFormDirty }"
+          :disabled="isResultLoading"
+        >
+          Run Scenario
+        </v-btn>
+      </div>
+    </div>
+    <!--division-end-->
+
+    <!--each div element needs data-title and data-pic for autocreating menu buttons-->
+    <!--icon code is selected for material icons ... look up https://materialdesignicons.com/cdn/2.0.46/ for possible icons-->
+    <div class="division" data-title="Dashboard" data-pic="mdi-view-dashboard">
+      <!--v-if needs to be set to data-title to make switch between divisions possible-->
+      <div v-if="activeDivision === 'Dashboard'" class="component_content">
+        <h2>Pedestrian Flow | Dashboard</h2>
+        <DashboardCharts></DashboardCharts>
+      </div>
+      <!--component_content end-->
+    </div>
+    <!--division end-->
+    <div class="division" data-title="Aggregation Layer" data-pic="mdi-gauge">
+      <div
+        v-if="activeDivision === 'Aggregation Layer'"
+        class="component_content"
+      >
+        <h2>Pedestrian Flow | Aggregation Layer</h2>
+        <v-range-slider
+          v-model="heatMapTimeRange"
+          :min="8"
+          :max="24"
+          hide-details
+          dark
+          class="align-center"
+          @change="updateAggregationLayer()"
+        >
+          <template v-slot:prepend>
+            <v-text-field
+              :value="heatMapTimeRange[0]"
+              class="mt-0 pt-0"
+              hide-details
+              single-line
+              type="number"
+              style="width: 30px"
+              readonly
+            ></v-text-field>
+          </template>
+          <template v-slot:append>
+            <v-text-field
+              :value="heatMapTimeRange[1]"
+              class="mt-0 pt-0"
+              hide-details
+              single-line
+              type="number"
+              style="width: 30px"
+              readonly
+            ></v-text-field>
+          </template>
+        </v-range-slider>
+        <div class="heatmap_buttons">
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn @click="changeHeatMapData(8, 23)" v-bind="attrs" v-on="on">
+                <v-icon>mdi-av-timer</v-icon>
+              </v-btn>
+            </template>
+            <span>All Day</span>
+          </v-tooltip>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn @click="changeHeatMapData(8, 10)" v-bind="attrs" v-on="on">
+                <v-icon>mdi-weather-sunset-up</v-icon>
+              </v-btn>
+            </template>
+            <span>Morning</span>
+          </v-tooltip>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                @click="changeHeatMapData(11, 15)"
+                v-bind="attrs"
+                v-on="on"
+              >
+                <v-icon>mdi-weather-sunny</v-icon>
+              </v-btn>
+            </template>
+            <span>Mid-Day</span>
+          </v-tooltip>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                @click="changeHeatMapData(17, 20)"
+                v-bind="attrs"
+                v-on="on"
+              >
+                <v-icon>mdi-weather-sunset-down</v-icon>
+              </v-btn>
+            </template>
+            <span>Evening</span>
+          </v-tooltip>
+        </div>
+      </div>
+    </div>
+
+    <MenuDivision
+      icon="mdi-information-variant"
+      :active="activeDivision === 'info'"
+      tooltip="info"
+    >
+      <h2>Pedestrian Flow | About</h2>
+      <br />
+      <div class="info_section">
+        <h4>PEDESTRIANS - HUMAN AGENTS</h4>
+        <div class="info_text">
+          The model simulates the expected flow of people throughout the day as
+          they move through the neighborhood footpath network. Human agents in
+          the district, including residents, office workers / employees, and
+          visitors (e.g. to the museum) are assigned basic daily routines.
+          Within these routines, a certain degree of variability is modelled,
+          depending on the availability (distance) of different amenities and
+          assigned agent preferences. For example, a daily routine might look
+          like: Home-Work-Lunch-Work-Leisure-Home. During the lunchtime part of
+          the routine, an agent might be assigned to leave the office anytime
+          between 11am and 3pm, and search for a place to eat given a preference
+          ranking of (1) cafeteria, (2) restaurant, (3) cafe. Then, the agent
+          would select whichever type is available within a certain walking
+          distance and return to work afterwards.
+        </div>
+
+        <h4>AMENITIES</h4>
+        <div class="info_text">
+          Amenities, in particular ground floor uses relevant to the public
+          (e.g. shops, restaurants, cafes) and keystone social and cultural
+          amenities (e.g. museum, school), are explored as drivers of pedestrian
+          activity.
+        </div>
+
+        <h4>VALIDATION</h4>
+        <div class="info_text">
+          To validate the approach, the model was applied to neighboring
+          HafenCity for which some pedestrian counting data are available. The
+          model showed a strong relative fit for the distribution of
+          pedestrians. This indicates that the model assumptions can reasonably
+          be used to compare future scenarios in the Hamburg context.
+        </div>
+        <h4>GAMA SIMULATION SOFTWARE</h4>
+        <div class="info_text">
+          Pedestrian flow simulations are performed using GAMA, a software for
+          spatially explicit agent based modelling. GAMA is a free software
+          published under a GNU Free Documentation License, Version 1.3 or
+          later.
+        </div>
+      </div>
+    </MenuDivision>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-    @import "../../style.main.scss";
+@import "../../style.main.scss";
 
-  #scenario {
-    height: 100%;
-    width: 100%;
+#scenario {
+  height: 100%;
+  width: 100%;
 
-    .scenario_box {
-        position:relative;
-        padding:10px;
-        box-sizing: border-box;
-        margin:3px auto;
+  .scenario_box {
+    position: relative;
+    padding: 10px;
+    box-sizing: border-box;
+    margin: 3px auto;
 
-        &:after {
-            display:block;
-            content:'';
-            position:absolute;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
-            background:$darkblue;
-            opacity:0.35;
-            z-index:-1;
-        }
-
-        &.highlight {
-            &:after {
-                background:$darkred;
-            }
-        }
-
-        &:hover {
-            &:after {
-                opacity:0.5;
-            }
-        }
-    }
-    .scenario_main_btn {
-        height:200px;
-        line-height:200px;
-        text-align:center;
-        color:whitesmoke;
-        margin:10px auto;
-        border-radius:0px;
-        background:rgba(0,0,0,0.9);
-        border:1px solid #aaa;
-        @include drop_shadow;
+    &:after {
+      display: block;
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: $darkblue;
+      opacity: 0.35;
+      z-index: -1;
     }
 
-    .v-input {
-        ::v-deep.v-input__control{
-            .v-input--radio-group__input {
-                .v-radio {
-                    opacity:0.35;
-
-                    &.v-item--active{
-                        opacity:1;
-                    }
-                }
-            }
-        }
-
-        &.switched {
-            ::v-deep.v-input__control {
-                label {
-                    color:white;
-                }
-                .v-input--switch__thumb {
-                    background: white;
-                    opacity:0.8;
-                }
-            }
-        }
+    &.highlight {
+      &:after {
+        background: $darkred;
+      }
     }
 
+    &:hover {
+      &:after {
+        opacity: 0.5;
+      }
+    }
   }
+  .scenario_main_btn {
+    height: 200px;
+    line-height: 200px;
+    text-align: center;
+    color: whitesmoke;
+    margin: 10px auto;
+    border-radius: 0px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid #aaa;
+    @include drop_shadow;
+  }
+
+  .v-input {
+    ::v-deep.v-input__control {
+      .v-input--radio-group__input {
+        .v-radio {
+          opacity: 0.35;
+
+          &.v-item--active {
+            opacity: 1;
+          }
+        }
+      }
+    }
+  }
+}
 </style>
