@@ -1,8 +1,8 @@
 <template>
   <div
     v-if="
-      activeMenuComponent == 'SunExposureResults' ||
-      activeMenuComponent == 'WindScenario'
+      activeMenuComponent == 'sun' ||
+      activeMenuComponent == 'wind'
     "
     id="logos_ait"
   >
