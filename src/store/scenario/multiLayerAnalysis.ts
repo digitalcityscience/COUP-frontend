@@ -247,7 +247,7 @@ function layerLookup(layerName: string) {
     case "Amenity Types":
       return store.state.abm.amenityStatsMultiLayer;
     case "pedestrianDensity":
-      return store.getters["abm/abmResultStatsMultiLayer"];
+      return store.state.abm.abmStatsMultiLayer;
     default:
       console.warn(
         "could not find baseDataSet for layerName",
