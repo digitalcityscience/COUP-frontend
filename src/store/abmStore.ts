@@ -9,7 +9,6 @@ import type {
   GeoJSON,
   AppContext,
   AbmTimeRange,
-  ResultDataSingleAgent,
 } from "@/models";
 import {
   Module,

@@ -96,8 +96,6 @@ export function aggregateAbmResultsBy5minForTimeGraph(
     timeSheetData[step * 300] = 0;
   }
 
-  //debugger;
-
   // iterate over each agent in abmResultData and count, if active during 5 min time intervall
   abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
     Object.keys(timeSheetData).forEach((fiveMinStep) => {

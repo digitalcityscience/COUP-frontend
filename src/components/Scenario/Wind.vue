@@ -90,7 +90,6 @@ export default class WindScenario extends Vue {
         removeSourceAndItsLayersFromMap("wind", this.map);
         this.errMsg = err;
         console.error(err.stack);
-        //debugger;
       })
       .finally(() => {
         this.resultLoading = false;
