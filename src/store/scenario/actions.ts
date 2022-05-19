@@ -14,8 +14,8 @@ export default {
     commit,
   }: ActionContext<StoreState, StoreState>) {
     return rootState.cityPyO.getLayer("sun_exposure").then((result) => {
-      commit("sunExposureGeoJson", result);
-      SunExposure.source.options.data = result;
+      commit("sunExposureGeoJson", result.results);
+      SunExposure.source.options.data = result.results;
 
       addSourceAndLayersToMap(
         SunExposure.source,
