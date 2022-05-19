@@ -53,7 +53,7 @@ export default {
           step: 5,
         },
         {
-          layerName: "Abm",
+          layerName: "Pedestrian",
           label: "Pedestrian Density",
           value: "pedestrianDensity",
           unit: "pedestrians/m²",
@@ -61,7 +61,7 @@ export default {
           step: 0.01,
         },
         {
-          layerName: "Abm",
+          layerName: "Pedestrian",
           label: "Amenity Types",
           value: "Amenity Types",
           unit: "unique place types",
@@ -69,7 +69,7 @@ export default {
           step: 1,
         },
         {
-          layerName: "Abm",
+          layerName: "Pedestrian",
           label: "Amenity Density",
           value: "Density",
           unit: "places/km²",
@@ -361,7 +361,7 @@ export default {
     getResultsFromStore() {
       this.allSimulationResults = {
         Noise: this.currentNoiseResult,
-        Abm: this.currentAbmResult,
+        Pedestrian: this.currentAbmResult,
         Wind: this.currentWindResult,
         Sun: this.currentSunResult,
       };
@@ -401,7 +401,7 @@ export default {
               await this.$store.dispatch("noise/fetchResult");
             });
           break;
-        case "Abm":
+        case "Pedestrian":
           await this.$store.dispatch("abm/fetchResult").then(() => {
             hideAllResultLayers(this.map);
           });
@@ -427,7 +427,7 @@ export default {
     },
     updateAbmCriteriaLayer() {
       // check if at least to layers are available for analysis
-      if (this.layerChoice_1 === "Abm") {
+      if (this.layerChoice_1 === "Pedestrian") {
         const request = {
           layerName: this.criteriaChoice_1.value,
           layerRange: this.criteriaChoice_1.range,
@@ -435,7 +435,7 @@ export default {
         };
         this.criteriaLayer_1 = filterAndScaleLayerData(request);
       }
-      if (this.layerChoice_2 === "Abm") {
+      if (this.layerChoice_2 === "Pedestrian") {
         const request = {
           layerName: this.criteriaChoice_2.value,
           layerRange: this.criteriaChoice_2.range,
@@ -500,7 +500,7 @@ export default {
             this.currentNoiseScenario["max_speed"] +
             "km/h"
           );
-        case "Abm":
+        case "Pedestrian":
           return "Scenario 1";
 
         default:
@@ -644,7 +644,7 @@ export default {
                       <v-icon :color="'white'">mdi-close</v-icon>
                     </v-card>
                   </v-col>
-                  <v-col cols="3" xs="9">
+                  <v-col cols="5" xs="9">
                     <v-card
                       class="pa-0"
                       tile
@@ -654,7 +654,7 @@ export default {
                       {{ layerName }}
                     </v-card>
                   </v-col>
-                  <v-col cols="7" xs="12">
+                  <v-col cols="5" xs="12">
                     <v-card
                       class="pa-0"
                       tile
@@ -667,7 +667,7 @@ export default {
                         :class="{ changesMade: resultOutdated }"
                         :disabled="resultLoading"
                         style="min-width: 100%"
-                        >Load Default
+                        >Load Result
                       </v-btn>
                     </v-card>
                   </v-col>
