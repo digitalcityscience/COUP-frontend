@@ -187,7 +187,7 @@ export function removeSourceAndItsLayersFromMap(
 
 // adds layer to map
 function addLayerToMap(
-  layer: TypedStyleLayer | DeckLayer<any>,
+  layer: LayerSpecification | DeckLayer<any>,
   map: MapboxMap | null
 ): void {
   // remove layer first if exits
