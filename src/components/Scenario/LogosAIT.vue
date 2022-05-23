@@ -1,9 +1,6 @@
 <template>
   <div
-    v-if="
-      activeMenuComponent == 'sun' ||
-      activeMenuComponent == 'wind'
-    "
+    v-if="activeMenuComponent == 'sun' || activeMenuComponent == 'wind'"
     id="logos_ait"
   >
     <div v-if="windowWidth >= 600">

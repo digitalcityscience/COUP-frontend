@@ -1,6 +1,5 @@
 import type { MapSource, SourceAndLayerConfigs } from "@/models";
-import { LayerSpecification } from 'maplibre-gl';
-
+import { LayerSpecification } from "maplibre-gl";
 
 const groundFloorSource: MapSource = {
   id: "groundfloor",
@@ -19,7 +18,7 @@ const groundFloorLayer: LayerSpecification = {
     "fill-extrusion-color": "#f5f5f5",
     "fill-extrusion-opacity": 0.8,
   },
-}
+};
 
 const groundFloorLayerHighlighted: LayerSpecification = {
   id: "groundfloor_highlighted",
@@ -94,7 +93,6 @@ const upperFloorLayerHighlighted: LayerSpecification = {
   },
 };
 
-
 const rooftopsSource: MapSource = {
   id: "rooftops",
   options: {
@@ -109,10 +107,7 @@ const rooftopsLayer: LayerSpecification = {
   source: "rooftops",
   paint: {
     "fill-extrusion-color": "#f5f5f5",
-    "fill-extrusion-height": [
-      "to-number",
-      ["get", "additional_roof_height"],
-    ],
+    "fill-extrusion-height": ["to-number", ["get", "additional_roof_height"]],
     "fill-extrusion-base": ["to-number", ["get", "building_height"]],
     "fill-extrusion-opacity": 0.8,
   },
@@ -139,39 +134,35 @@ const rooftopsLayerHighlighted: LayerSpecification = {
       "#1380AB",
       "#cdcdcd",
     ],
-    "fill-extrusion-height": [
-      "to-number",
-      ["get", "additional_roof_height"],
-    ],
+    "fill-extrusion-height": ["to-number", ["get", "additional_roof_height"]],
     "fill-extrusion-base": ["to-number", ["get", "building_height"]],
     "fill-extrusion-opacity": 0.8,
   },
-}
+};
 
 export const buildingLayersConfigs: SourceAndLayerConfigs[] = [
   {
-    "source": groundFloorSource,
-    "layerConfigs": [groundFloorLayer, groundFloorLayerHighlighted]
+    source: groundFloorSource,
+    layerConfigs: [groundFloorLayer, groundFloorLayerHighlighted],
   },
   {
-    "source": upperfloorSource,
-    "layerConfigs": [upperFloorLayer, upperFloorLayerHighlighted]
+    source: upperfloorSource,
+    layerConfigs: [upperFloorLayer, upperFloorLayerHighlighted],
   },
   {
-    "source": rooftopsSource,
-    "layerConfigs": [rooftopsLayer, rooftopsLayerHighlighted]
-  }
+    source: rooftopsSource,
+    layerConfigs: [rooftopsLayer, rooftopsLayerHighlighted],
+  },
 ];
-
 
 export const buildingLayersNoColor: string[] = [
   groundFloorLayer.id,
   upperFloorLayer.id,
-  rooftopsLayer.id
+  rooftopsLayer.id,
 ];
 
 export const buildingLayersColored: string[] = [
   groundFloorLayerHighlighted.id,
   upperFloorLayerHighlighted.id,
-  rooftopsLayerHighlighted.id
+  rooftopsLayerHighlighted.id,
 ];

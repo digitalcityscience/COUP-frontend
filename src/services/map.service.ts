@@ -4,17 +4,17 @@ import { LayerSpecification, TypedStyleLayer } from "maplibre-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
-import { buildingLayersNoColor, buildingLayersColored } from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import {
+  buildingLayersNoColor,
+  buildingLayersColored,
+} from "@/config/urbanDesignLayers/buildingLayersConfigs";
 
 export function showBuildings(map: MapboxMap | null): void {
   showLayers(map, buildingLayersNoColor);
 }
 
 export function hideBuildings(map: MapboxMap | null): void {
-  hideLayers(map, [ 
-    ...buildingLayersNoColor,
-    ...buildingLayersColored
-  ]);
+  hideLayers(map, [...buildingLayersNoColor, ...buildingLayersColored]);
 }
 
 /** shows or hides colorization of buildings by use type */
@@ -28,7 +28,7 @@ export function toggleBuildingColors(map: MapboxMap) {
 
 /** checks if highlighted layers by building use are visible */
 export function areBuildingUsesColored(map: MapboxMap): boolean {
-  return buildingLayersColored.some(r => getVisibleLayerIds(map).includes(r))
+  return buildingLayersColored.some((r) => getVisibleLayerIds(map).includes(r));
 }
 
 export function showBuildingUseColors(map: MapboxMap | null): void {
@@ -40,7 +40,12 @@ export function hideBuildingUseColors(map: MapboxMap | null): void {
 }
 
 export function showLandscapeDesign(map: MapboxMap | null): void {
-  showLayers(map, LandscapeLayerConfig.layerConfigs.map((conf) => {return conf.id}));
+  showLayers(
+    map,
+    LandscapeLayerConfig.layerConfigs.map((conf) => {
+      return conf.id;
+    })
+  );
 }
 
 const amenityLayers = ["abmAmenities"];

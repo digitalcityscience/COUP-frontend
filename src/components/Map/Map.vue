@@ -11,7 +11,7 @@ import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { getUserContentLayerIds } from "@/services/map.service";
 import mdiInformationPng from "@/assets/mdi-information.png";
 import defaultMapSettings from "@/defaultMapSettings.ts";
-import { getLayerIds } from '@/services/layers.service';
+import { getLayerIds } from "@/services/layers.service";
 
 export default {
   name: "Map",
@@ -80,16 +80,8 @@ export default {
     this.map.on("click", this.onMapClicked);
 
     // amenities layer
-    this.map.on(
-      "mousemove",
-      "abmAmenities",
-      this.onAmenitiesHover
-    );
-    this.map.on(
-      "mouseleave",
-      "abmAmenities",
-      this.onAmenitiesHoverLeave
-    );
+    this.map.on("mousemove", "abmAmenities", this.onAmenitiesHover);
+    this.map.on("mouseleave", "abmAmenities", this.onAmenitiesHoverLeave);
 
     // focus areas layer
     this.map.on("mousemove", "focusAreas", this.onFocusAreaHover);

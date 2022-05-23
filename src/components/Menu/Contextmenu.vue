@@ -9,7 +9,6 @@ import {
 } from "@/services/map.service";
 import BuildingsLegend from "@/components/Menu/viewbar/BuildingsLegend.vue";
 
-
 export default {
   name: "Contextmenu",
   components: {

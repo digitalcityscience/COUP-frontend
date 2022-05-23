@@ -52,7 +52,11 @@
 
 <script lang="ts">
 import { Component, Vue, Emit } from "vue-property-decorator";
-import { MapboxMap, SourceAndLayerConfigs, StoreStateWithModules } from "@/models";
+import {
+  MapboxMap,
+  SourceAndLayerConfigs,
+  StoreStateWithModules,
+} from "@/models";
 import { Store } from "vuex";
 import * as mapService from "@/services/map.service";
 import {
@@ -61,7 +65,7 @@ import {
   showLayers,
   addSourceAndLayerToMap,
   mapHasLayer,
-  toggleBuildingColors
+  toggleBuildingColors,
 } from "@/services/map.service";
 
 @Component

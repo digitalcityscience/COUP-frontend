@@ -166,7 +166,10 @@ export default class AbmStore extends VuexModule {
   }
 
   //@ts-ignore
-  @MutationAction({ mutate: ["simulationResult", "amenitiesGeoJSON"], rawError: true })
+  @MutationAction({
+    mutate: ["simulationResult", "amenitiesGeoJSON"],
+    rawError: true,
+  })
   async fetchResult(): Promise<AbmResponse> {
     const response: AbmResponse =
       await this.context.rootState.cityPyO.getAbmResultLayer(

@@ -85,7 +85,9 @@ export default class WindScenario extends Vue {
         if (!this.activeComponentIsWind) {
           hideLayers(
             this.map,
-            WindResultLayerConfig.layerConfigs.map((conf) => {return conf.id})
+            WindResultLayerConfig.layerConfigs.map((conf) => {
+              return conf.id;
+            })
           );
         }
       })

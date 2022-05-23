@@ -18,7 +18,7 @@ import {
 } from "@/services/map.service";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
 import { cityPyOUserid } from "@/services/authn.service";
-import { getLayerIds } from '@/services/layers.service';
+import { getLayerIds } from "@/services/layers.service";
 
 export default {
   name: ScenarioComponentNames.multiLayer,
@@ -267,23 +267,31 @@ export default {
           this.criteriaLayer_1.features
         );
         hideAllLayersButThese(
-          this.map, 
-          SubSelectionLayerConfig.layerConfigs.map((conf) => {return conf.id})
+          this.map,
+          SubSelectionLayerConfig.layerConfigs.map((conf) => {
+            return conf.id;
+          })
         );
       } else {
         // hide subSelectionLayer, if subSelection is not to be shown
         if (!this.enableCriteriaLayer_2) {
           hideLayers(
             this.map,
-            SubSelectionLayerConfig.layerConfigs.map((conf) => {return conf.id})
+            SubSelectionLayerConfig.layerConfigs.map((conf) => {
+              return conf.id;
+            })
           );
 
           if (this.combinedLayers) {
             // show the combined layer if available
             // TODO :
             hideAllLayersButThese(this.map, [
-              ...CombinedLayersConfig.layerConfigs.map((conf) => {return conf.id}),
-              ...PerformanceInfoLayerConfig.layerConfigs.map((conf) => {return conf.id}),
+              ...CombinedLayersConfig.layerConfigs.map((conf) => {
+                return conf.id;
+              }),
+              ...PerformanceInfoLayerConfig.layerConfigs.map((conf) => {
+                return conf.id;
+              }),
             ]);
           }
         }
@@ -308,12 +316,12 @@ export default {
           hideLayers(
             this.map,
             getLayerIds(SubSelectionLayerConfig.layerConfigs)
-          )
+          );
           if (this.combinedLayers) {
             // show the combined layer if available
             hideAllLayersButThese(this.map, [
               ...getLayerIds(CombinedLayersConfig.layerConfigs),
-              ...getLayerIds(PerformanceInfoLayerConfig.layerConfigs)
+              ...getLayerIds(PerformanceInfoLayerConfig.layerConfigs),
             ]);
           }
         }
@@ -542,7 +550,7 @@ export default {
       this.resultLoading = false;
       hideAllLayersButThese(this.map, [
         ...getLayerIds(CombinedLayersConfig.layerConfigs),
-        ...getLayerIds(PerformanceInfoLayerConfig.layerConfigs)
+        ...getLayerIds(PerformanceInfoLayerConfig.layerConfigs),
       ]);
     },
   },

@@ -3,7 +3,11 @@ import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerCon
 import { buildingLayersConfigs } from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 import { SourceAndLayerConfigs, StoreState } from "@/models";
-import { addSourceAndLayerToMap, hideBuildingUseColors, hideLayers } from "@/services/map.service";
+import {
+  addSourceAndLayerToMap,
+  hideBuildingUseColors,
+  hideLayers,
+} from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
 import { ActionContext } from "vuex";
 
@@ -19,7 +23,7 @@ export default {
         // add to map
         addSourceAndLayerToMap(config.source, config.layerConfigs, state.map);
         // hide highlighted building layers by default
-        hideBuildingUseColors(state.map) 
+        hideBuildingUseColors(state.map);
       });
     });
   },
@@ -40,7 +44,9 @@ export default {
       );
       hideLayers(
         state.map,
-        FocusAreasLayerConfig.layerConfigs.map((conf) => {return conf.id})
+        FocusAreasLayerConfig.layerConfigs.map((conf) => {
+          return conf.id;
+        })
       );
     });
   },
