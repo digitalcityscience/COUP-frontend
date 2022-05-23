@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const config: SourceAndLayerConfig = {
-  layerConfig: {
+const config: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "performanceInfos",
     type: "symbol",
     source: "performanceInfos",
@@ -22,7 +22,7 @@ const config: SourceAndLayerConfig = {
       "text-halo-color": "rgba(46, 49, 49, 1)",
       "text-halo-width": 5,
     },
-  },
+  }],
   source: {
     id: "performanceInfos",
     options: {

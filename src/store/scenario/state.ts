@@ -21,7 +21,6 @@ export default {
   // UI
   lastClick: [],
   showUi: true,
-  allFeaturesHighlighted: false,
   selectedFocusAreas: [],
   resultLoadingStati: initialResultLoadingStati,
 

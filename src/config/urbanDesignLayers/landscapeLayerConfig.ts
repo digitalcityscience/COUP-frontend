@@ -1,4 +1,4 @@
-import type { MapSource, SourceAndLayerConfig } from "@/models";
+import type { MapSource, SourceAndLayerConfigs } from "@/models";
 import { FillLayerSpecification } from "maplibre-gl";
 
 const sourceConfig: MapSource = {
@@ -9,7 +9,7 @@ const sourceConfig: MapSource = {
   },
 };
 
-const layerConfig: FillLayerSpecification = {
+const layerConfigs: FillLayerSpecification[] = [{
   id: "spaces",
   type: "fill",
   source: "spaces",
@@ -31,11 +31,11 @@ const layerConfig: FillLayerSpecification = {
       "#04070F",
     ],
   },
-};
+}];
 
-const landscapeLayerConfig: SourceAndLayerConfig = {
+const landscapeLayerConfig: SourceAndLayerConfigs = {
   source: sourceConfig,
-  layerConfig: layerConfig,
+  layerConfigs: layerConfigs,
 };
 
 export default landscapeLayerConfig;

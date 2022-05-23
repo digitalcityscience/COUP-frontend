@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const circledFeaturesLayerConfig: SourceAndLayerConfig = {
-  layerConfig: {
+const circledFeaturesLayerConfig: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "featureCircles",
     type: "line",
     source: "featureCircles",
@@ -13,7 +13,7 @@ const circledFeaturesLayerConfig: SourceAndLayerConfig = {
       "line-join": "miter",
       "line-cap": "square",
     },
-  },
+  }],
   source: {
     id: "featureCircles",
     options: {

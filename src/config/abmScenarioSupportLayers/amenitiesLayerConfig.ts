@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const amenitiesLayerConfig: SourceAndLayerConfig = {
-  layerConfig: {
+const amenitiesLayerConfig: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "abmAmenities",
     type: "circle",
     source: "abmAmenities",
@@ -31,7 +31,7 @@ const amenitiesLayerConfig: SourceAndLayerConfig = {
         "lightgrey",
       ],
     },
-  },
+  }],
   source: {
     id: "abmAmenities",
     options: {

@@ -12,25 +12,27 @@ import {
   abmTripsLayerName,
   abmAggregationLayerName,
 } from "@/services/deck.service";
-import buildingLayersConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import { buildingLayersConfigs } from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import landscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 import {
   hafenCityBridgeLayerConf,
   veddelUnderPassConfig,
 } from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
+import { SourceAndLayerConfigs as SourceAndLayersConfig } from '@/models';
+import { LayerSpecification } from 'maplibre-gl';
 
 export const swLayerName = "stormwater";
 
 const addedLayersIds = [
-  LayerSubselectionConfig.layerConfig.id,
-  WindResultLayerConfig.layerConfig.id,
-  SunExposureResultLayerConfig.layerConfig.id,
-  NoiseResultLayerConfig.layerConfig.id,
-  TrafficCounts.layerConfig.id,
-  swLayerName,
-  MultiLayerAnalysisConfig.layerConfig.id,
-  PerformanceInfosConfig.layerConfig.id,
-  CircledFeatures.layerConfig.id,
+...getLayerIds(LayerSubselectionConfig.layerConfigs),
+...getLayerIds(WindResultLayerConfig.layerConfigs),
+...getLayerIds(SunExposureResultLayerConfig.layerConfigs),
+...getLayerIds(NoiseResultLayerConfig.layerConfigs),
+...getLayerIds(TrafficCounts.layerConfigs),
+swLayerName,
+...getLayerIds(MultiLayerAnalysisConfig.layerConfigs),
+...getLayerIds(PerformanceInfosConfig.layerConfigs),
+...getLayerIds(CircledFeatures.layerConfigs),
 ];
 
 const bridgeLayerIds: string[] = [
@@ -40,9 +42,9 @@ const bridgeLayerIds: string[] = [
 
 export function getLayerOrder(): string[] {
   let layerOrder = [
-    FocusAreasConfig.layerConfig.id,
-    landscapeLayerConfig.layerConfig.id,
-    AmenitiesConfig.layerConfig.id,
+    ...getLayerIds(FocusAreasConfig.layerConfigs),
+    ...getLayerIds(landscapeLayerConfig.layerConfigs),
+    ...getLayerIds(AmenitiesConfig.layerConfigs),
   ];
 
   layerOrder = layerOrder.concat(bridgeLayerIds);
@@ -55,16 +57,14 @@ export function getLayerOrder(): string[] {
   return layerOrder;
 }
 
-export const landscapeLayerId: string = landscapeLayerConfig.layerConfig.id;
-export const buildingLayerIds: string[] = buildingLayersConfigs.map(
-  (config) => {
-    return config.layerConfig.id;
-  }
-);
+export const landscapeLayerIds: string[] = getLayerIds(landscapeLayerConfig.layerConfigs);
 
-export const abmLayerIds: string[] = [
-  ...buildingLayerIds,
-  abmAggregationLayerName,
-  abmTripsLayerName,
-  AmenitiesConfig.layerConfig.id,
-];
+export const buildingLayerIds: string[] = buildingLayersConfigs.map(
+  (conf: SourceAndLayersConfig) => {
+    return getLayerIds(conf.layerConfigs)
+  }).flat();
+
+
+export function getLayerIds(layerConfigs: LayerSpecification[]) {
+  return layerConfigs.map((conf) => {return conf.id})
+}

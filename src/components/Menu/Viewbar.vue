@@ -64,14 +64,6 @@ export default class Viewbar extends Vue {
 <style scoped lang="scss">
 @import "@/style.main.scss";
 
-.buildings-legend {
-  position: fixed;
-  left: 10px;
-  top: 10%;
-  transform: translateY(-50%);
-  width: auto;
-}
-
 #viewbar {
   position: fixed;
   left: 10px;

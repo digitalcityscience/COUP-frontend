@@ -1,23 +1,25 @@
 import CircledFeatures from "@/config/userInteraction/circledFeaturesLayerConfig";
 import FocusAreasLayerConfig from "@/config/urbanDesignLayers/focusAreasLayerConfig";
-import BuildingLayerConfigs from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import { buildingLayersConfigs } from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
-import { SourceAndLayerConfig, StoreState } from "@/models";
-import { addSourceAndLayerToMap, hideLayers } from "@/services/map.service";
+import { SourceAndLayerConfigs, StoreState } from "@/models";
+import { addSourceAndLayerToMap, hideBuildingUseColors, hideLayers } from "@/services/map.service";
 import CityPyO from "@/store/cityPyO";
 import { ActionContext } from "vuex";
 
 export default {
   async createDesignLayers({ state }: ActionContext<StoreState, StoreState>) {
-    const designConfigs = [...BuildingLayerConfigs, LandscapeLayerConfig];
+    const designConfigs = [...buildingLayersConfigs, LandscapeLayerConfig];
     // iterate over sources in configs
-    designConfigs.forEach((config: SourceAndLayerConfig) => {
+    designConfigs.forEach((config: SourceAndLayerConfigs) => {
       // get layer data from cityPyo
       state.cityPyO.getLayer(config.source.id).then((layerData) => {
         // merge layer data and config
         config.source.options.data = layerData;
         // add to map
-        addSourceAndLayerToMap(config.source, [config.layerConfig], state.map);
+        addSourceAndLayerToMap(config.source, config.layerConfigs, state.map);
+        // hide highlighted building layers by default
+        hideBuildingUseColors(state.map) 
       });
     });
   },
@@ -33,13 +35,18 @@ export default {
       // add to map
       addSourceAndLayerToMap(
         FocusAreasLayerConfig.source,
-        [FocusAreasLayerConfig.layerConfig],
+        FocusAreasLayerConfig.layerConfigs,
         state.map
       );
-      hideLayers(state.map, [FocusAreasLayerConfig.layerConfig.id]);
+      hideLayers(
+        state.map,
+        FocusAreasLayerConfig.layerConfigs.map((conf) => {return conf.id})
+      );
     });
   },
   // TODO do this in layer service?
+  // eigentlich musst du nur den highlighted layer anzeigen.
+
   editFeatureProps({ state }, feature) {
     if (feature) {
       try {
@@ -102,7 +109,7 @@ export default {
     // update layer on map
     const source = CircledFeatures.source;
     source.options.data.features = featureCircles;
-    addSourceAndLayerToMap(source, [CircledFeatures.layerConfig], state.map);
+    addSourceAndLayerToMap(source, CircledFeatures.layerConfigs, state.map);
     commit("featureCircles", featureCircles);
   },
 };

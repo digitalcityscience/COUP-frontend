@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const sunExposureResultConfig: SourceAndLayerConfig = {
-  layerConfig: {
+const sunExposureResultConfig: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "sun_exposure",
     type: "fill-extrusion",
     source: "sun_exposure",
@@ -38,7 +38,7 @@ const sunExposureResultConfig: SourceAndLayerConfig = {
         "black",
       ],
     },
-  },
+  }],
   source: {
     id: "sun_exposure",
     options: {

@@ -16,6 +16,13 @@ body, html {
     pointer-events:all !important;
 }
 
+.buildings-legend {
+    position: fixed;
+    left: 10px;
+    top: 10%;
+    transform: translateY(-50%);
+    width: auto;
+}
 
 .division {
     max-height:80vh;

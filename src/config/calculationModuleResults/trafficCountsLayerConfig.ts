@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const trafficCountLayerConfig: SourceAndLayerConfig = {
-  layerConfig: {
+const trafficCountLayerConfig: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "trafficCounts",
     type: "symbol",
     source: "trafficCounts",
@@ -14,7 +14,7 @@ const trafficCountLayerConfig: SourceAndLayerConfig = {
       "text-offset": [1, 1.25],
       "text-anchor": "top",
     },
-  },
+  }],
   source: {
     id: "trafficCounts",
     options: {

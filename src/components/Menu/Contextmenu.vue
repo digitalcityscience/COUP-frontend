@@ -2,10 +2,19 @@
 import { mapState } from "vuex";
 import * as turf from "@turf/turf";
 import { generateStoreGetterSetter } from "@/store/utils/generators";
+import {
+  areBuildingUsesColored,
+  showBuildingUseColors,
+  hideBuildingUseColors,
+} from "@/services/map.service";
+import BuildingsLegend from "@/components/Menu/viewbar/BuildingsLegend.vue";
+
 
 export default {
   name: "Contextmenu",
-  components: {},
+  components: {
+    BuildingsLegend,
+  },
   data() {
     return {
       lineCanvasId: null,
@@ -17,14 +26,19 @@ export default {
       objectFeatures: [],
       objectId: null,
       modalInfo: {},
+      keepBuildingColors: false,
     };
   },
   computed: {
-    ...mapState(["allFeaturesHighlighted", "map"]),
     ...generateStoreGetterSetter([
       ["openModalsIds", "openModalsIds"],
       ["modalIndex", "modalIndex"],
     ]),
+
+    map() {
+      return this.$store.state.map;
+    },
+
     // city_scope_id of the clicked object (set in Map.vue, onMapClick)
     selectedObjectId() {
       return this.$store.state.selectedObjectId;
@@ -41,7 +55,13 @@ export default {
     this.createObjectFeatures();
     this.gatherModalInfo();
     this.toggleFeatureCircling();
-    this.toggleFeatureHighlighting();
+
+    if (areBuildingUsesColored(this.map)) {
+      // buildings have already been colored when initiating modal
+      this.keepBuildingColors = true;
+    } else {
+      showBuildingUseColors(this.map);
+    }
   },
   mounted() {
     let selector = this.$el;
@@ -66,8 +86,8 @@ export default {
   beforeDestroy() {
     this.toggleFeatureCircling();
 
-    if (!this.allFeaturesHighlighted) {
-      this.toggleFeatureHighlighting();
+    if (!this.keepBuildingColors) {
+      hideBuildingUseColors(this.map);
     }
 
     // remove line on canvas connecting modal to selected feature
@@ -161,22 +181,7 @@ export default {
         }
       }
     },
-    toggleFeatureHighlighting() {
-      if (this.allFeaturesHighlighted) {
-        // do not change highlighting
-        return;
-      }
-      // update properties for all objectFeatures
-      this.objectFeatures.forEach((feature) => {
-        // set display properties for selected features to change volume colors
-        const alreadyHighlighted = feature.properties.selected === "active";
-        feature.properties.selected = alreadyHighlighted
-          ? "inactive"
-          : "active";
-        this.$store.dispatch("editFeatureProps", feature);
-      });
-    },
-    /** circles or uncircles clickedFeatures */
+    //** circles or uncircles clickedFeatures */
     toggleFeatureCircling() {
       let buffer = null;
 
@@ -288,49 +293,52 @@ export default {
 </script>
 
 <template>
-  <div
-    class="ctx_menu"
-    @click="selectedModal()"
-    @mousedown="startDrag"
-    @mousemove="doDrag"
-    v-bind:style="{ zIndex: indexVal }"
-  >
-    <div class="wrapper">
-      <div class="ctx_bar">
-        <v-icon size="18px">mdi-city</v-icon>
-        <p>{{ modalInfo.objectType.toUpperCase() }} - {{ objectId }}</p>
-        <div class="close_btn" @click="$emit('close')">
-          <v-icon>mdi-close</v-icon>
+  <span>
+    <div
+      class="ctx_menu"
+      @click="selectedModal()"
+      @mousedown="startDrag"
+      @mousemove="doDrag"
+      v-bind:style="{ zIndex: indexVal }"
+    >
+      <div class="wrapper">
+        <div class="ctx_bar">
+          <v-icon size="18px">mdi-city</v-icon>
+          <p>{{ modalInfo.objectType.toUpperCase() }} - {{ objectId }}</p>
+          <div class="close_btn" @click="$emit('close')">
+            <v-icon>mdi-close</v-icon>
+          </div>
+        </div>
+        <div
+          class="general"
+          v-for="(item, index) in modalInfo.generalContent"
+          :key="index"
+        >
+          <p></p>
+          <div v-for="(value, key) in item" :key="key">
+            <p>{{ key }} : {{ value }}</p>
+          </div>
         </div>
       </div>
       <div
-        class="general"
-        v-for="(item, index) in modalInfo.generalContent"
-        :key="index"
+        class="head_scope"
+        v-for="(content, name) in modalInfo.detailContent"
+        :key="name"
       >
-        <p></p>
-        <div v-for="(value, key) in item" :key="key">
-          <p>{{ key }} : {{ value }}</p>
+        <div class="head_bar">
+          <h3>{{ getLayerHeadline(name) }}</h3>
+        </div>
+        <div v-for="ctx in content" :key="ctx.key">
+          <div v-for="(value, key) in ctx" :key="key">
+            <p>
+              <strong>{{ key }}</strong> {{ value }}
+            </p>
+          </div>
         </div>
       </div>
     </div>
-    <div
-      class="head_scope"
-      v-for="(content, name) in modalInfo.detailContent"
-      :key="name"
-    >
-      <div class="head_bar">
-        <h3>{{ getLayerHeadline(name) }}</h3>
-      </div>
-      <div v-for="ctx in content" :key="ctx.key">
-        <div v-for="(value, key) in ctx" :key="key">
-          <p>
-            <strong>{{ key }}</strong> {{ value }}
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
+    <BuildingsLegend class="buildings-legend" />
+  </span>
   <!--<svg class="connection"><line :x1="Math.round(anchorConnnection.x)" :y1="Math.round(anchorConnnection.y)" :x2="Math.round(boxConnection.x)" :y2="Math.round(boxConnection.y)" stroke-width="1px" stroke="white"/></svg>-->
 </template>
 

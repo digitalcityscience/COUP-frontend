@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const windResultLayerConfig: SourceAndLayerConfig = {
-  layerConfig: {
+const windResultLayerConfig: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "wind",
     type: "fill-extrusion",
     source: "wind",
@@ -28,7 +28,7 @@ const windResultLayerConfig: SourceAndLayerConfig = {
         "black",
       ],
     },
-  },
+  }],
   source: {
     id: "wind",
     options: {

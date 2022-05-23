@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const noiseResultLayerConfig: SourceAndLayerConfig = {
-  layerConfig: {
+const noiseResultLayerConfig: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "noise",
     type: "fill-extrusion",
     source: "noise",
@@ -31,7 +31,7 @@ const noiseResultLayerConfig: SourceAndLayerConfig = {
         "black",
       ],
     },
-  },
+  }],
   source: {
     id: "noise",
     options: {

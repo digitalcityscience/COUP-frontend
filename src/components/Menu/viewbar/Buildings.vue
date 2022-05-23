@@ -52,9 +52,19 @@
 
 <script lang="ts">
 import { Component, Vue, Emit } from "vue-property-decorator";
-import { MapboxMap, StoreStateWithModules } from "@/models";
+import { MapboxMap, SourceAndLayerConfigs, StoreStateWithModules } from "@/models";
 import { Store } from "vuex";
 import * as mapService from "@/services/map.service";
+import { buildingLayerIds } from "@/services/layers.service";
+import {
+  addDeckLayerToMap,
+  hideLayers,
+  showLayers,
+  addSourceAndLayerToMap,
+  mapHasLayer,
+  toggleBuildingColors
+} from "@/services/map.service";
+import { highlightedLayersIds } from "@/config/urbanDesignLayers/buildingLayersConfigs";
 
 @Component
 export default class Buildings extends Vue {
@@ -80,25 +90,9 @@ export default class Buildings extends Vue {
     return !!this.$store.state.abm.amenitiesGeoJSON;
   }
 
-  get allFeaturesHighlighted(): boolean {
-    return this.$store.state.allFeaturesHighlighted;
-  }
-
-  set allFeaturesHighlighted(newValue: boolean) {
-    this.$store.commit("allFeaturesHighlighted", newValue);
-  }
-
-  get selectedMultiFeatures(): any[] {
-    return this.$store.state.selectedMultiFeatures;
-  }
-
-  get layerIds(): string[] {
-    return this.$store.getters.layerIds;
-  }
-
   showBuildingUses(): void {
     this.legendToggled();
-    this.colorizeBuildingsByUseType();
+    toggleBuildingColors(this.map);
   }
 
   toggleBuildingVisibility(): void {
@@ -114,39 +108,6 @@ export default class Buildings extends Vue {
       mapService.showAmenities(this.map);
     } else {
       mapService.hideAmenities(this.map);
-    }
-  }
-
-  colorizeBuildingsByUseType(): void {
-    if (this.allFeaturesHighlighted) {
-      this.allFeaturesHighlighted = false;
-      const featuresToRemove = this.selectedMultiFeatures;
-
-      featuresToRemove.forEach((feature) => {
-        feature.properties.selected = "inactive";
-        this.$store.dispatch("editFeatureProps", feature);
-      });
-    } else {
-      this.allFeaturesHighlighted = true;
-      // this.openUseTypesLegend();
-
-      const bbox = [
-        [0, 0],
-        [window.innerWidth, window.innerHeight],
-      ];
-
-      // console.log(this.layerIds);
-      const features = this.map.queryRenderedFeatures(bbox as any, {
-        layers: this.layerIds,
-      });
-
-      this.$store.commit("selectedMultiFeatures", features);
-      const newFeatures = this.selectedMultiFeatures;
-
-      newFeatures.forEach((feature) => {
-        feature.properties.selected = "active";
-        this.$store.dispatch("editFeatureProps", feature);
-      });
     }
   }
 }

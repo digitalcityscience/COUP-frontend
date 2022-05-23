@@ -1,7 +1,7 @@
-import type { SourceAndLayerConfig } from "@/models";
+import type { SourceAndLayerConfigs } from "@/models";
 
-const focusAreasLayerConfig: SourceAndLayerConfig = {
-  layerConfig: {
+const focusAreasLayerConfig: SourceAndLayerConfigs = {
+  layerConfigs: [{
     id: "focusAreas",
     type: "fill",
     source: "focusAreas",
@@ -25,7 +25,7 @@ const focusAreasLayerConfig: SourceAndLayerConfig = {
         0.2,
       ],
     },
-  },
+  }],
   source: {
     id: "focusAreas",
     options: {

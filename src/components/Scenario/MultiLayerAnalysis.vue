@@ -18,6 +18,7 @@ import {
 } from "@/services/map.service";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
 import { cityPyOUserid } from "@/services/authn.service";
+import { getLayerIds } from '@/services/layers.service';
 
 export default {
   name: ScenarioComponentNames.multiLayer,
@@ -265,19 +266,24 @@ export default {
           "scenario/addSubSelectionLayer",
           this.criteriaLayer_1.features
         );
-        hideAllLayersButThese(this.map, [
-          SubSelectionLayerConfig.layerConfig.id,
-        ]);
+        hideAllLayersButThese(
+          this.map, 
+          SubSelectionLayerConfig.layerConfigs.map((conf) => {return conf.id})
+        );
       } else {
         // hide subSelectionLayer, if subSelection is not to be shown
         if (!this.enableCriteriaLayer_2) {
-          hideLayers(this.map, [SubSelectionLayerConfig.layerConfig.id]);
+          hideLayers(
+            this.map,
+            SubSelectionLayerConfig.layerConfigs.map((conf) => {return conf.id})
+          );
 
           if (this.combinedLayers) {
             // show the combined layer if available
+            // TODO :
             hideAllLayersButThese(this.map, [
-              CombinedLayersConfig.layerConfig.id,
-              PerformanceInfoLayerConfig.layerConfig.id,
+              ...CombinedLayersConfig.layerConfigs.map((conf) => {return conf.id}),
+              ...PerformanceInfoLayerConfig.layerConfigs.map((conf) => {return conf.id}),
             ]);
           }
         }
@@ -292,22 +298,22 @@ export default {
           "scenario/addSubSelectionLayer",
           this.criteriaLayer_2.features
         );
-        hideAllLayersButThese(this.map, [
-          SubSelectionLayerConfig.layerConfig.id,
-        ]);
+        hideAllLayersButThese(
+          this.map,
+          getLayerIds(SubSelectionLayerConfig.layerConfigs)
+        );
       } else {
         // hide subSelectionLayer, if subSelection is not to be shown
         if (!this.enableCriteriaLayer_1) {
-          this.$store.state.map?.setLayoutProperty(
-            SubSelectionLayerConfig.layerConfig.id,
-            "visibility",
-            "none"
-          );
+          hideLayers(
+            this.map,
+            getLayerIds(SubSelectionLayerConfig.layerConfigs)
+          )
           if (this.combinedLayers) {
             // show the combined layer if available
             hideAllLayersButThese(this.map, [
-              CombinedLayersConfig.layerConfig.id,
-              PerformanceInfoLayerConfig.layerConfig.id,
+              ...getLayerIds(CombinedLayersConfig.layerConfigs),
+              ...getLayerIds(PerformanceInfoLayerConfig.layerConfigs)
             ]);
           }
         }
@@ -535,8 +541,8 @@ export default {
 
       this.resultLoading = false;
       hideAllLayersButThese(this.map, [
-        CombinedLayersConfig.layerConfig.id,
-        PerformanceInfoLayerConfig.layerConfig.id,
+        ...getLayerIds(CombinedLayersConfig.layerConfigs),
+        ...getLayerIds(PerformanceInfoLayerConfig.layerConfigs)
       ]);
     },
   },
