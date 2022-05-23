@@ -14,7 +14,6 @@ export interface StoreState {
   activeMenuComponent: ScenarioComponentName;
   allFeaturesHighlighted: boolean;
   showLegend: boolean;
-  currentTime: number;
   accessToken: string;
   cityPyO: CityPyOStore | null;
   restrictedAccess: boolean;
