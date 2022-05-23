@@ -9,7 +9,7 @@ import {
   hafenCityBridgeLayerConf,
   veddelUnderPassConfig,
 } from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
-import { abmLayerIds } from "@/services/layers.service";
+import { getLayerIds, getLayerOrder } from "@/services/layers.service";
 import MenuDivision from "@/components/Menu/MenuDivision.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import {
@@ -99,7 +99,7 @@ export default class AbmScenario extends Vue {
     hideAllLayersButThese(this.map, [
       "abmTrips",
       "abmHeat",
-      amenitiesLayerConfig.layerConfig.id,
+      ...getLayerIds(amenitiesLayerConfig.layerConfigs),
       hafenCityBridgeLayerConf.id,
       veddelUnderPassConfig.id,
     ]);
@@ -220,9 +220,9 @@ export default class AbmScenario extends Vue {
   @Watch("activeDivision")
   toggleFocusAreaLayer(): void {
     if (this.activeDivision === "Dashboard") {
-      showLayers(this.map, [FocusAreasLayer.layerConfig.id]);
+      showLayers(this.map, getLayerIds(FocusAreasLayer.layerConfigs));
     } else {
-      hideLayers(this.map, [FocusAreasLayer.layerConfig.id]);
+      hideLayers(this.map, getLayerIds(FocusAreasLayer.layerConfigs));
     }
   }
 
@@ -282,7 +282,7 @@ export default class AbmScenario extends Vue {
     amenitiesLayerConfig.source.options.data = this.amenitiesGeoJSON;
     addSourceAndLayerToMap(
       amenitiesLayerConfig.source,
-      [amenitiesLayerConfig.layerConfig],
+      amenitiesLayerConfig.layerConfigs,
       this.map
     );
   }

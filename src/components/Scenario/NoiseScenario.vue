@@ -224,6 +224,7 @@ import {
 import trafficCountLayerConfig from "@/config/calculationModuleResults/trafficCountsLayerConfig";
 import { applyTrafficQuota } from "@/store/noise";
 import { cityPyOUserid } from "@/services/authn.service";
+import { getLayerIds } from "@/services/layers.service";
 
 @Component({
   name: ScenarioComponentNames.noise,
@@ -280,7 +281,10 @@ export default class NoiseScenario extends Vue {
         this.addResultToMap(this.noiseResult.geojson);
         // hide the noise layer, if the user meanwhile has switched to another component
         if (!this.activeComponentIsNoise) {
-          hideLayers(this.map, [NoiseResultLayerConfig.layerConfig.id]);
+          hideLayers(
+            this.map,
+            getLayerIds(NoiseResultLayerConfig.layerConfigs)
+          );
         }
       })
       .catch((err) => {
@@ -303,7 +307,7 @@ export default class NoiseScenario extends Vue {
     // add new source and layer to map
     addSourceAndLayerToMap(
       NoiseResultLayerConfig.source,
-      [NoiseResultLayerConfig.layerConfig],
+      NoiseResultLayerConfig.layerConfigs,
       this.map
     );
     this.addTrafficCountLayerToMap();
@@ -325,7 +329,7 @@ export default class NoiseScenario extends Vue {
     // add new source and layer to map
     addSourceAndLayerToMap(
       trafficCountLayerConfig.source,
-      [trafficCountLayerConfig.layerConfig],
+      trafficCountLayerConfig.layerConfigs,
       this.map
     );
   }

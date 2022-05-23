@@ -19,7 +19,7 @@ export default {
 
       addSourceAndLayersToMap(
         SunExposure.source,
-        [SunExposure.layerConfig],
+        SunExposure.layerConfigs,
         rootState.map
       );
     });
@@ -41,7 +41,7 @@ export default {
     source.options.data.features = features;
     addSourceAndLayersToMap(
       source,
-      [MultiLayerAnalysisConfig.layerConfig],
+      MultiLayerAnalysisConfig.layerConfigs,
       rootState.map
     );
   },
@@ -51,7 +51,7 @@ export default {
     source.options.data.features = features;
     addSourceAndLayersToMap(
       source,
-      [SubSelectionLayerConfig.layerConfig],
+      SubSelectionLayerConfig.layerConfigs,
       rootState.map
     );
   },
@@ -64,7 +64,7 @@ export default {
     source.options.data.features = features;
     addSourceAndLayersToMap(
       source,
-      [PerformanceInfosConfig.layerConfig],
+      PerformanceInfosConfig.layerConfigs,
       rootState.map
     );
   },

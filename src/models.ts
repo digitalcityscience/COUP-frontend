@@ -12,7 +12,6 @@ export interface StoreState {
   map: MapboxMap | null;
   appContext: AppContext | null;
   activeMenuComponent: ScenarioComponentName;
-  allFeaturesHighlighted: boolean;
   showLegend: boolean;
   accessToken: string;
   cityPyO: CityPyOStore | null;
@@ -22,7 +21,6 @@ export interface StoreState {
   openModalsIds: string[];
   modalIndex: number;
   selectedObjectId: string | null;
-  selectedMultiFeatures: any[];
   featureCircles: any[];
 }
 
@@ -37,7 +35,6 @@ export interface ScenarioStoreState {
   // UI
   lastClick: any[];
   showUi: boolean;
-  allFeaturesHighlighted: boolean;
   selectedFocusAreas: [];
   resultLoadingStati: DataLoadingStati;
 
@@ -240,9 +237,9 @@ export interface CalculationTask {
   taskId: string;
 }
 
-export interface SourceAndLayerConfig {
+export interface SourceAndLayerConfigs {
   source: MapSource;
-  layerConfig: LayerSpecification;
+  layerConfigs: LayerSpecification[];
 }
 
 export interface MapSource {
