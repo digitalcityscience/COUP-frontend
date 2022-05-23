@@ -12,13 +12,12 @@ import {
   abmTripsLayerName,
   abmAggregationLayerName,
 } from "@/services/deck.service";
-import { buildingLayersConfigs } from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import { buildingLayersColored, buildingLayersNoColor } from "@/config/urbanDesignLayers/buildingLayersConfigs";
 import landscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
 import {
   hafenCityBridgeLayerConf,
   veddelUnderPassConfig,
 } from "@/config/abmScenarioSupportLayers/bridgeLayersConfigs";
-import { SourceAndLayerConfigs as SourceAndLayersConfig } from '@/models';
 import { LayerSpecification } from 'maplibre-gl';
 
 export const swLayerName = "stormwater";
@@ -58,12 +57,10 @@ export function getLayerOrder(): string[] {
 }
 
 export const landscapeLayerIds: string[] = getLayerIds(landscapeLayerConfig.layerConfigs);
-
-export const buildingLayerIds: string[] = buildingLayersConfigs.map(
-  (conf: SourceAndLayersConfig) => {
-    return getLayerIds(conf.layerConfigs)
-  }).flat();
-
+export const buildingLayerIds: string[] = [
+  ...buildingLayersNoColor,
+  ...buildingLayersColored
+]
 
 export function getLayerIds(layerConfigs: LayerSpecification[]) {
   return layerConfigs.map((conf) => {return conf.id})

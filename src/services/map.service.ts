@@ -1,17 +1,20 @@
-import { buildingLayerIds, getLayerOrder } from "@/services/layers.service";
+import { getLayerOrder } from "@/services/layers.service";
 import { MapboxMap } from "@/models";
 import { LayerSpecification, TypedStyleLayer } from "maplibre-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
-import { highlightedLayersIds } from "@/config/urbanDesignLayers/buildingLayersConfigs";
+import { buildingLayersNoColor, buildingLayersColored } from "@/config/urbanDesignLayers/buildingLayersConfigs";
 
 export function showBuildings(map: MapboxMap | null): void {
-  showLayers(map, buildingLayerIds);
+  showLayers(map, buildingLayersNoColor);
 }
 
 export function hideBuildings(map: MapboxMap | null): void {
-  hideLayers(map, buildingLayerIds);
+  hideLayers(map, [ 
+    ...buildingLayersNoColor,
+    ...buildingLayersColored
+  ]);
 }
 
 /** shows or hides colorization of buildings by use type */
@@ -25,15 +28,15 @@ export function toggleBuildingColors(map: MapboxMap) {
 
 /** checks if highlighted layers by building use are visible */
 export function areBuildingUsesColored(map: MapboxMap): boolean {
-  return highlightedLayersIds.some(r => getVisibleLayerIds(map).includes(r))
+  return buildingLayersColored.some(r => getVisibleLayerIds(map).includes(r))
 }
 
 export function showBuildingUseColors(map: MapboxMap | null): void {
-  showLayers(map, highlightedLayersIds);
+  showLayers(map, buildingLayersColored);
 }
 
 export function hideBuildingUseColors(map: MapboxMap | null): void {
-  hideLayers(map, highlightedLayersIds);
+  hideLayers(map, buildingLayersColored);
 }
 
 export function showLandscapeDesign(map: MapboxMap | null): void {

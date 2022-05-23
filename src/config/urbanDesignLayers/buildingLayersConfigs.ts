@@ -164,7 +164,13 @@ export const buildingLayersConfigs: SourceAndLayerConfigs[] = [
 ];
 
 
-export const highlightedLayersIds: string[] = [
+export const buildingLayersNoColor: string[] = [
+  groundFloorLayer.id,
+  upperFloorLayer.id,
+  rooftopsLayer.id
+];
+
+export const buildingLayersColored: string[] = [
   groundFloorLayerHighlighted.id,
   upperFloorLayerHighlighted.id,
   rooftopsLayerHighlighted.id
