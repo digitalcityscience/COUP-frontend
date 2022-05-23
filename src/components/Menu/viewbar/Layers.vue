@@ -155,7 +155,7 @@ import {
   hideLayers,
   showLayers,
 } from "@/services/map.service";
-import { buildingLayerIds, landscapeLayerId } from "@/services/layers.service";
+import { buildingLayerIds, landscapeLayerIds } from "@/services/layers.service";
 import {
   hafenCityBridgeLayerConf,
   veddelUnderPassConfig,
@@ -167,7 +167,7 @@ export default class Layers extends Vue {
   checkedLayers = [];
   nonControllableLayers: string[] = [
     ...buildingLayerIds,
-    landscapeLayerId,
+    ...landscapeLayerIds,
     hafenCityBridgeLayerConf.id,
     veddelUnderPassConfig.id,
   ];

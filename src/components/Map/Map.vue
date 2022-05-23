@@ -11,6 +11,7 @@ import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { getUserContentLayerIds } from "@/services/map.service";
 import mdiInformationPng from "@/assets/mdi-information.png";
 import defaultMapSettings from "@/defaultMapSettings.ts";
+import { getLayerIds } from "@/services/layers.service";
 
 export default {
   name: "Map",
@@ -28,7 +29,6 @@ export default {
   computed: {
     ...mapState(["map"]),
     ...generateStoreGetterSetter([
-      ["allFeaturesHighlighted", "allFeaturesHighlighted"],
       ["selectedObjectId", "selectedObjectId"],
       ["showLegend", "showLegend"],
       ["loader", "scenario/loader"],
@@ -80,12 +80,8 @@ export default {
     this.map.on("click", this.onMapClicked);
 
     // amenities layer
-    this.map.on("mousemove", amenities.layerConfig.id, this.onAmenitiesHover);
-    this.map.on(
-      "mouseleave",
-      amenities.layerConfig.id,
-      this.onAmenitiesHoverLeave
-    );
+    this.map.on("mousemove", "abmAmenities", this.onAmenitiesHover);
+    this.map.on("mouseleave", "abmAmenities", this.onAmenitiesHoverLeave);
 
     // focus areas layer
     this.map.on("mousemove", "focusAreas", this.onFocusAreaHover);
@@ -135,7 +131,7 @@ export default {
       const initialLayerId = initialFeature.layer.id;
 
       // calculate stats for focus area
-      if (initialLayerId === FocusAreasLayer.layerConfig.id) {
+      if (getLayerIds(FocusAreasLayer.layerConfigs).includes(initialLayerId)) {
         this.onFocusAreaClick(initialFeature.id);
         return;
       }

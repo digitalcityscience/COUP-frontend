@@ -27,6 +27,7 @@ import WindResultLayerConfig from "@/config/calculationModuleResults/windResultL
 import DashboardCharts from "./DashboardCharts.vue";
 import ScenarioComponentNames from "@/config/scenarioComponentNames";
 import { cityPyOUserid } from "@/services/authn.service";
+import { getLayerIds } from "@/services/layers.service";
 
 @Component({
   name: ScenarioComponentNames.wind,
@@ -82,7 +83,12 @@ export default class WindScenario extends Vue {
         this.addResultToMap(this.windResult.geojson);
         // hide the wind layer, if the user meanwhile has switched to another component
         if (!this.activeComponentIsWind) {
-          hideLayers(this.map, [WindResultLayerConfig.layerConfig.id]);
+          hideLayers(
+            this.map,
+            WindResultLayerConfig.layerConfigs.map((conf) => {
+              return conf.id;
+            })
+          );
         }
       })
       .catch((err) => {
@@ -104,7 +110,7 @@ export default class WindScenario extends Vue {
     // add new source and layer to map
     addSourceAndLayerToMap(
       WindResultLayerConfig.source,
-      [WindResultLayerConfig.layerConfig],
+      WindResultLayerConfig.layerConfigs,
       this.map
     );
   }
