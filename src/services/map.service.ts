@@ -1,6 +1,6 @@
 import { buildingLayerIds, getLayerOrder } from "@/services/layers.service";
 import { MapboxMap } from "@/models";
-import { TypedStyleLayer } from "maplibre-gl";
+import { LayerSpecification, TypedStyleLayer } from "maplibre-gl";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 
 import LandscapeLayerConfig from "@/config/urbanDesignLayers/landscapeLayerConfig";
@@ -116,7 +116,7 @@ export function addDeckLayerToMap(layer: DeckLayer<any>, map: MapboxMap): void {
 /** Adds a source and a layer to the map */
 export function addSourceAndLayerToMap(
   source: any,
-  layers: any[],
+  layers: LayerSpecification[],
   map: MapboxMap | null
 ): void {
   if (map?.getSource(source.id)) {
@@ -125,7 +125,7 @@ export function addSourceAndLayerToMap(
   }
   map?.addSource(source.id, source.options);
 
-  layers.forEach((layer) => {
+  layers.forEach((layer: LayerSpecification) => {
     addLayerToMap(layer, map);
   });
   updateLayerOrder(map);
