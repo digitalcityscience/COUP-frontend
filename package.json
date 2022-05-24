@@ -70,7 +70,7 @@
     "sass": "^1.52.1",
     "sass-loader": "^8.0.2",
     "typescript": "~3.8.3",
-    "vue-cli-plugin-vuetify": "~2.4.2",
+    "vue-cli-plugin-vuetify": "~2.5.0",
     "vue-template-compiler": "^2.6.11",
     "vuetify-loader": "^1.7.3",
     "vuex-module-decorators": "^1.2.0"
