@@ -29,7 +29,6 @@ describe("Login page test", () => {
       log: false,
     });
     cy.get("button[type='submit']").click();
-    cy.get("p#error").should("not.be.visible");
     cy.get(".mapboxgl-map").should("be.visible");
   });
 });
