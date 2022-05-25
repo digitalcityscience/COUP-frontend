@@ -12,8 +12,6 @@ describe("Login page test", () => {
   });
 
   it("No access with wrong credentials", () => {
-    cy.get("p#error").should("not.be.visible");
-
     cy.get("input#input_field_user").type("FakeUser");
     cy.get("input#input_field_pw").type("FakePassword");
     cy.get("button[type='submit']").click();
@@ -23,7 +21,6 @@ describe("Login page test", () => {
 
   it("Allow access with correct credentials", () => {
     cy.visit("/");
-    cy.get("p#error").should("not.be.visible");
 
     cy.get("input#input_field_user").type(Cypress.env("USERNAME"), {
       log: false,
@@ -32,7 +29,6 @@ describe("Login page test", () => {
       log: false,
     });
     cy.get("button[type='submit']").click();
-    cy.get("p#error").should("not.be.visible");
     cy.get(".mapboxgl-map").should("be.visible");
   });
 });

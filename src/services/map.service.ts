@@ -156,7 +156,7 @@ export function addSourceAndLayerToMap(
   }
   map?.addSource(source.id, source.options);
 
-  layers.forEach((layer) => {
+  layers.forEach((layer: LayerSpecification) => {
     addLayerToMap(layer, map);
   });
   updateLayerOrder(map);
