@@ -6,6 +6,8 @@ LABEL maintainer="Vinh Ngu"
 WORKDIR /build
 ADD . .
 
+# Silence logs
+RUN echo "loglevel=silent" > .npmrc
 RUN npm install
 RUN echo "npm run build" >> env-production/tokenize.sh
 RUN bash env-production/tokenize.sh
