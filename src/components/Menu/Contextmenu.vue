@@ -304,7 +304,7 @@ export default {
         <div class="ctx_bar">
           <v-icon size="18px">mdi-city</v-icon>
           <p>{{ modalInfo.objectType.toUpperCase() }} - {{ objectId }}</p>
-          <div class="close_btn" @click="$emit('close')">
+          <div class="close_btn" @click="$emit('close')" @touchend="$emit('close')">
             <v-icon>mdi-close</v-icon>
           </div>
         </div>
