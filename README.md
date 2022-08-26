@@ -6,6 +6,12 @@
 ## Features
 The Grasbrook Functional Scope provides a mapbox based application to support functional planning for a new urban neighborhood. Users will be able to simulate pedestrian flows, stormwater runoffs, traffic noise propagation, sun exposure and wind speeds. With more modules to come.
 
+![overview_webtool_large](https://user-images.githubusercontent.com/4631906/186947861-0b224daf-b685-4d8b-b928-469d6cce546b.gif)
+
+
+### Building classification and detail information 
+![rotating](https://user-images.githubusercontent.com/4631906/186947770-671d31c4-6cc0-477d-bac9-463f5c6e1e31.gif)
+
 ### Pedestrian Flow Analysis
 ![abm](https://user-images.githubusercontent.com/4631906/116558881-30473800-a900-11eb-9157-2f65203ba3d3.gif)
 
@@ -23,7 +29,6 @@ Example: In which areas are many pedestrians exposed to high traffic noise?
 
 
 ### Stormwater RunOff Analysis
-Video to be uploaded
 
 ### Wind speed and Sun-Exposure Analysis
 Video to be uploaded
