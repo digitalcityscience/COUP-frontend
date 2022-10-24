@@ -88,7 +88,7 @@ export interface AbmResponse {
   simulationResult: ResultDataSingleAgent[];
 }
 
-export type AbmSimulationResult = ResultDataSingleAgent[];
+export type AbmSimulationResult = Record<AgentId, ResultDataSingleAgent>;
 
 export interface ResultDataSingleAgent {
   agent: AbmAgent;
