@@ -155,8 +155,8 @@ export async function buildAggregationLayer(
     pickable: false,
     getPosition: (d) => d.c,
     getWeight: (d) => d.w,
-    intensity: 20,
-    threshold: 10,
+    intensity: 22,
+    threshold: 6,
     radiusPixels: 50,
     opacity: 0.8,
     visible: function () {
