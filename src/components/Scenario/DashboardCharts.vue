@@ -203,6 +203,7 @@ export default {
             units: units,
           },
           datalabels: {
+            // Appear when hovering over the value annotation
             display: displayLabels,
             color: chartColors[focusArea],
             anchor: "end",
@@ -277,6 +278,7 @@ export default {
             legend: {
               display: false,
             },
+            // Appears when hovering on the datapoint.
             tooltip: {
               enabled: true,
               callbacks: {
@@ -285,7 +287,8 @@ export default {
                 },
                 label: function (tooltipItem) {
                   //This will be the tooltip.body
-                  const value = tooltipItem.dataset.data[tooltipItem.dataIndex];
+                  // @ts-ignore
+                  const value = tooltipItem.dataset.notes.originalValues[tooltipItem.dataIndex];
                   const unit = units[tooltipItem.dataIndex];
                   return value.toString() + " " + unit;
                 },

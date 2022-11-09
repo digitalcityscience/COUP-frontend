@@ -3,7 +3,7 @@
 import * as turf from "@turf/turf";
 import store from "@/store";
 import GrasbrookGeoJson from "@/assets/grasbrookArea.json";
-import { AgentsClusteredForHeatmap } from "@/models";
+import { AgentsClusteredForHeatmap, Coordinates } from "@/models";
 
 export async function calcAbmStatsForMultiLayer() {
   const multiLayerStats = store.state.abm.abmStatsMultiLayer || {};
@@ -47,6 +47,32 @@ function getFocusAreaAsTurfObject(focusAreaId?: number) {
   }
 
   return focusAreas;
+}
+
+
+/**
+ * returns the coordinates [lat, long] of the amenity with cityScopeId
+ * @param cityScopeId
+ * @returns turf.Position
+ */
+function getAmenityCoords(
+  cityScopeId: string
+): turf.Position
+{
+    const amenities = turf.featureCollection(
+      store.state.abm.amenitiesGeoJSON["features"]
+    ) as turf.FeatureCollection<turf.Point>;
+
+    let amenity = amenities.features.filter((feature) => {
+      return feature.properties.city_scope_id == cityScopeId;
+    })[0];
+
+    if (amenity === undefined) {
+      console.log(cityScopeId);
+      return getAmenityCoords("A-0");  // TODO debugging 
+    }
+
+    return amenity?.geometry.coordinates;
 }
 
 /**
@@ -194,6 +220,8 @@ function calculatePedestrianIndices(forRegion, hourlyActivity) {
    */
   const averages = calculateTripAverages(forRegion);
 
+  console.log(averages);
+
   return {
     original: {
       pedestrianDensity: pedestrianDensity,
@@ -202,13 +230,14 @@ function calculatePedestrianIndices(forRegion, hourlyActivity) {
       averageDuration: averages["duration"],
       averageLength: averages["length"],
     },
+    // scaling to fit to spider chart
     scaledResults: {
       "Pedestrian Density": Math.min((pedestrianDensity / 0.3) * 100, 100), // 0.3 as max. reachable value for ped. density
       "Temporal Entropy": temporalEntropyPercent, // already in percent no need for scaling
       "Opportunities for Interaction": Math.min(
-        (opportunitiesOfInteraction / 0.15) * 100,
+        Math.round(((opportunitiesOfInteraction / 0.15) * 100)),
         100
-      ), // 0.3 interaction per m² max. reachable value
+      ), // 0.15 interaction per m² max. reachable value
       "Trip Duration": Math.min((averages["duration"] / 60) * 100, 100),
       "Trip Length": Math.min((averages["length"] / 1500) * 100, 100),
     },
@@ -306,13 +335,10 @@ function countPotentialMeetingsAtPoint(point: turf.Feature, currentHour) {
  * @param relevantHour
  * @param pointCoords
  *
- *
- * TODO this cannot work anymore
  */
 function getTimeAgentIsAtPoint(agentName, relevantHour, pointCoords) {
   const abmResult = store.state.abm.simulationResult;
-  const agentIdx = store.state.abm.agentIndexesByName[agentName];
-  const agentData = abmResult[agentIdx];
+  const agentData = abmResult[agentName];
 
   // the agent might be at the point at multiple times. get the array indexes of those path points.
   const pathIndexes = [];
@@ -374,9 +400,14 @@ function calculateTripAverages(forRegion) {
   // array of all trips [{"agent", "origin", "destination", "length", "duration", "pathIndexes" }]
   const allTrips = store.state.abm.tripsSummary;
   // filter all trips who's origin or destination are in the region
+
   const tripsInRegion = allTrips.filter((trip) => {
     return turf.pointsWithinPolygon(
-      turf.points([trip.origin, trip.destination]),
+      turf.points([
+        // TODO from "amenitiesWithin" get location of origin and dest.
+        getAmenityCoords(trip["origin_name"]),
+        getAmenityCoords(trip["destination_name"])
+      ]),
       forRegion
     ).features.length;
   });
@@ -386,10 +417,10 @@ function calculateTripAverages(forRegion) {
   }
 
   const averageDurationSec =
-    tripsInRegion.reduce((acc, trip) => acc + trip["duration"], 0) /
+    tripsInRegion.reduce((acc, trip) => acc + (trip["end_time"] - trip["start_time"]), 0) /
     tripsInRegion.length;
   const averageLengthMeters =
-    tripsInRegion.reduce((acc, trip) => acc + trip["length"], 0) /
+    tripsInRegion.reduce((acc, trip) => acc + trip["trip_length"], 0) /
     tripsInRegion.length;
 
   const averageDuration = averageDurationSec / 60;
