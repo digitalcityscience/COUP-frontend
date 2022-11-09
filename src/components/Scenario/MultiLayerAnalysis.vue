@@ -58,7 +58,7 @@ export default {
           label: "Pedestrian Density",
           value: "pedestrianDensity",
           unit: "pedestrians/m²",
-          range: [0, 0.3],
+          range: [0, 0.15],
           step: 0.01,
         },
         {
@@ -103,7 +103,7 @@ export default {
         Low: [0, 33],
         Medium: [33, 66],
         High: [66, 100],
-        "Very High": [90, 100],
+        "Very High": [85, 100],
       },
       preset_1: "High",
       preset_2: "High",
