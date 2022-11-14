@@ -88,7 +88,7 @@ export interface AbmResponse {
   simulationResult: ResultDataSingleAgent[];
 }
 
-export type AbmSimulationResult = ResultDataSingleAgent[];
+export type AbmSimulationResult = Record<AgentId, ResultDataSingleAgent>;
 
 export interface ResultDataSingleAgent {
   agent: AbmAgent;
@@ -116,10 +116,7 @@ export interface AgentsPerCoordinate {
 }
 
 export interface AgentTrip {
-  destination: Coordinates;
-  duration: number;
-  lenght: number;
-  origin: Coordinates;
+  trip_length: number;
   // path_indexes: Indexes in ResultDataSingleAgent.path (path taken in trip)
   path_indexes: [number, number];
   agent: AgentId;

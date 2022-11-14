@@ -119,7 +119,9 @@ function getFeatureCollectionOfNonResidentialAmenities(): turf.FeatureCollection
 }
 
 /**
- * Return count of amenities where an amenity is destination and also origin of the trips of one same agent
+ * Return count of amenities where 1 amenity 
+ * is destination and also origin of the trips of one same agent.
+ * Thus this amenity acts in a complementary manner to another. (bar hopping)
  * @param amenitiesWithin
  */
 function calculateComplementarity(
@@ -148,40 +150,29 @@ function calculateComplementarity(
       continue;
     }
 
-    // count times where the agent has an amenity as destination and also origin
+    // count times where the agent has a trip to a second amenity,
+    // starting from the first amenity
     for (const trip of agentTrips) {
-      const destinationPoint = turf.point(trip["destination"]);
-      // if destination is direct vincinity to one of the amenities.
-      const closestAmenityToDestination = turf.nearestPoint(
-        destinationPoint,
-        amenitiesWithin
-      );
-      if (turf.distance(destinationPoint, closestAmenityToDestination) < 50) {
-        // now check if this amenity is also origin of another trip of the agent
-
-        // get the origin points of the other trips of the agent
-        const originPoints = agentTrips
-          .filter((filterTrip) => {
-            return (
-              filterTrip["origin"].toString() !== trip["origin"].toString()
-            );
-          })
-          .map((mapTrip) => {
-            return turf.point(mapTrip["origin"]);
-          });
-
-        for (const originPoint of originPoints) {
-          if (turf.distance(originPoint, closestAmenityToDestination) < 50) {
-            complementaryAmenitiesCount += 1;
-            break;
+        let currentDestination = trip["destination_name"];
+        let complementarityTrips = agentTrips.filter(
+          filterTrip => { 
+            if (
+              agentTrips.indexOf(filterTrip) !== agentTrips.indexOf(trip)
+               // TODO @JESUS what other complementary trips are possible?
+              && "coffee_after_lunch" === trip["trip_purpose"]
+              && filterTrip["origin_name"] === currentDestination
+              ) {
+              return filterTrip;
+            }
           }
-        }
+        );
+        complementaryAmenitiesCount += complementarityTrips.length;
       }
     }
-  }
-
   return complementaryAmenitiesCount;
 }
+
+
 
 /**
  * calculate density of non-residential amenities all over grasbrook and each focus area

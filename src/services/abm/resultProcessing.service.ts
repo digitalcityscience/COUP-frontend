@@ -5,17 +5,18 @@ import {
   ResultDataSingleAgent,
   AgentsClusteredForHeatmap,
   DataForAbmTimeGraph,
+  AgentId,
 } from "@/models";
 
 // create a simple lookup with all agent id's and their index in the abmCore
+// TODO - still needed?
 export function createAgentIndexesByName(
   abmResultData: AbmSimulationResult
 ): AgentNameToIndexTable {
   const agentIndexes = {};
 
-  abmResultData.forEach((agent: ResultDataSingleAgent, index: number) => {
-    const agent_id = agent.agent.id;
-    agentIndexes[agent_id] = index;
+  Object.keys(abmResultData).forEach((agentId: AgentId, index: number) => {
+    agentIndexes[agentId] = index;
   });
 
   return agentIndexes;
@@ -27,11 +28,12 @@ export function createTripsSummary(
 ): AgentTrip[] {
   const allTrips = [];
 
-  abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
+  Object.keys(abmResultData).forEach((agentId: AgentId, _index: number) => {
+    let who = abmResultData[agentId];
     if (who.trips) {
       who.trips.forEach((trip: AgentTrip) => {
         // trip has following information {"agent", "origin", "destination", "length", "duration", "pathIndexes" }
-        trip["agent"] = who.agent.id;
+        trip["agent"] = agentId;
         allTrips.push(trip);
       });
     }
@@ -45,9 +47,8 @@ export function getAgentCountsPerHourAndCoordinate(
   abmResultData: AbmSimulationResult
 ): AgentsClusteredForHeatmap {
   const timePaths = [];
-  abmResultData.forEach((agent: ResultDataSingleAgent, _index: number) => {
-    const agent_id = agent.agent.id;
-
+  Object.keys(abmResultData).forEach((agentId: AgentId, index: number) => {
+    let agent = abmResultData[agentId];
     agent.timestamps.forEach((v, i, a) => {
       /*round timestamps to full hours*/
       const h = Math.floor(v / 3600) + 8;
@@ -57,7 +58,7 @@ export function getAgentCountsPerHourAndCoordinate(
       // add agent name to busy agents only once per agent
       if (i == 0) {
         timePaths[h].busyAgents = timePaths[h].busyAgents || [];
-        timePaths[h].busyAgents.push(agent_id);
+        timePaths[h].busyAgents.push(agentId);
       }
 
       // TODO at least rename values to something understandable (busyAgentsPerCoordinate ?)
@@ -67,8 +68,8 @@ export function getAgentCountsPerHourAndCoordinate(
 
       // push agent name to the array of busy agents at this coord
       // TODO we just need the agent count per coord, not the agent names
-      if (!timePaths[h].values[coords].includes(agent_id)) {
-        timePaths[h].values[coords].push(agent_id);
+      if (!timePaths[h].values[coords].includes(agentId)) {
+        timePaths[h].values[coords].push(agentId);
       }
     });
   });
@@ -97,7 +98,10 @@ export function aggregateAbmResultsBy5minForTimeGraph(
   }
 
   // iterate over each agent in abmResultData and count, if active during 5 min time intervall
-  abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
+  // TODO iterate over each element in dict.
+  Object.keys(abmResultData).forEach((agentId: AgentId, _index: number) => {
+    let who: ResultDataSingleAgent = abmResultData[agentId];
+  //abmResultData.forEach((who: ResultDataSingleAgent, _index: number) => {
     Object.keys(timeSheetData).forEach((fiveMinStep) => {
       if (anyTimeStampInFiveMinIntervall(who.timestamps, Number(fiveMinStep))) {
         timeSheetData[fiveMinStep] += 1;

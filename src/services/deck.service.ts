@@ -8,6 +8,7 @@ import GL from "@luma.gl/constants";
 import { PolygonLayer } from "@deck.gl/layers";
 import { MapboxLayer as DeckLayer } from "@deck.gl/mapbox";
 import type {
+  AbmSimulationResult,
   AbmTimeRange,
   AgentsClusteredForHeatmap,
   GeoJSON,
@@ -76,8 +77,11 @@ export function getPolygonColor(d: number): [number, number, number] {
 }
 
 export async function buildTripsLayer(
-  data: DataSet<any>
+  abmResult: AbmSimulationResult
 ): Promise<DeckLayer<unknown>> {
+
+  let data = Object.values(abmResult);
+
   return new DeckLayer({
     id: abmTripsLayerName,
     type: TripsLayer,
@@ -151,8 +155,8 @@ export async function buildAggregationLayer(
     pickable: false,
     getPosition: (d) => d.c,
     getWeight: (d) => d.w,
-    intensity: 20,
-    threshold: 10,
+    intensity: 22,
+    threshold: 6,
     radiusPixels: 50,
     opacity: 0.8,
     visible: function () {
