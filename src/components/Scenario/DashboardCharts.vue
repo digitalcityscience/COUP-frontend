@@ -329,25 +329,74 @@ export default {
 </script>
 
 <template>
-  <div class="charts">
-    <div v-show="this.amenityStats && this.barChartReady" class="bar_chart">
-      <h3>Statistics</h3>
-      <canvas id="barChart" width="500" height="400"></canvas>
-    </div>
+  <div>
+    <div class="charts">
+      <div v-show="this.amenityStats && this.barChartReady" class="bar_chart">
+        <h3>Amenity Statistics</h3>
+        <canvas id="barChart" width="500" height="400"></canvas>
+      </div>
 
-    <div
-      v-show="this.abmStats && this.radarChartReady"
-      class="radar_chart"
-      style="margin-top: 20px"
-    >
-      <h3>Activity Index</h3>
-      <canvas id="radarChart" width="500" height="600"></canvas>
+      <div
+        v-show="this.abmStats && this.radarChartReady"
+        class="radar_chart"
+        style="margin-top: 20px"
+      >
+        <h3>Activity Index</h3>
+        <canvas id="radarChart" width="500" height="600"></canvas>
+      </div>
+    </div>
+    <h2>Pedestrian Flow | Glossary</h2>
+    <div class="info_section">
+      <div class="info_text">
+        <h3>Amenity Statistics</h3>
+        <p>
+          <strong>Density</strong> of amenities is understood as the quantity of elements
+          by the unit of area and is known to be a key condition for urban activeness.
+        </p>
+        <p>
+          <strong>Amenity Types</strong> shows the different types of amenities present 
+          in the area.
+        </p>
+        <p>
+          <strong>Diversity</strong> as Simpson diversity index [0-100]. 
+          Heterogeneous uses and functions foster the mix of people and social interaction by
+          avoiding monofunctional and sectorized areas. 
+        </p>
+        <p>
+          <strong>Complementarity</strong> is understood as the capacity of some types of amenities
+          to complete others, potentially creating a sequence of actions, e.g. walking from
+          a restaurant to a café.
+        </p>
+      </div>
+      <div class="info_text">        
+        <h3>Pedestrian Statistics</h3>
+        <p>
+          <strong>Pedestrian Density</strong> is the amount of pedestrians per m² of the area.
+        </p>
+        <p>
+          <strong>Trip Length</strong> is the average of the distance that a
+          pedestrian walks.
+        </p>
+        <p>
+          <strong>Trip Duration</strong> is s the average length of time that a pedestrian is present in a public space.
+        </p>  
+        <p>
+          <strong>Temporal entropy</strong> shows the relative evenness of the temporal distribution of movements. 
+          A high temporal entropy describes a pedestrian activity throughout the day, instead of only in peak hours.
+        </p>  
+        <p>
+          <strong>Opportunities of interaction</strong> is each pedestrian's exposure to semi-random social interactions. 
+          These interactions correlate to mental health indicators. Many interactions per m² describe a lively neighborhood.
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 @import "../../style.main.scss";
+
+
 
 .charts {
   .bar_chart,
