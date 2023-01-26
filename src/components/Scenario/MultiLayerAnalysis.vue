@@ -1,6 +1,6 @@
 <script lang="ts">
 import { mapState } from "vuex";
-import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
+import { generateStoreGetterSetter } from "@/store/utils/generators";
 import {
   filterAndScaleLayerData,
   showMultiLayerAnalysis,

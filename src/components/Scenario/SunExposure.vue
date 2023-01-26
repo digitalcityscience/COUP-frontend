@@ -1,7 +1,5 @@
 <script lang="ts">
 import { mapState } from "vuex";
-import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
-import hash from "object-hash";
 import Legend from "@/components/Scenario/Legend.vue";
 import MenuComponentDivision from "@/components/Menu/MenuComponentDivision.vue";
 import type { MenuLink } from "@/models";

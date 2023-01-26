@@ -15,7 +15,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import type { StoreState, MapboxMap } from "@/models";
 import type { Store } from "vuex";
-import defaultMapSettings from "@/defaultMapSettings.ts";
+import defaultMapSettings from "@/defaultMapSettings";
 
 @Component
 export default class ResetView extends Vue {

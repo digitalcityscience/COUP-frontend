@@ -1,6 +1,4 @@
 <script lang="ts">
-import { mapState } from "vuex";
-import { generateStoreGetterSetter } from "@/store/utils/generators.ts";
 import DashboardCharts from "@/components/Scenario/DashboardCharts.vue";
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import amenitiesLayerConfig from "@/config/abmScenarioSupportLayers/amenitiesLayerConfig";

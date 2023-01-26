@@ -10,7 +10,7 @@ import { calculateAmenityStatsForFocusArea } from "@/store/scenario/amenityStats
 import FocusAreasLayer from "@/config/urbanDesignLayers/focusAreasLayerConfig";
 import { getUserContentLayerIds } from "@/services/map.service";
 import mdiInformationPng from "@/assets/mdi-information.png";
-import defaultMapSettings from "@/defaultMapSettings.ts";
+import defaultMapSettings from "@/defaultMapSettings";
 import { getLayerIds } from "@/services/layers.service";
 
 export default {
