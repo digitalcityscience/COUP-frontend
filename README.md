@@ -28,10 +28,12 @@ Example: In which areas are many pedestrians exposed to high traffic noise?
 ![multi_layer](https://user-images.githubusercontent.com/4631906/116558943-3a693680-a900-11eb-8eba-5cd2b0391cac.gif)
 
 ### Stormwater RunOff Analysis
+![stormwater](https://user-images.githubusercontent.com/4631906/214795134-faa83384-12bb-4174-ba35-055136e6704e.gif)
 
 ### Wind speed and Sun-Exposure Analysis
+![wind3](https://user-images.githubusercontent.com/4631906/214795189-abcb077e-f971-49a2-a365-978844bde00c.gif)
+![sun](https://user-images.githubusercontent.com/4631906/214795196-e80a7769-15fb-4eda-91b0-4459d441008c.gif)
 
-Video to be uploaded
 
 ## Project setup
 
@@ -74,7 +76,8 @@ npm start
 
 View the app in a browser at localhost:8080
 
-### RUN in production mode
+### RUN in production mode!
+
 
 Create a local file containing you CityPyo login credentials in src/config/cityPyoDefaultUser.json
 This file can be an empty JSON e.g. {}
