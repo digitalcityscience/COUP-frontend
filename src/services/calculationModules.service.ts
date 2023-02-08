@@ -10,6 +10,7 @@ import type {
   NoiseScenarioConfiguration,
 } from "@/models";
 
+
 /** Requests calculations and collects results for wind, noise or stormwater scenarios */
 export default class ApiEndpoints {
   apiURL: string;
@@ -25,8 +26,7 @@ export default class ApiEndpoints {
     stormWater: string;
   };
   endpointsResultCollection: {
-    wind_single_task: string;
-    wind_group_task: string;
+    wind: string;
     noise: string;
     stormWater: string;
   };
@@ -42,15 +42,14 @@ export default class ApiEndpoints {
 
     // endpoints to request calculation
     this.endpointsCalculation = {
-      wind: this.apiURL + "wind/windtask",
+      wind: this.apiURL + "wind/trigger_calculation",
       noise: this.apiURL + "noise/task",
       stormWater: this.apiURL + "water/task",
     };
 
     // endpoints for result collection
     this.endpointsResultCollection = {
-      wind_single_task: this.apiURL + "wind/tasks/",
-      wind_group_task: this.apiURL + "wind/grouptasks/",
+      wind: this.apiURL + "wind/collect_results/",
       noise: this.apiURL + "noise/tasks/",
       stormWater: this.apiURL + "water/tasks/",
     };
@@ -109,16 +108,10 @@ export async function requestCalculationStormWater(
 export async function getResultForWind({
   taskId,
 }: CalculationTask): Promise<WindResult> {
-  // first get result object for parent task -> returns a groupTask
-  const groupTaskResult = await getResultWhenReady(
-    config.endpointsResultCollection["wind_single_task"],
-    taskId
-  );
-
-  // get results for tasks in groupTask
+  
   const result = await getResultWhenReady(
-    config.endpointsResultCollection.wind_group_task,
-    groupTaskResult
+    config.endpointsResultCollection.wind,
+    taskId
   ).then((result) => {
     return result;
   });
