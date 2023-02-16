@@ -117,5 +117,5 @@ Mandatory for the visualization to work are city_scope_id and land_use_detailed_
 
 #### Static results
 
-Provide result files for the ABM results and Noise results (currently static).
+Provide result files for the ABM results and Sun results (currently static).
 Please ask maintainers for example files.
