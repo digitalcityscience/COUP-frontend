@@ -83,8 +83,8 @@ export default {
     </div>
     <div class="menu_wrapper">
       <div v-if="context == 'grasbrook'" class="header_scope">
-        <h3>Grasbrook CityScope</h3>
-        <p>Tool for Functional Planning</p>
+        <h3>COUP | Grasbrook</h3>
+        <p>Cockpit for Collaborative Urban Planning </p>
       </div>
       <div v-if="context == 'schb'" class="header_scope">
         <h3>Science City</h3>
